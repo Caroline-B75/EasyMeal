@@ -2,7 +2,7 @@ source "https://rubygems.org"
 
 ruby "3.2.3"
 
-gem "rails", "~> 7.2.2", ">= 7.2.2.1"
+gem "rails", "~> 7.2.3"
 gem "pg"                            # PostgreSQL
 gem "puma", ">= 5.0"
 gem "sprockets-rails"               # asset pipeline (CSS/images)
