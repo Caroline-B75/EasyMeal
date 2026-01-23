@@ -30,6 +30,10 @@ bin/rails server
 
 ### Créer une nouvelle branche
 
+**⚠️ Pour ce projet : créer les branches dans SourceTree**
+
+Si besoin de créer une branche en console :
+
 ```bash
 # 1. Se mettre sur main et récupérer les dernières modifications
 git checkout main
@@ -90,6 +94,8 @@ git diff --staged
 
 ### Faire un commit
 
+Committer en console :
+
 ```bash
 # 1. Ajouter tous les fichiers modifiés
 git add .
@@ -100,11 +106,7 @@ git add chemin/vers/fichier.rb
 # 2. Committer avec un message
 git commit -m "feat: description claire de la modification"
 
-# 3. Pousser vers GitHub
-git push
-
-# OU pour la première fois sur une nouvelle branche
-git push -u origin feature/nom-de-ma-branche
+# 3. Push : à faire après merge sur main (voir section Merge)
 ```
 
 ### Messages de commit conventionnels
@@ -137,43 +139,49 @@ git reset --hard HEAD~1
 
 ---
 
-## 🔀 Git - Merge et Pull Requests
+## 🔀 Git - Merge (workflow SourceTree + Console)
 
-### Option A : Merge via Pull Request GitHub (recommandé)
+### Workflow recommandé pour ce projet
 
-```bash
-# 1. Pousser ta branche
-git push -u origin feature/ma-branche
+**Dans SourceTree :**
 
-# 2. Aller sur GitHub et créer une Pull Request
-# 3. Merger la PR sur GitHub
-# 4. Mettre à jour localement
-git checkout main
-git pull origin main
+- Créer les branches
+- Faire les commits
 
-# 5. Supprimer la branche locale
-git branch -d feature/ma-branche
-
-# 6. Supprimer la branche distante (si pas fait automatiquement)
-git push origin --delete feature/ma-branche
-```
-
-### Option B : Merge en local
+**En console (après avoir commité dans SourceTree) :**
 
 ```bash
-# 1. Se mettre sur main et récupérer les dernières modifs
+# 1. Aller sur main
 git checkout main
+
+# 2. Récupérer les dernières modifs (si besoin)
 git pull origin main
 
-# 2. Merger la branche
-git merge --no-ff feature/ma-branche
+# 3. Merger ta branche SANS ouvrir nano (remplace "nom-branche")
+git merge --no-ff nom-branche -m "Merge branch 'nom-branche' - Description courte"
 
-# 3. Pousser sur GitHub
+# 4. Pousser vers GitHub
 git push origin main
 
-# 4. Supprimer la branche
+# 5. Supprimer la branche locale
+git branch -d nom-branche
+
+# 6. (Optionnel) Supprimer la branche distante si elle existe
+# git push origin --delete nom-branche
+```
+
+### Alternative : Merge via Pull Request GitHub
+
+```bash
+# 1. Pousser ta branche (si tu as configuré SSH pour ce projet)
+git push -u origin feature/ma-branche
+
+# 2. Créer une Pull Request sur GitHub
+# 3. Merger la PR sur GitHub
+# 4. Mettre à jour localement :
+git checkout main
+git pull origin main
 git branch -d feature/ma-branche
-git push origin --delete feature/ma-branche
 ```
 
 ---
@@ -441,9 +449,6 @@ git checkout HEAD -- chemin/vers/fichier.rb
 ```bash
 # Alias Git pratiques (à ajouter dans ~/.bashrc)
 alias gs='git status'
-alias ga='git add .'
-alias gc='git commit -m'
-alias gp='git push'
 alias gl='git log --oneline --graph --decorate'
 alias gco='git checkout'
 alias gpl='git pull'
@@ -452,7 +457,38 @@ alias gpl='git pull'
 alias rs='bin/rails server'
 alias rc='bin/rails console'
 alias rr='bin/rails routes'
+
+# Alias merge rapide (sans nano)
+alias gmerge='git merge --no-ff'
+# Utilisation : gmerge ma-branche -m "Merge branch 'ma-branche' - Description"
 ```
+
+---
+
+## 🔄 Workflow complet résumé
+
+### 1. Démarrer une nouvelle fonctionnalité
+
+- **SourceTree** : Créer une branche depuis main (ex: `feature/recipes-model`)
+- **Console** : Travailler normalement
+
+### 2. Pendant le développement
+
+- **SourceTree** : Faire les commits régulièrement
+- **Console** : Tester avec `bin/rails server`, `bin/rails console`, etc.
+
+### 3. Finaliser et merger
+
+```bash
+# En console :
+git checkout main
+git pull origin main
+git merge --no-ff ma-branche -m "Merge branch 'ma-branche' - Description"
+git push origin main
+git branch -d ma-branche
+```
+
+- **SourceTree** : Vérifier que tout est à jour
 
 ---
 

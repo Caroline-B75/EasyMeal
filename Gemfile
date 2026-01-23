@@ -24,6 +24,8 @@ gem "stimulus-rails"
 gem "devise"
 gem "pundit"
 
+gem "redis", "~> 4.0" # système de cache / sessions pour actioncable
+
 # Recherche & pagination
 gem "ransack"
 gem "pagy"
