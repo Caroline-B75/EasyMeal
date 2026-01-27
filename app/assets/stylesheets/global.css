@@ -1,0 +1,154 @@
+/* ============================================
+   GLOBAL STYLES - FLASH MESSAGES & ALERTS
+   ============================================ */
+
+:root {
+  --success-color: #10b981;
+  --success-bg: #d1fae5;
+  --success-border: #6ee7b7;
+  --error-color: #ef4444;
+  --error-bg: #fee2e2;
+  --error-border: #fca5a5;
+  --info-color: #3b82f6;
+  --info-bg: #dbeafe;
+  --info-border: #93c5fd;
+  --warning-color: #f59e0b;
+  --warning-bg: #fef3c7;
+  --warning-border: #fcd34d;
+}
+
+/* Flash Messages Container */
+.flash-messages {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  max-width: 420px;
+  width: 100%;
+}
+
+/* Individual Flash Message */
+.flash-message {
+  padding: 1rem 1.25rem;
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  animation: slideInRight 0.3s ease-out;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-left: 4px solid;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Notice (Success) */
+p.notice,
+.flash-message.notice {
+  background-color: var(--success-bg);
+  color: #065f46;
+  border-left-color: var(--success-color);
+}
+
+/* Alert (Error) */
+p.alert,
+.flash-message.alert {
+  background-color: var(--error-bg);
+  color: #991b1b;
+  border-left-color: var(--error-color);
+}
+
+/* Info */
+.flash-message.info {
+  background-color: var(--info-bg);
+  color: #1e40af;
+  border-left-color: var(--info-color);
+}
+
+/* Warning */
+.flash-message.warning {
+  background-color: var(--warning-bg);
+  color: #92400e;
+  border-left-color: var(--warning-color);
+}
+
+/* Default Flash Styling (for old style in layout) */
+body > p.notice,
+body > p.alert {
+  padding: 0.875rem 1.25rem;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-align: center;
+  border-bottom: 1px solid;
+}
+
+body > p.notice {
+  border-bottom-color: var(--success-border);
+}
+
+body > p.alert {
+  border-bottom-color: var(--error-border);
+}
+
+/* Hide empty flash messages */
+p.notice:empty,
+p.alert:empty,
+.flash-message:empty {
+  display: none;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .flash-messages {
+    top: 1rem;
+    right: 1rem;
+    left: 1rem;
+    max-width: none;
+  }
+
+  body > p.notice,
+  body > p.alert {
+    font-size: 0.875rem;
+    padding: 0.75rem 1rem;
+  }
+}
+
+/* ============================================
+   GLOBAL LAYOUT ADJUSTMENTS
+   ============================================ */
+
+/* Remove default body margins for auth pages */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Link styles */
+a {
+  color: #10b981;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: #059669;
+  text-decoration: underline;
+}
+
+/* Simple reset for better consistency */
+*, *::before, *::after {
+  box-sizing: border-box;
+}

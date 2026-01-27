@@ -1,0 +1,37 @@
+# Partial pour un champ de texte stylisé réutilisable
+# 
+# Usage:
+#   <%= render 'shared/form_field', 
+#       form: f, 
+#       field: :email, 
+#       type: :email_field,
+#       required: true,
+#       placeholder: 'votre.email@exemple.com',
+#       autocomplete: 'email',
+#       autofocus: false,
+#       hint: nil %>
+
+<%
+  # Définir les valeurs par défaut
+  type ||= :text_field
+  required ||= false
+  placeholder ||= nil
+  autocomplete ||= nil
+  autofocus ||= false
+  hint ||= nil
+  label ||= nil
+  wrapper_class ||= 'form-group'
+%>
+
+<div class="<%= wrapper_class %>">
+  <%= form.label field, label, class: 'form-label' if label != false %>
+  <%= form.send(type, field, 
+                class: 'form-input',
+                placeholder: placeholder,
+                autocomplete: autocomplete,
+                autofocus: autofocus,
+                required: required) %>
+  <% if hint %>
+    <span class="hint"><%= hint %></span>
+  <% end %>
+</div>
