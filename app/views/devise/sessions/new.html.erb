@@ -1,0 +1,59 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h1 class="auth-title">Connexion</h1>
+      <p class="auth-subtitle">Content de vous revoir !</p>
+    </div>
+
+    <%= simple_form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: 'auth-form' }) do |f| %>
+      <div class="form-fields">
+        <!-- Email -->
+        <div class="form-group">
+          <%= f.input :email,
+                      required: false,
+                      autofocus: true,
+                      input_html: { 
+                        class: 'form-input',
+                        autocomplete: "email",
+                        placeholder: "votre.email@exemple.com"
+                      },
+                      label_html: { class: 'form-label' },
+                      wrapper_html: { class: 'input-wrapper' } %>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <%= f.input :password,
+                      required: false,
+                      input_html: { 
+                        class: 'form-input',
+                        autocomplete: "current-password",
+                        placeholder: "••••••••"
+                      },
+                      label_html: { class: 'form-label' },
+                      wrapper_html: { class: 'input-wrapper' } %>
+        </div>
+
+        <!-- Remember Me -->
+        <% if devise_mapping.rememberable? %>
+          <div class="form-group">
+            <%= f.input :remember_me,
+                        as: :boolean,
+                        label: "Se souvenir de moi",
+                        wrapper_html: { class: 'input-wrapper' } %>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="form-actions">
+        <%= f.button :submit, "Se connecter", class: "btn btn-primary btn-large" %>
+      </div>
+    <% end %>
+
+    <!-- Footer Links -->
+    <div class="auth-footer">
+      <%= render "devise/shared/links" %>
+    </div>
+  </div>
+</div>

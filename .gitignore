@@ -41,3 +41,6 @@ node_modules/
 vendor/bundle
 *.swp
 .DS_Store
+
+# Ignorer tous les fichiers Markdown
+*.md

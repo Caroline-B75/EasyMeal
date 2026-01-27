@@ -1,0 +1,38 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h1 class="auth-title">Mot de passe oublié ?</h1>
+      <p class="auth-subtitle">Nous vous enverrons un lien pour réinitialiser votre mot de passe</p>
+    </div>
+
+    <%= simple_form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post, class: 'auth-form' }) do |f| %>
+      <%= f.error_notification %>
+
+      <div class="form-fields">
+        <!-- Email -->
+        <div class="form-group">
+          <%= f.input :email,
+                      required: true,
+                      autofocus: true,
+                      input_html: { 
+                        class: 'form-input',
+                        autocomplete: "email",
+                        placeholder: "votre.email@exemple.com"
+                      },
+                      label_html: { class: 'form-label' },
+                      wrapper_html: { class: 'input-wrapper' } %>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="form-actions">
+        <%= f.button :submit, "Envoyer le lien", class: "btn btn-primary btn-large" %>
+      </div>
+    <% end %>
+
+    <!-- Footer Links -->
+    <div class="auth-footer">
+      <%= render "devise/shared/links" %>
+    </div>
+  </div>
+</div>

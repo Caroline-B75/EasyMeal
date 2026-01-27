@@ -1,13 +1,10 @@
-en:
+fr:
   simple_form:
-    "yes": 'Yes'
-    "no": 'No'
+    "yes": 'Oui'
+    "no": 'Non'
     required:
-      text: 'required'
+      text: 'requis'
       mark: '*'
-      # You can uncomment the line below if you need to overwrite the whole required html.
-      # When using html, text and mark won't be used.
-      # html: '<abbr title="required">*</abbr>'
     error_notification:
       default_message: "Veuillez corriger les erreurs ci-dessous :"
     labels:
@@ -18,6 +15,7 @@ en:
         username: "Nom d'utilisateur"
         first_name: 'Prénom'
         last_name: 'Nom'
+        remember_me: 'Se souvenir de moi'
       user:
         username: "Nom d'utilisateur"
         first_name: 'Prénom'
@@ -25,6 +23,7 @@ en:
         email: 'Adresse email'
         password: 'Mot de passe'
         password_confirmation: 'Confirmez votre mot de passe'
+        remember_me: 'Se souvenir de moi'
     hints:
       defaults:
         username: "Choisissez un nom d'utilisateur unique"
@@ -38,9 +37,3 @@ en:
         email: 'votre.email@exemple.com'
         password: '••••••••'
         password_confirmation: '••••••••'
-    # include_blanks:
-    #   defaults:
-    #     age: 'Rather not say'
-    # prompts:
-    #   defaults:
-    #     age: 'Select your age'
