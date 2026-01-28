@@ -9,7 +9,7 @@ cd /mnt/c/Caroline/easymeal
 # 2. Activer Ruby avec RVM
 rvm use 3.2.3@easymeal --create
 
-# 3. Installer/mettre à jour les gems
+# 3. Installer/mettre à jour les gems seulement si nécessaire
 bundle install
 
 # 4. Démarrer PostgreSQL
@@ -22,26 +22,147 @@ bin/rails db:prepare
 bin/rails server
 ```
 
+## en RAILS CONSOLE
+
+Nouveau terminal :
+cd /mnt/c/Caroline/easymeal
+rvm use 3.2.3@easymeal --create
+rails c
+
+-> pour afficher "joliment" les attributs il faut mettre "ap" avant la commande. Ex:
+ap User.first
+
 → Application accessible sur **http://localhost:3000**
 
 ---
 
-## 🌿 Git - Gestion des branches
+## 🔄 Workflow Git complet (SourceTree + Console)
 
-### Créer une nouvelle branche
+### ✨ Workflow en 4 étapes
 
-**⚠️ Pour ce projet : créer les branches dans SourceTree**
+#### **ÉTAPE 1 : Créer une nouvelle branche**
 
-Si besoin de créer une branche en console :
+**Dans SourceTree :**
+
+1. Assurez-vous d'être sur la branche `main` (double-clic sur `main` dans la liste des branches)
+2. Cliquez sur le bouton **Branche** (en haut)
+3. Nommez votre branche (ex: `feature/recipes`, `fix/login-bug`)
+4. Cochez **Créer une nouvelle branche**
+5. Cliquez sur **Créer une branche**
+
+**Alternative en console :**
 
 ```bash
-# 1. Se mettre sur main et récupérer les dernières modifications
 git checkout main
-git pull origin main
-
-# 2. Créer et basculer sur une nouvelle branche
 git checkout -b feature/nom-de-ma-fonctionnalite
 ```
+
+---
+
+#### **ÉTAPE 2 : Faire des commits**
+
+**Dans SourceTree (recommandé) :**
+
+**Pour commiter TOUS les fichiers modifiés :**
+
+1. Dans l'onglet **État des fichiers**, cochez la case tout en haut (à côté de "Fichiers non indexés")
+2. Tous les fichiers passent dans "Fichiers indexés"
+3. En bas, écrivez votre message de commit (ex: `feat: ajout du modèle Recipe`)
+4. Cliquez sur **Commit**
+
+**Pour commiter QUELQUES fichiers seulement :**
+
+1. Dans "Fichiers non indexés", cochez **uniquement** les fichiers que vous voulez commiter
+2. Ils passent dans "Fichiers indexés"
+3. En bas, écrivez votre message de commit
+4. Cliquez sur **Commit**
+
+**Alternative en console :**
+
+```bash
+# Commiter TOUS les fichiers
+git add .
+git commit -m "feat: description de la modification"
+
+# Commiter QUELQUES fichiers
+git add chemin/vers/fichier1.rb
+git add chemin/vers/fichier2.rb
+git commit -m "feat: description de la modification"
+```
+
+**Messages de commit conventionnels :**
+
+- `feat: ...` → Nouvelle fonctionnalité
+- `fix: ...` → Correction de bug
+- `refactor: ...` → Refactoring
+- `test: ...` → Tests
+- `docs: ...` → Documentation
+- `style: ...` → Style/formatage
+- `chore: ...` → Tâches diverses
+
+**→ Répétez cette étape autant de fois que nécessaire pendant votre développement**
+
+---
+
+#### **ÉTAPE 3 : Merger dans main et pousser sur GitHub**
+
+**En console (obligatoire pour éviter l'éditeur nano) :**
+
+```bash
+# 1. Aller sur main
+git checkout main
+
+# 2. Merger votre branche (remplacez "nom-branche" par le nom de votre branche)
+git merge --no-ff nom-branche -m "Merge branch 'nom-branche' - Description courte"
+
+# 3. Pousser vers GitHub
+git push origin main
+```
+
+**Exemple concret :**
+
+```bash
+git checkout main
+git merge --no-ff feature/recipes -m "Merge branch 'feature/recipes' - Ajout modèle Recipe"
+git push origin main
+```
+
+---
+
+#### **ÉTAPE 4 : Supprimer la branche**
+
+**En console (recommandé) :**
+
+```bash
+# Supprimer la branche locale
+git branch -d nom-branche
+```
+
+**Dans SourceTree :**
+
+1. Faites un clic droit sur votre branche (dans la liste des branches à gauche)
+2. Sélectionnez **Supprimer la branche**
+3. Confirmez
+
+---
+
+### 📋 Résumé du workflow complet
+
+```
+1. SourceTree : Créer branche "feature/ma-fonctionnalite" depuis main
+                ↓
+2. SourceTree : Faire des commits (plusieurs fois si besoin)
+                ↓
+3. Console    : git checkout main
+                git merge --no-ff feature/ma-fonctionnalite -m "Merge branch '...' - Description"
+                git push origin main
+                ↓
+4. Console    : git branch -d feature/ma-fonctionnalite
+```
+
+---
+
+## 🌿 Git - Gestion des branches (commandes utiles)
 
 ### Voir les branches
 
@@ -58,26 +179,23 @@ git branch --show-current
 
 ### Changer de branche
 
+**Dans SourceTree :** Double-clic sur le nom de la branche
+
+**En console :**
+
 ```bash
 git checkout nom-de-la-branche
 ```
 
-### Supprimer une branche
+### Supprimer une branche distante (si elle existe sur GitHub)
 
 ```bash
-# Supprimer une branche locale (après merge)
-git branch -d nom-de-la-branche
-
-# Forcer la suppression (si pas mergée)
-git branch -D nom-de-la-branche
-
-# Supprimer une branche distante
 git push origin --delete nom-de-la-branche
 ```
 
 ---
 
-## 💾 Git - Commits et push
+## 💾 Git - Autres commandes utiles
 
 ### Voir l'état des fichiers
 
@@ -92,114 +210,32 @@ git diff
 git diff --staged
 ```
 
-### Faire un commit
-
-Committer en console :
-
-```bash
-# 1. Ajouter tous les fichiers modifiés
-git add .
-
-# OU ajouter des fichiers spécifiques
-git add chemin/vers/fichier.rb
-
-# 2. Committer avec un message
-git commit -m "feat: description claire de la modification"
-
-# 3. Push : à faire après merge sur main (voir section Merge)
-```
-
-### Messages de commit conventionnels
-
-```bash
-git commit -m "feat: ajout du modèle Recipe"        # Nouvelle fonctionnalité
-git commit -m "fix: correction du bug sur la route" # Correction de bug
-git commit -m "refactor: amélioration du service"   # Refactoring
-git commit -m "test: ajout des specs Recipe"        # Tests
-git commit -m "docs: mise à jour du README"         # Documentation
-git commit -m "style: formatage du code"            # Style/formatage
-git commit -m "chore: mise à jour des gems"         # Tâches diverses
-```
-
 ### Annuler des modifications
 
 ```bash
-# Annuler les modifications d'un fichier (avant add)
+# Annuler les modifications d'un fichier (avant add/commit)
 git restore chemin/vers/fichier.rb
-
-# Retirer un fichier du staging (après add, avant commit)
-git restore --staged chemin/vers/fichier.rb
 
 # Annuler le dernier commit (garde les modifications)
 git reset --soft HEAD~1
 
-# Annuler le dernier commit (supprime les modifications)
+# Annuler le dernier commit (supprime les modifications - ATTENTION!)
 git reset --hard HEAD~1
 ```
 
 ---
 
-## 🔀 Git - Merge (workflow SourceTree + Console)
-
-### Workflow recommandé pour ce projet
-
-**Dans SourceTree :**
-
-- Créer les branches
-- Faire les commits
-
-**En console (après avoir commité dans SourceTree) :**
-
-```bash
-# 1. Aller sur main
-git checkout main
-
-# 2. Récupérer les dernières modifs (si besoin)
-git pull origin main
-
-# 3. Merger ta branche SANS ouvrir nano (remplace "nom-branche")
-git merge --no-ff nom-branche -m "Merge branch 'nom-branche' - Description courte"
-
-# 4. Pousser vers GitHub
-git push origin main
-
-# 5. Supprimer la branche locale
-git branch -d nom-branche
-
-# 6. (Optionnel) Supprimer la branche distante si elle existe
-# git push origin --delete nom-branche
-```
-
-### Alternative : Merge via Pull Request GitHub
-
-```bash
-# 1. Pousser ta branche (si tu as configuré SSH pour ce projet)
-git push -u origin feature/ma-branche
-
-# 2. Créer une Pull Request sur GitHub
-# 3. Merger la PR sur GitHub
-# 4. Mettre à jour localement :
-git checkout main
-git pull origin main
-git branch -d feature/ma-branche
-```
-
----
-
-## 📜 Git - Historique et informations
+## 📜 Git - Historique
 
 ```bash
 # Voir l'historique des commits
 git log
 
-# Historique compact et graphique
+# Historique compact et graphique (recommandé)
 git log --oneline --graph --decorate --all
 
 # Voir les 5 derniers commits
 git log -5 --oneline
-
-# Voir qui a modifié quoi dans un fichier
-git blame chemin/vers/fichier.rb
 
 # Voir les détails d'un commit spécifique
 git show <hash-du-commit>
@@ -442,6 +478,17 @@ git reset --hard HEAD
 git checkout HEAD -- chemin/vers/fichier.rb
 ```
 
+### Problème de push SourceTree (clé SSH)
+
+Si le push dans SourceTree bloque à cause de SSH :
+
+```bash
+# Passer le dépôt en HTTPS (à faire une seule fois)
+git remote set-url origin https://github.com/Caroline-B75/EasyMeal.git
+```
+
+Ensuite, SourceTree vous demandera votre Personal Access Token GitHub.
+
 ---
 
 ## 📌 Raccourcis utiles
@@ -462,34 +509,3 @@ alias rr='bin/rails routes'
 alias gmerge='git merge --no-ff'
 # Utilisation : gmerge ma-branche -m "Merge branch 'ma-branche' - Description"
 ```
-
----
-
-## 🔄 Workflow complet résumé
-
-### 1. Démarrer une nouvelle fonctionnalité
-
-- **SourceTree** : Créer une branche depuis main (ex: `feature/recipes-model`)
-- **Console** : Travailler normalement
-
-### 2. Pendant le développement
-
-- **SourceTree** : Faire les commits régulièrement
-- **Console** : Tester avec `bin/rails server`, `bin/rails console`, etc.
-
-### 3. Finaliser et merger
-
-```bash
-# En console :
-git checkout main
-git pull origin main
-git merge --no-ff ma-branche -m "Merge branch 'ma-branche' - Description"
-git push origin main
-git branch -d ma-branche
-```
-
-- **SourceTree** : Vérifier que tout est à jour
-
----
-
-✨ **Bon développement !**
