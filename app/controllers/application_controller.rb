@@ -1,5 +1,6 @@
 class ApplicationController < ActionController::Base
   include Pundit
+  include Pagy::Backend
 
   # Configurer les paramètres autorisés pour Devise
   before_action :configure_permitted_parameters, if: :devise_controller?
