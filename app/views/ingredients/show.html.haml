@@ -1,0 +1,40 @@
+- content_for :title, @ingredient.name
+
+.show-container
+  .show-header
+    %h1= @ingredient.name
+    = link_to "← Retour à la liste", ingredients_path, class: "btn-link"
+
+  .show-card
+    .detail-grid
+      .detail-item
+        %span.detail-label Rayon
+        %span.detail-value
+          %span{ class: "ingredient-category-badge category-#{@ingredient.category}" }
+            = Ingredient.human_attribute_name("category.#{@ingredient.category}")
+
+      .detail-item
+        %span.detail-label Unité de mesure
+        %span.detail-value
+          = Ingredient.human_attribute_name("unit_group.#{@ingredient.unit_group}")
+          = "(#{@ingredient.base_unit})"
+
+      - if @ingredient.aliases.present?
+        .detail-item
+          %span.detail-label Alias
+          %span.detail-value
+            = @ingredient.aliases.is_a?(Array) ? @ingredient.aliases.join(', ') : @ingredient.aliases.values.join(', ')
+
+      - if @ingredient.season_months.present?
+        .detail-item
+          %span.detail-label Mois de saison
+          .detail-value
+            .months-display
+              - @ingredient.season_months.sort.each do |month|
+                %span.month-badge= Date::ABBR_MONTHNAMES[month]
+
+    .show-actions
+      - if policy(@ingredient).edit?
+        = link_to "Modifier", edit_ingredient_path(@ingredient), class: "btn btn-primary"
+      - if policy(@ingredient).destroy?
+        = button_to "Supprimer", ingredient_path(@ingredient), method: :delete, data: { turbo_confirm: "Êtes-vous sûr de vouloir supprimer cet ingrédient ?" }, class: "btn btn-danger"
