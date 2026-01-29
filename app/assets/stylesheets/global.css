@@ -2,6 +2,16 @@
    GLOBAL STYLES - FLASH MESSAGES & ALERTS
    ============================================ */
 
+/* === Global Body Styles === */
+body {
+  background: #F8F6F3;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #4A4A4A;
+  margin: 0;
+  padding: 0;
+}
+
+/* === CSS Variables === */
 :root {
   --success-color: #10b981;
   --success-bg: #d1fae5;
