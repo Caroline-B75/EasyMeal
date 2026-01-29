@@ -1,0 +1,387 @@
+/* ============================================
+   RESPONSIVE DESIGN - MOBILE FIRST
+   ============================================ */
+
+/* Variables pour les breakpoints */
+:root {
+  --mobile-max: 767px;
+  --tablet-min: 768px;
+  --tablet-max: 1024px;
+  --desktop-min: 1025px;
+}
+
+/* ============================================
+   GLOBAL RESPONSIVE ADJUSTMENTS
+   ============================================ */
+
+/* Base mobile styles (par défaut) */
+body {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Tablette */
+@media (min-width: 768px) {
+  body {
+    font-size: 15px;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1025px) {
+  body {
+    font-size: 16px;
+  }
+}
+
+/* ============================================
+   NAVIGATION & HEADER RESPONSIVE
+   ============================================ */
+
+/* Header navigation adapté pour mobile */
+@media (max-width: 767px) {
+  .main-header {
+    padding: 0.5rem 1rem;
+  }
+
+  .nav-links {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .nav-links a,
+  .nav-links span {
+    font-size: 0.875rem;
+  }
+}
+
+/* ============================================
+   INGREDIENTS INDEX - RESPONSIVE
+   ============================================ */
+
+/* Container sur mobile */
+@media (max-width: 767px) {
+  .ingredients-container {
+    padding: 1rem 0.75rem;
+  }
+
+  .ingredients-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .ingredients-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Filtres responsive */
+@media (max-width: 767px) {
+  .ingredients-filters {
+    padding: 1rem;
+  }
+
+  .search-group {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .search-input,
+  .filter-select {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .season-checkbox {
+    width: 100%;
+  }
+}
+
+/* Tablettes - layout intermédiaire */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .search-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .search-input {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Table responsive - Mode carte sur mobile */
+@media (max-width: 767px) {
+  .table-container {
+    overflow-x: visible;
+  }
+
+  .ingredients-table {
+    display: block;
+    border: none;
+  }
+
+  .ingredients-table thead {
+    display: none;
+  }
+
+  .ingredients-table tbody {
+    display: block;
+  }
+
+  .ingredients-table tr {
+    display: block;
+    background: white;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .ingredients-table td {
+    display: block;
+    text-align: left;
+    padding: 0.5rem 0;
+    border: none;
+  }
+
+  .ingredients-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    display: inline-block;
+    margin-right: 0.5rem;
+    color: #6B7280;
+  }
+
+  .ingredient-name-cell {
+    border-bottom: 2px solid #E8E4DF;
+    padding-bottom: 0.75rem !important;
+    margin-bottom: 0.5rem;
+  }
+
+  .ingredient-name-cell strong {
+    font-size: 1.125rem;
+  }
+
+  .actions-cell {
+    display: flex;
+    gap: 0.5rem;
+    padding-top: 1rem !important;
+    border-top: 1px solid #E8E4DF;
+    margin-top: 0.5rem;
+  }
+
+  .icon-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+/* Table - scroll horizontal sur tablette si nécessaire */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .table-container {
+    overflow-x: auto;
+  }
+
+  .ingredients-table {
+    min-width: 700px;
+  }
+}
+
+/* ============================================
+   AUTHENTICATION PAGES - RESPONSIVE
+   ============================================ */
+
+@media (max-width: 767px) {
+  .auth-container {
+    padding: 1rem 0.75rem;
+  }
+
+  .auth-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .auth-title {
+    font-size: 1.5rem;
+  }
+
+  .auth-subtitle {
+    font-size: 0.875rem;
+  }
+
+  /* Formulaires en colonne unique sur mobile */
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-group,
+  .form-group-half {
+    margin-bottom: 1.25rem;
+  }
+
+  .submit-button {
+    padding: 0.875rem;
+    font-size: 1rem;
+  }
+}
+
+/* Tablette - garder 2 colonnes pour certains champs */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .auth-card {
+    max-width: 520px;
+  }
+}
+
+/* ============================================
+   FORMS - RESPONSIVE
+   ============================================ */
+
+@media (max-width: 767px) {
+  .form-container {
+    padding: 1rem;
+  }
+
+  .form-label {
+    font-size: 0.875rem;
+  }
+
+  .form-input,
+  .form-select,
+  .form-textarea {
+    font-size: 16px; /* Évite le zoom sur iOS */
+  }
+
+  .checkbox-group,
+  .radio-group {
+    flex-direction: column;
+  }
+}
+
+/* ============================================
+   BUTTONS - RESPONSIVE
+   ============================================ */
+
+@media (max-width: 767px) {
+  .btn {
+    padding: 0.75rem 1rem;
+    font-size: 0.9375rem;
+  }
+
+  .icon-btn {
+    min-width: 40px;
+    min-height: 40px;
+  }
+}
+
+/* ============================================
+   PAGINATION - RESPONSIVE
+   ============================================ */
+
+@media (max-width: 767px) {
+  .pagination-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .pagy-nav {
+    justify-content: flex-start;
+  }
+
+  .pagy-nav .page {
+    min-width: 36px;
+    min-height: 36px;
+    font-size: 0.875rem;
+  }
+}
+
+/* ============================================
+   FLASH MESSAGES - RESPONSIVE
+   ============================================ */
+
+/* Déjà géré dans global.css mais renforcé ici */
+@media (max-width: 767px) {
+  .flash-messages {
+    top: 0.5rem;
+    right: 0.5rem;
+    left: 0.5rem;
+    max-width: none;
+  }
+
+  .flash-message {
+    padding: 0.875rem 1rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* ============================================
+   EMPTY STATES - RESPONSIVE
+   ============================================ */
+
+@media (max-width: 767px) {
+  .empty-state {
+    padding: 2rem 1rem;
+  }
+
+  .empty-state p {
+    font-size: 0.9375rem;
+  }
+}
+
+/* ============================================
+   UTILITIES - RESPONSIVE
+   ============================================ */
+
+/* Classes utilitaires pour masquer/afficher selon la taille */
+@media (max-width: 767px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .show-mobile-only {
+    display: none !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .hide-tablet {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1025px) {
+  .hide-desktop {
+    display: none !important;
+  }
+}
+
+/* ============================================
+   TOUCH TARGETS - ACCESSIBILITY
+   ============================================ */
+
+/* Assurer des zones tactiles suffisamment grandes sur mobile */
+@media (max-width: 767px) {
+  a,
+  button,
+  input[type="submit"],
+  input[type="button"],
+  label {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* Exception pour les petites icônes avec padding */
+  .icon-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

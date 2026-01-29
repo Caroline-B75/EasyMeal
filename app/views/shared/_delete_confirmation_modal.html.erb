@@ -1,0 +1,220 @@
+<!-- Modal de confirmation de suppression -->
+<div id="delete-confirmation-modal" class="modal-overlay" style="display: none;">
+  <div class="modal-container">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Confirmer la suppression</h3>
+      </div>
+      
+      <div class="modal-body">
+        <p>Êtes-vous sûr de vouloir supprimer cet ingrédient ?</p>
+        <p class="modal-warning">Cette action est irréversible.</p>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">
+          Annuler
+        </button>
+        <button type="button" class="btn btn-danger" onclick="confirmDelete()">
+          Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Modal overlay */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* Modal container */
+  .modal-container {
+    max-width: 480px;
+    width: 100%;
+    animation: slideUp 0.3s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Modal content */
+  .modal-content {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+  }
+
+  /* Modal header */
+  .modal-header {
+    padding: 1.5rem 1.5rem 1rem 1.5rem;
+    border-bottom: 2px solid #E8E4DF;
+  }
+
+  .modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #3D3D3D;
+  }
+
+  /* Modal body */
+  .modal-body {
+    padding: 1.5rem;
+  }
+
+  .modal-body p {
+    margin: 0 0 0.75rem 0;
+    font-size: 1rem;
+    color: #4A4A4A;
+    line-height: 1.5;
+  }
+
+  .modal-body p:last-child {
+    margin-bottom: 0;
+  }
+
+  .modal-warning {
+    font-size: 0.875rem;
+    color: #C8444B;
+    font-weight: 500;
+  }
+
+  /* Modal actions */
+  .modal-actions {
+    padding: 1rem 1.5rem 1.5rem 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+  }
+
+  .modal-actions .btn {
+    margin: 0;
+  }
+
+  .btn-danger {
+    background: #C8444B;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-danger:hover {
+    background: #A63940;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(200, 68, 75, 0.3);
+  }
+
+  /* Responsive */
+  @media (max-width: 767px) {
+    .modal-container {
+      max-width: 100%;
+      margin: 0 0.75rem;
+    }
+
+    .modal-header {
+      padding: 1.25rem 1.25rem 0.75rem 1.25rem;
+    }
+
+    .modal-header h3 {
+      font-size: 1.125rem;
+    }
+
+    .modal-body {
+      padding: 1.25rem;
+    }
+
+    .modal-body p {
+      font-size: 0.9375rem;
+    }
+
+    .modal-actions {
+      padding: 0.75rem 1.25rem 1.25rem 1.25rem;
+      flex-direction: column-reverse;
+    }
+
+    .modal-actions .btn {
+      width: 100%;
+      text-align: center;
+    }
+  }
+</style>
+
+<script>
+  let deleteFormToSubmit = null;
+
+  function showDeleteModal(event) {
+    event.preventDefault();
+    deleteFormToSubmit = event.target.closest('form');
+    const modal = document.getElementById('delete-confirmation-modal');
+    modal.style.display = 'flex';
+    
+    // Empêcher le scroll du body
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeDeleteModal() {
+    const modal = document.getElementById('delete-confirmation-modal');
+    modal.style.display = 'none';
+    deleteFormToSubmit = null;
+    
+    // Réactiver le scroll du body
+    document.body.style.overflow = '';
+  }
+
+  function confirmDelete() {
+    if (deleteFormToSubmit) {
+      deleteFormToSubmit.submit();
+    }
+    closeDeleteModal();
+  }
+
+  // Fermer la modal en cliquant sur l'overlay
+  document.addEventListener('click', function(event) {
+    const modal = document.getElementById('delete-confirmation-modal');
+    if (event.target === modal) {
+      closeDeleteModal();
+    }
+  });
+
+  // Fermer la modal avec la touche Escape
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+      closeDeleteModal();
+    }
+  });
+</script>
