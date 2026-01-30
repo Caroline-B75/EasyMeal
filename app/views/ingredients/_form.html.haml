@@ -28,12 +28,12 @@
 
   .form-group
     = f.label :aliases, "Alias (synonymes)", class: "form-label"
-    %small.form-hint Noms alternatifs pour faciliter la recherche
+    %small.form-hint Noms alternatifs pour faciliter ta recherche
     = f.text_field :aliases, value: ingredient.aliases.is_a?(Array) ? ingredient.aliases.join(', ') : '', class: "form-input", placeholder: "Ex: tomate, tomate fraîche (séparés par des virgules)"
 
   .form-group
     = f.label :season_months, "Mois de saison", class: "form-label"
-    %small.form-hint Cochez les mois où cet ingrédient est de saison
+    %small.form-hint Coche les mois où cet ingrédient est de saison
     = hidden_field_tag "ingredient[season_months][]", ""
     .months-grid
       - (1..12).each do |month|

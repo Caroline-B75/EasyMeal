@@ -36,6 +36,9 @@ module Easymeal
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
 
+    # Autoload du dossier services
+    config.autoload_paths += %W[#{config.root}/app/services]
+
     # Application uniquement en français
     config.i18n.default_locale = :fr
     config.i18n.available_locales = [:fr]

@@ -13,11 +13,13 @@ fr:
         password: 'Mot de passe'
         password_confirmation: 'Confirmation du mot de passe'
         username: "Nom d'utilisateur"
+        gender: 'Genre'
         first_name: 'Prénom'
         last_name: 'Nom'
         remember_me: 'Se souvenir de moi'
       user:
         username: "Nom d'utilisateur"
+        gender: 'Genre'
         first_name: 'Prénom'
         last_name: 'Nom'
         email: 'Adresse email'
@@ -32,6 +34,7 @@ fr:
     placeholders:
       defaults:
         username: "Choisissez un nom d'utilisateur"
+        gender: 'Sélectionnez...'
         first_name: 'Votre prénom'
         last_name: 'Votre nom'
         email: 'votre.email@exemple.com'

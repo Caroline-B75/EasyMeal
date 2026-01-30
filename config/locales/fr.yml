@@ -4,6 +4,9 @@ fr:
       ingredient:
         one: Ingrédient
         other: Ingrédients
+      user:
+        one: Utilisateur
+        other: Utilisateurs
     attributes:
       ingredient:
         name: Nom
@@ -38,6 +41,16 @@ fr:
           volume: Volume (ml, L)
           count: Nombre (pièces)
           spoon: Cuillères (càc, càs)
+      user:
+        email: Adresse email
+        password: Mot de passe
+        password_confirmation: Confirmation du mot de passe
+        current_password: Mot de passe actuel
+        username: Nom d'utilisateur
+        first_name: Prénom
+        last_name: Nom
+        gender: Genre
+        remember_me: Se souvenir de moi
     errors:
       models:
         ingredient:
@@ -51,3 +64,65 @@ fr:
               blank: Veuillez sélectionner un groupe d'unités
             base_unit:
               blank: L'unité de base ne peut pas être vide
+        user:
+          attributes:
+            email:
+              blank: L'adresse email ne peut pas être vide
+              invalid: L'adresse email n'est pas valide
+              taken: Cette adresse email est déjà utilisée
+            password:
+              blank: Le mot de passe ne peut pas être vide
+              too_short: Le mot de passe est trop court (minimum %{count} caractères)
+              confirmation: Les mots de passe ne correspondent pas
+            password_confirmation:
+              confirmation: La confirmation ne correspond pas au mot de passe
+            username:
+              blank: Le nom d'utilisateur ne peut pas être vide
+              taken: Ce nom d'utilisateur est déjà pris
+            first_name:
+              blank: Le prénom ne peut pas être vide
+            last_name:
+              blank: Le nom ne peut pas être vide
+            gender:
+              blank: Veuillez sélectionner votre genre
+              inclusion: Veuillez sélectionner un genre valide
+      messages:
+        blank: "ne peut pas être vide"
+        taken: "est déjà utilisé"
+        invalid: "n'est pas valide"
+        too_short: "est trop court (minimum %{count} caractères)"
+        too_long: "est trop long (maximum %{count} caractères)"
+        confirmation: "ne correspond pas"
+        inclusion: "n'est pas valide"
+        exclusion: "n'est pas disponible"
+        not_a_number: "n'est pas un nombre"
+        greater_than: "doit être supérieur à %{count}"
+        greater_than_or_equal_to: "doit être supérieur ou égal à %{count}"
+        less_than: "doit être inférieur à %{count}"
+        less_than_or_equal_to: "doit être inférieur ou égal à %{count}"
+        other_than: "doit être différent de %{count}"
+        odd: "doit être impair"
+        even: "doit être pair"
+        present: "doit être vide"
+        required: "doit exister"
+        
+  errors:
+    messages:
+      blank: "ne peut pas être vide"
+      taken: "est déjà utilisé"
+      invalid: "n'est pas valide"
+      too_short: "est trop court (minimum %{count} caractères)"
+      too_long: "est trop long (maximum %{count} caractères)"
+      confirmation: "ne correspond pas"
+      inclusion: "n'est pas valide"
+      exclusion: "n'est pas disponible"
+      not_a_number: "n'est pas un nombre"
+      greater_than: "doit être supérieur à %{count}"
+      greater_than_or_equal_to: "doit être supérieur ou égal à %{count}"
+      less_than: "doit être inférieur à %{count}"
+      less_than_or_equal_to: "doit être inférieur ou égal à %{count}"
+      other_than: "doit être différent de %{count}"
+      odd: "doit être impair"
+      even: "doit être pair"
+      present: "doit être vide"
+      required: "doit exister"

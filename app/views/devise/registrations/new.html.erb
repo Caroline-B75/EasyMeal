@@ -4,9 +4,9 @@
 
 <div class="auth-container">
   <div class="auth-card">
-    <div class="auth-header">
+    <div class="auth-header user-form-header">
       <h1 class="auth-title">Créer un compte</h1>
-      <p class="auth-subtitle">Rejoignez EasyMeal et simplifiez vos repas</p>
+      <p class="auth-subtitle">Rejoins EasyMeal et simplifie tes repas !</p>
     </div>
 
     <%= simple_form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: 'auth-form' }) do |f| %>
@@ -21,7 +21,7 @@
                       input_html: { 
                         class: 'form-input',
                         autocomplete: "username",
-                        placeholder: "Choisissez un nom d'utilisateur"
+                        placeholder="Choisis un nom d'utilisateur"
                       },
                       label_html: { class: 'form-label' },
                       wrapper_html: { class: 'input-wrapper' } %>
@@ -35,7 +35,7 @@
                         input_html: { 
                           class: 'form-input',
                           autocomplete: "given-name",
-                          placeholder: "Votre prénom"
+                          placeholder="Ton prénom"
                         },
                         label_html: { class: 'form-label' },
                         wrapper_html: { class: 'input-wrapper' } %>
@@ -47,11 +47,23 @@
                         input_html: { 
                           class: 'form-input',
                           autocomplete: "family-name",
-                          placeholder: "Votre nom"
+                          placeholder="Ton nom"
                         },
                         label_html: { class: 'form-label' },
                         wrapper_html: { class: 'input-wrapper' } %>
           </div>
+        </div>
+
+        <!-- Gender -->
+        <div class="form-group">
+          <%= f.input :gender,
+                      required: true,
+                      collection: [['Homme', 'male'], ['Femme', 'female']],
+                      input_html: { 
+                        class: 'form-input'
+                      },
+                      label_html: { class: 'form-label' },
+                      wrapper_html: { class: 'input-wrapper' } %>
         </div>
 
         <!-- Email -->
