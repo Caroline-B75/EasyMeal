@@ -2,6 +2,16 @@
    GLOBAL STYLES - FLASH MESSAGES & ALERTS
    ============================================ */
 
+/* === Global Body Styles === */
+body {
+  background: #F9F5F2;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #4A4A4A;
+  margin: 0;
+  padding: 0;
+}
+
+/* === CSS Variables === */
 :root {
   --success-color: #10b981;
   --success-bg: #d1fae5;
@@ -138,13 +148,13 @@ body {
 
 /* Link styles */
 a {
-  color: #10b981;
+  color: #FF9E4D;
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
 a:hover {
-  color: #059669;
+  color: #E68838;
   text-decoration: underline;
 }
 

@@ -3,17 +3,20 @@
    ============================================ */
 
 :root {
-  --primary-color: #10b981;
-  --primary-hover: #059669;
-  --primary-light: #d1fae5;
+  --primary-color: #D73A49;
+  --primary-hover: #B02A37;
+  --primary-light: #fef2f2;
+  --secondary-color: #FF9E4D;
+  --secondary-hover: #E68838;
   --text-primary: #1f2937;
   --text-secondary: #6b7280;
   --text-muted: #9ca3af;
-  --border-color: #e5e7eb;
-  --error-color: #ef4444;
-  --error-bg: #fee2e2;
-  --success-color: #10b981;
-  --bg-light: #f9fafb;
+  --border-color: #FFF1E0;
+  --error-color: #D73A49;
+  --error-bg: #fef2f2;
+  --success-color: #88B04B;
+  --bg-light: #F9F5F2;
+  --bg-secondary: #FFF1E0;
   --white: #ffffff;
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -35,7 +38,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #D73A49 0%, #7B3F00 100%);
   padding: 2rem 1rem;
   position: relative;
   overflow: hidden;
@@ -49,8 +52,8 @@
   right: 0;
   bottom: 0;
   background-image: 
-    radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(138, 118, 198, 0.3) 0%, transparent 50%);
+    radial-gradient(circle at 20% 50%, rgba(255, 158, 77, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(123, 63, 0, 0.2) 0%, transparent 50%);
   animation: gradientShift 15s ease infinite;
 }
 
@@ -265,7 +268,7 @@
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, var(--primary-hover) 0%, #047857 100%);
+  background: linear-gradient(135deg, var(--primary-hover) 0%, #8B2530 100%);
   box-shadow: var(--shadow-lg);
   transform: translateY(-1px);
 }

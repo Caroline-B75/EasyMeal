@@ -1,0 +1,9 @@
+- content_for :title, "Modifier l'ingrédient"
+
+.page-container
+  .page-header
+    %h1 Modifier l'ingrédient
+    = link_to "← Retour", ingredients_path, class: "btn-link"
+
+  .form-container
+    = render "form", ingredient: @ingredient

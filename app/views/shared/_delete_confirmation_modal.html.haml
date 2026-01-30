@@ -1,0 +1,17 @@
+-# Modal de confirmation de suppression avec Stimulus
+-# Utilisation : Ajoutez data-controller="modal" sur un parent et data-action="click->modal#open" sur le bouton
+.modal-overlay{ data: { modal_target: "overlay", action: "click->modal#closeOnOverlay" }, style: "display: none;" }
+  .modal-container
+    .modal-content
+      .modal-header
+        %h3 Confirmer la suppression
+
+      .modal-body
+        %p Êtes-vous sûr de vouloir supprimer cet ingrédient ?
+        %p.modal-warning Cette action est irréversible.
+
+      .modal-actions
+        %button.btn.btn-secondary{ type: "button", data: { action: "click->modal#close" } }
+          Annuler
+        %button.btn.btn-danger{ type: "button", data: { action: "click->modal#confirm", modal_target: "confirmButton" } }
+          Supprimer

@@ -1,0 +1,46 @@
+-# Formulaire pour créer/éditer un ingrédient avec Stimulus
+= form_with model: ingredient, class: "ingredient-form", data: { controller: "ingredient-form", turbo: false } do |f|
+  - if ingredient.errors.any?
+    .form-errors
+      %h3= pluralize(ingredient.errors.count, "erreur") + " à corriger :"
+      %ul
+        - ingredient.errors.full_messages.each do |message|
+          %li= message
+
+  .form-group
+    = f.label :name, "Nom de l'ingrédient *", class: "form-label"
+    = f.text_field :name, class: "form-input", placeholder: "Ex: Tomates", required: true
+
+  .form-group
+    = f.label :category, "Rayon *", class: "form-label"
+    %small.form-hint Le rayon où se trouve cet ingrédient en supermarché
+    = f.select :category, Ingredient.categories.map { |k, _v| [Ingredient.human_attribute_name("category.#{k}"), k] }, { prompt: "Sélectionnez un rayon" }, class: "form-select", required: true
+
+  .form-group
+    = f.label :unit_group, "Groupe d'unités *", class: "form-label"
+    %small.form-hint Type de mesure pour cet ingrédient
+    = f.select :unit_group, Ingredient.unit_groups.map { |k, _v| [Ingredient.human_attribute_name("unit_group.#{k}"), k] }, { prompt: "Sélectionnez un groupe" }, class: "form-select", required: true, data: { ingredient_form_target: "unitGroup", action: "change->ingredient-form#updateBaseUnit" }
+
+  .form-group
+    = f.label :base_unit, "Unité de base *", class: "form-label"
+    %small.form-hint Déterminée automatiquement
+    = f.text_field :base_unit, class: "form-input", placeholder: "Ex: g, ml, piece, cac", readonly: true, data: { ingredient_form_target: "baseUnit" }
+
+  .form-group
+    = f.label :aliases, "Alias (synonymes)", class: "form-label"
+    %small.form-hint Noms alternatifs pour faciliter la recherche
+    = f.text_field :aliases, value: ingredient.aliases.is_a?(Array) ? ingredient.aliases.join(', ') : '', class: "form-input", placeholder: "Ex: tomate, tomate fraîche (séparés par des virgules)"
+
+  .form-group
+    = f.label :season_months, "Mois de saison", class: "form-label"
+    %small.form-hint Cochez les mois où cet ingrédient est de saison
+    = hidden_field_tag "ingredient[season_months][]", ""
+    .months-grid
+      - (1..12).each do |month|
+        %label.month-checkbox
+          = check_box_tag "ingredient[season_months][]", month, ingredient.season_months.include?(month), id: "ingredient_season_months_#{month}"
+          %span= Date::ABBR_MONTHNAMES[month]
+
+  .form-actions
+    = f.submit ingredient.new_record? ? "Créer l'ingrédient" : "Mettre à jour", class: "btn btn-primary"
+    = link_to "Annuler", ingredients_path, class: "btn btn-secondary"

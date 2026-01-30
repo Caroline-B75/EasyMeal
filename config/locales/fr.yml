@@ -1,0 +1,53 @@
+fr:
+  activerecord:
+    models:
+      ingredient:
+        one: Ingrédient
+        other: Ingrédients
+    attributes:
+      ingredient:
+        name: Nom
+        category: Rayon
+        unit_group: Groupe d'unités
+        base_unit: Unité de base
+        season_months: Mois de saison
+        aliases: Alias
+        categories:
+          fruits_legumes: Fruits et légumes
+          boucherie_viande: Boucherie / Viande
+          charcuterie_traiteur: Charcuterie / Traiteur
+          poissonnerie: Poissonnerie
+          fromagerie_coupe: Fromagerie / Coupe
+          boulangerie_patisserie: Boulangerie / Pâtisserie
+          produits_laitiers: Produits laitiers
+          produits_frais_libre_service: Produits frais en libre-service
+          glaces_desserts_glaces: Glaces et desserts glacés
+          legumes_surgeles: Légumes surgelés
+          viandes_poissons_surgeles: Viandes et poissons surgelés
+          produits_aperitifs_surgeles: Produits apéritifs surgelés
+          epicerie_salee: Épicerie salée
+          epicerie_sucree: Épicerie sucrée
+          boissons: Boissons
+          petit_dejeuner: Petit-déjeuner
+          produits_monde: Produits du monde
+          hygiene_beaute: Hygiène et beauté
+          entretien_maison: Entretien de la maison
+          papeterie_fournitures: Papeterie et fournitures
+        unit_groups:
+          mass: Masse (g, kg)
+          volume: Volume (ml, L)
+          count: Nombre (pièces)
+          spoon: Cuillères (càc, càs)
+    errors:
+      models:
+        ingredient:
+          attributes:
+            name:
+              blank: Le nom ne peut pas être vide
+              taken: Ce nom d'ingrédient existe déjà
+            category:
+              blank: Veuillez sélectionner un rayon
+            unit_group:
+              blank: Veuillez sélectionner un groupe d'unités
+            base_unit:
+              blank: L'unité de base ne peut pas être vide

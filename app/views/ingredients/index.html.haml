@@ -1,0 +1,86 @@
+- content_for :title, "Ingrédients"
+
+-# Container avec le controller modal pour gérer les suppressions
+.ingredients-container{ data: { controller: "modal" } }
+  .ingredients-header
+    %h1 Mes ingrédients
+    - if policy(Ingredient).create?
+      = link_to "Nouvel ingrédient", new_ingredient_path, class: "btn btn-primary"
+
+  -# Filtres et recherche
+  .ingredients-filters
+    = form_with url: ingredients_path, method: :get, class: "search-form", data: { turbo_frame: "ingredients_list" } do |f|
+      .search-group
+        = f.text_field :query, value: params[:query], placeholder: "Rechercher un ingrédient...", class: "search-input"
+
+        = f.select :category, options_for_select(Ingredient.categories.map { |k, v| [Ingredient.human_attribute_name("category.#{k}"), k] }, params[:category]), { include_blank: "Tous les rayons" }, class: "filter-select"
+
+        = f.select :month, options_for_select((1..12).map { |m| [Date::MONTHNAMES[m], m] }, params[:month]), { include_blank: "Tous les mois" }, class: "filter-select"
+
+        %label.season-checkbox
+          = f.check_box :seasonal, {}, "true", nil
+          %span Ingrédients de saison
+
+        = f.submit "Rechercher", class: "btn btn-secondary"
+
+        - if params[:query].present? || params[:category].present? || params[:month].present? || params[:seasonal].present?
+          = link_to "Réinitialiser", ingredients_path, class: "btn btn-link"
+
+  -# Table des ingrédients
+  = turbo_frame_tag "ingredients_list" do
+    - if @ingredients.any?
+      .table-container
+        %table.ingredients-table
+          %thead
+            %tr
+              %th Nom
+              %th Rayon
+              %th Saison
+              %th.actions-column Actions
+          %tbody
+            - @ingredients.each do |ingredient|
+              %tr
+                %td.ingredient-name-cell{ data: { label: "Nom" } }
+                  %strong
+                    = ingredient.name
+                    %span.unit-inline= "(#{ingredient.base_unit})"
+                  - if ingredient.aliases.present?
+                    %small.aliases= ingredient.aliases.is_a?(Array) ? ingredient.aliases.join(', ') : ingredient.aliases.values.join(', ')
+
+                %td{ data: { label: "Rayon" } }
+                  %span{ class: "category-badge category-#{ingredient.category}" }
+                    = Ingredient.human_attribute_name("category.#{ingredient.category}")
+
+                %td{ data: { label: "Saison" } }
+                  - if ingredient.season_months.present? && ingredient.season_months.length == 12
+                    %span.text-muted Toute l'année
+                  - elsif ingredient.season_months.present?
+                    .season-months
+                      - ingredient.season_months.sort.each do |month|
+                        %span.month-tag= Date::ABBR_MONTHNAMES[month]
+
+                %td.actions-cell{ data: { label: "Actions" } }
+                  - if policy(ingredient).edit?
+                    = link_to edit_ingredient_path(ingredient), class: "icon-btn edit-btn", title: "Modifier", data: { turbo_frame: "_top" } do
+                      %svg{ width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2" }
+                        %path{ d: "M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" }
+                        %path{ d: "M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" }
+
+                  - if policy(ingredient).destroy?
+                    = button_to ingredient_path(ingredient), method: :delete, class: "icon-btn delete-btn", title: "Supprimer", form: { style: "display: inline;", data: { action: "submit->modal#open" } } do
+                      %svg{ width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2" }
+                        %polyline{ points: "3 6 5 6 21 6" }
+                        %path{ d: "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" }
+
+      -# Pagination Pagy
+      .pagination-container
+        = pagy_nav(@pagy).html_safe if @pagy.pages > 1
+
+    - else
+      .empty-state
+        %p Aucun ingrédient trouvé.
+        - if policy(Ingredient).create?
+          = link_to "Créer le premier ingrédient", new_ingredient_path, class: "btn btn-primary"
+
+  -# Modal de confirmation de suppression
+  = render "shared/delete_confirmation_modal"
