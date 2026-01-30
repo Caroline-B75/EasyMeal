@@ -81,27 +81,17 @@ class IngredientsController < ApplicationController
     authorize @ingredient
   end
 
+  # Paramètres autorisés pour Ingredient
+  # Le nettoyage des données (aliases, season_months) est géré automatiquement
+  # par le concern AttributeCleaner dans le model
   def ingredient_params
-    permitted = params.require(:ingredient).permit(
+    params.require(:ingredient).permit(
       :name,
       :category,
       :unit_group,
       :base_unit,
-      :aliases,
       season_months: [],
       aliases: []
     )
-    
-    # Convertir aliases en tableau si c'est une chaîne
-    if permitted[:aliases].is_a?(String)
-      permitted[:aliases] = permitted[:aliases].split(',').map(&:strip).reject(&:blank?)
-    end
-    
-    # Nettoyer season_months : supprimer les valeurs vides et convertir en entiers
-    if permitted[:season_months].present?
-      permitted[:season_months] = permitted[:season_months].reject(&:blank?).map(&:to_i)
-    end
-    
-    permitted
   end
 end

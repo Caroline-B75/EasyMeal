@@ -20,11 +20,27 @@
   align-items: center;
 }
 
+.nav-brand {
+  display: flex;
+  align-items: center;
+}
+
 .nav-brand .brand-link {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #10b981;
+  display: inline-flex;
+  align-items: center;
   text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.nav-brand .brand-link:hover {
+  opacity: 0.85;
+}
+
+.nav-brand .logo {
+  height: 40px;
+  width: auto;
+  max-width: 200px;
+  display: block;
 }
 
 .nav-links {
@@ -46,18 +62,18 @@
 }
 
 .nav-link:hover {
-  color: #10b981;
+  color: #FF9E4D;
 }
 
 .btn-signup {
-  background: #10b981;
+  background: #D73A49;
   color: white;
   padding: 0.5rem 1rem;
   border-radius: 8px;
 }
 
 .btn-signup:hover {
-  background: #059669;
+  background: #B02A37;
   color: white;
 }
 
@@ -109,7 +125,12 @@
 
   .nav-brand {
     width: 100%;
-    text-align: center;
+    justify-content: center;
+  }
+
+  .nav-brand .logo {
+    height: 32px;
+    max-width: 160px;
   }
 
   .nav-links {
@@ -148,6 +169,11 @@
 @media (min-width: 768px) and (max-width: 1024px) {
   .main-header {
     padding: 1rem 1.5rem;
+  }
+
+  .nav-brand .logo {
+    height: 36px;
+    max-width: 180px;
   }
 
   .user-email {

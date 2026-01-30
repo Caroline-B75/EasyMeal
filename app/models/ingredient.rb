@@ -1,6 +1,9 @@
 # Représente un ingrédient utilisable dans les recettes
 # Chaque ingrédient a un rayon (category), un groupe d'unités (unit_group) et une unité de base
 class Ingredient < ApplicationRecord
+  # === Concerns ===
+  include AttributeCleaner
+
   # === Enums ===
   
   # Rayons de supermarché (catégories d'ingrédients)
