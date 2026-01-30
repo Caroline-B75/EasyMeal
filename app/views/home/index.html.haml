@@ -1,2 +1,28 @@
-%h1 Home#index
-%p Bienvenue sur EasyMeal.
+-# Page d'accueil EasyMeal - Hero Section moderne et responsive
+%section.hero-section
+  -# Image de fond avec overlay gradient
+  .hero-background
+    = image_tag "backgrounds/kitchen_2.jpg", alt: "Cuisine moderne EasyMeal"
+  
+  -# Contenu principal
+  .hero-content
+    -# Logo EasyMeal
+    .hero-logo
+      = image_tag "logos/logo_EasyMeal.svg", alt: "EasyMeal - Planification de repas simplifiée"
+    
+    -# Titre principal
+    %h1.hero-title
+      Simplifie tes repas,
+      %br
+      Savoure chaque instant
+    
+    -# Sous-titre / Description
+    %p.hero-subtitle
+      Crée tes menus personnalisés en quelques clics et redécouvre le plaisir de cuisiner sans stress.
+    
+    -# Call-to-Action
+    .hero-cta
+      - if user_signed_in?
+        = link_to "Créer mon menu", "#", class: "btn-hero"
+      - else
+        = link_to "Créer mon menu", new_user_session_path, class: "btn-hero"

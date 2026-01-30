@@ -13,6 +13,7 @@
  *= require global
  *= require layouts
  *= require components
+ *= require home
  *= require ingredients
  *= require_self
  */

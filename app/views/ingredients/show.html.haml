@@ -37,4 +37,4 @@
       - if policy(@ingredient).edit?
         = link_to "Modifier", edit_ingredient_path(@ingredient), class: "btn btn-primary"
       - if policy(@ingredient).destroy?
-        = button_to "Supprimer", ingredient_path(@ingredient), method: :delete, data: { turbo_confirm: "Êtes-vous sûr de vouloir supprimer cet ingrédient ?" }, class: "btn btn-danger"
+        = button_to "Supprimer", ingredient_path(@ingredient), method: :delete, data: { turbo_confirm: "Es-tu sûr(e) de vouloir supprimer cet ingrédient ?" }, class: "btn btn-danger"

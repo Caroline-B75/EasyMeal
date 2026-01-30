@@ -3,9 +3,9 @@
 -# Container avec le controller modal pour gérer les suppressions
 .ingredients-container{ data: { controller: "modal" } }
   .ingredients-header
-    %h1 Mes ingrédients
+    %h1 Tes ingrédients
     - if policy(Ingredient).create?
-      = link_to "Nouvel ingrédient", new_ingredient_path, class: "btn btn-primary"
+      = link_to "Ajouter un ingrédient", new_ingredient_path, class: "btn btn-primary"
 
   -# Filtres et recherche
   .ingredients-filters

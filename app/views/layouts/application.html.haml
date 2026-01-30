@@ -16,7 +16,7 @@
     = stylesheet_link_tag "application", "data-turbo-track": "reload"
     = javascript_importmap_tags
 
-  %body
+  %body{ class: ("home-page" if home_page?) }
     -# Flash messages modernes
     - if notice.present? || alert.present?
       .flash-messages
@@ -30,15 +30,48 @@
     -# Navigation principale responsive
     - if user_signed_in?
       %header.main-header
-        %nav.nav-container
+        %nav.nav-container{ data: { controller: "menu" } }
           .nav-brand
             = link_to root_path, class: "brand-link" do
               = image_tag "logos/logo_EasyMeal.svg", alt: "EasyMeal", class: "logo"
-          .nav-links
-            %span.user-email
-              Connecté : #{current_user.email}
-            = link_to "Ingrédients", ingredients_path, class: "nav-link"
-            = link_to "Se déconnecter", destroy_user_session_path, data: { turbo_method: :delete }, class: "nav-link logout-link"
+          - if home_page?
+            .nav-content
+              %span.user-greeting
+                = random_greeting(current_user)
+          
+          -# Menu utilisateur dropdown
+          .user-menu
+            %button.user-menu-button{ type: "button", data: { action: "click->menu#toggle", menu_target: "button" } }
+              .user-avatar
+                = current_user.first_name[0].upcase + current_user.last_name[0].upcase
+              %span.user-name= current_user.first_name
+              %svg.chevron{ width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "3" }
+                %polyline{ points: "6 9 12 15 18 9" }
+            
+            .user-dropdown{ data: { menu_target: "dropdown" } }
+              .dropdown-header
+                .dropdown-user-info
+                  .dropdown-avatar
+                    = current_user.first_name[0].upcase + current_user.last_name[0].upcase
+                  .dropdown-user-details
+                    %strong= "#{current_user.first_name} #{current_user.last_name}"
+                    %small= current_user.email
+              
+              .dropdown-divider
+              
+              .dropdown-links
+                = link_to ingredients_path, class: "dropdown-link" do
+                  %svg{ width: "20", height: "20", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2" }
+                    %path{ d: "M3 3h18v18H3V3z" }
+                    %path{ d: "M9 3v18M15 3v18M3 9h18M3 15h18" }
+                  %span Ingrédients
+                
+                = link_to destroy_user_session_path, data: { turbo_method: :delete }, class: "dropdown-link logout" do
+                  %svg{ width: "20", height: "20", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2" }
+                    %path{ d: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" }
+                    %polyline{ points: "16 17 21 12 16 7" }
+                    %line{ x1: "21", y1: "12", x2: "9", y2: "12" }
+                  %span Me déconnecter
     - else
       %header.main-header.auth-header
         %nav.nav-container
