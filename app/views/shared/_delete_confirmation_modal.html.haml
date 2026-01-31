@@ -1,5 +1,8 @@
 -# Modal de confirmation de suppression avec Stimulus
 -# Utilisation : Ajoutez data-controller="modal" sur un parent et data-action="click->modal#open" sur le bouton
+-# Paramètre optionnel : resource_name (par défaut "ingrédient")
+- resource_name ||= "ingrédient"
+
 .modal-overlay{ data: { modal_target: "overlay", action: "click->modal#closeOnOverlay" }, style: "display: none;" }
   .modal-container
     .modal-content
@@ -7,7 +10,7 @@
         %h3 Confirme la suppression
 
       .modal-body
-        %p Es-tu sûr(e) de vouloir supprimer cet ingrédient ?
+        %p= "Es-tu sûr(e) de vouloir supprimer ce #{resource_name} ?"
         %p.modal-warning Cette action est irréversible.
 
       .modal-actions
