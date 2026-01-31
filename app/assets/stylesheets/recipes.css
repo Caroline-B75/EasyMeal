@@ -1,0 +1,1062 @@
+/* ============================================
+   RECETTES - Styles pour les pages recipes
+   ============================================ */
+
+/* === Layout général === */
+
+.recipes-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.recipes-header {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.recipes-header h1 {
+  color: var(--color-dark); /* Brun caramel */
+  margin: 0;
+}
+
+/* === Filtres & Recherche === */
+
+.recipes-filters {
+  background: var(--color-bg-secondary); /* Beige sablé */
+  padding: 1.5rem;
+  border-radius: var(--radius-input);
+  margin-bottom: 2rem;
+}
+
+/* Actions des filtres (bouton réinitialiser à droite) */
+.filters-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+}
+
+/* Ligne des filtres (au-dessus de la barre de recherche) */
+.filters-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-bottom: 1rem;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 120px;
+}
+
+.filter-group label,
+.filter-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-dark);
+  font-weight: 500;
+}
+
+.filter-group select,
+.filter-select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  background: var(--color-bg-white);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.filter-group select:focus,
+.filter-select:focus {
+  outline: none;
+  border-color: var(--color-secondary);
+}
+
+/* Filtre checkbox (De saison) */
+.filter-checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: auto;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  cursor: pointer;
+}
+
+.filter-checkbox input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+}
+
+.filter-label-inline {
+  font-size: var(--font-size-sm);
+  color: var(--color-dark);
+  font-weight: 500;
+  cursor: pointer;
+  margin: 0;
+}
+
+/* Barre de recherche (sous les filtres) */
+.recipes-search-bar {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.recipes-search-bar .search-input,
+.recipes-search-bar input[type="search"] {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  font-size: var(--font-size-base);
+}
+
+.recipes-search-bar .search-input:focus,
+.recipes-search-bar input[type="search"]:focus {
+  outline: none;
+  border-color: var(--color-secondary);
+}
+
+/* Conteneur des boutons de recherche */
+.search-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* === Loader de recherche === */
+
+.recipes-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-input);
+  color: var(--color-dark);
+  font-size: var(--font-size-base);
+}
+
+.recipes-loader.hidden {
+  display: none;
+}
+
+.loader-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-secondary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* État de chargement pour les résultats */
+.recipes-results.loading {
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+/* === Grille de cartes recettes === */
+
+.recipes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* === Carte recette (index) === */
+
+.recipe-card {
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  overflow: hidden;
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  cursor: pointer;
+}
+
+.recipe-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(123, 63, 0, 0.1);
+}
+
+.recipe-card-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  background: var(--color-bg-main); /* Gris chaud clair si pas d'image */
+}
+
+.recipe-card-body {
+  padding: 1rem;
+}
+
+.recipe-card-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-dark);
+  margin: 0 0 0.5rem 0;
+  text-decoration: none;
+}
+
+.recipe-card-title:hover {
+  color: var(--color-primary); /* Rouge paprika */
+}
+
+.recipe-card-meta {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+  font-size: var(--font-size-sm);
+  color: #666;
+}
+
+.recipe-card-tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.recipe-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.recipe-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: var(--font-size-sm);
+}
+
+.recipe-rating-stars {
+  color: var(--color-secondary); /* Orange miel */
+}
+
+/* === Fiche recette (show) === */
+
+.recipe-detail-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.recipe-header {
+  margin-bottom: 2rem;
+}
+
+.recipe-header h1 {
+  color: var(--color-dark); /* Brun caramel - charte graphique */
+  margin-bottom: 1rem;
+}
+
+.recipe-meta-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.recipe-image-large {
+  width: 100%;
+  max-height: 400px;
+  object-fit: cover;
+  border-radius: var(--radius-input);
+  margin-bottom: 2rem;
+}
+
+.recipe-section {
+  background: var(--color-bg-white);
+  padding: 1.5rem;
+  border-radius: var(--radius-input);
+  border: 1px solid var(--color-border);
+  margin-bottom: 1.5rem;
+}
+
+.recipe-section h2 {
+  color: var(--color-dark);
+  font-size: var(--font-size-xl);
+  margin-bottom: 1rem;
+  border-bottom: 2px solid var(--color-secondary);
+  padding-bottom: 0.5rem;
+}
+
+/* === Ingrédients === */
+
+.servings-control {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.servings-control button {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 1px solid var(--color-secondary);
+  background: var(--color-bg-white);
+  color: var(--color-secondary);
+  font-size: var(--font-size-xl);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.servings-control button:hover {
+  background: var(--color-secondary);
+  color: var(--color-bg-white);
+}
+
+.servings-control span {
+  font-weight: 600;
+  color: var(--color-dark);
+}
+
+.ingredients-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ingredients-list li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-bg-main);
+  display: flex;
+  justify-content: space-between;
+}
+
+.ingredients-list li:last-child {
+  border-bottom: none;
+}
+
+.ingredient-name {
+  color: #333;
+}
+
+.ingredient-quantity {
+  font-weight: 600;
+  color: var(--color-dark);
+}
+
+/* === Instructions === */
+
+.instructions-content {
+  line-height: 1.8;
+  color: #333;
+}
+
+/* === Actions sociales (favoris, notes) === */
+
+.recipe-actions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.favorite-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: 2px solid var(--color-secondary);
+  background: var(--color-bg-white);
+  color: var(--color-secondary);
+  border-radius: var(--radius-input);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all var(--transition-normal);
+}
+
+.favorite-btn:hover {
+  background: var(--color-secondary);
+  color: var(--color-bg-white);
+}
+
+.favorite-btn.favorited {
+  background: var(--color-secondary);
+  color: var(--color-bg-white);
+}
+
+/* === Reviews (avis) === */
+
+.reviews-section {
+  margin-top: 2rem;
+}
+
+.review-card {
+  background: var(--color-bg-main);
+  padding: 1rem;
+  border-radius: var(--radius-input);
+  margin-bottom: 1rem;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.review-author {
+  font-weight: 600;
+  color: var(--color-dark);
+}
+
+.review-rating {
+  color: var(--color-secondary);
+}
+
+.review-content {
+  color: #333;
+  line-height: 1.6;
+}
+
+.review-date {
+  font-size: var(--font-size-sm);
+  color: #666;
+  margin-top: 0.5rem;
+}
+
+/* === Formulaire recette (admin) === */
+
+.recipe-form-section {
+  background: var(--color-bg-white);
+  padding: 1.5rem;
+  border-radius: var(--radius-input);
+  border: 1px solid var(--color-border);
+  margin-bottom: 1.5rem;
+}
+
+.nested-fields {
+  background: var(--color-bg-main);
+  padding: 1rem;
+  border-radius: var(--radius-input);
+  margin-bottom: 0.5rem;
+  display: flex;
+  gap: 1rem;
+  align-items: end;
+}
+
+.nested-fields .form-group {
+  flex: 1;
+}
+
+.remove-preparation {
+  padding: 0.5rem 1rem;
+  background: var(--color-primary);
+  color: var(--color-bg-white);
+  border: none;
+  border-radius: var(--radius-input);
+  cursor: pointer;
+}
+
+.add-preparation {
+  padding: 0.75rem 1.5rem;
+  background: var(--color-accent); /* Vert basilic */
+  color: var(--color-bg-white);
+  border: none;
+  border-radius: var(--radius-input);
+  cursor: pointer;
+  margin-top: 0.5rem;
+  font-size: var(--font-size-base);
+}
+
+.add-preparation:hover {
+  background: #6d8a3a;
+}
+
+/* === Responsive === */
+
+@media (max-width: 768px) {
+  .recipes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .recipes-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  /* Filtres empilés sur mobile */
+  .filters-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  
+  .filter-group {
+    min-width: 100%;
+  }
+  
+  .filter-checkbox {
+    justify-content: flex-start;
+  }
+  
+  /* Barre de recherche sur mobile */
+  .recipes-search-bar {
+    flex-direction: column;
+  }
+  
+  .recipes-search-bar .search-input,
+  .recipes-search-bar input[type="search"] {
+    width: 100%;
+    min-width: auto;
+  }
+  
+  .search-buttons {
+    width: 100%;
+    flex-direction: column;
+  }
+  
+  .recipes-search-bar .btn,
+  .search-buttons .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .recipe-meta-row {
+    flex-direction: column;
+  }
+
+  .recipe-actions {
+    flex-direction: column;
+  }
+
+  .nested-fields {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .nested-fields .form-group {
+    flex: none;
+    width: 100%;
+  }
+}
+
+/* === Formulaires recettes (admin) === */
+
+.recipe-form-header {
+  margin-bottom: 2rem;
+}
+
+.recipe-form-header h1 {
+  color: var(--color-dark);
+  margin-top: 0.5rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.form-row .form-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+.form-row .form-group-large {
+  flex: 2;
+}
+
+.form-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--color-secondary);
+}
+
+.form-file-input {
+  padding: 0.5rem;
+}
+
+.current-photo {
+  margin-top: 0.5rem;
+}
+
+.photo-preview {
+  border-radius: var(--radius-input);
+  border: 1px solid var(--color-border);
+}
+
+/* === Tags grid === */
+
+.tags-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.tag-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--color-bg-secondary);
+  border: 2px solid var(--color-bg-secondary);
+  border-radius: var(--radius-badge);
+  cursor: pointer;
+  transition: all var(--transition-normal) ease;
+  font-size: 0.95rem;
+}
+
+.tag-checkbox:hover {
+  background: var(--color-secondary);
+  border-color: var(--color-secondary);
+  color: var(--color-bg-white);
+}
+
+.tag-checkbox input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+.tag-checkbox input:checked + .tag-name {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.tag-checkbox:has(input:checked) {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-bg-white);
+}
+
+.tag-checkbox:has(input:checked) .tag-name {
+  color: var(--color-bg-white);
+}
+
+/* === Nested fields (ingrédients) === */
+
+.preparations-container {
+  margin-bottom: 1rem;
+}
+
+.preparation-fields {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  background: var(--color-bg-main);
+  padding: 1rem;
+  border-radius: var(--radius-input);
+  margin-bottom: 0.5rem;
+  margin-top: 0.8rem;
+}
+
+.preparation-ingredient {
+  flex: 2;
+}
+
+.preparation-quantity {
+  flex: 1;
+  max-width: 120px;
+}
+
+.preparation-unit {
+  min-width: 50px;
+  color: var(--color-dark);
+  font-weight: 500;
+}
+
+.preparation-remove {
+  flex: 0;
+}
+
+.remove-preparation {
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  background: var(--color-primary);
+  color: var(--color-bg-white);
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: var(--font-size-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-normal);
+}
+
+.remove-preparation:hover {
+  background: var(--color-primary-hover);
+}
+
+.add-preparation {
+  padding: 0.75rem 1.5rem;
+  background: var(--color-accent);
+  color: var(--color-bg-white);
+  border: none;
+  border-radius: var(--radius-input);
+  cursor: pointer;
+  font-weight: 500;
+  transition: background var(--transition-normal);
+}
+
+.add-preparation:hover {
+  background: #6d8a3a;
+}
+
+.marked-for-deletion {
+  opacity: 0.5;
+  pointer-events: none;
+  background: #fee;
+}
+
+/* === Reviews section === */
+
+.review-form-container {
+  background: var(--color-bg-main);
+  padding: 1rem; /* Réduit de 1.5rem à 1rem */
+  border-radius: var(--radius-input);
+  margin-bottom: 1rem; /* Réduit de 1.5rem à 1rem */
+}
+
+.review-notice {
+  color: var(--color-dark);
+  margin-bottom: 0.5rem;
+}
+
+/* Alignement label "Ta note" avec les étoiles */
+.review-form .form-group:has(.rating-input) {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.review-form .form-group:has(.rating-input) .form-label {
+  margin-bottom: 0;
+}
+
+.rating-input {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 0;
+}
+
+.star-label {
+  cursor: pointer;
+}
+
+.star-label input[type="radio"] {
+  display: none;
+}
+
+.star-label .star {
+  font-size: 1.75rem;
+  color: #ccc;
+  transition: color var(--transition-normal);
+}
+
+.star-label .star.star-filled,
+.star-label:hover .star {
+  color: var(--color-secondary);
+}
+
+.reviews-list {
+  margin-top: 1.5rem;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.review-rating-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+/* Icône poubelle petite sous les étoiles */
+.icon-btn-delete-small {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 1rem;
+  line-height: 1;
+  transition: transform 0.2s;
+}
+
+.icon-btn-delete-small:hover {
+  transform: scale(1.3);
+  filter: brightness(0.8);
+}
+
+.review-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Boutons icônes pour modifier/supprimer */
+.icon-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  font-size: 1.25rem;
+  transition: transform 0.2s;
+}
+
+.icon-btn:hover {
+  transform: scale(1.2);
+}
+
+.icon-btn-edit:hover {
+  filter: brightness(0.8);
+}
+
+.icon-btn-delete:hover {
+  filter: brightness(0.8);
+}
+
+.empty-reviews {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+/* === Admin actions === */
+
+.recipe-admin-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.btn-danger {
+  background: var(--color-danger);
+  color: var(--color-bg-white);
+}
+
+.btn-danger:hover {
+  background: var(--color-danger-hover);
+}
+
+.text-danger {
+  color: var(--color-danger);
+}
+
+/* === Breadcrumb === */
+
+.recipe-breadcrumb {
+  margin-bottom: 1rem;
+}
+
+/* === Empty state === */
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  background: var(--color-bg-main);
+  border-radius: var(--radius-input);
+}
+
+.empty-state-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.empty-state h2 {
+  color: var(--color-dark);
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+/* === Recipe image placeholder === */
+
+.recipe-image-placeholder {
+  width: 100%;
+  height: 300px;
+  background: var(--color-bg-main);
+  border-radius: var(--radius-input);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.placeholder-icon {
+  font-size: 4rem;
+  margin-bottom: 0.5rem;
+}
+
+.placeholder-text {
+  color: #666;
+}
+
+.recipe-card-placeholder {
+  width: 100%;
+  height: 200px;
+  background: var(--color-bg-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+}
+
+/* === Recipe card link === */
+
+.recipe-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.recipe-card-link:hover {
+  text-decoration: none;
+}
+
+/* === Meta items === */
+
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #666;
+}
+
+.meta-icon {
+  font-size: 1rem;
+}
+
+/* === Global rating on show page === */
+
+.recipe-global-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--color-bg-main);
+  border-radius: var(--radius-input);
+}
+
+.rating-label {
+  color: var(--color-dark);
+}
+
+.rating-stars {
+  color: var(--color-secondary);
+  font-size: var(--font-size-xl);
+}
+
+.rating-value {
+  color: #666;
+  font-size: var(--font-size-sm);
+}
+
+/* === Favorite indicator on cards === */
+
+.recipe-favorite-indicator {
+  color: var(--color-secondary);
+  font-size: var(--font-size-xl);
+}
+
+/* === Recipe tags === */
+
+.recipe-tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+/* === Recipe info list === */
+
+.recipe-info-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.recipe-info-list li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-bg-main);
+}
+
+.recipe-info-list li:last-child {
+  border-bottom: none;
+}
+
+/* === SR only (screen reader) === */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* === Filter checkbox inline === */
+
+.filter-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter-label-inline {
+  cursor: pointer;
+}
+
+/* === Button small === */
+
+.btn-small {
+  padding: 0.5rem 1rem;
+  font-size: var(--font-size-sm);
+}

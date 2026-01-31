@@ -1,0 +1,159 @@
+-# Formulaire partagé pour création/édition de recette
+-# Utilise nested fields pour les preparations (ingrédients)
+= form_with model: recipe, 
+            class: "recipe-form", 
+            data: { controller: "nested-form form-errors", turbo: false } do |f|
+
+  -# Section : Informations de base
+  .recipe-form-section
+    %h2 📝 Informations générales
+
+    .form-row
+      .form-group.form-group-large{ class: field_error_class(recipe, :name) }
+        = f.label :name, "Nom de la recette *", class: "form-label"
+        = f.text_field :name, 
+                       class: "form-input", 
+                       placeholder: "Ex: Pâtes carbonara", 
+                       required: true
+        = field_errors(recipe, :name)
+
+      .form-group{ class: field_error_class(recipe, :default_servings) }
+        = f.label :default_servings, "Nombre de personnes *", class: "form-label"
+        = f.number_field :default_servings, 
+                         class: "form-input", 
+                         min: 1, 
+                         value: recipe.default_servings || 4,
+                         required: true
+        = field_errors(recipe, :default_servings)
+
+  -# Section : Caractéristiques
+  .recipe-form-section
+    %h2 🏷️ Caractéristiques
+
+    .form-row
+      .form-group{ class: field_error_class(recipe, :diet) }
+        = f.label :diet, "Régime alimentaire *", class: "form-label"
+        = f.select :diet, 
+                   Recipe.diets.keys.map { |d| [d.humanize, d] }, 
+                   { prompt: "Sélectionnez un régime" }, 
+                   class: "form-select", 
+                   required: true
+        = field_errors(recipe, :diet)
+
+      .form-group{ class: field_error_class(recipe, :difficulty) }
+        = f.label :difficulty, "Difficulté", class: "form-label"
+        = f.select :difficulty, 
+                   Recipe.difficulties.keys.map { |d| [d.humanize, d] }, 
+                   { include_blank: "Non renseignée" }, 
+                   class: "form-select"
+        = field_errors(recipe, :difficulty)
+
+      .form-group{ class: field_error_class(recipe, :price) }
+        = f.label :price, "Budget", class: "form-label"
+        = f.select :price, 
+                   Recipe.prices.keys.map { |p| [p.humanize, p] }, 
+                   { include_blank: "Non renseigné" }, 
+                   class: "form-select"
+        = field_errors(recipe, :price)
+
+    .form-row
+      .form-group{ class: field_error_class(recipe, :prep_time_minutes) }
+        = f.label :prep_time_minutes, "Temps de préparation (min)", class: "form-label"
+        = f.number_field :prep_time_minutes, 
+                         class: "form-input", 
+                         min: 0, 
+                         placeholder: "Ex: 20"
+        = field_errors(recipe, :prep_time_minutes)
+
+      .form-group{ class: field_error_class(recipe, :cook_time_minutes) }
+        = f.label :cook_time_minutes, "Temps de cuisson (min)", class: "form-label"
+        = f.number_field :cook_time_minutes, 
+                         class: "form-input", 
+                         min: 0, 
+                         placeholder: "Ex: 30"
+        = field_errors(recipe, :cook_time_minutes)
+
+      .form-group{ class: field_error_class(recipe, :appliance) }
+        = f.label :appliance, "Appareil", class: "form-label"
+        = f.text_field :appliance, 
+                       class: "form-input", 
+                       placeholder: "Ex: Four, Thermomix..."
+        = field_errors(recipe, :appliance)
+
+  -# Section : Tags
+  .recipe-form-section
+    %h2 🏷️ Tags
+
+    .form-group
+      -# Organisation des tags par sous-catégories
+      - Tag.tag_types.keys.each do |category|
+        .tags-category
+          %h3= category.humanize
+          .tags-grid
+            - Tag.where(tag_type: category).alphabetical.each do |tag|
+              %label.tag-checkbox
+                = f.check_box :tag_ids, 
+                              { multiple: true, checked: recipe.tags.include?(tag) }, 
+                              tag.id, 
+                              nil
+                %span.tag-name= tag.name
+
+  -# Section : Photo
+  .recipe-form-section
+    %h2 📸 Photo
+
+    .form-group
+      = f.label :photo, "Image de la recette", class: "form-label"
+      %small.form-hint Format recommandé : JPEG ou PNG, 800x600 minimum
+      = f.file_field :photo, 
+                     accept: "image/*", 
+                     class: "form-file-input",
+                     data: { controller: "image-preview" }
+
+      - if recipe.persisted? && recipe.photo.attached?
+        .current-photo
+          %p.form-hint Photo actuelle :
+          = image_tag recipe.photo.variant(resize_to_limit: [200, 150]), 
+                      class: "photo-preview"
+
+  -# Section : Ingrédients (nested fields)
+  .recipe-form-section
+    %h2 🥗 Ingrédients
+
+    -# Erreur globale pour les ingrédients
+    - if recipe.errors[:base].any?
+      .field-errors
+        - recipe.errors[:base].each do |message|
+          %span.field-error= message
+
+    .preparations-container{ data: { nested_form_target: "container" } }
+      -# Template pour nouveaux champs (utilisé par Stimulus)
+      %template{ data: { nested_form_target: "template" } }
+        = f.fields_for :preparations, Preparation.new, child_index: "NEW_RECORD" do |pf|
+          = render "recipes/preparation_fields", f: pf
+
+      -# Champs existants
+      = f.fields_for :preparations do |pf|
+        = render "recipes/preparation_fields", f: pf
+
+    %button.add-preparation{ type: "button", 
+                             data: { action: "click->nested-form#add" } }
+      + Ajouter un ingrédient
+
+  -# Section : Instructions
+  .recipe-form-section
+    %h2 👨‍🍳 Instructions de préparation
+
+    .form-group{ class: field_error_class(recipe, :instructions) }
+      = f.label :instructions, "Étapes de préparation", class: "form-label"
+      = f.text_area :instructions, 
+                    class: "form-textarea", 
+                    rows: 10, 
+                    placeholder: "1. Faire bouillir l'eau...\n2. Ajouter les pâtes...\n3. ..."
+      = field_errors(recipe, :instructions)
+
+  -# Actions
+  .form-actions
+    = f.submit recipe.new_record? ? "Créer la recette" : "Mettre à jour", 
+               class: "btn btn-primary"
+    = link_to "Annuler", recipes_path, class: "btn btn-secondary"

@@ -1,0 +1,9 @@
+-# Page de création d'une nouvelle recette (admin only)
+- content_for :title, "Nouvelle recette"
+
+.recipes-container
+  .recipe-form-header
+    = link_to "← Retour aux recettes", recipes_path, class: "btn-link"
+    %h1 🍽️ Nouvelle recette
+
+  = render "form", recipe: @recipe

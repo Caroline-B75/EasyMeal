@@ -1,0 +1,122 @@
+-# UC5 : Catalogue & Recherche de recettes avec filtres
+- content_for :title, "Recettes"
+
+.recipes-container{ data: { controller: "recipe-filter" } }
+  -# Header avec titre et bouton création (admin only)
+  .recipes-header
+    %h1 🍽️ Catalogue de recettes
+    - if policy(Recipe).create?
+      = link_to new_recipe_path, class: "btn btn-primary" do
+        %span.btn-icon ✚
+        Ajouter une recette
+
+  -# Système de filtrage unifié (filtres + recherche + bouton)
+  .recipes-filters
+    = form_with url: recipes_path, method: :get, class: "filters-form", data: { turbo_frame: "recipes_list", recipe_filter_target: "form" } do |f|
+      -# Ligne des filtres (régime, difficulté, temps, saison)
+      .filters-row
+        -# Filtre régime alimentaire
+        .filter-group
+          = f.label :diet, "Régime", class: "filter-label"
+          = f.select :diet, 
+                     options_for_select(Recipe.diets.keys.map { |d| [d.humanize, d] }, params[:diet]), 
+                     { include_blank: "Tous" }, 
+                     class: "filter-select"
+
+        -# Filtre difficulté
+        .filter-group
+          = f.label :difficulty, "Difficulté", class: "filter-label"
+          = f.select :difficulty, 
+                     options_for_select(Recipe.difficulties.keys.map { |d| [d.humanize, d] }, params[:difficulty]), 
+                     { include_blank: "Toutes" }, 
+                     class: "filter-select"
+
+        -# Filtre temps max
+        .filter-group
+          = f.label :max_time, "Temps max", class: "filter-label"
+          = f.select :max_time, 
+                     options_for_select([["15 min", 15], ["30 min", 30], ["45 min", 45], ["1h", 60], ["1h30", 90]], params[:max_time]), 
+                     { include_blank: "Illimité" }, 
+                     class: "filter-select"
+
+        -# Filtre saison
+        .filter-group.filter-checkbox
+          = f.check_box :seasonal, { checked: params[:seasonal] == "true" }, "true", nil
+          = f.label :seasonal, "🌿 De saison", class: "filter-label-inline"
+
+      -# Barre de recherche + bouton (sous les filtres)
+      .recipes-search-bar
+        = f.search_field :query, 
+                         value: params[:query], 
+                         placeholder: "Rechercher un ingrédient, un nom de recette...", 
+                         class: "search-input"
+        = f.submit "🔍 Rechercher", class: "btn btn-secondary"
+
+    -# Bouton de réinitialisation (sous le formulaire, à droite)
+    .filters-actions
+      = link_to recipes_path, class: "btn btn-link" do
+        ✕ Réinitialiser les filtres
+
+  -# Loader de chargement (affiché pendant la recherche)
+  .recipes-loader.hidden{ data: { recipe_filter_target: "loader" } }
+    .loader-spinner
+    %span Recherche en cours...
+
+  -# Liste des recettes (avec Turbo Frame pour rechargement partiel)
+  .recipes-results{ data: { recipe_filter_target: "results" } }
+    = turbo_frame_tag "recipes_list" do
+      - if @recipes.any?
+        -# Grille de cartes recettes
+        .recipes-grid
+          - @recipes.each do |recipe|
+            = link_to recipe_path(recipe), class: "recipe-card-link", data: { turbo_frame: "_top" } do
+              .recipe-card
+                -# Image de la recette
+                .recipe-card-image-wrapper
+                  - if recipe.photo.attached?
+                    = image_tag recipe.photo.variant(resize_to_fill: [400, 250]), 
+                                alt: recipe.name, 
+                                class: "recipe-card-image"
+                  - else
+                    .recipe-card-placeholder
+                      %span 🍽️
+
+                .recipe-card-body
+                  -# Titre
+                  %h3.recipe-card-title= recipe.name
+
+                  -# Métadonnées
+                  .recipe-card-meta
+                    %span.meta-item
+                      %span.meta-icon ⏱️
+                      = format_total_time(recipe)
+                    %span.meta-item
+                      = diet_badge(recipe.diet)
+
+                  -# Tags (max 3 affichés)
+                  - if recipe.tags.any?
+                    .recipe-card-tags
+                      - recipe.tags.first(3).each do |tag|
+                        %span.badge.badge-beige= tag.name
+
+                  -# Footer avec note et favoris
+                  .recipe-card-footer
+                    .recipe-rating
+                      %span.recipe-rating-stars= rating_stars(recipe.rating_avg)
+                      %span.recipe-rating-count (#{recipe.reviews_count})
+                    
+                    - if current_user && recipe.favorited_by?(current_user)
+                      %span.recipe-favorite-indicator ♥
+
+        -# Pagination
+        .pagination-container
+          = pagy_nav(@pagy).html_safe if @pagy.pages > 1
+
+      - else
+        -# État vide
+        .empty-state
+          .empty-state-icon 🍳
+          %h2 Aucune recette trouvée
+          %p Essaye de modifier tes critères de recherche ou ajoute une nouvelle recette.
+          - if policy(Recipe).create?
+            = link_to "Ajouter une recette", new_recipe_path, class: "btn btn-primary"

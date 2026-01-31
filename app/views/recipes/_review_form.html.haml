@@ -1,0 +1,21 @@
+-# Partial pour le formulaire de nouvel avis
+.review-form-container
+  = form_with url: add_review_recipe_path(recipe), method: :post, class: "review-form" do |f|
+    .form-group
+      %label.form-label Ta note *
+      .rating-input{ data: { controller: "rating" } }
+        - (1..5).each do |star|
+          %label.star-label
+            = f.radio_button :rating, star, 
+                             data: { action: "change->rating#update" }
+            %span.star{ data: { rating_target: "star" } } ☆
+
+    .form-group
+      = f.label :content, "Ton commentaire (optionnel)", class: "form-label"
+      = f.text_area :content, 
+                    class: "form-textarea", 
+                    rows: 3, 
+                    placeholder: "Partage ton expérience..."
+
+    .form-actions
+      = f.submit "Publier mon avis", class: "btn btn-primary"

@@ -1,0 +1,130 @@
+-# UC4 : Fiche recette détaillée avec interactions
+- content_for :title, @recipe.name
+
+.recipe-detail-container
+  -# Lien retour
+  .recipe-breadcrumb
+    = link_to "← Retour aux recettes", recipes_path, class: "btn-link"
+
+  -# Header de la recette
+  .recipe-header
+    %h1= @recipe.name
+
+    -# Métadonnées principales
+    .recipe-meta-row
+      = diet_badge(@recipe.diet)
+      = difficulty_badge(@recipe.difficulty)
+      = price_badge(@recipe.price)
+
+      %span.meta-item
+        %span.meta-icon Prépa :
+        = format_prep_time(@recipe.prep_time_minutes)
+
+      - if @recipe.cook_time_minutes.present? && @recipe.cook_time_minutes > 0
+        %span.meta-item
+          %span.meta-icon Cuisson :
+          = format_prep_time(@recipe.cook_time_minutes)
+
+      %span.meta-item
+        %span.meta-icon
+        #{@recipe.default_servings} personnes
+
+    -# Tags
+    - if @recipe.tags.any?
+      .recipe-tags
+        - @recipe.tags.each do |tag|
+          = link_to recipes_path(q: { tags_name_eq: tag.name }), class: "badge badge-beige" do
+            = tag.name
+
+  -# Image de la recette
+  - if @recipe.photo.attached?
+    = image_tag @recipe.photo.variant(resize_to_limit: [900, 500]), 
+                alt: @recipe.name, 
+                class: "recipe-image-large"
+  - else
+    .recipe-image-placeholder
+      %span.placeholder-icon 🍽️
+      %span.placeholder-text Pas d'image disponible
+
+  -# Actions utilisateur (favoris, note)
+  - if current_user
+    .recipe-actions
+      -# Bouton favori
+      = button_to toggle_favorite_recipe_path(@recipe), 
+                  method: :post, 
+                  class: "favorite-btn #{'favorited' if @is_favorited}",
+                  data: { turbo: true } do
+        = @is_favorited ? "♥ Retirer des favoris" : "♡ Ajouter aux favoris"
+
+      -# Note moyenne
+      .recipe-global-rating
+        %span.rating-label Note moyenne :
+        %span.rating-stars= rating_stars(@recipe.rating_avg)
+        %span.rating-value (#{@recipe.rating_avg}/5 - #{@recipe.reviews_count} avis)
+
+  -# Ingrédients avec contrôle du nombre de personnes
+  .recipe-section{ data: { controller: "servings", servings_default_value: @recipe.default_servings } }
+    %h2 Ingrédients
+
+    -# Contrôle du nombre de personnes
+    .servings-control
+      %button.servings-btn{ type: "button", data: { action: "click->servings#decrease" } } −
+      %span.servings-value{ data: { servings_target: "value" } }= @servings
+      %span personnes
+      %button.servings-btn{ type: "button", data: { action: "click->servings#increase" } } +
+
+    -# Liste des ingrédients
+    - if @recipe.preparations.any?
+      %ul.ingredients-list
+        - @recipe.preparations.includes(:ingredient).each do |preparation|
+          %li{ data: { servings_target: "ingredient", 
+                       base_quantity: preparation.quantity_base,
+                       unit_group: preparation.ingredient.unit_group,
+                       default_servings: @recipe.default_servings } }
+            %span.ingredient-name= preparation.ingredient.name
+            %span.ingredient-quantity{ data: { servings_target: "quantity" } }
+              = preparation.humanized_quantity(servings: @servings)
+    - else
+      %p.text-muted Aucun ingrédient renseigné.
+
+  -# Instructions de préparation
+  - if @recipe.instructions.present?
+    .recipe-section
+      %h2 Préparation
+      .instructions-content
+        = simple_format(@recipe.instructions)
+
+  -# Section Avis (UC4)
+  .recipe-section.reviews-section
+    %h2 Avis
+
+    -# Formulaire pour nouvel avis (uniquement si l'utilisateur n'a pas encore laissé d'avis)
+    #review-form-container
+      - if current_user && !@user_review
+        = render "recipes/review_form", recipe: @recipe
+
+    -# Liste des avis
+    #reviews-list.reviews-list
+      - if @reviews.any?
+        - @reviews.each do |review|
+          = render "recipes/review_card", review: review, current_user: current_user
+      - elsif !current_user
+        .empty-reviews
+          %p Connectez-vous pour voir et laisser des avis.
+          = link_to "Se connecter", new_user_session_path, class: "btn btn-secondary"
+
+    -# Pagination des avis
+    - if @reviews.any?
+      .pagination-container
+        = pagy_nav(@pagy_reviews).html_safe if @pagy_reviews.pages > 1
+
+  -# Actions admin (uniquement pour les admins)
+  - if current_user&.admin?
+    .recipe-admin-actions
+      = link_to edit_recipe_path(@recipe), class: "btn btn-secondary" do
+        Modifier
+      = button_to recipe_path(@recipe), 
+                  method: :delete, 
+                  class: "btn btn-danger",
+                  data: { turbo_confirm: "Êtes-vous sûr de vouloir supprimer cette recette ?" } do
+        Supprimer

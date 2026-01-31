@@ -1,0 +1,9 @@
+-# Page d'édition d'une recette existante (admin only)
+- content_for :title, "Modifier #{@recipe.name}"
+
+.recipes-container
+  .recipe-form-header
+    = link_to "← Retour à la recette", recipe_path(@recipe), class: "btn-link"
+    %h1 ✏️ Modifier la recette
+
+  = render "form", recipe: @recipe
