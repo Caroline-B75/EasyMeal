@@ -79,16 +79,20 @@ class Ingredient < ApplicationRecord
     end
   end
 
+  # === Associations ===
+  has_many :preparations, dependent: :restrict_with_error
+  has_many :recipes, through: :preparations
+
   # === Validations ===
   
-  validates :name, presence: true, 
+  validates :name, presence: { message: "ne peut pas être vide" }, 
                    uniqueness: { 
                      case_sensitive: false,
-                     message: "existe déjà dans la base de données. Utilisez la recherche pour le retrouver."
+                     message: "existe déjà"
                    }
-  validates :category, presence: true
-  validates :unit_group, presence: true
-  validates :base_unit, presence: true
+  validates :category, presence: { message: "doit être sélectionnée" }
+  validates :unit_group, presence: { message: "doit être sélectionné" }
+  validates :base_unit, presence: { message: "ne peut pas être vide" }
   
   # Validation du format de base_unit selon le unit_group
   validate :base_unit_matches_unit_group

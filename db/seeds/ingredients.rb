@@ -1,5 +1,6 @@
 # Seed pour les ingrédients de base français
 # ~180 ingrédients courants pour cuisiner des recettes salées et sucrées
+# Utilise find_or_create_by! pour éviter les doublons lors des re-seeds
 
 puts "🌱 Création des ingrédients de base..."
 
@@ -39,7 +40,11 @@ puts "  → Fruits et légumes..."
   { name: "Framboise", category: :fruits_legumes, unit_group: :mass, base_unit: "g", season_months: [6, 7, 8], aliases: ["framboises"] },
   { name: "Avocat", category: :fruits_legumes, unit_group: :count, base_unit: "piece", season_months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], aliases: ["avocats"] },
   { name: "Concombre", category: :fruits_legumes, unit_group: :count, base_unit: "piece", season_months: [5, 6, 7, 8], aliases: ["concombres"] },
-].each { |attrs| Ingredient.create!(attrs) }
+].each do |attrs|
+  Ingredient.find_or_create_by!(name: attrs[:name]) do |ingredient|
+    ingredient.assign_attributes(attrs.except(:name))
+  end
+end
 
 # ============================================
 # BOUCHERIE / VIANDE (boucherie_viande)
@@ -59,7 +64,11 @@ puts "  → Boucherie / Viande..."
   { name: "Agneau", category: :boucherie_viande, unit_group: :mass, base_unit: "g", season_months: [], aliases: ["gigot d'agneau"] },
   { name: "Veau", category: :boucherie_viande, unit_group: :mass, base_unit: "g", season_months: [], aliases: ["escalope de veau"] },
   { name: "Dinde", category: :boucherie_viande, unit_group: :mass, base_unit: "g", season_months: [], aliases: ["escalope de dinde", "blanc de dinde"] },
-].each { |attrs| Ingredient.create!(attrs) }
+].each do |attrs|
+  Ingredient.find_or_create_by!(name: attrs[:name]) do |ingredient|
+    ingredient.assign_attributes(attrs.except(:name))
+  end
+end
 
 # ============================================
 # CHARCUTERIE / TRAITEUR (charcuterie_traiteur)
@@ -75,7 +84,11 @@ puts "  → Charcuterie / Traiteur..."
   { name: "Chorizo", category: :charcuterie_traiteur, unit_group: :mass, base_unit: "g", season_months: [], aliases: [] },
   { name: "Saucisson", category: :charcuterie_traiteur, unit_group: :mass, base_unit: "g", season_months: [], aliases: [] },
   { name: "Pâté", category: :charcuterie_traiteur, unit_group: :mass, base_unit: "g", season_months: [], aliases: [] },
-].each { |attrs| Ingredient.create!(attrs) }
+].each do |attrs|
+  Ingredient.find_or_create_by!(name: attrs[:name]) do |ingredient|
+    ingredient.assign_attributes(attrs.except(:name))
+  end
+end
 
 # ============================================
 # POISSONNERIE (poissonnerie)
@@ -92,7 +105,11 @@ puts "  → Poissonnerie..."
   { name: "Truite", category: :poissonnerie, unit_group: :mass, base_unit: "g", season_months: [], aliases: ["filet de truite"] },
   { name: "Sardine", category: :poissonnerie, unit_group: :mass, base_unit: "g", season_months: [], aliases: ["sardines"] },
   { name: "Maquereau", category: :poissonnerie, unit_group: :mass, base_unit: "g", season_months: [], aliases: [] },
-].each { |attrs| Ingredient.create!(attrs) }
+].each do |attrs|
+  Ingredient.find_or_create_by!(name: attrs[:name]) do |ingredient|
+    ingredient.assign_attributes(attrs.except(:name))
+  end
+end
 
 # ============================================
 # FROMAGERIE / COUPE (fromagerie_coupe)
@@ -109,7 +126,11 @@ puts "  → Fromagerie / Coupe..."
   { name: "Comté", category: :fromagerie_coupe, unit_group: :mass, base_unit: "g", season_months: [], aliases: [] },
   { name: "Brie", category: :fromagerie_coupe, unit_group: :mass, base_unit: "g", season_months: [], aliases: [] },
   { name: "Camembert", category: :fromagerie_coupe, unit_group: :mass, base_unit: "g", season_months: [], aliases: [] },
-].each { |attrs| Ingredient.create!(attrs) }
+].each do |attrs|
+  Ingredient.find_or_create_by!(name: attrs[:name]) do |ingredient|
+    ingredient.assign_attributes(attrs.except(:name))
+  end
+end
 
 # ============================================
 # BOULANGERIE / PÂTISSERIE (boulangerie_patisserie)
@@ -121,7 +142,11 @@ puts "  → Boulangerie / Pâtisserie..."
   { name: "Pain de mie", category: :boulangerie_patisserie, unit_group: :count, base_unit: "piece", season_months: [], aliases: ["tranche de pain de mie"] },
   { name: "Croissant", category: :boulangerie_patisserie, unit_group: :count, base_unit: "piece", season_months: [], aliases: ["croissants"] },
   { name: "Brioche", category: :boulangerie_patisserie, unit_group: :mass, base_unit: "g", season_months: [], aliases: [] },
-].each { |attrs| Ingredient.create!(attrs) }
+].each do |attrs|
+  Ingredient.find_or_create_by!(name: attrs[:name]) do |ingredient|
+    ingredient.assign_attributes(attrs.except(:name))
+  end
+end
 
 # ============================================
 # PRODUITS LAITIERS (produits_laitiers)
@@ -139,7 +164,11 @@ puts "  → Produits laitiers..."
   { name: "Yaourt aux fruits", category: :produits_laitiers, unit_group: :count, base_unit: "piece", season_months: [], aliases: [] },
   { name: "Fromage blanc", category: :produits_laitiers, unit_group: :mass, base_unit: "g", season_months: [], aliases: [] },
   { name: "Œuf", category: :produits_laitiers, unit_group: :count, base_unit: "piece", season_months: [], aliases: ["œufs"] },
-].each { |attrs| Ingredient.create!(attrs) }
+].each do |attrs|
+  Ingredient.find_or_create_by!(name: attrs[:name]) do |ingredient|
+    ingredient.assign_attributes(attrs.except(:name))
+  end
+end
 
 # ============================================
 # PRODUITS FRAIS EN LIBRE-SERVICE (produits_frais_libre_service)
@@ -150,7 +179,11 @@ puts "  → Produits frais en libre-service..."
   { name: "Pâte feuilletée", category: :produits_frais_libre_service, unit_group: :count, base_unit: "piece", season_months: [], aliases: [] },
   { name: "Pâte brisée", category: :produits_frais_libre_service, unit_group: :count, base_unit: "piece", season_months: [], aliases: [] },
   { name: "Pâte sablée", category: :produits_frais_libre_service, unit_group: :count, base_unit: "piece", season_months: [], aliases: [] },
-].each { |attrs| Ingredient.create!(attrs) }
+].each do |attrs|
+  Ingredient.find_or_create_by!(name: attrs[:name]) do |ingredient|
+    ingredient.assign_attributes(attrs.except(:name))
+  end
+end
 
 # ============================================
 # GLACES ET DESSERTS GLACÉS (glaces_desserts_glaces)
@@ -160,7 +193,11 @@ puts "  → Glaces et desserts glacés..."
 [
   { name: "Glace vanille", category: :glaces_desserts_glaces, unit_group: :volume, base_unit: "ml", season_months: [], aliases: [] },
   { name: "Sorbet citron", category: :glaces_desserts_glaces, unit_group: :volume, base_unit: "ml", season_months: [], aliases: [] },
-].each { |attrs| Ingredient.create!(attrs) }
+].each do |attrs|
+  Ingredient.find_or_create_by!(name: attrs[:name]) do |ingredient|
+    ingredient.assign_attributes(attrs.except(:name))
+  end
+end
 
 # ============================================
 # LÉGUMES SURGELÉS (legumes_surgeles)
@@ -171,7 +208,11 @@ puts "  → Légumes surgelés..."
   { name: "Haricots verts surgelés", category: :legumes_surgeles, unit_group: :mass, base_unit: "g", season_months: [], aliases: [] },
   { name: "Petits pois surgelés", category: :legumes_surgeles, unit_group: :mass, base_unit: "g", season_months: [], aliases: [] },
   { name: "Épinards surgelés", category: :legumes_surgeles, unit_group: :mass, base_unit: "g", season_months: [], aliases: [] },
-].each { |attrs| Ingredient.create!(attrs) }
+].each do |attrs|
+  Ingredient.find_or_create_by!(name: attrs[:name]) do |ingredient|
+    ingredient.assign_attributes(attrs.except(:name))
+  end
+end
 
 # ============================================
 # VIANDES ET POISSONS SURGELÉS (viandes_poissons_surgeles)
@@ -181,7 +222,11 @@ puts "  → Viandes et poissons surgelés..."
 [
   { name: "Poisson pané", category: :viandes_poissons_surgeles, unit_group: :count, base_unit: "piece", season_months: [], aliases: ["poissons panés"] },
   { name: "Crevettes surgelées", category: :viandes_poissons_surgeles, unit_group: :mass, base_unit: "g", season_months: [], aliases: [] },
-].each { |attrs| Ingredient.create!(attrs) }
+].each do |attrs|
+  Ingredient.find_or_create_by!(name: attrs[:name]) do |ingredient|
+    ingredient.assign_attributes(attrs.except(:name))
+  end
+end
 
 # ============================================
 # PRODUITS APÉRITIFS SURGELÉS (produits_aperitifs_surgeles)
@@ -190,7 +235,11 @@ puts "  → Produits apéritifs surgelés..."
 
 [
   { name: "Mini-pizza", category: :produits_aperitifs_surgeles, unit_group: :count, base_unit: "piece", season_months: [], aliases: ["mini-pizzas"] },
-].each { |attrs| Ingredient.create!(attrs) }
+].each do |attrs|
+  Ingredient.find_or_create_by!(name: attrs[:name]) do |ingredient|
+    ingredient.assign_attributes(attrs.except(:name))
+  end
+end
 
 # ============================================
 # ÉPICERIE SALÉE (epicerie_salee)
@@ -267,7 +316,11 @@ puts "  → Épicerie salée..."
   { name: "Bouillon de volaille", category: :epicerie_salee, unit_group: :volume, base_unit: "ml", season_months: [], aliases: ["bouillon de poulet"] },
   { name: "Bouillon de légumes", category: :epicerie_salee, unit_group: :volume, base_unit: "ml", season_months: [], aliases: [] },
   { name: "Bouillon de bœuf", category: :epicerie_salee, unit_group: :volume, base_unit: "ml", season_months: [], aliases: [] },
-].each { |attrs| Ingredient.create!(attrs) }
+].each do |attrs|
+  Ingredient.find_or_create_by!(name: attrs[:name]) do |ingredient|
+    ingredient.assign_attributes(attrs.except(:name))
+  end
+end
 
 # ============================================
 # ÉPICERIE SUCRÉE (epicerie_sucree)
@@ -295,7 +348,11 @@ puts "  → Épicerie sucrée..."
   { name: "Noix", category: :epicerie_sucree, unit_group: :mass, base_unit: "g", season_months: [], aliases: [] },
   { name: "Noisettes", category: :epicerie_sucree, unit_group: :mass, base_unit: "g", season_months: [], aliases: [] },
   { name: "Raisins secs", category: :epicerie_sucree, unit_group: :mass, base_unit: "g", season_months: [], aliases: [] },
-].each { |attrs| Ingredient.create!(attrs) }
+].each do |attrs|
+  Ingredient.find_or_create_by!(name: attrs[:name]) do |ingredient|
+    ingredient.assign_attributes(attrs.except(:name))
+  end
+end
 
 # ============================================
 # BOISSONS (boissons)
@@ -311,7 +368,11 @@ puts "  → Boissons..."
   { name: "Vin blanc", category: :boissons, unit_group: :volume, base_unit: "ml", season_months: [], aliases: [] },
   { name: "Vin rouge", category: :boissons, unit_group: :volume, base_unit: "ml", season_months: [], aliases: [] },
   { name: "Bière", category: :boissons, unit_group: :volume, base_unit: "ml", season_months: [], aliases: [] },
-].each { |attrs| Ingredient.create!(attrs) }
+].each do |attrs|
+  Ingredient.find_or_create_by!(name: attrs[:name]) do |ingredient|
+    ingredient.assign_attributes(attrs.except(:name))
+  end
+end
 
 # ============================================
 # PETIT-DÉJEUNER (petit_dejeuner)
@@ -324,7 +385,11 @@ puts "  → Petit-déjeuner..."
   { name: "Céréales", category: :petit_dejeuner, unit_group: :mass, base_unit: "g", season_months: [], aliases: [] },
   { name: "Muesli", category: :petit_dejeuner, unit_group: :mass, base_unit: "g", season_months: [], aliases: [] },
   { name: "Flocons d'avoine", category: :petit_dejeuner, unit_group: :mass, base_unit: "g", season_months: [], aliases: [] },
-].each { |attrs| Ingredient.create!(attrs) }
+].each do |attrs|
+  Ingredient.find_or_create_by!(name: attrs[:name]) do |ingredient|
+    ingredient.assign_attributes(attrs.except(:name))
+  end
+end
 
 # ============================================
 # PRODUITS DU MONDE (produits_monde)
@@ -335,7 +400,11 @@ puts "  → Produits du monde..."
   { name: "Sauce curry", category: :produits_monde, unit_group: :spoon, base_unit: "cac", season_months: [], aliases: [] },
   { name: "Lait de coco", category: :produits_monde, unit_group: :volume, base_unit: "ml", season_months: [], aliases: [] },
   { name: "Gingembre frais", category: :produits_monde, unit_group: :mass, base_unit: "g", season_months: [], aliases: [] },
-].each { |attrs| Ingredient.create!(attrs) }
+].each do |attrs|
+  Ingredient.find_or_create_by!(name: attrs[:name]) do |ingredient|
+    ingredient.assign_attributes(attrs.except(:name))
+  end
+end
 
 # ============================================
 # HYGIÈNE ET BEAUTÉ (hygiene_beaute)
@@ -360,7 +429,11 @@ puts "  → Papeterie et fournitures..."
   { name: "Papier sulfurisé", category: :papeterie_fournitures, unit_group: :count, base_unit: "piece", season_months: [], aliases: ["papier cuisson"] },
   { name: "Papier aluminium", category: :papeterie_fournitures, unit_group: :count, base_unit: "piece", season_months: [], aliases: ["aluminium"] },
   { name: "Film alimentaire", category: :papeterie_fournitures, unit_group: :count, base_unit: "piece", season_months: [], aliases: [] },
-].each { |attrs| Ingredient.create!(attrs) }
+].each do |attrs|
+  Ingredient.find_or_create_by!(name: attrs[:name]) do |ingredient|
+    ingredient.assign_attributes(attrs.except(:name))
+  end
+end
 
 total = Ingredient.count
 puts "\n✅ #{total} ingrédients créés avec succès!"
