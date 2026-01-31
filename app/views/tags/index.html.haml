@@ -1,0 +1,20 @@
+-# Page de gestion des tags (admin only) - Édition inline
+- content_for :title, "Tags"
+
+-# Container avec les controllers modal et tag-inline
+.tags-container{ data: { controller: "modal tag-inline" } }
+  .tags-header
+    %h1 🏷️ Tes tags
+
+  -# Table des tags avec édition inline
+  - if @tags.any?
+    .table-container
+      = turbo_frame_tag "tags_list" do
+        = render "tags/tags_list", tags: @tags
+
+  - else
+    .empty-state
+      %p Aucun tag trouvé.
+
+  -# Modal de confirmation de suppression (réutilisation du composant existant)
+  = render "shared/delete_confirmation_modal", resource_name: "tag"
