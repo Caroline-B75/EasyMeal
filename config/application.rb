@@ -42,5 +42,8 @@ module Easymeal
     # Application uniquement en français
     config.i18n.default_locale = :fr
     config.i18n.available_locales = [:fr]
+
+    # Utiliser ImageMagick au lieu de Vips pour le traitement d'images
+    config.active_storage.variant_processor = :mini_magick
   end
 end

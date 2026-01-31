@@ -6,6 +6,19 @@ Rails.application.routes.draw do
   # Gestion des ingrédients
   resources :ingredients
   
+  # Gestion des tags (admin only)
+  resources :tags, except: [:show, :new, :create]
+  
+  # Gestion des recettes (UC4 - Fiche recette, UC5 - Catalogue)
+  resources :recipes do
+    # Actions sociales (UC4)
+    member do
+      post :toggle_favorite  # Toggle favori
+      post :add_review       # Ajouter/modifier un avis
+      delete :remove_review  # Supprimer son avis
+    end
+  end
+  
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
