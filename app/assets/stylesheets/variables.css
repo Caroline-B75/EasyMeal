@@ -1,0 +1,90 @@
+/* ============================================
+   VARIABLES CSS - EasyMeal Design System
+   ============================================
+   Fichier centralisé pour gérer toutes les couleurs,
+   espacements et autres valeurs de design.
+   Modifier une variable ici impacte tout le projet.
+   ============================================ */
+
+:root {
+  /* === PALETTE DE COULEURS === */
+  /* Couleurs principales (Inspiration Cuisine) */
+  --color-primary: #D73A49;           /* Rouge paprika - Boutons primaires, liens, accents */
+  --color-primary-hover: #B02A37;     /* Rouge paprika foncé - Hover boutons primaires */
+  --color-primary-light: rgba(215, 58, 73, 0.1);  /* Rouge paprika transparent - Backgrounds subtils */
+  
+  --color-secondary: #FF9E4D;         /* Orange miel - Boutons secondaires, accents */
+  --color-secondary-hover: #E68838;   /* Orange miel foncé - Hover boutons secondaires */
+  --color-secondary-light: rgba(255, 158, 77, 0.1); /* Orange miel transparent */
+  
+  /* Couleurs complémentaires */
+  --color-accent: #88B04B;            /* Vert basilic - Success states, éléments positifs */
+  --color-accent-hover: #6E9038;      /* Vert basilic foncé */
+  
+  /* Couleurs neutres */
+  --color-dark: #7B3F00;              /* Brun caramel - Titres importants, texte foncé */
+  --color-text: #3D3D3D;              /* Texte principal */
+  --color-text-light: #6B6B6B;        /* Texte secondaire */
+  --color-text-muted: #9CA3AF;        /* Texte désactivé, subtitles */
+  
+  /* Fonds */
+  --color-bg-main: #F9F5F2;           /* Gris chaud clair - Fond principal de l'application */
+  --color-bg-secondary: #FFF1E0;      /* Beige sablé - Fonds secondaires, zones neutres */
+  --color-bg-white: #FFFFFF;          /* Blanc pur - Cards, conteneurs */
+  
+  /* Bordures */
+  --color-border: #FFF1E0;            /* Beige sablé - Bordures par défaut */
+  --color-border-light: #E5E7EB;      /* Gris clair - Bordures subtiles */
+  
+  /* États spéciaux */
+  --color-danger: #D73A49;            /* Rouge paprika - États d'erreur, suppression */
+  --color-danger-hover: #B02A37;      /* Rouge paprika foncé - Hover danger */
+  --color-success: #88B04B;           /* Vert basilic - Success */
+  --color-warning: #FF9E4D;           /* Orange miel - Warning */
+  --color-info: #3B82F6;              /* Bleu - Information */
+  
+  /* === BORDER RADIUS === */
+  --radius-button: 14px;              /* Tous les boutons - Arrondi prononcé et moderne */
+  --radius-badge: 14px;               /* Badges - Arrondi complet */
+  --radius-card: 16px;                /* Cards principales */
+  --radius-card-compact: 12px;        /* Cards compactes */
+  --radius-input: 8px;                /* Inputs de formulaire */
+  --radius-icon-btn: 8px;             /* Boutons icône */
+  
+  /* === ESPACEMENTS === */
+  --spacing-xs: 0.25rem;              /* 4px */
+  --spacing-sm: 0.5rem;               /* 8px */
+  --spacing-md: 1rem;                 /* 16px */
+  --spacing-lg: 1.5rem;               /* 24px */
+  --spacing-xl: 2rem;                 /* 32px */
+  --spacing-2xl: 3rem;                /* 48px */
+  
+  /* === OMBRES === */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.12);
+  --shadow-primary: 0 4px 12px rgba(215, 58, 73, 0.3);
+  
+  /* === TRANSITIONS === */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.2s ease;
+  --transition-slow: 0.3s ease;
+  
+  /* === TAILLES DE POLICE === */
+  --font-size-xs: 0.875rem;           /* 14px - Minimum recommandé */
+  --font-size-sm: 1rem;               /* 16px - Texte secondaire */
+  --font-size-base: 1.0625rem;        /* 17px - Texte principal ⭐ */
+  --font-size-lg: 1.125rem;           /* 18px - Texte important */
+  --font-size-xl: 1.25rem;            /* 20px - Sous-titres */
+  --font-size-2xl: 1.5rem;            /* 24px - Titres de section */
+  --font-size-3xl: 2rem;              /* 32px - Titres de page */
+  --font-size-4xl: 2.5rem;            /* 40px - Hero titles */
+  
+  /* === BREAKPOINTS (pour référence dans JS si nécessaire) === */
+  --breakpoint-mobile: 768px;
+  --breakpoint-tablet: 1024px;
+  --breakpoint-desktop: 1280px;
+  
+  /* === DIMENSIONS MINIMALES (Accessibilité tactile) === */
+  --min-touch-target: 44px;           /* Taille minimale pour boutons tactiles (mobile) */
+}
