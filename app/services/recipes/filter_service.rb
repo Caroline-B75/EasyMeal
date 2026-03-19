@@ -9,6 +9,17 @@ module Recipes
   #   # => ActiveRecord::Relation filtrée
   #
   class FilterService
+    # Table de dispatch : associe chaque clé de paramètre à la méthode de scope correspondante.
+    # Chaque param n'est lu qu'une seule fois, éliminant les appels dupliqués.
+    PARAM_FILTERS = [
+      [ :query,               ->(scope, val) { scope.search(val) } ],
+      [ :diet,                ->(scope, val) { scope.for_diet(val) } ],
+      [ :difficulty,          ->(scope, val) { scope.by_difficulty(val) } ],
+      [ :max_time,            ->(scope, val) { scope.with_total_time_lte(val) } ],
+      [ :include_ingredients, ->(scope, val) { scope.with_ingredient_names(val) } ],
+      [ :exclude_ingredients, ->(scope, val) { scope.without_ingredient_names(val) } ]
+    ].freeze
+
     def self.call(scope, params)
       new(scope, params).call
     end
@@ -19,27 +30,23 @@ module Recipes
     end
 
     def call
-      apply_main_filters(@scope)
-        .then { |r| apply_ingredient_filters(r) }
+      scope = apply_param_filters(@scope)
+      apply_seasonal_filter(scope)
     end
 
     private
 
-    # Filtres principaux : texte, régime, difficulté, temps, saisonnalité
-    def apply_main_filters(scope)
-      scope
-        .then { |r| @params[:query].present?      ? r.search(@params[:query]) : r }
-        .then { |r| @params[:diet].present?       ? r.for_diet(@params[:diet]) : r }
-        .then { |r| @params[:difficulty].present? ? r.by_difficulty(@params[:difficulty]) : r }
-        .then { |r| @params[:seasonal] == "true"  ? r.seasonal_for_month(Date.current.month) : r }
-        .then { |r| @params[:max_time].present?   ? r.with_total_time_lte(@params[:max_time]) : r }
+    # Applique en séquence tous les filtres de PARAM_FILTERS si leur param est présent
+    def apply_param_filters(scope)
+      PARAM_FILTERS.reduce(scope) do |current_scope, (param_key, filter_fn)|
+        value = @params[param_key]
+        value.present? ? filter_fn.call(current_scope, value) : current_scope
+      end
     end
 
-    # Filtres par ingrédients : inclusion et exclusion
-    def apply_ingredient_filters(scope)
-      scope
-        .then { |r| @params[:include_ingredients].present? ? r.with_ingredient_names(@params[:include_ingredients]) : r }
-        .then { |r| @params[:exclude_ingredients].present? ? r.without_ingredient_names(@params[:exclude_ingredients]) : r }
+    # Filtre saisonnier : condition spéciale (== "true" et non .present?)
+    def apply_seasonal_filter(scope)
+      @params[:seasonal] == "true" ? scope.seasonal_for_month(Date.current.month) : scope
     end
   end
 end

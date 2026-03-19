@@ -116,7 +116,7 @@
     -# Pagination des avis
     - if @reviews.any?
       .pagination-container
-        = pagy_nav(@pagy_reviews).html_safe if @pagy_reviews.pages > 1
+        = pagy_nav(@pagy_reviews) if @pagy_reviews.pages > 1
 
   -# Actions admin (uniquement pour les admins)
   - if current_user&.admin?

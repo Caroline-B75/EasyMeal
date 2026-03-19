@@ -36,7 +36,7 @@ module ApplicationHelper
     messages = object.errors[attribute].map { |msg| clean_error_message(msg) }
 
     content_tag(:div, class: "field-errors", data: { field_error: true }) do
-      messages.map { |msg| content_tag(:span, msg, class: "field-error") }.join.html_safe
+      safe_join(messages.map { |msg| content_tag(:span, msg, class: "field-error") })
     end
   end
 
