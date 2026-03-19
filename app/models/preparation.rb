@@ -8,11 +8,11 @@ class Preparation < ApplicationRecord
 
   # === Validations ===
   validates :ingredient_id, presence: { message: "doit être sélectionné" }
-  validates :quantity_base, presence: { message: "ne peut pas être vide" }, 
+  validates :quantity_base, presence: { message: "ne peut pas être vide" },
                             numericality: { greater_than: 0, message: "doit être supérieure à 0" }
 
   # Empêche d'ajouter 2 fois le même ingrédient dans une recette
-  validates :ingredient_id, uniqueness: { 
+  validates :ingredient_id, uniqueness: {
     scope: :recipe_id,
     message: "est déjà présent dans cette recette"
   }
@@ -65,3 +65,4 @@ class Preparation < ApplicationRecord
     }
   end
 end
+

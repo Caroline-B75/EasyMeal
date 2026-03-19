@@ -68,7 +68,3 @@ export default class extends Controller {
     window.location.href = this.formTarget.action
   }
 }
-      this.submit(event)
-    }
-  }
-}

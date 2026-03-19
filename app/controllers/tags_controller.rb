@@ -18,15 +18,18 @@ class TagsController < ApplicationController
   # Mise à jour d'un tag (correction orthographe, etc.)
   # Supporte l'édition inline avec Turbo
   def update
-    if @tag.update(tag_params)
-      respond_to do |format|
-        format.turbo_stream { render turbo_stream: turbo_stream.replace("tags_list", partial: "tags/tags_list", locals: { tags: Tag.alphabetical }) }
-        format.html { redirect_to tags_path, notice: "Tag mis à jour avec succès." }
+    success = @tag.update(tag_params)
+
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: turbo_stream.replace("tags_list", partial: "tags/tags_list", locals: { tags: Tag.alphabetical })
       end
-    else
-      respond_to do |format|
-        format.turbo_stream { render turbo_stream: turbo_stream.replace("tags_list", partial: "tags/tags_list", locals: { tags: Tag.alphabetical }) }
-        format.html { render :edit, status: :unprocessable_entity }
+      format.html do
+        if success
+          redirect_to tags_path, notice: "Tag mis à jour avec succès."
+        else
+          render :edit, status: :unprocessable_entity
+        end
       end
     end
   end

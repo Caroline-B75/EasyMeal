@@ -8,7 +8,7 @@
     .review-rating-wrapper
       %span.review-rating= review.stars_display
       - if defined?(current_user) && current_user && review.user == current_user
-        = form_with url: remove_review_recipe_path(review.recipe), method: :delete, data: { controller: "modal", turbo: true } do |f|
+        = form_with url: recipe_review_path(review.recipe, review), method: :delete, data: { controller: "modal", turbo: true } do |f|
           %button.icon-btn-delete-small{ type: "button", data: { action: "click->modal#open" }, title: "Supprimer" }
             🗑️
           = render "shared/delete_confirmation_modal", resource_name: "avis"

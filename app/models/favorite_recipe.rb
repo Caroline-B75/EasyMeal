@@ -7,7 +7,7 @@ class FavoriteRecipe < ApplicationRecord
 
   # === Validations ===
   # Un utilisateur ne peut mettre en favori qu'une seule fois la même recette
-  validates :recipe_id, uniqueness: { 
+  validates :recipe_id, uniqueness: {
     scope: :user_id,
     message: "est déjà dans vos favoris"
   }
@@ -21,7 +21,7 @@ class FavoriteRecipe < ApplicationRecord
   # Retourne true si ajouté, false si supprimé
   def self.toggle_for(user:, recipe:)
     favorite = find_by(user: user, recipe: recipe)
-    
+
     if favorite
       favorite.destroy
       false # Supprimé
@@ -31,3 +31,4 @@ class FavoriteRecipe < ApplicationRecord
     end
   end
 end
+

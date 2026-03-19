@@ -7,8 +7,9 @@ class RecipeTag < ApplicationRecord
 
   # === Validations ===
   # Empêche d'ajouter 2 fois le même tag à une recette
-  validates :tag_id, uniqueness: { 
+  validates :tag_id, uniqueness: {
     scope: :recipe_id,
     message: "est déjà associé à cette recette"
   }
 end
+

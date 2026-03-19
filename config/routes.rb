@@ -4,7 +4,11 @@ Rails.application.routes.draw do
   devise_for :users, controllers: { registrations: 'users/registrations' }
 
   # Gestion des ingrédients
-  resources :ingredients
+  resources :ingredients do
+    collection do
+      post :quick_create  # Création rapide depuis le formulaire recette
+    end
+  end
   
   # Gestion des tags (admin only)
   resources :tags, except: [:show, :new, :create]
@@ -14,9 +18,9 @@ Rails.application.routes.draw do
     # Actions sociales (UC4)
     member do
       post :toggle_favorite  # Toggle favori
-      post :add_review       # Ajouter/modifier un avis
-      delete :remove_review  # Supprimer son avis
     end
+    # Avis (UC4) — gérés par Recipes::ReviewsController
+    resources :reviews, only: [:create, :destroy], module: :recipes
   end
   
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

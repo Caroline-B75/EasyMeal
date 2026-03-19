@@ -6,16 +6,16 @@ class Review < ApplicationRecord
   belongs_to :recipe
 
   # === Validations ===
-  validates :rating, presence: true, 
-                     inclusion: { 
-                       in: 1..5, 
-                       message: "doit être entre 1 et 5 étoiles" 
+  validates :rating, presence: true,
+                     inclusion: {
+                       in: 1..5,
+                       message: "doit être entre 1 et 5 étoiles"
                      }
-  
+
   validates :content, length: { maximum: 1000 }, allow_blank: true
-  
+
   # Un utilisateur ne peut laisser qu'un seul avis par recette
-  validates :recipe_id, uniqueness: { 
+  validates :recipe_id, uniqueness: {
     scope: :user_id,
     message: "a déjà été notée par cet utilisateur"
   }
@@ -50,3 +50,4 @@ class Review < ApplicationRecord
     '★' * rating + '☆' * (5 - rating)
   end
 end
+

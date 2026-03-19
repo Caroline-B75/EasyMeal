@@ -17,7 +17,7 @@ class Tag < ApplicationRecord
   }, prefix: true
 
   # === Validations ===
-  validates :name, presence: true, 
+  validates :name, presence: true,
                    uniqueness: { case_sensitive: false },
                    length: { minimum: 2, maximum: 50 }
 
@@ -43,3 +43,4 @@ class Tag < ApplicationRecord
     self.name = name&.strip&.downcase
   end
 end
+

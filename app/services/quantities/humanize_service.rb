@@ -48,19 +48,20 @@ module Quantities
 
     # === MASSE (g → kg) ===
     def humanize_mass
-      if @quantity >= MASS_THRESHOLD
-        { value: format_number(@quantity / 1000.0), unit: "kg" }
-      else
-        { value: format_number(@quantity), unit: "g" }
-      end
+      humanize_with_threshold(MASS_THRESHOLD, small_unit: "g", large_unit: "kg")
     end
 
     # === VOLUME (ml → L) ===
     def humanize_volume
-      if @quantity >= VOLUME_THRESHOLD
-        { value: format_number(@quantity / 1000.0), unit: "L" }
+      humanize_with_threshold(VOLUME_THRESHOLD, small_unit: "ml", large_unit: "L")
+    end
+
+    # Conversion générique seuil/unité (utilisé par mass et volume)
+    def humanize_with_threshold(threshold, small_unit:, large_unit:)
+      if @quantity >= threshold
+        { value: format_number(@quantity / 1000.0), unit: large_unit }
       else
-        { value: format_number(@quantity), unit: "ml" }
+        { value: format_number(@quantity), unit: small_unit }
       end
     end
 
@@ -95,9 +96,10 @@ module Quantities
 
     # === NOMBRE (pièces) ===
     def humanize_count
+      rounded = @quantity.round
       # Arrondir à l'entier si très proche, sinon 1 décimale
-      if (@quantity - @quantity.round).abs < 0.1
-        { value: format_integer(@quantity.round), unit: "" }
+      if (@quantity - rounded).abs < 0.1
+        { value: format_integer(rounded), unit: "" }
       else
         { value: format_number(@quantity, max_decimals: 1), unit: "" }
       end

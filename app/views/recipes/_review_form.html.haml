@@ -1,6 +1,6 @@
 -# Partial pour le formulaire de nouvel avis
 .review-form-container
-  = form_with url: add_review_recipe_path(recipe), method: :post, class: "review-form" do |f|
+  = form_with url: recipe_reviews_path(recipe), method: :post, class: "review-form" do |f|
     .form-group
       %label.form-label Ta note *
       .rating-input{ data: { controller: "rating" } }

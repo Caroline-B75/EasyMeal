@@ -1,0 +1,9 @@
+-# Notification de succès après création d'un ingrédient
+-# Ce partial est injecté via Turbo Stream dans #ingredient-created-notification
+-# Il contient un élément invisible avec le controller ingredient-created qui :
+-# 1. Met à jour tous les selects d'ingrédients dans la page
+-# 2. Affiche un flash message dans le container global (.flash-messages)
+-# 3. Ferme le slideout
+
+-# Élément invisible qui déclenche le JavaScript
+.ingredient-created-event{ data: { controller: "ingredient-created", ingredient_created_id_value: ingredient.id, ingredient_created_name_value: ingredient.name, ingredient_created_display_name_value: ingredient.display_name, ingredient_created_base_unit_value: ingredient.base_unit } }

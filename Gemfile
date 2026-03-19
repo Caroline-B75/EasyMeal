@@ -61,6 +61,10 @@ end
 
 group :development do
   gem "web-console", "~> 4.2.1"
+  # Qualité de code : score, smells, complexité, duplication
+  gem "rubycritic", "~> 4.9", require: false
+  # Bonnes pratiques spécifiques Rails
+  gem "rails_best_practices", "~> 1.23", require: false
 end
 
 gem "tzinfo-data", platforms: %i[windows jruby]
