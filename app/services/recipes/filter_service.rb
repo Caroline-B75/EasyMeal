@@ -16,6 +16,7 @@ module Recipes
       [ :diet,                ->(scope, val) { scope.for_diet(val) } ],
       [ :difficulty,          ->(scope, val) { scope.by_difficulty(val) } ],
       [ :max_time,            ->(scope, val) { scope.with_total_time_lte(val) } ],
+      [ :tag_ids,             ->(scope, val) { scope.with_any_tags(val) } ],
       [ :include_ingredients, ->(scope, val) { scope.with_ingredient_names(val) } ],
       [ :exclude_ingredients, ->(scope, val) { scope.without_ingredient_names(val) } ]
     ].freeze

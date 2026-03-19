@@ -10,52 +10,159 @@
         %span.btn-icon ✚
         Ajouter une recette
 
-  -# Système de filtrage unifié (filtres + recherche + bouton)
+  -# Système de filtrage — filtres principaux toujours visibles + tags déployables
   .recipes-filters
-    = form_with url: recipes_path, method: :get, class: "filters-form", data: { turbo_frame: "recipes_list", recipe_filter_target: "form" } do |f|
-      -# Ligne des filtres (régime, difficulté, temps, saison)
-      .filters-row
-        -# Filtre régime alimentaire
-        .filter-group
-          = f.label :diet, "Régime", class: "filter-label"
-          = f.select :diet, 
-                     options_for_select(Recipe.diets.keys.map { |d| [d.humanize, d] }, params[:diet]), 
-                     { include_blank: "Tous" }, 
-                     class: "filter-select"
+    - selected_tag_ids = Array(params[:tag_ids]).map(&:to_s)
+    - tags_count = selected_tag_ids.size
+    - has_query    = params[:query].present?
+    - has_diet     = params[:diet].present?
+    - has_diff     = params[:difficulty].present?
+    - has_time     = params[:max_time].present?
+    - has_seasonal = params[:seasonal] == "true"
+    - has_favs     = params[:favorites] == "true"
+    - has_any_filter = has_query || has_diet || has_diff || has_time || has_seasonal || has_favs || tags_count > 0
 
-        -# Filtre difficulté
-        .filter-group
-          = f.label :difficulty, "Difficulté", class: "filter-label"
-          = f.select :difficulty, 
-                     options_for_select(Recipe.difficulties.keys.map { |d| [d.humanize, d] }, params[:difficulty]), 
-                     { include_blank: "Toutes" }, 
-                     class: "filter-select"
+    = form_with url: recipes_path, method: :get,
+                class: "filters-form",
+                data: { turbo_frame: "recipes_list", recipe_filter_target: "form" } do |f|
 
-        -# Filtre temps max
-        .filter-group
-          = f.label :max_time, "Temps max", class: "filter-label"
-          = f.select :max_time, 
-                     options_for_select([["15 min", 15], ["30 min", 30], ["45 min", 45], ["1h", 60], ["1h30", 90]], params[:max_time]), 
-                     { include_blank: "Illimité" }, 
-                     class: "filter-select"
-
-        -# Filtre saison
-        .filter-group.filter-checkbox
-          = f.check_box :seasonal, { checked: params[:seasonal] == "true" }, "true", nil
-          = f.label :seasonal, "🌿 De saison", class: "filter-label-inline"
-
-      -# Barre de recherche + bouton (sous les filtres)
-      .recipes-search-bar
-        = f.search_field :query, 
-                         value: params[:query], 
-                         placeholder: "Rechercher un ingrédient, un nom de recette...", 
+      -# ── Barre de recherche ──
+      .filters-search-row
+        = f.search_field :query,
+                         value: params[:query],
+                         placeholder: "Rechercher par nom, ingrédient...",
                          class: "search-input"
         = f.submit "🔍 Rechercher", class: "btn btn-secondary"
 
-    -# Bouton de réinitialisation (sous le formulaire, à droite)
-    .filters-actions
-      = link_to recipes_path, class: "btn btn-link" do
-        ✕ Réinitialiser les filtres
+      -# ── Filtres rapides (toujours visibles) ──
+      .filters-quick-row
+        .filter-group
+          = f.label :diet, "Régime", class: "filter-label"
+          = f.select :diet,
+                     options_for_select(Recipe.diets.keys.map { |d| [d.humanize, d] }, params[:diet]),
+                     { include_blank: "Tous" },
+                     class: "filter-select#{' filter-select--active' if has_diet}",
+                     data: { action: "change->recipe-filter#submit" }
+
+        .filter-group
+          = f.label :difficulty, "Difficulté", class: "filter-label"
+          = f.select :difficulty,
+                     options_for_select(Recipe.difficulties.keys.map { |d| [d.humanize, d] }, params[:difficulty]),
+                     { include_blank: "Toutes" },
+                     class: "filter-select#{' filter-select--active' if has_diff}",
+                     data: { action: "change->recipe-filter#submit" }
+
+        .filter-group
+          = f.label :max_time, "Temps max", class: "filter-label"
+          = f.select :max_time,
+                     options_for_select([["15 min", 15], ["30 min", 30], ["45 min", 45], ["1h", 60], ["1h30", 90]], params[:max_time]),
+                     { include_blank: "Illimité" },
+                     class: "filter-select#{' filter-select--active' if has_time}",
+                     data: { action: "change->recipe-filter#submit" }
+
+        .filter-group.filter-checkbox{ class: has_seasonal ? "filter-checkbox--active" : nil }
+          = f.check_box :seasonal,
+                        { checked: has_seasonal,
+                          data: { action: "change->recipe-filter#submit" } },
+                        "true", nil
+          = f.label :seasonal, "🌿 De saison", class: "filter-label-inline"
+
+        - if user_signed_in?
+          - fav_active = params[:favorites] == "true"
+          = check_box_tag :favorites, "true", fav_active,
+                          id: "filter-favorites",
+                          class: "sr-only",
+                          data: { action: "change->recipe-filter#submit" }
+          %label.filter-quick-pill{ for: "filter-favorites" }
+            %span.pill-heart ♥
+            Mes favoris
+
+        -# Bouton "Affiner par tags" dans la même ligne que les filtres rapides
+        - if @tags&.any?
+          %button.filter-tags-toggle-btn{ type: "button",
+                                          "aria-expanded": tags_count > 0,
+                                          data: { action: "click->recipe-filter#togglePanel",
+                                                  recipe_filter_target: "toggleBtn" } }
+            🏷️ Affiner par tags
+            - if tags_count > 0
+              %span.filter-count-badge= tags_count
+            %span.toggle-chevron ▾
+
+      -# ── Filtres actifs + réinitialiser ──
+      - if has_any_filter
+        .active-filters-bar
+          %span.active-filters-label Filtres actifs :
+          - if has_query
+            %button.active-filter-badge{ type: "button",
+                                         data: { action: "click->recipe-filter#clearFilter",
+                                                 recipe_filter_field: "query" } }
+              🔍 #{params[:query]}
+              %span.badge-remove ×
+          - if has_diet
+            %button.active-filter-badge{ type: "button",
+                                         data: { action: "click->recipe-filter#clearFilter",
+                                                 recipe_filter_field: "diet" } }
+              = params[:diet].humanize
+              %span.badge-remove ×
+          - if has_diff
+            %button.active-filter-badge{ type: "button",
+                                         data: { action: "click->recipe-filter#clearFilter",
+                                                 recipe_filter_field: "difficulty" } }
+              = params[:difficulty].humanize
+              %span.badge-remove ×
+          - if has_time
+            - time_labels = { "15" => "≤ 15 min", "30" => "≤ 30 min", "45" => "≤ 45 min", "60" => "≤ 1h", "90" => "≤ 1h30" }
+            %button.active-filter-badge{ type: "button",
+                                         data: { action: "click->recipe-filter#clearFilter",
+                                                 recipe_filter_field: "max_time" } }
+              = time_labels[params[:max_time].to_s] || "≤ #{params[:max_time]} min"
+              %span.badge-remove ×
+          - if has_seasonal
+            %button.active-filter-badge{ type: "button",
+                                         data: { action: "click->recipe-filter#clearFilter",
+                                                 recipe_filter_field: "seasonal" } }
+              🌿 De saison
+              %span.badge-remove ×
+          - if has_favs
+            %button.active-filter-badge{ type: "button",
+                                         data: { action: "click->recipe-filter#clearFilter",
+                                                 recipe_filter_field: "favorites" } }
+              ♥ Mes favoris
+              %span.badge-remove ×
+          - if tags_count > 0
+            - @tags&.select { |t| selected_tag_ids.include?(t.id.to_s) }.each do |tag|
+              %button.active-filter-badge{ type: "button",
+                                           data: { action: "click->recipe-filter#clearFilter",
+                                                   recipe_filter_field: "tag_ids[]",
+                                                   recipe_filter_value: tag.id } }
+                🏷️ #{tag.name}
+                %span.badge-remove ×
+          = link_to recipes_path, class: "active-filter-reset" do
+            ✕ Tout effacer
+
+      -# ── Tags (panneau déployable) ──
+      - if @tags&.any?
+        - tag_type_labels = { "regime_alimentaire" => "Régime", "occasion" => "Occasion",
+                              "methode_cuisson" => "Méthode", "saison" => "Saison",
+                              "rapidite" => "Rapidité", "autre" => "Autre" }
+        - tags_by_type = @tags.group_by { |t| t.tag_type || "autre" }
+        .filters-tags-panel{ data: { recipe_filter_target: "panel" },
+                             class: tags_count > 0 ? "" : "hidden" }
+          - tags_by_type.each do |type, group|
+            .filters-tags-group
+              %span.filters-tags-sublabel= tag_type_labels[type] || type.to_s.humanize
+              .filters-tags-pills
+                - group.each do |tag|
+                  - tag_active = selected_tag_ids.include?(tag.id.to_s)
+                  = check_box_tag "tag_ids[]", tag.id, tag_active,
+                                  id: "tag-#{tag.id}",
+                                  class: "sr-only",
+                                  data: { action: "change->recipe-filter#submit" }
+                  = label_tag "tag-#{tag.id}", tag.name,
+                              class: "filter-tag-pill #{'active' if tag_active}"
+
+    = link_to recipes_path, class: "reset-filters-link" do
+      ✕ Effacer tous les filtres
 
   -# Loader de chargement (affiché pendant la recherche)
   .recipes-loader.hidden{ data: { recipe_filter_target: "loader" } }

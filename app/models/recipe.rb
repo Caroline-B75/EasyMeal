@@ -104,6 +104,13 @@ class Recipe < ApplicationRecord
     where.not(id: ingredients_matching(ingredient_names).select(:id))
   }
 
+  # Recettes ayant au moins un des tags donnés (filtre OR)
+  scope :with_any_tags, ->(tag_ids) {
+    return all if tag_ids.blank?
+
+    joins(:tags).where(tags: { id: tag_ids }).distinct
+  }
+
   # Tri alphabétique
   scope :alphabetical, -> { order(name: :asc) }
 

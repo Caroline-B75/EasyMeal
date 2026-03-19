@@ -12,11 +12,18 @@ class RecipesController < ApplicationController
     authorize Recipe
     base_scope = policy_scope(Recipe)
 
+    # Filtre favoris : restreindre à ses recettes favorites si demandé
+    if params[:favorites] == "true" && current_user
+      base_scope = base_scope.joins(:favorite_recipes)
+                             .where(favorite_recipes: { user_id: current_user.id })
+    end
+
     recipes = Recipes::FilterService.call(base_scope, params)
                 .includes(:tags, :ingredients, photo_attachment: :blob)
                 .order(params[:sort] || :name)
 
     @pagy, @recipes = pagy(recipes, items: 20)
+    @tags = Tag.joins(:recipes).distinct.alphabetical
     @ransack_query = base_scope.ransack(params[:q])
   end
 
