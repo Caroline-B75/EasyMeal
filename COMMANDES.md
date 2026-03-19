@@ -7,8 +7,8 @@
 cd /mnt/c/Caroline/easymeal
 
 # 2. Activer Ruby avec RVM
-rvm use 3.2.3@easymeal --create -> la première fois seulement
-rvm use 3.2.3@easymeal
+rvm use 3.3.7@easymeal --create -> la première fois seulement
+rvm use 3.3.7@easymeal
 
 # 3. Installer/mettre à jour les gems seulement si nécessaire
 bundle install
@@ -27,7 +27,7 @@ bin/rails server
 
 Nouveau terminal :
 cd /mnt/c/Caroline/easymeal
-rvm use 3.2.3@easymeal --create
+rvm use 3.3.7@easymeal --create
 rails c
 
 -> pour afficher "joliment" les attributs il faut mettre "ap" avant la commande. Ex:
