@@ -1,0 +1,19 @@
+-# Partial bouton favori — show (texte complet) et index (icône seule, compact: true)
+-# Locals :
+-#   recipe       : Recipe (required)
+-#   is_favorited : Boolean (required)
+-#   container_id : String, id du wrapper DOM (default: "favorite-btn-<recipe.id>")
+-#   compact      : Boolean, icône seule — utilisé dans l'index (default: false)
+- container_id = local_assigns.fetch(:container_id, "favorite-btn-#{recipe.id}")
+- compact = local_assigns.fetch(:compact, false)
+%div.recipe-favorite-container{ id: container_id }
+  = button_to toggle_favorite_recipe_path(recipe),
+              method: :post,
+              class: "favorite-btn #{is_favorited ? 'favorited' : ''} #{compact ? 'favorite-btn-compact' : ''}",
+              title: is_favorited ? "Retirer des favoris" : "Ajouter aux favoris",
+              data: { turbo: true } do
+    - if compact
+      = hidden_field_tag :compact, "true"
+      = is_favorited ? "♥" : "♡"
+    - else
+      = is_favorited ? "♥ Retirer des favoris" : "♡ Ajouter aux favoris"

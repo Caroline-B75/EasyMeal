@@ -50,11 +50,7 @@
   - if current_user
     .recipe-actions
       -# Bouton favori
-      = button_to toggle_favorite_recipe_path(@recipe), 
-                  method: :post, 
-                  class: "favorite-btn #{'favorited' if @is_favorited}",
-                  data: { turbo: true } do
-        = @is_favorited ? "♥ Retirer des favoris" : "♡ Ajouter aux favoris"
+      = render "favorite_button", recipe: @recipe, is_favorited: @is_favorited, container_id: "favorite-btn-#{@recipe.id}"
 
       -# Note moyenne
       .recipe-global-rating
@@ -120,11 +116,12 @@
 
   -# Actions admin (uniquement pour les admins)
   - if current_user&.admin?
-    .recipe-admin-actions
+    .recipe-admin-actions{ data: { controller: "modal" } }
       = link_to edit_recipe_path(@recipe), class: "btn btn-secondary" do
         Modifier
-      = button_to recipe_path(@recipe), 
-                  method: :delete, 
+      = button_to recipe_path(@recipe),
+                  method: :delete,
                   class: "btn btn-danger",
-                  data: { turbo_confirm: "Êtes-vous sûr de vouloir supprimer cette recette ?" } do
+                  form: { data: { action: "submit->modal#open" } } do
         Supprimer
+      = render "shared/delete_confirmation_modal"

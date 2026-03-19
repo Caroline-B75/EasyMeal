@@ -91,7 +91,12 @@ class RecipesController < ApplicationController
         end
       end
       format.turbo_stream do
-        @is_favorited = added
+        is_compact = params[:compact] == "true"
+        render turbo_stream: turbo_stream.replace(
+          "favorite-btn-#{@recipe.id}",
+          partial: "recipes/favorite_button",
+          locals: { recipe: @recipe, is_favorited: added, container_id: "favorite-btn-#{@recipe.id}", compact: is_compact }
+        )
       end
     end
   end

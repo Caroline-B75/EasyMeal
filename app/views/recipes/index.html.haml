@@ -69,44 +69,45 @@
         -# Grille de cartes recettes
         .recipes-grid
           - @recipes.each do |recipe|
-            = link_to recipe_path(recipe), class: "recipe-card-link", data: { turbo_frame: "_top" } do
-              .recipe-card
-                -# Image de la recette
-                .recipe-card-image-wrapper
-                  - if recipe.photo.attached?
-                    = image_tag recipe.photo.variant(resize_to_fill: [400, 250]), 
-                                alt: recipe.name, 
-                                class: "recipe-card-image"
-                  - else
-                    .recipe-card-placeholder
-                      %span 🍽️
+            .recipe-card-wrapper
+              = link_to recipe_path(recipe), class: "recipe-card-link", data: { turbo_frame: "_top" } do
+                .recipe-card
+                  -# Image de la recette
+                  .recipe-card-image-wrapper
+                    - if recipe.photo.attached?
+                      = image_tag recipe.photo.variant(resize_to_fill: [400, 250]),
+                                  alt: recipe.name,
+                                  class: "recipe-card-image"
+                    - else
+                      .recipe-card-placeholder
+                        %span 🍽️
 
-                .recipe-card-body
-                  -# Titre
-                  %h3.recipe-card-title= recipe.name
+                  .recipe-card-body
+                    -# Titre
+                    %h3.recipe-card-title= recipe.name
 
-                  -# Métadonnées
-                  .recipe-card-meta
-                    %span.meta-item
-                      %span.meta-icon ⏱️
-                      = format_total_time(recipe)
-                    %span.meta-item
-                      = diet_badge(recipe.diet)
+                    -# Métadonnées
+                    .recipe-card-meta
+                      %span.meta-item
+                        %span.meta-icon ⏱️
+                        = format_total_time(recipe)
+                      %span.meta-item
+                        = diet_badge(recipe.diet)
 
-                  -# Tags (max 3 affichés)
-                  - if recipe.tags.any?
-                    .recipe-card-tags
-                      - recipe.tags.first(3).each do |tag|
-                        %span.badge.badge-beige= tag.name
+                    -# Tags (max 3 affichés)
+                    - if recipe.tags.any?
+                      .recipe-card-tags
+                        - recipe.tags.first(3).each do |tag|
+                          %span.badge.badge-beige= tag.name
 
-                  -# Footer avec note et favoris
-                  .recipe-card-footer
-                    .recipe-rating
-                      %span.recipe-rating-stars= rating_stars(recipe.rating_avg)
-                      %span.recipe-rating-count (#{recipe.reviews_count})
-                    
-                    - if current_user && recipe.favorited_by?(current_user)
-                      %span.recipe-favorite-indicator ♥
+                    -# Footer avec note
+                    .recipe-card-footer
+                      .recipe-rating
+                        %span.recipe-rating-stars= rating_stars(recipe.rating_avg)
+                        %span.recipe-rating-count (#{recipe.reviews_count})
+              -# Coeur favori positionné en overlay sur la carte
+              - if current_user
+                = render "recipes/favorite_button", recipe: recipe, is_favorited: recipe.favorited_by?(current_user), container_id: "favorite-btn-#{recipe.id}", compact: true
 
         -# Pagination
         .pagination-container

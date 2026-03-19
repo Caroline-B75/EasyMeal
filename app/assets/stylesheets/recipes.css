@@ -403,8 +403,21 @@
 }
 
 .favorite-btn.favorited {
-  background: var(--color-secondary);
+  background: var(--color-primary);
+  border-color: var(--color-primary);
   color: var(--color-bg-white);
+  animation: heart-pop 0.3s ease-out;
+}
+
+.favorite-btn.favorited:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+@keyframes heart-pop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.12); }
+  100% { transform: scale(1); }
 }
 
 /* === Reviews (avis) === */
@@ -943,6 +956,39 @@
   align-items: center;
   justify-content: center;
   font-size: 3rem;
+}
+
+/* === Wrapper carte avec bouton favori en overlay === */
+
+.recipe-card-wrapper {
+  position: relative;
+}
+
+.recipe-card-wrapper .recipe-favorite-container {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 1;
+}
+
+/* Bouton favori compact (icône ronde) — index uniquement */
+.favorite-btn.favorite-btn-compact {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(4px);
+  gap: 0;
+}
+
+/* État favorié en compact : fond rouge explicite (spécificité plus haute) */
+.favorite-btn.favorite-btn-compact.favorited {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-bg-white);
 }
 
 /* === Recipe card link === */
