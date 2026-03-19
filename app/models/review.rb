@@ -23,7 +23,7 @@ class Review < ApplicationRecord
   # === Scopes ===
   scope :recent, -> { order(created_at: :desc) }
   scope :best_rated, -> { order(rating: :desc) }
-  scope :with_content, -> { where.not(content: [nil, '']) }
+  scope :with_content, -> { where.not(content: [ nil, "" ]) }
 
   # === Délégations ===
   delegate :email, to: :user, prefix: true, allow_nil: true
@@ -47,7 +47,6 @@ class Review < ApplicationRecord
 
   # Nombre d'étoiles affichées (★★★★★)
   def stars_display
-    '★' * rating + '☆' * (5 - rating)
+    "★" * rating + "☆" * (5 - rating)
   end
 end
-

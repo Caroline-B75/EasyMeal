@@ -12,4 +12,3 @@ class RecipeTag < ApplicationRecord
     message: "est déjà associé à cette recette"
   }
 end
-

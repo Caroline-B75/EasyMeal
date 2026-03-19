@@ -7,19 +7,19 @@ puts "  Création des tags..."
 SPEED_TAGS = %w[express].freeze
 
 # Tags diététiques
-DIETARY_TAGS = ['végétarien', 'vegan', 'léger', 'healthy'].freeze
+DIETARY_TAGS = [ 'végétarien', 'vegan', 'léger', 'healthy' ].freeze
 
 # Tags d'occasion
-OCCASION_TAGS = ['apéritif', 'entrée', 'plat', 'dessert', 'brunch', 'pique-nique', 'fêtes'].freeze
+OCCASION_TAGS = [ 'apéritif', 'entrée', 'plat', 'dessert', 'brunch', 'pique-nique', 'fêtes' ].freeze
 
 # Tags de méthode de cuisson
-COOKING_METHOD_TAGS = ['four', 'poêle', 'vapeur', 'cocotte', 'barbecue', 'sans cuisson'].freeze
+COOKING_METHOD_TAGS = [ 'four', 'poêle', 'vapeur', 'cocotte', 'barbecue', 'sans cuisson' ].freeze
 
 # Tags de saison
-SEASON_TAGS = ['printemps', 'été', 'automne', 'hiver'].freeze
+SEASON_TAGS = [ 'printemps', 'été', 'automne', 'hiver' ].freeze
 
 # Tags autres
-OTHER_TAGS = ['facile', 'familial'].freeze
+OTHER_TAGS = [ 'facile', 'familial' ].freeze
 
 # Création des tags par catégorie
 SPEED_TAGS.each do |name|

@@ -24,7 +24,7 @@ class Tag < ApplicationRecord
   # === Scopes ===
   scope :alphabetical, -> { order(:name) }
   scope :by_type, ->(type) { where(tag_type: type) if type.present? }
-  scope :search, ->(query) { where('name ILIKE ?', "%#{query}%") if query.present? }
+  scope :search, ->(query) { where("name ILIKE ?", "%#{query}%") if query.present? }
 
   # === Callbacks ===
   # Normalise le nom du tag (minuscules, trim)
@@ -43,4 +43,3 @@ class Tag < ApplicationRecord
     self.name = name&.strip&.downcase
   end
 end
-

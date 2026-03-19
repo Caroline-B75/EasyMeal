@@ -2,9 +2,9 @@
 # Index & show : accessibles à tous (UC4, UC5)
 # Create/Update/Destroy : réservés aux admins (gestion du catalogue)
 class RecipesController < ApplicationController
-  before_action :authenticate_user!, except: [:index, :show]
-  before_action :set_recipe, only: [:show, :edit, :update, :destroy, :toggle_favorite]
-  before_action :authorize_recipe, only: [:show, :edit, :update, :destroy]
+  before_action :authenticate_user!, except: [ :index, :show ]
+  before_action :set_recipe, only: [ :show, :edit, :update, :destroy, :toggle_favorite ]
+  before_action :authorize_recipe, only: [ :show, :edit, :update, :destroy ]
 
   # GET /recipes
   # UC5 : Catalogue & Recherche de recettes avec filtres
@@ -35,7 +35,7 @@ class RecipesController < ApplicationController
   def new
     @recipe = Recipe.new
     authorize @recipe
-    
+
     # Pré-créer 1 preparation vide pour le formulaire
     @recipe.preparations.build
   end
@@ -81,7 +81,7 @@ class RecipesController < ApplicationController
   # UC4 : Toggle favori (ajoute si absent, supprime si présent)
   def toggle_favorite
     added = FavoriteRecipe.toggle_for(user: current_user, recipe: @recipe)
-    
+
     respond_to do |format|
       format.html do
         if added
@@ -110,25 +110,15 @@ class RecipesController < ApplicationController
   # Accepte les nested attributes pour preparations (ingrédients avec quantités)
   def recipe_params
     params.require(:recipe).permit(
-      :name,
-      :description,
-      :instructions,
-      :default_servings,
-      :prep_time_minutes,
-      :cook_time_minutes,
-      :difficulty,
-      :price,
-      :diet,
-      :appliance,
-      :source_url,
-      :photo,
+      :name, :description, :instructions,
+      :default_servings, :prep_time_minutes, :cook_time_minutes,
+      :difficulty, :price, :diet, :appliance, :source_url, :photo,
       tag_ids: [],
-      preparations_attributes: [
-        :id,
-        :ingredient_id,
-        :quantity_base,
-        :_destroy
-      ]
+      preparations_attributes: preparation_permitted_fields
     )
+  end
+
+  def preparation_permitted_fields
+    [ :id, :ingredient_id, :quantity_base, :_destroy ]
   end
 end

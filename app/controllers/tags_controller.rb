@@ -1,7 +1,7 @@
 # Gestion des tags (admin only)
 class TagsController < ApplicationController
-  before_action :set_tag, only: [:edit, :update, :destroy]
-  before_action :authorize_tag, only: [:index, :edit, :update, :destroy]
+  before_action :set_tag, only: [ :edit, :update, :destroy ]
+  before_action :authorize_tag, only: [ :index, :edit, :update, :destroy ]
 
   # GET /tags
   # Liste tous les tags avec nombre de recettes
@@ -22,7 +22,8 @@ class TagsController < ApplicationController
 
     respond_to do |format|
       format.turbo_stream do
-        render turbo_stream: turbo_stream.replace("tags_list", partial: "tags/tags_list", locals: { tags: Tag.alphabetical })
+        render turbo_stream: turbo_stream.replace("tags_list", partial: "tags/tags_list",
+locals: { tags: Tag.alphabetical })
       end
       format.html do
         if success

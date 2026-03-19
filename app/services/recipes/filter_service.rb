@@ -19,12 +19,25 @@ module Recipes
     end
 
     def call
-      @scope
-        .then { |r| @params[:query].present?               ? r.search(@params[:query]) : r }
-        .then { |r| @params[:diet].present?                ? r.for_diet(@params[:diet]) : r }
-        .then { |r| @params[:difficulty].present?          ? r.by_difficulty(@params[:difficulty]) : r }
-        .then { |r| @params[:seasonal] == "true"           ? r.seasonal_for_month(Date.current.month) : r }
-        .then { |r| @params[:max_time].present?            ? r.with_total_time_lte(@params[:max_time]) : r }
+      apply_main_filters(@scope)
+        .then { |r| apply_ingredient_filters(r) }
+    end
+
+    private
+
+    # Filtres principaux : texte, régime, difficulté, temps, saisonnalité
+    def apply_main_filters(scope)
+      scope
+        .then { |r| @params[:query].present?      ? r.search(@params[:query]) : r }
+        .then { |r| @params[:diet].present?       ? r.for_diet(@params[:diet]) : r }
+        .then { |r| @params[:difficulty].present? ? r.by_difficulty(@params[:difficulty]) : r }
+        .then { |r| @params[:seasonal] == "true"  ? r.seasonal_for_month(Date.current.month) : r }
+        .then { |r| @params[:max_time].present?   ? r.with_total_time_lte(@params[:max_time]) : r }
+    end
+
+    # Filtres par ingrédients : inclusion et exclusion
+    def apply_ingredient_filters(scope)
+      scope
         .then { |r| @params[:include_ingredients].present? ? r.with_ingredient_names(@params[:include_ingredients]) : r }
         .then { |r| @params[:exclude_ingredients].present? ? r.without_ingredient_names(@params[:exclude_ingredients]) : r }
     end

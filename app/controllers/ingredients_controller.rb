@@ -2,8 +2,8 @@
 # Index visible par tous (pour l'auto-complétion), CRUD réservé aux admins
 class IngredientsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_ingredient, only: [:show, :edit, :update, :destroy]
-  before_action :authorize_ingredient, only: [:show, :edit, :update, :destroy]
+  before_action :set_ingredient, only: [ :show, :edit, :update, :destroy ]
+  before_action :authorize_ingredient, only: [ :show, :edit, :update, :destroy ]
 
   # GET /ingredients
   def index
@@ -46,25 +46,9 @@ class IngredientsController < ApplicationController
     authorize @ingredient, :create?
 
     if @ingredient.save
-      respond_to do |format|
-        format.turbo_stream do
-          render turbo_stream: turbo_stream.append("ingredient-created-notification", 
-            partial: "ingredients/quick_create_success",
-            locals: { ingredient: @ingredient }
-          )
-        end
-        format.html { redirect_to ingredients_path, notice: "Ingrédient créé avec succès." }
-      end
+      render_quick_create_success
     else
-      respond_to do |format|
-        format.turbo_stream do
-          render turbo_stream: turbo_stream.replace("quick-ingredient-form",
-            partial: "ingredients/quick_form",
-            locals: { ingredient: @ingredient }
-          ), status: :unprocessable_entity
-        end
-        format.html { render :new, status: :unprocessable_entity }
-      end
+      render_quick_create_error
     end
   end
 
@@ -107,6 +91,30 @@ class IngredientsController < ApplicationController
 
   def authorize_ingredient
     authorize @ingredient
+  end
+
+  def render_quick_create_success
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: turbo_stream.append("ingredient-created-notification",
+          partial: "ingredients/quick_create_success",
+          locals: { ingredient: @ingredient }
+        )
+      end
+      format.html { redirect_to ingredients_path, notice: "Ingrédient créé avec succès." }
+    end
+  end
+
+  def render_quick_create_error
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: turbo_stream.replace("quick-ingredient-form",
+          partial: "ingredients/quick_form",
+          locals: { ingredient: @ingredient }
+        ), status: :unprocessable_entity
+      end
+      format.html { render :new, status: :unprocessable_entity }
+    end
   end
 
   # Paramètres autorisés pour Ingredient

@@ -63,7 +63,7 @@ class Recipe < ApplicationRecord
     return all if query.blank?
 
     left_joins(:tags, :ingredients)
-      .where('recipes.name ILIKE ? OR tags.name ILIKE ? OR ingredients.name ILIKE ?',
+      .where("recipes.name ILIKE ? OR tags.name ILIKE ? OR ingredients.name ILIKE ?",
              "%#{query}%", "%#{query}%", "%#{query}%")
       .distinct
   }
@@ -78,7 +78,7 @@ class Recipe < ApplicationRecord
   scope :with_total_time_lte, ->(max_minutes) {
     return all if max_minutes.blank?
 
-    where('COALESCE(prep_time_minutes, 0) + COALESCE(cook_time_minutes, 0) <= ?', max_minutes)
+    where("COALESCE(prep_time_minutes, 0) + COALESCE(cook_time_minutes, 0) <= ?", max_minutes)
   }
 
   # Recettes de saison pour un mois donné (au moins 1 ingrédient de saison)
@@ -86,7 +86,7 @@ class Recipe < ApplicationRecord
     return all if month.blank?
 
     joins(:ingredients)
-      .where(':month = ANY(ingredients.season_months)', month: month.to_i)
+      .where(":month = ANY(ingredients.season_months)", month: month.to_i)
       .distinct
   }
 
@@ -110,7 +110,7 @@ class Recipe < ApplicationRecord
   # Requête SQL partagée : recettes dont un ingrédient correspond par nom ou alias
   def self.ingredients_matching(ingredient_names)
     joins(:ingredients)
-      .where('ingredients.name ILIKE ANY(ARRAY[?]) OR ingredients.aliases ?| ARRAY[?]',
+      .where("ingredients.name ILIKE ANY(ARRAY[?]) OR ingredients.aliases ?| ARRAY[?]",
              ingredient_names.map { |ingredient_name| "%#{ingredient_name}%" },
              ingredient_names)
   end
@@ -156,12 +156,12 @@ class Recipe < ApplicationRecord
 
   # Nom lisible de la difficulté en français
   def difficulty_human
-    human_enum_value(:difficulty, 'Non renseignée')
+    human_enum_value(:difficulty, "Non renseignée")
   end
 
   # Nom lisible du prix en français
   def price_human
-    human_enum_value(:price, 'Non renseigné')
+    human_enum_value(:price, "Non renseigné")
   end
 
   private

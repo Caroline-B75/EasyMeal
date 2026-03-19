@@ -35,7 +35,7 @@ module Groceries
 
       aggregate_ingredients
         .map { |ingredient_id, data| format_result(data) }
-        .sort_by { |item| [category_order(item[:category]), item[:ingredient].name] }
+        .sort_by { |item| [ category_order(item[:category]), item[:ingredient].name ] }
     end
 
     private

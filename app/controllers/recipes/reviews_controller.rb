@@ -22,7 +22,8 @@ module Recipes
           format.turbo_stream do
             render turbo_stream: [
               turbo_stream.update("review-form-container", ""),
-              turbo_stream.prepend("reviews-list", partial: "recipes/review_card", locals: { review: @review, current_user: current_user })
+              turbo_stream.prepend("reviews-list", partial: "recipes/review_card",
+locals: { review: @review, current_user: current_user })
             ]
           end
           format.html { redirect_to @recipe, notice: "Ton avis a été enregistré 🌟" }

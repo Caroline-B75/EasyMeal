@@ -1,7 +1,7 @@
 if defined?(Rails::Console)
-  require 'awesome_print'
+  require "awesome_print"
   AwesomePrint.irb!
-  
+
   AwesomePrint.defaults = {
     indent: 4, # Augmente l'indentation pour plus de lisibilité
     multiline: true,
@@ -13,9 +13,9 @@ if defined?(Rails::Console)
       string: :green
     }
   }
-  
+
   begin
-    require 'table_print'
+    require "table_print"
   rescue LoadError
   end
 end

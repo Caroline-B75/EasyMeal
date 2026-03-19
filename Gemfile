@@ -42,8 +42,8 @@ gem "dotenv-rails", "~> 3.2.0"
 
 # Dev qualité
 gem "bootsnap", "~> 1.21.1", require: false
-gem "annotate", "~> 3.2.0", group: [:development]
-gem "bundler-audit", "~> 0.9.3", require: false, group: [:development, :test]
+gem "annotate", "~> 3.2.0", group: [ :development ]
+gem "bundler-audit", "~> 0.9.3", require: false, group: [ :development, :test ]
 
 group :development, :test do
   gem "debug", "~> 1.11.1", platforms: %i[mri windows], require: "debug/prelude"

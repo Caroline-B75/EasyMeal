@@ -2,7 +2,7 @@
 
 module Quantities
   # Service pour convertir une quantité brute en affichage lisible
-  # 
+  #
   # Règles d'humanisation par groupe d'unités :
   # - mass (g)    : >= 1000g → kg (ex: 1500g → "1,5 kg")
   # - volume (ml) : >= 1000ml → L (ex: 2000ml → "2 L")
@@ -34,12 +34,12 @@ module Quantities
     # Retourne un hash avec la valeur formatée, l'unité et l'affichage complet
     def call
       result = case @unit_group
-               when :mass then humanize_mass
-               when :volume then humanize_volume
-               when :spoon then humanize_spoon
-               when :count then humanize_count
-               else fallback_display
-               end
+      when :mass then humanize_mass
+      when :volume then humanize_volume
+      when :spoon then humanize_spoon
+      when :count then humanize_count
+      else fallback_display
+      end
 
       build_result(result[:value], result[:unit])
     end
@@ -124,9 +124,9 @@ module Quantities
       # Convertir en string et remplacer le point par une virgule
       # Supprimer les zéros inutiles après la virgule
       formatted = rounded.to_s
-                         .sub(/\.0+$/, '')           # Supprime ".0" ou ".00"
+                         .sub(/\.0+$/, "")           # Supprime ".0" ou ".00"
                          .sub(/(\.\d*?)0+$/, '\1')   # Supprime les zéros trailing
-                         .sub('.', ',')              # Point → virgule (FR)
+                         .sub(".", ",")              # Point → virgule (FR)
 
       formatted
     end
@@ -139,7 +139,7 @@ module Quantities
     # Construit le résultat final
     def build_result(value, unit)
       display = unit.present? ? "#{value} #{unit}".strip : value.to_s
-      
+
       {
         value: value,
         unit: unit,

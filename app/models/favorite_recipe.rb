@@ -31,4 +31,3 @@ class FavoriteRecipe < ApplicationRecord
     end
   end
 end
-

@@ -65,4 +65,3 @@ class Preparation < ApplicationRecord
     }
   end
 end
-

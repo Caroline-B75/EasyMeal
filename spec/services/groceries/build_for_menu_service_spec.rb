@@ -59,10 +59,10 @@ RSpec.describe Groceries::BuildForMenuService do
     context "avec une seule recette" do
       before do
         menu_recipe = MenuRecipe.new(menu: menu, recipe: recipe_carbonara, number_of_people: 4)
-        
+
         relation = double("relation")
         allow(relation).to receive(:empty?).and_return(false)
-        allow(relation).to receive(:includes).and_return([menu_recipe])
+        allow(relation).to receive(:includes).and_return([ menu_recipe ])
         allow(menu).to receive(:menu_recipes).and_return(relation)
       end
 
@@ -92,10 +92,10 @@ RSpec.describe Groceries::BuildForMenuService do
 
         menu_recipe1 = MenuRecipe.new(menu: menu, recipe: recipe_carbonara, number_of_people: 4)
         menu_recipe2 = MenuRecipe.new(menu: menu, recipe: recipe_pates_tomates, number_of_people: 4)
-        
+
         relation = double("relation")
         allow(relation).to receive(:empty?).and_return(false)
-        allow(relation).to receive(:includes).and_return([menu_recipe1, menu_recipe2])
+        allow(relation).to receive(:includes).and_return([ menu_recipe1, menu_recipe2 ])
         allow(menu).to receive(:menu_recipes).and_return(relation)
       end
 
@@ -121,10 +121,10 @@ RSpec.describe Groceries::BuildForMenuService do
       before do
         # Carbonara pour 8 personnes (double)
         menu_recipe = MenuRecipe.new(menu: menu, recipe: recipe_carbonara, number_of_people: 8)
-        
+
         relation = double("relation")
         allow(relation).to receive(:empty?).and_return(false)
-        allow(relation).to receive(:includes).and_return([menu_recipe])
+        allow(relation).to receive(:includes).and_return([ menu_recipe ])
         allow(menu).to receive(:menu_recipes).and_return(relation)
       end
 
@@ -141,10 +141,10 @@ RSpec.describe Groceries::BuildForMenuService do
       before do
         menu_recipe1 = MenuRecipe.new(menu: menu, recipe: recipe_carbonara, number_of_people: 4)
         menu_recipe2 = MenuRecipe.new(menu: menu, recipe: recipe_salade, number_of_people: 2)
-        
+
         relation = double("relation")
         allow(relation).to receive(:empty?).and_return(false)
-        allow(relation).to receive(:includes).and_return([menu_recipe1, menu_recipe2])
+        allow(relation).to receive(:includes).and_return([ menu_recipe1, menu_recipe2 ])
         allow(menu).to receive(:menu_recipes).and_return(relation)
       end
 
@@ -160,10 +160,10 @@ RSpec.describe Groceries::BuildForMenuService do
     context "format des résultats" do
       before do
         menu_recipe = MenuRecipe.new(menu: menu, recipe: recipe_carbonara, number_of_people: 4)
-        
+
         relation = double("relation")
         allow(relation).to receive(:empty?).and_return(false)
-        allow(relation).to receive(:includes).and_return([menu_recipe])
+        allow(relation).to receive(:includes).and_return([ menu_recipe ])
         allow(menu).to receive(:menu_recipes).and_return(relation)
       end
 
