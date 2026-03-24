@@ -71,12 +71,13 @@
 
     -# Section : Photo
     .recipe-form-section
-      %h2 📸 Photo
+      %h2 📸 Photo de la recette
 
-      .form-group
-        = f.label :photo, "Image de la recette", class: "form-label"
-        %small.form-hint Format recommandé : JPEG ou PNG, 800x600 minimum
-        = f.file_field :photo, accept: "image/*", class: "form-file-input", data: { controller: "image-preview" }
+      .form-group{ data: { controller: "image-preview" } }
+        %label.btn-accent{ for: "recipe_photo" } Choisir un fichier
+        = f.file_field :photo, accept: "image/*", id: "recipe_photo", class: "photo-upload-input", data: { image_preview_target: "input", action: "change->image-preview#showFilename" }
+        %small.photo-upload-hint Format recommandé : JPEG ou PNG, 800×600 minimum
+        %p.photo-upload-notice{ data: { image_preview_target: "notice" }, hidden: true }
 
         - if recipe.persisted? && recipe.photo.attached?
           .current-photo
@@ -101,7 +102,7 @@
           = render "recipes/preparation_fields", f: pf
 
       .preparations-actions
-        %button.add-preparation{ type: "button", data: { action: "click->nested-form#add" } }
+        %button.btn-accent{ type: "button", data: { action: "click->nested-form#add" } }
           + Ajouter un ingrédient
         
         %button.btn-create-ingredient{ type: "button", data: { action: "click->slideout#open" } }
