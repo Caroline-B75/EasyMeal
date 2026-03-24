@@ -81,7 +81,7 @@
         - if recipe.persisted? && recipe.photo.attached?
           .current-photo
             %p.form-hint Photo actuelle :
-            = image_tag recipe.photo.variant(resize_to_limit: [200, 150]), class: "photo-preview"
+            = image_tag cloudinary_photo_url(recipe.photo, width: 200, height: 150), class: "photo-preview"
 
     -# Section : Ingrédients (nested fields)
     .recipe-form-section

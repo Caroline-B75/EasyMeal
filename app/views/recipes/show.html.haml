@@ -38,7 +38,7 @@
 
   -# Image de la recette
   - if @recipe.photo.attached?
-    = image_tag @recipe.photo.variant(resize_to_limit: [900, 500]), 
+    = image_tag cloudinary_photo_url(@recipe.photo, width: 900, height: 500), 
                 alt: @recipe.name, 
                 class: "recipe-image-large"
   - else

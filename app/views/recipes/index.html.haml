@@ -182,7 +182,7 @@
                   -# Image de la recette
                   .recipe-card-image-wrapper
                     - if recipe.photo.attached?
-                      = image_tag recipe.photo.variant(resize_to_fill: [400, 250]),
+                      = image_tag cloudinary_photo_url(recipe.photo, width: 400, height: 250, crop: :fill),
                                   alt: recipe.name,
                                   class: "recipe-card-image"
                     - else

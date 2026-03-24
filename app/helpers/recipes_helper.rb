@@ -94,4 +94,23 @@ module RecipesHelper
   def favorite_button_text(is_favorited)
     is_favorited ? "★ Retirer des favoris" : "☆ Ajouter aux favoris"
   end
+
+  # Génère une URL Cloudinary avec transformations à la volée.
+  # Contrairement à .variant(), cette approche n'uploade PAS une nouvelle image :
+  # Cloudinary transforme via l'URL et met en cache le résultat.
+  #
+  # crop: :limit  → réduit à l'intérieur de W×H sans agrandir (= resize_to_limit)
+  # crop: :fill   → remplit exactement W×H en recadrant (= resize_to_fill)
+  def cloudinary_photo_url(photo, width:, height:, crop: :limit)
+    return nil unless photo.attached?
+
+    Cloudinary::Utils.cloudinary_url(
+      photo.blob.key,
+      width: width,
+      height: height,
+      crop: crop,
+      fetch_format: :auto,
+      quality: :auto
+    )
+  end
 end

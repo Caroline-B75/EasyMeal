@@ -150,6 +150,11 @@ class Recipe < ApplicationRecord
     favorite_recipes.count
   end
 
+  # S'assure qu'au moins une preparation vide est disponible pour le formulaire d'édition
+  def ensure_preparation_form_ready
+    preparations.build if preparations.empty?
+  end
+
   # Vérifie si l'utilisateur a mis cette recette en favori
   def favorited_by?(user) # :reek:NilCheck
     return false if user.nil?

@@ -10,31 +10,20 @@ class RecipesController < ApplicationController
   # UC5 : Catalogue & Recherche de recettes avec filtres
   def index
     authorize Recipe
-    base_scope = policy_scope(Recipe)
-
-    # Filtre favoris : restreindre à ses recettes favorites si demandé
-    if params[:favorites] == "true" && current_user
-      base_scope = base_scope.joins(:favorite_recipes)
-                             .where(favorite_recipes: { user_id: current_user.id })
-    end
-
+    base_scope = recipes_base_scope
     recipes = Recipes::FilterService.call(base_scope, params)
                 .includes(:tags, :ingredients, photo_attachment: :blob)
                 .order(params[:sort] || :name)
-
     @pagy, @recipes = pagy(recipes, items: 20)
     @tags = Tag.joins(:recipes).distinct.alphabetical
-    @ransack_query = base_scope.ransack(params[:q])
   end
 
   # GET /recipes/:id
   # UC4 : Fiche recette avec ingrédients, étapes, interactions (favoris, notes)
   def show
-    reviews = @recipe.reviews
-    @servings = (params[:servings] || @recipe.default_servings).to_i
-    @is_favorited = current_user && @recipe.favorited_by?(current_user)
-    @user_review = current_user ? reviews.find_by(user: current_user) : nil
-    @pagy_reviews, @reviews = pagy(reviews.recent.includes(:user), items: 10)
+    @servings = (params[:servings] || recipe.default_servings).to_i
+    load_user_recipe_data if current_user
+    @pagy_reviews, @reviews = pagy(recipe.reviews.recent.includes(:user), items: 10)
   end
 
   # GET /recipes/new
@@ -42,16 +31,13 @@ class RecipesController < ApplicationController
   def new
     @recipe = Recipe.new
     authorize @recipe
-
-    # Pré-créer 1 preparation vide pour le formulaire
     @recipe.preparations.build
   end
 
   # GET /recipes/:id/edit
   # Formulaire d'édition (admin only)
   def edit
-    preparations = @recipe.preparations
-    preparations.build if preparations.empty?
+    recipe.ensure_preparation_form_ready
   end
 
   # POST /recipes
@@ -70,8 +56,8 @@ class RecipesController < ApplicationController
   # PATCH/PUT /recipes/:id
   # Mise à jour d'une recette (admin only)
   def update
-    if @recipe.update(recipe_params)
-      redirect_to @recipe, notice: "Recette mise à jour avec succès."
+    if recipe.update(recipe_params)
+      redirect_to recipe, notice: "Recette mise à jour avec succès."
     else
       render :edit, status: :unprocessable_entity
     end
@@ -80,42 +66,62 @@ class RecipesController < ApplicationController
   # DELETE /recipes/:id
   # Suppression d'une recette (admin only)
   def destroy
-    @recipe.destroy
+    recipe.destroy
     redirect_to recipes_path, notice: "Recette supprimée avec succès."
   end
 
   # POST /recipes/:id/toggle_favorite
   # UC4 : Toggle favori (ajoute si absent, supprime si présent)
   def toggle_favorite
-    added = FavoriteRecipe.toggle_for(user: current_user, recipe: @recipe)
-
+    added = FavoriteRecipe.toggle_for(user: current_user, recipe: recipe)
     respond_to do |format|
-      format.html do
-        if added
-          redirect_to @recipe, notice: "Recette ajoutée à vos favoris ⭐"
-        else
-          redirect_to @recipe, notice: "Recette retirée de vos favoris"
-        end
-      end
-      format.turbo_stream do
-        is_compact = params[:compact] == "true"
-        render turbo_stream: turbo_stream.replace(
-          "favorite-btn-#{@recipe.id}",
-          partial: "recipes/favorite_button",
-          locals: { recipe: @recipe, is_favorited: added, container_id: "favorite-btn-#{@recipe.id}", compact: is_compact }
-        )
-      end
+      format.html { redirect_with_favorite_notice(added) }
+      format.turbo_stream { render_favorite_turbo_stream(added) }
     end
   end
 
   private
 
+  # Accès mémoïsé à la recette courante — évite l'InstanceVariableAssumption dans chaque action
+  def recipe
+    @recipe ||= Recipe.find(params[:id])
+  end
+
   def set_recipe
-    @recipe = Recipe.find(params[:id])
+    recipe
   end
 
   def authorize_recipe
-    authorize @recipe
+    authorize recipe
+  end
+
+  # Construit le scope de base avec filtre favoris si demandé (UC5)
+  def recipes_base_scope
+    scope = policy_scope(Recipe)
+    return scope unless params[:favorites] == "true" && current_user
+
+    scope.joins(:favorite_recipes)
+         .where(favorite_recipes: { user_id: current_user.id })
+  end
+
+  # Charge les données liées à l'utilisateur connecté pour la vue show
+  def load_user_recipe_data
+    @is_favorited = recipe.favorited_by?(current_user)
+    @user_review = recipe.reviews.find_by(user: current_user)
+  end
+
+  def redirect_with_favorite_notice(added)
+    notice = added ? "Recette ajoutée à vos favoris ⭐" : "Recette retirée de vos favoris"
+    redirect_to recipe, notice: notice
+  end
+
+  def render_favorite_turbo_stream(added)
+    favorite_btn_id = "favorite-btn-#{recipe.id}"
+    render turbo_stream: turbo_stream.replace(
+      favorite_btn_id,
+      partial: "recipes/favorite_button",
+      locals: { recipe: recipe, is_favorited: added, container_id: favorite_btn_id, compact: params[:compact] == "true" }
+    )
   end
 
   # Paramètres autorisés pour Recipe
