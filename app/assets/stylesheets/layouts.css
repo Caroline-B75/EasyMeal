@@ -8,7 +8,7 @@
 .main-header {
   background: var(--color-bg-white);
   border-bottom: 1px solid var(--color-border-light);
-  padding: 1rem 2rem;
+  padding: 0.5rem;
   box-shadow: var(--shadow-sm);
   flex-shrink: 0;
 }

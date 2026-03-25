@@ -4,6 +4,8 @@
 .recipes-container
   .recipe-form-header
     = link_to "← Retour aux recettes", recipes_path, class: "btn-link"
-    %h1 🍽️ Nouvelle recette
+    %h1
+      = inline_svg("cook-book", css_class: "icon-title", color: "var(--color-primary)")
+      Nouvelle recette
 
   = render "form", recipe: @recipe

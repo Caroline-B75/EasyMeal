@@ -4,16 +4,16 @@
 puts "  Création des tags..."
 
 # Tags de rapidité
-SPEED_TAGS = %w[express].freeze
+SPEED_TAGS = [ 'express', 'rapide', '30 minutes', 'longue cuisson' ].freeze
 
 # Tags diététiques
 DIETARY_TAGS = [ 'végétarien', 'vegan', 'léger', 'healthy' ].freeze
 
 # Tags d'occasion
-OCCASION_TAGS = [ 'apéritif', 'entrée', 'plat', 'dessert', 'brunch', 'pique-nique', 'fêtes' ].freeze
+OCCASION_TAGS = [ 'apéritif', 'entrée', 'plat', 'dessert', 'goûter', 'brunch', 'pique-nique', 'fêtes', 'petit-déjeuner', 'batch cooking', 'convivial', 'anniversaire' ].freeze
 
 # Tags de méthode de cuisson
-COOKING_METHOD_TAGS = [ 'four', 'poêle', 'vapeur', 'cocotte', 'barbecue', 'sans cuisson' ].freeze
+COOKING_METHOD_TAGS = [ 'four', 'poêle', 'vapeur', 'cocotte', 'barbecue', 'sans cuisson', 'auto cuiseur', 'thermomix', 'micro-ondes', 'plancha', 'wok', 'friteuse', 'airfryer', 'mijoteuse' ].freeze
 
 # Tags de saison
 SEASON_TAGS = [ 'printemps', 'été', 'automne', 'hiver' ].freeze
@@ -24,13 +24,13 @@ OTHER_TAGS = [ 'facile', 'familial' ].freeze
 # Création des tags par catégorie
 SPEED_TAGS.each do |name|
   Tag.find_or_create_by!(name: name.downcase) do |tag|
-    tag.tag_type = :speed
+    tag.tag_type = :rapidite
   end
 end
 
 DIETARY_TAGS.each do |name|
   Tag.find_or_create_by!(name: name.downcase) do |tag|
-    tag.tag_type = :dietary
+    tag.tag_type = :regime_alimentaire
   end
 end
 
@@ -42,19 +42,19 @@ end
 
 COOKING_METHOD_TAGS.each do |name|
   Tag.find_or_create_by!(name: name.downcase) do |tag|
-    tag.tag_type = :cooking_method
+    tag.tag_type = :methode_cuisson
   end
 end
 
 SEASON_TAGS.each do |name|
   Tag.find_or_create_by!(name: name.downcase) do |tag|
-    tag.tag_type = :season
+    tag.tag_type = :saison
   end
 end
 
 OTHER_TAGS.each do |name|
   Tag.find_or_create_by!(name: name.downcase) do |tag|
-    tag.tag_type = :other
+    tag.tag_type = :autre
   end
 end
 

@@ -44,7 +44,7 @@
   --color-info: #3B82F6;              /* Bleu - Information */
   
   /* === BORDER RADIUS === */
-  --radius-button: 14px;              /* Tous les boutons - Arrondi prononcé et moderne */
+  --radius-button: 25px;              /* Tous les boutons - Arrondi prononcé et moderne */
   --radius-badge: 14px;               /* Badges - Arrondi complet */
   --radius-card: 16px;                /* Cards principales */
   --radius-card-compact: 12px;        /* Cards compactes */

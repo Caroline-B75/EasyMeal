@@ -11,9 +11,12 @@
 .btn {
   padding: 0.75rem 1.5rem;
   border-radius: var(--radius-button);
+  min-height: 44px;
   font-weight: 600;
   text-decoration: none;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: var(--transition-normal);
   border: none;
   cursor: pointer;
@@ -502,20 +505,26 @@
 /* Bouton créer un ingrédient */
 .preparations-actions {
   display: flex;
+  align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
-  margin-top: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .btn-create-ingredient {
   background: none;
   border: 1px dashed var(--color-secondary);
   color: var(--color-secondary);
-  padding: 0.75rem 1.25rem;
-  border-radius: 25px;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-button);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
   cursor: pointer;
-  font-size: var(--font-size-sm);
-  font-weight: 500;
+  font-size: var(--font-size-base);
+  font-weight: 600;
   transition: all 0.2s ease;
 }
 
@@ -635,19 +644,7 @@
   resize: vertical;
 }
 
-/* Champ de recherche du controller searchable-select (remplace Select2) */
-.searchable-select-input {
-  width: 100%;
-  margin-bottom: 0.25rem;
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-}
 
-.searchable-select-input + .form-select {
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  border-top: none;
-}
 
 .form-errors {
   background: #fef2f2;
@@ -899,4 +896,37 @@ input[type="radio"] {
   .empty-state p {
     font-size: var(--font-size-base);
   }
+}
+
+/* ============================================
+   ICÔNES SVG INLINE
+   ============================================
+   Système de colorisation via CSS.
+   Monocouleur : le SVG utilise fill="currentColor",
+     contrôlé par la propriété CSS `color`.
+   Bicouleur   : le SVG utilise fill="var(--icon-color-1)"
+     et fill="var(--icon-color-2)", définis via style inline.
+
+   Usage dans le helper (application_helper.rb) :
+     = inline_svg("mon-icone", css_class: "icon-title", color: "var(--color-primary)")
+   ============================================ */
+
+/* Base commune à toutes les icônes SVG inline */
+.svg-icon {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+/* Tailles standard */
+.icon-sm   { width: 18px; height: 18px; }
+.icon-md   { width: 24px; height: 24px; }
+.icon-lg   { width: 32px; height: 32px; }
+.icon-xl   { width: 48px; height: 48px; }
+
+/* Icône de titre (h1, h2) — légèrement plus grande */
+.icon-title {
+  width: 50px;
+  height: 50px;
+  margin-right: 0.5rem;
 }

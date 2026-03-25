@@ -33,8 +33,7 @@
     - if @recipe.tags.any?
       .recipe-tags
         - @recipe.tags.each do |tag|
-          = link_to recipes_path(q: { tags_name_eq: tag.name }), class: "badge badge-beige" do
-            = tag.name
+          %span.badge.badge-beige= tag.name
 
   -# Image de la recette
   - if @recipe.photo.attached?
@@ -42,9 +41,7 @@
                 alt: @recipe.name, 
                 class: "recipe-image-large"
   - else
-    .recipe-image-placeholder
-      %span.placeholder-icon 🍽️
-      %span.placeholder-text Pas d'image disponible
+    = image_tag "photo_par_defaut_recette.png", alt: @recipe.name, class: "recipe-image-large"
 
   -# Actions utilisateur (favoris, note)
   - if current_user

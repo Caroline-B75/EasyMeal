@@ -50,19 +50,17 @@
           = f.number_field :cook_time_minutes, class: "form-input", min: 0, placeholder: "Ex: 30"
           = field_errors(recipe, :cook_time_minutes)
 
-        .form-group{ class: field_error_class(recipe, :appliance) }
-          = f.label :appliance, "Appareil", class: "form-label"
-          = f.text_field :appliance, class: "form-input", placeholder: "Ex: Four, Thermomix..."
-          = field_errors(recipe, :appliance)
-
     -# Section : Tags
     .recipe-form-section
       %h2 🏷️ Tags
 
       .form-group
-        - Tag.tag_types.keys.each do |category|
+        - tag_category_labels = { "rapidite" => "Rapidité", "regime_alimentaire" => "Régime alimentaire",
+                                   "occasion" => "Occasion", "methode_cuisson" => "Méthode de cuisson",
+                                   "saison" => "Saison", "autre" => "Autre" }
+        - %w[rapidite regime_alimentaire occasion methode_cuisson saison autre].each do |category|
           .tags-category
-            %h3= category.humanize
+            %h3= tag_category_labels[category]
             .tags-grid
               - Tag.where(tag_type: category).alphabetical.each do |tag|
                 %label.tag-checkbox
@@ -74,15 +72,23 @@
       %h2 📸 Photo de la recette
 
       .form-group{ data: { controller: "image-preview" } }
-        %label.btn-accent{ for: "recipe_photo" } Choisir un fichier
-        = f.file_field :photo, accept: "image/*", id: "recipe_photo", class: "photo-upload-input", data: { image_preview_target: "input", action: "change->image-preview#showFilename" }
-        %small.photo-upload-hint Format recommandé : JPEG ou PNG, 800×600 minimum
-        %p.photo-upload-notice{ data: { image_preview_target: "notice" }, hidden: true }
-
         - if recipe.persisted? && recipe.photo.attached?
+          -# Photo actuelle affichée directement
           .current-photo
-            %p.form-hint Photo actuelle :
             = image_tag cloudinary_photo_url(recipe.photo, width: 200, height: 150), class: "photo-preview"
+          %button.btn-secondary.btn-accent{ type: "button", data: { image_preview_target: "changeButton", action: "click->image-preview#showUploadField" } } Changer de photo
+
+          -# Zone de sélection masquée par défaut
+          .photo-upload-area{ data: { image_preview_target: "uploadArea" }, hidden: true }
+            %label.btn-accent{ for: "recipe_photo" } Choisir un fichier
+            = f.file_field :photo, accept: "image/*", id: "recipe_photo", class: "photo-upload-input", data: { image_preview_target: "input", action: "change->image-preview#showFilename" }
+            %small.photo-upload-hint Format recommandé : JPEG ou PNG, 800×600 minimum
+            %p.photo-upload-notice{ data: { image_preview_target: "notice" }, hidden: true }
+        - else
+          %label.btn-accent{ for: "recipe_photo" } Choisir un fichier
+          = f.file_field :photo, accept: "image/*", id: "recipe_photo", class: "photo-upload-input", data: { image_preview_target: "input", action: "change->image-preview#showFilename" }
+          %small.photo-upload-hint Format recommandé : JPEG ou PNG, 800×600 minimum
+          %p.photo-upload-notice{ data: { image_preview_target: "notice" }, hidden: true }
 
     -# Section : Ingrédients (nested fields)
     .recipe-form-section
@@ -120,9 +126,8 @@
         = field_errors(recipe, :instructions)
 
     -# Actions du formulaire
-    .form-actions
-      = f.submit recipe.new_record? ? "Créer la recette" : "Mettre à jour", class: "btn btn-primary"
-      = link_to "Annuler", recipes_path, class: "btn btn-secondary"
+    = f.submit recipe.new_record? ? "Créer la recette" : "Mettre à jour", class: "btn btn-primary"
+    = link_to "Annuler", recipes_path, class: "btn btn-secondary"
 
   -# Slideout pour créer un ingrédient à la volée
   -# Placé EN DEHORS du form_with (indentation 2 espaces = dans wrapper, pas dans form_with)

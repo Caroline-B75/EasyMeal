@@ -51,11 +51,11 @@ module RecipesHelper
       "pescetarien" => "badge-blue"
     }
 
-    icon = icons[diet] || "🍽️"
+    icon = icons[diet] || inline_svg("cook-book", css_class: "icon-sm", color: "currentColor")
     color_class = colors[diet] || "badge-orange"
 
     content_tag :span, class: "badge #{color_class}" do
-      "#{icon} #{diet.humanize}"
+      safe_join([icon, " #{diet.humanize}"])
     end
   end
 

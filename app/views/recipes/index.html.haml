@@ -4,7 +4,9 @@
 .recipes-container{ data: { controller: "recipe-filter" } }
   -# Header avec titre et bouton création (admin only)
   .recipes-header
-    %h1 🍽️ Catalogue de recettes
+    %h1
+      = inline_svg("cook-book", css_class: "icon-title", color: "var(--color-primary)")
+      Catalogue de recettes
     - if policy(Recipe).create?
       = link_to new_recipe_path, class: "btn btn-primary" do
         %span.btn-icon ✚
@@ -142,15 +144,17 @@
 
       -# ── Tags (panneau déployable) ──
       - if @tags&.any?
-        - tag_type_labels = { "regime_alimentaire" => "Régime", "occasion" => "Occasion",
-                              "methode_cuisson" => "Méthode", "saison" => "Saison",
-                              "rapidite" => "Rapidité", "autre" => "Autre" }
+        - tag_type_labels = { "rapidite" => "Rapidité", "regime_alimentaire" => "Régime alimentaire",
+                              "occasion" => "Occasion", "methode_cuisson" => "Méthode de cuisson",
+                              "saison" => "Saison", "autre" => "Autre" }
         - tags_by_type = @tags.group_by { |t| t.tag_type || "autre" }
         .filters-tags-panel{ data: { recipe_filter_target: "panel" },
                              class: tags_count > 0 ? "" : "hidden" }
-          - tags_by_type.each do |type, group|
+          - tag_type_labels.each do |type, label|
+            - group = tags_by_type[type]
+            - next unless group&.any?
             .filters-tags-group
-              %span.filters-tags-sublabel= tag_type_labels[type] || type.to_s.humanize
+              %span.filters-tags-sublabel= label
               .filters-tags-pills
                 - group.each do |tag|
                   - tag_active = selected_tag_ids.include?(tag.id.to_s)
@@ -186,8 +190,7 @@
                                   alt: recipe.name,
                                   class: "recipe-card-image"
                     - else
-                      .recipe-card-placeholder
-                        %span 🍽️
+                      = image_tag "photo_par_defaut_recette.png", alt: recipe.name, class: "recipe-card-image"
 
                   .recipe-card-body
                     -# Titre
