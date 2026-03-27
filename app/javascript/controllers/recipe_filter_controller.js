@@ -1,11 +1,13 @@
 import { Controller } from "@hotwired/stimulus"
 
 // Controller pour gérer les filtres de recherche de recettes
-// - Filtres principaux toujours visibles + tags déployables
+// - Sidebar gauche : filtres empilés verticalement
+// - Tags déployables via panneau collapsible
 // - Badges supprimables pour chaque filtre actif
 // - Loader pendant le rechargement du Turbo Frame
+// - Mobile : drawer latéral ouvert par bouton flottant
 export default class extends Controller {
-  static targets = ["form", "loader", "results", "panel", "toggleBtn"]
+  static targets = ["form", "loader", "results", "panel", "toggleBtn", "sidebar", "backdrop", "mobileTrigger"]
 
   connect() {
     this.hideLoader()
@@ -13,6 +15,20 @@ export default class extends Controller {
       const isOpen = !this.panelTarget.classList.contains("hidden")
       this.toggleBtnTarget.setAttribute("aria-expanded", String(isOpen))
     }
+  }
+
+  // ── Sidebar mobile : ouvrir ──
+  openSidebar() {
+    if (this.hasSidebarTarget) this.sidebarTarget.classList.add("is-open")
+    if (this.hasBackdropTarget) this.backdropTarget.classList.add("is-open")
+    document.body.style.overflow = "hidden"
+  }
+
+  // ── Sidebar mobile : fermer ──
+  closeSidebar() {
+    if (this.hasSidebarTarget) this.sidebarTarget.classList.remove("is-open")
+    if (this.hasBackdropTarget) this.backdropTarget.classList.remove("is-open")
+    document.body.style.overflow = ""
   }
 
   // Ouvrir / fermer le panneau tags

@@ -22,13 +22,13 @@
   --color-accent-hover: #6E9038;      /* Vert basilic foncé */
   
   /* Couleurs neutres */
-  --color-dark: #7B3F00;              /* Brun caramel - Titres importants, texte foncé */
+  --color-dark: #1C1917;              /* gris anthracite - Titres importants, texte foncé */
   --color-text: #3D3D3D;              /* Texte principal */
   --color-text-light: #6B6B6B;        /* Texte secondaire */
   --color-text-muted: #9CA3AF;        /* Texte désactivé, subtitles */
   
   /* Fonds */
-  --color-bg-main: #F9F5F2;           /* Gris chaud clair - Fond principal de l'application */
+  --color-bg-main: #F8F7F4;           /* Blanc chaud - Fond principal de l'application */
   --color-bg-secondary: #FFF1E0;      /* Beige sablé - Fonds secondaires, zones neutres */
   --color-bg-white: #FFFFFF;          /* Blanc pur - Cards, conteneurs */
   
