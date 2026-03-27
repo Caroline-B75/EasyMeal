@@ -22,6 +22,8 @@ class RecipesController < ApplicationController
   # UC4 : Fiche recette avec ingrédients, étapes, interactions (favoris, notes)
   def show
     @servings = (params[:servings] || recipe.default_servings).to_i
+    @preparations_by_category = recipe.preparations.includes(:ingredient)
+                                      .group_by { |p| p.ingredient.category }
     load_user_recipe_data if current_user
     @pagy_reviews, @reviews = pagy(recipe.reviews.recent.includes(:user), items: 10)
   end
@@ -120,7 +122,13 @@ class RecipesController < ApplicationController
     render turbo_stream: turbo_stream.replace(
       favorite_btn_id,
       partial: "recipes/favorite_button",
-      locals: { recipe: recipe, is_favorited: added, container_id: favorite_btn_id, compact: params[:compact] == "true" }
+      locals: {
+        recipe: recipe,
+        is_favorited: added,
+        container_id: favorite_btn_id,
+        compact: params[:compact] == "true",
+        show_page: params[:show_page] == "true"
+      }
     )
   end
 

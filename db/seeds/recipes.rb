@@ -19,17 +19,12 @@ end
 carbonara = Recipe.find_or_create_by!(name: "Pâtes Carbonara") do |r|
   r.description = "La vraie recette italienne des pâtes à la carbonara, crémeuses et savoureuses."
   r.instructions = <<~INSTRUCTIONS
-    1. Faire bouillir une grande casserole d'eau salée et cuire les pâtes al dente.
-
-    2. Pendant ce temps, couper les lardons en petits morceaux et les faire revenir à la poêle sans matière grasse jusqu'à ce qu'ils soient dorés.
-
-    3. Dans un bol, mélanger les jaunes d'œufs avec le parmesan râpé et un peu de poivre noir. Ajouter une louche d'eau de cuisson des pâtes pour tempérer.
-
-    4. Égoutter les pâtes en gardant un peu d'eau de cuisson. Les verser immédiatement dans la poêle avec les lardons (feu éteint).
-
-    5. Ajouter le mélange œufs-parmesan et mélanger rapidement pour enrober les pâtes. La chaleur des pâtes va cuire légèrement les œufs et créer une sauce crémeuse.
-
-    6. Servir immédiatement avec du parmesan râpé et du poivre noir.
+    Faire bouillir une grande casserole d'eau salée et cuire les pâtes al dente.
+    Pendant ce temps, couper les lardons en petits morceaux et les faire revenir à la poêle sans matière grasse jusqu'à ce qu'ils soient dorés.
+    Dans un bol, mélanger les jaunes d'œufs avec le parmesan râpé et un peu de poivre noir. Ajouter une louche d'eau de cuisson des pâtes pour tempérer.
+    Égoutter les pâtes en gardant un peu d'eau de cuisson. Les verser immédiatement dans la poêle avec les lardons (feu éteint).
+    Ajouter le mélange œufs-parmesan et mélanger rapidement pour enrober les pâtes. La chaleur des pâtes va cuire légèrement les œufs et créer une sauce crémeuse.
+    Servir immédiatement avec du parmesan râpé et du poivre noir.
   INSTRUCTIONS
   r.default_servings = 4
   r.prep_time_minutes = 10

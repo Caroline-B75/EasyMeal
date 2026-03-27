@@ -1,16 +1,20 @@
--# Partial pour afficher une carte d'avis
+-# Partial pour afficher un avis
 -# @param review [Review] L'avis à afficher
 -# @param current_user [User] L'utilisateur connecté (optionnel)
 
-.review-card{ id: "review_#{review.id}" }
-  .review-header
-    %span.review-author= review.user.username
-    .review-rating-wrapper
-      %span.review-rating= review.stars_display
-      - if defined?(current_user) && current_user && review.user == current_user
-        = form_with url: recipe_review_path(review.recipe, review), method: :delete, data: { controller: "modal", turbo: true } do |f|
-          %button.icon-btn-delete-small{ type: "button", data: { action: "click->modal#open" }, title: "Supprimer" }
-            🗑️
-          = render "shared/delete_confirmation_modal", resource_name: "avis"
+.rs-review{ id: "review_#{review.id}" }
+  .rs-review-header
+    .rs-review-author-row
+      .rs-review-avatar= review.user.username[0..0].upcase
+      %span.rs-review-author= review.user.username
+      %span.rs-review-stars= review.stars_display
+    %span.rs-review-date= l(review.created_at, format: :short) rescue review.created_at.strftime("%d/%m/%Y")
   - if review.content.present?
-    .review-content= review.content
+    .rs-review-text= review.content
+  - if current_user && review.user == current_user
+    .rs-review-delete{ data: { controller: "modal" } }
+      = form_with url: recipe_review_path(review.recipe, review), method: :delete, data: { turbo: true } do |f|
+        %button.rs-admin-btn.rs-admin-btn--danger{ type: "button", data: { action: "click->modal#open" }, title: "Supprimer mon avis" }
+          = svg_icon(:trash, size: 13)
+          Supprimer
+        = render "shared/delete_confirmation_modal", resource_name: "avis"

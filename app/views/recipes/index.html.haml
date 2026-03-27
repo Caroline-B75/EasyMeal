@@ -20,7 +20,7 @@
                               "aria-label": "Ouvrir les filtres",
                               data: { action: "click->recipe-filter#openSidebar",
                                       recipe_filter_target: "mobileTrigger" } }
-    🎛️ Filtres
+    Filtres
     - if active_count > 0
       %span.filters-mobile-badge= active_count
 
@@ -34,7 +34,7 @@
     -# ── Sidebar gauche : tous les filtres ──────────────────
     .recipes-sidebar{ data: { recipe_filter_target: "sidebar" } }
       .sidebar-header
-        %h2.sidebar-title 🎛️ Filtres
+        %h2.sidebar-title Filtres
         = link_to "Effacer", recipes_path, class: "reset-filters-btn"
         %button.sidebar-close-btn{ type: "button",
                                    "aria-label": "Fermer les filtres",
@@ -142,7 +142,7 @@
                                              data: { action: "click->recipe-filter#clearFilter",
                                                      recipe_filter_field: "tag_ids[]",
                                                      recipe_filter_value: tag.id } }
-                  🏷️ #{tag.name}
+                  #{tag.name}
                   %span.badge-remove ×
 
         -# ── Tags par catégorie (cases à cocher verticales) ──
@@ -152,7 +152,6 @@
                                 "saison" => "Saison", "autre" => "Autre" }
           - tags_by_type = @tags.group_by { |t| t.tag_type || "autre" }
           .filters-tags-section
-            %span.filters-section-title 🏷️ Tags
             - tag_type_labels.each do |type, label|
               - group = tags_by_type[type]
               - next unless group&.any?

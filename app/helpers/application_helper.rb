@@ -86,6 +86,26 @@ module ApplicationHelper
     svg_content.html_safe
   end
 
+  # Icônes Feather inline (petits SVG courants sans fichier séparé)
+  # Usage : = svg_icon(:edit, size: 13)
+  #         = svg_icon(:heart, size: 14, fill: "currentColor")
+  FEATHER_ICONS = {
+    "chevron-left" => '<polyline points="15 18 9 12 15 6"/>',
+    "share"        => '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>',
+    "edit"         => '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
+    "trash"        => '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+    "heart"        => '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>'
+  }.freeze
+
+  def svg_icon(name, size: nil, css_class: nil, fill: "none")
+    body = FEATHER_ICONS[name.to_s] || ""
+    attrs = %w[xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"]
+    attrs << %(width="#{size}" height="#{size}") if size
+    attrs << %(class="#{ERB::Util.html_escape(css_class)}") if css_class
+    attrs << %(fill="#{ERB::Util.html_escape(fill)}")
+    "<svg #{attrs.join(' ')}>#{body}</svg>".html_safe
+  end
+
   private
 
   # Nettoie le message d'erreur pour ne garder que l'essentiel

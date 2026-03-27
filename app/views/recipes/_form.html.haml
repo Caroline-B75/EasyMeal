@@ -1,12 +1,12 @@
 -# Formulaire partagé pour création/édition de recette
--# Utilise nested fields pour les preparations (ingrédients)
--# Le slideout est géré par un controller séparé
+-# Design Slate Craft Premium — cohérent avec la fiche recette
 
 .recipe-form-wrapper{ data: { controller: "slideout" } }
-  = form_with model: recipe, class: "recipe-form", data: { controller: "nested-form form-errors", turbo: false } do |f|
-    -# Section : Informations de base
-    .recipe-form-section
-      %h2 📝 Informations générales
+  = form_with model: recipe, class: "rf-form", data: { controller: "nested-form form-errors", turbo: false } do |f|
+
+    -# Section : Informations générales
+    .rf-section
+      .rf-section-label INFORMATIONS GÉNÉRALES
 
       .form-row
         .form-group.form-group-large{ class: field_error_class(recipe, :name) }
@@ -15,13 +15,13 @@
           = field_errors(recipe, :name)
 
         .form-group{ class: field_error_class(recipe, :default_servings) }
-          = f.label :default_servings, "Nombre de personnes *", class: "form-label"
+          = f.label :default_servings, "Personnes *", class: "form-label"
           = f.number_field :default_servings, class: "form-input", min: 1, value: recipe.default_servings || 4, required: true
           = field_errors(recipe, :default_servings)
 
     -# Section : Caractéristiques
-    .recipe-form-section
-      %h2 🏷️ Caractéristiques
+    .rf-section
+      .rf-section-label CARACTÉRISTIQUES
 
       .form-row
         .form-group{ class: field_error_class(recipe, :diet) }
@@ -41,26 +41,26 @@
 
       .form-row
         .form-group{ class: field_error_class(recipe, :prep_time_minutes) }
-          = f.label :prep_time_minutes, "Temps de préparation (min)", class: "form-label"
+          = f.label :prep_time_minutes, "Préparation (min)", class: "form-label"
           = f.number_field :prep_time_minutes, class: "form-input", min: 0, placeholder: "Ex: 20"
           = field_errors(recipe, :prep_time_minutes)
 
         .form-group{ class: field_error_class(recipe, :cook_time_minutes) }
-          = f.label :cook_time_minutes, "Temps de cuisson (min)", class: "form-label"
+          = f.label :cook_time_minutes, "Cuisson (min)", class: "form-label"
           = f.number_field :cook_time_minutes, class: "form-input", min: 0, placeholder: "Ex: 30"
           = field_errors(recipe, :cook_time_minutes)
 
     -# Section : Tags
-    .recipe-form-section
-      %h2 🏷️ Tags
+    .rf-section
+      .rf-section-label TAGS
 
       .form-group
         - tag_category_labels = { "rapidite" => "Rapidité", "regime_alimentaire" => "Régime alimentaire",
                                    "occasion" => "Occasion", "methode_cuisson" => "Méthode de cuisson",
                                    "saison" => "Saison", "autre" => "Autre" }
         - %w[rapidite regime_alimentaire occasion methode_cuisson saison autre].each do |category|
-          .tags-category
-            %h3= tag_category_labels[category]
+          .rf-tags-group
+            .rf-tags-category= tag_category_labels[category]
             .tags-grid
               - Tag.where(tag_type: category).alphabetical.each do |tag|
                 %label.tag-checkbox
@@ -68,31 +68,30 @@
                   %span.tag-name= tag.name
 
     -# Section : Photo
-    .recipe-form-section
-      %h2 📸 Photo de la recette
+    .rf-section
+      .rf-section-label PHOTO
 
       .form-group{ data: { controller: "image-preview" } }
         - if recipe.persisted? && recipe.photo.attached?
-          -# Photo actuelle affichée directement
           .current-photo
             = image_tag cloudinary_photo_url(recipe.photo, width: 200, height: 150), class: "photo-preview"
-          %button.btn-secondary.btn-accent{ type: "button", data: { image_preview_target: "changeButton", action: "click->image-preview#showUploadField" } } Changer de photo
+          %button.rf-btn-outline{ type: "button", data: { image_preview_target: "changeButton", action: "click->image-preview#showUploadField" } } Changer de photo
 
-          -# Zone de sélection masquée par défaut
           .photo-upload-area{ data: { image_preview_target: "uploadArea" }, hidden: true }
-            %label.btn-accent{ for: "recipe_photo" } Choisir un fichier
+            %label.rf-btn-photo{ for: "recipe_photo" } Ajouter une photo
             = f.file_field :photo, accept: "image/*", id: "recipe_photo", class: "photo-upload-input", data: { image_preview_target: "input", action: "change->image-preview#showFilename" }
-            %small.photo-upload-hint Format recommandé : JPEG ou PNG, 800×600 minimum
+            %small.rf-hint Format recommandé : JPEG ou PNG, 800×600 minimum
             %p.photo-upload-notice{ data: { image_preview_target: "notice" }, hidden: true }
         - else
-          %label.btn-accent{ for: "recipe_photo" } Choisir un fichier
-          = f.file_field :photo, accept: "image/*", id: "recipe_photo", class: "photo-upload-input", data: { image_preview_target: "input", action: "change->image-preview#showFilename" }
-          %small.photo-upload-hint Format recommandé : JPEG ou PNG, 800×600 minimum
-          %p.photo-upload-notice{ data: { image_preview_target: "notice" }, hidden: true }
+          .rf-photo-upload
+            %label.rf-btn-photo{ for: "recipe_photo" } Ajouter une photo
+            = f.file_field :photo, accept: "image/*", id: "recipe_photo", class: "photo-upload-input", data: { image_preview_target: "input", action: "change->image-preview#showFilename" }
+            %small.rf-hint Format recommandé : JPEG ou PNG, 800×600 minimum
+            %p.photo-upload-notice{ data: { image_preview_target: "notice" }, hidden: true }
 
     -# Section : Ingrédients (nested fields)
-    .recipe-form-section
-      %h2 🥗 Ingrédients
+    .rf-section
+      .rf-section-label INGRÉDIENTS
 
       - if recipe.errors[:base].any?
         .field-errors
@@ -108,33 +107,33 @@
           = render "recipes/preparation_fields", f: pf
 
       .preparations-actions
-        %button.btn-accent{ type: "button", data: { action: "click->nested-form#add" } }
+        %button.rf-btn-add{ type: "button", data: { action: "click->nested-form#add" } }
           + Ajouter un ingrédient
-        
-        %button.btn-create-ingredient{ type: "button", data: { action: "click->slideout#open" } }
-          ✚ Créer un nouvel ingrédient
+
+        %button.rf-btn-create{ type: "button", data: { action: "click->slideout#open" } }
+          + Créer un nouvel ingrédient
 
       #ingredient-created-notification
 
     -# Section : Instructions
-    .recipe-form-section
-      %h2 👨‍🍳 Instructions de préparation
+    .rf-section
+      .rf-section-label PRÉPARATION
 
       .form-group{ class: field_error_class(recipe, :instructions) }
         = f.label :instructions, "Étapes de préparation", class: "form-label"
-        = f.text_area :instructions, class: "form-textarea", rows: 10, placeholder: "1. Faire bouillir l'eau...\n2. Ajouter les pâtes...\n3. ..."
+        = f.text_area :instructions, class: "form-textarea", rows: 10, placeholder: "Faire bouillir l'eau...\nAjouter les pâtes...\n..."
         = field_errors(recipe, :instructions)
 
     -# Actions du formulaire
-    = f.submit recipe.new_record? ? "Créer la recette" : "Mettre à jour", class: "btn btn-primary"
-    = link_to "Annuler", recipes_path, class: "btn btn-secondary"
+    .rf-actions
+      = f.submit recipe.new_record? ? "Créer la recette" : "Mettre à jour", class: "btn btn-primary"
+      = link_to "Annuler", recipes_path, class: "rf-cancel-link"
 
   -# Slideout pour créer un ingrédient à la volée
-  -# Placé EN DEHORS du form_with (indentation 2 espaces = dans wrapper, pas dans form_with)
   .slideout-overlay{ data: { slideout_target: "overlay", action: "click->slideout#closeOnOverlay" } }
   .slideout-panel{ data: { slideout_target: "panel" } }
     .slideout-header
-      %h3 ✚ Créer un nouvel ingrédient
+      %h3 Créer un nouvel ingrédient
       %button.slideout-close{ type: "button", data: { action: "click->slideout#close" } }
         ✕
     .slideout-content#quick-ingredient-form

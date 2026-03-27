@@ -22,7 +22,7 @@
 .tags-header h1 {
   font-size: var(--font-size-2xl);
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--color-ink);
   margin: 0;
 }
 
@@ -53,16 +53,16 @@
   padding: 1rem 1.5rem;
   text-align: left;
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--color-ink);
   font-size: var(--font-size-sm);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 2px solid var(--color-bg-secondary);
+  border-bottom: 0.5px solid var(--color-border);
 }
 
 .tags-table td {
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid #F3F0EC;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .tags-table tbody tr:hover {
@@ -78,18 +78,18 @@
 }
 
 .tag-name-cell strong {
-  color: var(--color-text);
+  color: var(--color-ink);
   font-size: var(--font-size-base);
   font-weight: 600;
 }
 
 .tag-usage {
-  color: var(--color-text-light);
+  color: var(--color-ink-3);
   font-size: var(--font-size-sm);
 }
 
 .text-muted {
-  color: var(--color-text-muted);
+  color: var(--color-ink-4);
   font-style: italic;
   font-size: var(--font-size-sm);
 }
@@ -119,11 +119,11 @@
 .tag-inline-input {
   flex: 1;
   padding: 0.625rem 0.875rem;
-  border: 2px solid var(--color-secondary);
+  border: 0.5px solid var(--color-border);
   border-radius: var(--radius-input);
   font-size: var(--font-size-base);
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--color-ink);
   background: var(--color-bg-white);
   transition: var(--transition-normal);
   min-width: 250px;
@@ -132,7 +132,7 @@
 .tag-inline-input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-light);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
 }
 
 .btn-icon-save,
@@ -164,7 +164,7 @@
 
 .btn-icon-cancel {
   background: var(--color-border-light);
-  color: var(--color-text-light);
+  color: var(--color-ink-3);
 }
 
 .btn-icon-cancel:hover {
@@ -191,7 +191,7 @@
 .tag-form .form-label {
   display: block;
   font-weight: 600;
-  color: var(--color-dark);
+  color: var(--color-ink);
   margin-bottom: 0.5rem;
 }
 
@@ -206,7 +206,7 @@
 
 .tag-form .form-input:focus {
   outline: none;
-  border-color: var(--color-secondary);
+  border-color: var(--color-primary);
 }
 
 .tag-form .form-actions {
@@ -281,7 +281,7 @@
     flex: 1;
     font-size: var(--font-size-lg);
     font-weight: 600;
-    color: var(--color-text);
+    color: var(--color-ink-2);
   }
 
   /* LIGNE 1 : Actions (côté droit) */

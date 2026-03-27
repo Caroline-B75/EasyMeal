@@ -82,17 +82,37 @@ module RecipesHelper
       "cher" => "€€€"
     }
 
-    content_tag :span, symbols[price] || "€", class: "badge badge-orange"
+    content_tag :span, symbols[price] || "€", class: "badge badge-beige"
   end
 
-  # Retourne la classe CSS pour l'icône de favori
-  def favorite_icon_class(is_favorited)
-    is_favorited ? "icon-favorited" : "icon-favorite"
+  # === Helpers pour le hero sombre de la fiche recette ===
+
+  # Badge sur fond sombre (hero) — variantes : :default, :green, :amber
+  def show_hero_badge(text, variant = :default)
+    css = case variant
+          when :green then "rs-badge rs-badge--green"
+          when :amber then "rs-badge rs-badge--amber"
+          else "rs-badge"
+          end
+    content_tag :span, text, class: css
   end
 
-  # Texte du bouton favori
-  def favorite_button_text(is_favorited)
-    is_favorited ? "★ Retirer des favoris" : "☆ Ajouter aux favoris"
+  # Détermine la variante de badge pour un régime alimentaire
+  def badge_variant_for_diet(diet)
+    case diet
+    when "vegetarien", "vegan" then :green
+    else :default
+    end
+  end
+
+  # Détermine la variante de badge pour un prix
+  def price_badge_variant(price)
+    price == "economique" ? :amber : :default
+  end
+
+  # Distribution des notes pour l'histogramme (hash {1=>count, 2=>count, ...})
+  def review_distribution(recipe)
+    recipe.reviews.group(:rating).count
   end
 
   # Génère une URL Cloudinary avec transformations à la volée.

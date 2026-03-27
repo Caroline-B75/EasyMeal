@@ -8,13 +8,12 @@
 .main-header {
   background: var(--color-bg-white);
   border-bottom: 1px solid var(--color-border-light);
-  padding: 0.5rem;
+  padding: 0.5rem 2rem;
   box-shadow: var(--shadow-sm);
   flex-shrink: 0;
 }
 
 .nav-container {
-  max-width: 1400px;
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
@@ -60,7 +59,7 @@
 }
 
 .user-greeting {
-  color: var(--color-primary);
+  color: var(--color-ink);
   font-size: var(--font-size-lg);
   font-weight: 600;
   text-align: center;
@@ -68,19 +67,19 @@
 }
 
 .user-email {
-  color: var(--color-text-light);
+  color: var(--color-ink-3);
   font-size: var(--font-size-sm);
 }
 
 .nav-link {
-  color: #4B5563;
+  color: var(--color-ink-3);
   text-decoration: none;
   font-weight: 500;
   transition: var(--transition-normal);
 }
 
 .nav-link:hover {
-  color: var(--color-secondary);
+  color: var(--color-ink);
 }
 
 .btn-signup {
@@ -116,9 +115,9 @@
 }
 
 .user-menu-button:hover {
-  border-color: var(--color-secondary);
+  border-color: var(--color-border-strong);
   background: var(--color-bg-secondary);
-  box-shadow: 0 2px 8px var(--color-primary-light);
+  box-shadow: var(--shadow-sm);
 }
 
 .user-menu-button.active {
@@ -130,24 +129,24 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
-  color: white;
+  background: var(--color-primary);
+  color: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: var(--font-size-sm);
+  font-weight: 500;
+  font-size: 0.75rem;
   flex-shrink: 0;
 }
 
 .user-name {
-  color: var(--color-dark);
+  color: var(--color-ink);
   font-weight: 600;
   font-size: var(--font-size-sm);
 }
 
 .chevron {
-  color: var(--color-dark);
+  color: var(--color-ink-3);
   transition: transform 0.3s ease;
 }
 
@@ -194,12 +193,12 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
-  color: white;
+  background: var(--color-primary);
+  color: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
+  font-weight: 500;
   font-size: var(--font-size-lg);
   flex-shrink: 0;
 }
@@ -211,7 +210,7 @@
 
 .dropdown-user-details strong {
   display: block;
-  color: var(--color-dark);
+  color: var(--color-ink);
   font-size: var(--font-size-base);
   margin-bottom: 0.25rem;
   white-space: nowrap;
@@ -221,7 +220,7 @@
 
 .dropdown-user-details small {
   display: block;
-  color: var(--color-dark);
+  color: var(--color-ink);
   font-size: var(--font-size-xs);
   opacity: 0.7;
   white-space: nowrap;
@@ -244,7 +243,7 @@
   align-items: center;
   gap: 0.875rem;
   padding: 0.875rem 1.25rem;
-  color: var(--color-dark);
+  color: var(--color-ink);
   text-decoration: none;
   transition: var(--transition-normal);
   font-weight: 500;
@@ -252,7 +251,7 @@
 
 .dropdown-link:hover {
   background: var(--color-bg-secondary);
-  color: var(--color-primary);
+  color: var(--color-ink);
 }
 
 .dropdown-link svg {
@@ -308,7 +307,7 @@
 .page-header h1 {
   font-size: var(--font-size-2xl);
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--color-ink);
   margin: 0;
   text-align: center;
   width: 100%;
