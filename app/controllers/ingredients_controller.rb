@@ -108,7 +108,7 @@ class IngredientsController < ApplicationController
   def render_quick_create_error
     respond_to do |format|
       format.turbo_stream do
-        render turbo_stream: turbo_stream.replace("quick-ingredient-form",
+        render turbo_stream: turbo_stream.update("quick-ingredient-form",
           partial: "ingredients/quick_form",
           locals: { ingredient: @ingredient }
         ), status: :unprocessable_entity

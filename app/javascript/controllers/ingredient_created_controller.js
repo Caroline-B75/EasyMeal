@@ -13,6 +13,9 @@ export default class extends Controller {
   connect() {
     // Mettre à jour tous les selects d'ingrédients
     this.updateIngredientSelects()
+
+    // Présélectionner le nouvel ingrédient dans le premier select vide
+    this.preselectIngredient()
     
     // Afficher le flash message dans le container global
     this.showFlashMessage()
@@ -52,6 +55,18 @@ export default class extends Controller {
         }
       }
     })
+  }
+
+  // Présélectionne le nouvel ingrédient dans le premier select vide
+  preselectIngredient() {
+    const selects = document.querySelectorAll('select[name*="ingredient_id"]')
+    const emptySelect = Array.from(selects).find(select => !select.value)
+
+    if (emptySelect) {
+      emptySelect.value = this.idValue
+      // Déclencher l'événement change pour mettre à jour l'unité affichée
+      emptySelect.dispatchEvent(new Event('change', { bubbles: true }))
+    }
   }
 
   showFlashMessage() {

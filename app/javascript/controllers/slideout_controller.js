@@ -20,6 +20,12 @@ export default class extends Controller {
     // Écouter la touche Escape pour fermer
     this.boundHandleEscape = this.handleEscape.bind(this)
     document.addEventListener('keydown', this.boundHandleEscape)
+
+    // Sauvegarder le HTML initial du formulaire pour pouvoir le réinitialiser
+    const formContainer = this.panelTarget.querySelector('.slideout-content')
+    if (formContainer) {
+      this.initialFormHTML = formContainer.innerHTML
+    }
   }
 
   disconnect() {
@@ -30,6 +36,9 @@ export default class extends Controller {
   // Ouvre le panneau latéral
   open(event) {
     if (event) event.preventDefault()
+
+    // Réinitialiser le formulaire à son état initial (vide, sans erreurs)
+    this.resetForm()
     
     this.panelTarget.classList.add("open")
     this.overlayTarget.classList.add("open")
@@ -88,6 +97,15 @@ export default class extends Controller {
     
     // Fermer le panneau
     this.close()
+  }
+
+  // Réinitialise le contenu du slideout à son état initial
+  // Supprime les erreurs de validation, vide les champs, ferme les options avancées
+  resetForm() {
+    const formContainer = this.panelTarget.querySelector('.slideout-content')
+    if (formContainer && this.initialFormHTML) {
+      formContainer.innerHTML = this.initialFormHTML
+    }
   }
 
   // Utilitaires pour gérer le scroll du body
