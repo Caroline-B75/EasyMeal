@@ -1,38 +1,57 @@
--# Formulaire pour créer/éditer un ingrédient avec Stimulus
-= form_with model: ingredient, class: "ingredient-form", data: { controller: "ingredient-form", turbo: false } do |f|
-  - if ingredient.errors.any?
-    .form-errors
-      %h3= pluralize(ingredient.errors.count, "erreur") + " à corriger :"
-      %ul
-        - ingredient.errors.full_messages.each do |message|
-          %li= message
+-# Formulaire pour créer/éditer un ingrédient avec SimpleForm
+= simple_form_for ingredient, html: { class: "ingredient-form", data: { controller: "ingredient-form form-errors", turbo: false } } do |f|
+
+  = f.error_notification message: "Des erreurs empêchent la sauvegarde :"
 
   .form-group
-    = f.label :name, "Nom de l'ingrédient *", class: "form-label"
-    = f.text_field :name, class: "form-input", placeholder: "Ex: Tomates", required: true
+    = f.input :name, 
+              label: "Nom de l'ingrédient *",
+              placeholder: "Ex: Tomates",
+              input_html: { class: "form-input" },
+              label_html: { class: "form-label" },
+              error_class: "has-error"
 
   .form-group
-    = f.label :category, "Rayon *", class: "form-label"
-    %small.form-hint Le rayon où se trouve cet ingrédient en supermarché
-    = f.select :category, Ingredient.categories.map { |k, _v| [Ingredient.human_attribute_name("category.#{k}"), k] }, { prompt: "Sélectionnez un rayon" }, class: "form-select", required: true
+    = f.input :category, 
+              label: "Rayon *",
+              collection: Ingredient.categories.map { |k, _v| [Ingredient.human_attribute_name("category.#{k}"), k] },
+              prompt: "Sélectionnez un rayon",
+              input_html: { class: "form-select" },
+              label_html: { class: "form-label" },
+              hint_html: { class: "form-hint" },
+              error_class: "has-error"
 
   .form-group
-    = f.label :unit_group, "Groupe d'unités *", class: "form-label"
-    %small.form-hint Type de mesure pour cet ingrédient
-    = f.select :unit_group, Ingredient.unit_groups.map { |k, _v| [Ingredient.human_attribute_name("unit_group.#{k}"), k] }, { prompt: "Sélectionnez un groupe" }, class: "form-select", required: true, data: { ingredient_form_target: "unitGroup", action: "change->ingredient-form#updateBaseUnit" }
+    = f.input :unit_group, 
+              label: "Groupe d'unités *",
+              collection: Ingredient.unit_groups.map { |k, _v| [Ingredient.human_attribute_name("unit_group.#{k}"), k] },
+              prompt: "Sélectionnez un groupe",
+              input_html: { class: "form-select", data: { ingredient_form_target: "unitGroup", action: "change->ingredient-form#updateBaseUnit" } },
+              label_html: { class: "form-label" },
+              hint_html: { class: "form-hint" },
+              error_class: "has-error"
 
   .form-group
-    = f.label :base_unit, "Unité de base *", class: "form-label"
-    %small.form-hint Déterminée automatiquement
-    = f.text_field :base_unit, class: "form-input", placeholder: "Ex: g, ml, piece, cac", readonly: true, data: { ingredient_form_target: "baseUnit" }
+    = f.input :base_unit, 
+              label: "Unité de base *",
+              hint: "Déterminée automatiquement",
+              placeholder: "Ex: g, ml, piece, cac",
+              readonly: true,
+              input_html: { class: "form-input", data: { ingredient_form_target: "baseUnit" } },
+              label_html: { class: "form-label" },
+              hint_html: { class: "form-hint" },
+              error_class: "has-error"
 
   .form-group
-    = f.label :aliases, "Alias (synonymes)", class: "form-label"
+    %label.form-label Alias (synonymes)
     %small.form-hint Noms alternatifs pour faciliter ta recherche
-    = f.text_field :aliases, value: ingredient.aliases.is_a?(Array) ? ingredient.aliases.join(', ') : '', class: "form-input", placeholder: "Ex: tomate, tomate fraîche (séparés par des virgules)"
+    = text_field_tag "ingredient[aliases]", 
+                     ingredient.aliases.is_a?(Array) ? ingredient.aliases.join(', ') : '', 
+                     class: "form-input", 
+                     placeholder: "Ex: tomate, tomate fraîche (séparés par des virgules)"
 
   .form-group
-    = f.label :season_months, "Mois de saison", class: "form-label"
+    %label.form-label Mois de saison
     %small.form-hint Coche les mois où cet ingrédient est de saison
     = hidden_field_tag "ingredient[season_months][]", ""
     .months-grid

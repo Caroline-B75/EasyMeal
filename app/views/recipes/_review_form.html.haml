@@ -1,0 +1,20 @@
+-# Partial pour le formulaire de nouvel avis
+.rs-review-form
+  %h4.rs-review-form-title Laisser un avis
+  = form_with url: recipe_reviews_path(recipe), method: :post, class: "rs-form" do |f|
+    .rs-rating-input{ data: { controller: "rating" } }
+      - (1..5).each do |star|
+        %label.rs-star-label
+          = f.radio_button :rating, star,
+                           data: { action: "change->rating#update" },
+                           class: "rs-star-radio"
+          %span.rs-star{ data: { rating_target: "star" } } ☆
+
+    .rs-form-group
+      = f.text_area :content,
+                    class: "rs-form-textarea",
+                    rows: 3,
+                    placeholder: "Partage ton expérience..."
+
+    .rs-form-actions
+      = f.submit "Publier mon avis", class: "rs-btn-submit"

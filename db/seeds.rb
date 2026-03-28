@@ -20,4 +20,12 @@ puts "Admin user created: #{admin.email}"
 puts "\n🌱 Chargement des ingrédients..."
 load Rails.root.join('db', 'seeds', 'ingredients.rb')
 
+# Charger les tags
+puts "\n🏷️ Chargement des tags..."
+load Rails.root.join('db', 'seeds', 'tags.rb')
+
+# Charger les recettes de test
+puts "\n📖 Chargement des recettes..."
+load Rails.root.join('db', 'seeds', 'recipes.rb')
+
 puts "\n✅ Seed terminée!"

@@ -1,0 +1,2830 @@
+/* ============================================
+   RECETTES - Styles pour les pages recipes
+   ============================================ */
+
+/* === Layout général === */
+
+.recipes-container {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* === Layout principal === */
+/* Base mobile-first : sidebar en drawer hors flux */
+
+.recipes-body {
+  display: block;
+}
+
+.recipes-main {
+  min-width: 0;
+  /* Espace en bas pour que le bouton flottant ne cache pas la pagination */
+  padding-bottom: 5rem;
+}
+
+/* === Sidebar des filtres === */
+/* Base mobile : drawer fixe glissant depuis la gauche */
+
+.recipes-sidebar {
+  position: fixed;
+  top: 0;
+  left: -100%;
+  width: 320px;
+  max-width: 90vw;
+  height: 100vh;
+  background: var(--color-bg-white);
+  border-radius: 0 var(--radius-input) var(--radius-input) 0;
+  padding: 1.5rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+  transition: left 0.3s ease;
+  z-index: 200;
+  box-shadow: none;
+}
+
+.recipes-sidebar.is-open {
+  left: 0;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.sidebar-title {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+/* Bouton ✕ : toujours visible pour fermer le drawer */
+.sidebar-close-btn {
+  display: flex;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border: none;
+  background: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: var(--color-ink);
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.sidebar-close-btn:hover {
+  background: var(--color-border);
+}
+
+.sidebar-footer {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--color-border);
+}
+
+/* === Bouton flottant (visible sur tous les écrans) === */
+
+.filters-mobile-btn {
+  display: flex;
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 150;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-button);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-lg);
+  transition: background 0.2s, transform 0.2s;
+  white-space: nowrap;
+}
+
+.filters-mobile-btn:hover {
+  background: var(--color-primary-hover);
+  transform: translateX(-50%) translateY(-2px);
+}
+
+.filters-mobile-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  background: #fff;
+  color: var(--color-primary);
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+/* === Backdrop overlay (mobile) === */
+
+.filters-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 180;
+  backdrop-filter: blur(2px);
+}
+
+.filters-backdrop.is-open {
+  display: block;
+}
+
+.recipes-header {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.recipes-header h1 {
+  color: var(--color-ink); /* Brun caramel */
+  margin: 0;
+}
+
+/* === Filtres & Recherche === */
+
+/* ── Barre de recherche ── */
+
+.filters-search-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Wrapper pour le champ + icône intégrée */
+.search-field-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.filters-search-row .search-input {
+  width: 100%;
+  padding: 0.7rem 2.5rem 0.7rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  font-size: var(--font-size-base);
+  background: var(--color-bg-white);
+}
+
+.filters-search-row .search-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* Icône loupe intégrée à droite du champ */
+.search-inline-btn {
+  position: absolute;
+  right: 0.4rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0.3rem;
+  color: #999;
+  transition: color 0.2s;
+}
+
+.search-inline-btn:hover {
+  color: var(--color-ink);
+}
+
+/* Rétro-compat : ancien bouton submit pleine largeur (mobile) */
+.search-submit-btn {
+  width: 100%;
+  justify-content: center;
+  padding: 0.7rem;
+}
+
+/* ── Filtres empilés verticalement dans la sidebar ── */
+
+.filters-quick-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 120px;
+}
+
+.filter-group label,
+.filter-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-ink);
+  font-weight: 500;
+}
+
+.filter-group select,
+.filter-select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  background: var(--color-bg-white);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: border-color var(--transition-normal);
+}
+
+.filter-group select:focus,
+.filter-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* Select avec valeur active */
+.filter-select--active {
+  border-color: var(--color-primary);
+  color: var(--color-ink);
+  font-weight: 600;
+  background-color: var(--color-bg-secondary);
+}
+
+/* Filtre checkbox (De saison) */
+.filter-checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: auto;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  cursor: pointer;
+  transition: border-color var(--transition-normal);
+}
+
+.filter-checkbox.filter-checkbox--active {
+  border-color: var(--color-primary);
+  background-color: var(--color-bg-secondary);
+}
+
+.filter-checkbox input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+}
+
+.filter-label-inline {
+  font-size: var(--font-size-sm);
+  color: var(--color-ink);
+  font-weight: 500;
+  cursor: pointer;
+  margin: 0;
+}
+
+/* Pill "Mes favoris" */
+.filter-quick-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-button);
+  background: var(--color-bg-white);
+  color: var(--color-ink);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  white-space: nowrap;
+  user-select: none;
+  align-self: flex-end;
+  margin-bottom: 0;
+}
+
+.filter-quick-pill:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* État actif : class serveur (chargement initial) OU checkbox réellement coché
+   Le sélecteur :checked + ciblage CSS est indépendant du Turbo Frame */
+#filter-favorites:checked + .filter-quick-pill,
+.filter-quick-pill.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+/* Coeur du pill "Mes favoris" : 2x plus grand */
+.filter-quick-pill .pill-heart {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+#filter-favorites:checked + .filter-quick-pill .pill-heart,
+.filter-quick-pill.active .pill-heart {
+  color: #fff;
+}
+
+/* Badge compteur (nb filtres ou nb tags) */
+.filter-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* ── Barre filtres actifs (badges supprimables) ── */
+
+.active-filters-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px dashed var(--color-border);
+}
+
+.active-filters-label {
+  font-size: var(--font-size-sm);
+  color: #888;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-right: 0.1rem;
+}
+
+.active-filter-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.7rem;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-button);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--transition-normal);
+}
+
+.active-filter-badge:hover {
+  background: var(--color-primary-hover);
+}
+
+.badge-remove {
+  font-weight: 700;
+  font-size: 0.9rem;
+  line-height: 1;
+  opacity: 0.75;
+}
+
+/* ── Tags : section dans la sidebar ── */
+
+.filters-section-title {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-ink);
+  margin: 0.5rem 0 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.filters-tags-section {
+  margin-top: 0.25rem;
+}
+
+.filters-tags-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-bottom: 0.85rem;
+}
+
+.filters-tags-sublabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-ink);
+  opacity: 0.55;
+  margin-bottom: 0.35rem;
+}
+
+.filters-tags-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+/* Case à cocher tag */
+.filter-tag-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.25rem;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+
+.filter-tag-check:hover {
+  background: var(--color-bg-secondary);
+}
+
+.filter-tag-input {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.filter-tag-check-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-ink);
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.filter-tag-check-label.active,
+.filter-tag-input:checked + .filter-tag-check-label {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+/* Lien réinitialiser dans la barre filtres actifs */
+.active-filter-reset {
+  margin-left: auto;
+  color: #999;
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+  align-self: center;
+  padding: 0.2rem 0;
+}
+
+.active-filter-reset:hover {
+  color: var(--color-ink);
+  text-decoration: underline;
+}
+
+/* Lien "Effacer tous les filtres" ancien — rétro-compat */
+.reset-filters-link {
+  display: block;
+  text-align: right;
+  margin-top: 0.5rem;
+  font-size: var(--font-size-sm);
+  color: #999;
+  text-decoration: none;
+}
+
+.reset-filters-link:hover {
+  color: var(--color-ink);
+  text-decoration: underline;
+}
+
+/* Bouton "Effacer" compact dans le header sidebar */
+.reset-filters-btn {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--color-ink-3);
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-button);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.2s;
+  line-height: 1.4;
+}
+
+.reset-filters-btn:hover {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+/* Rétro-compat : barre de recherche utilisée sur d'autres pages */
+.recipes-search-bar {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.recipes-search-bar .search-input,
+.recipes-search-bar input[type="search"] {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  font-size: var(--font-size-base);
+}
+
+.recipes-search-bar .search-input:focus,
+.recipes-search-bar input[type="search"]:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.search-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* === Loader de recherche === */
+
+.recipes-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-input);
+  color: var(--color-ink);
+  font-size: var(--font-size-base);
+}
+
+.recipes-loader.hidden {
+  display: none;
+}
+
+.loader-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* État de chargement pour les résultats */
+.recipes-results {
+  min-height: 500px;
+}
+
+.recipes-results.loading {
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+/* === Compteur de résultats === */
+
+.recipes-count {
+  font-size: var(--font-size-sm);
+  color: #666;
+  margin-bottom: 1.25rem;
+}
+
+.recipes-count strong {
+  color: var(--color-ink);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  margin-right: 0.2rem;
+}
+
+/* === Grille de cartes recettes === */
+
+.recipes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* === Carte recette (index) === */
+
+.recipe-card {
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  overflow: hidden;
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  cursor: pointer;
+}
+
+.recipe-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.recipe-card-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  background: var(--color-bg-main); /* Gris chaud clair si pas d'image */
+}
+
+.recipe-card-body {
+  padding: 1rem;
+}
+
+.recipe-card-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-ink);
+  margin: 0 0 0.5rem 0;
+  text-decoration: none;
+}
+
+.recipe-card-title:hover {
+  color: var(--color-ink-3);
+}
+
+.recipe-card-meta {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+  font-size: var(--font-size-sm);
+  color: #666;
+}
+
+.recipe-card-tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.recipe-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.recipe-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: var(--font-size-sm);
+}
+
+.recipe-rating-stars {
+  color: var(--color-accent);
+}
+
+/* === Actions sociales (favoris, notes) === */
+
+.favorite-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-bg-white);
+  color: var(--color-ink-3);
+  border-radius: var(--radius-input);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all var(--transition-normal);
+}
+
+.favorite-btn:hover {
+  background: var(--color-primary);
+  color: var(--color-bg-white);
+  border-color: var(--color-primary);
+}
+
+.favorite-btn.favorited {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-bg-white);
+  animation: heart-pop 0.3s ease-out;
+}
+
+.favorite-btn.favorited:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+@keyframes heart-pop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+/* === Formulaire recette (admin) === */
+
+.recipe-form-section {
+  background: var(--color-bg-white);
+  padding: 0.5rem 1.5rem;
+  border-radius: var(--radius-input);
+  border: 1px solid var(--color-border);
+  margin-bottom: 1.5rem;
+}
+
+.nested-fields {
+  border-radius: var(--radius-input);
+  display: flex;
+  width: 100%;
+  gap: 1rem;
+  align-items: end;
+}
+
+.nested-fields .form-group {
+  flex: auto;
+}
+
+.remove-preparation {
+  padding: 0.5rem 1rem;
+  background: var(--color-primary);
+  color: var(--color-bg-white);
+  border: none;
+  border-radius: var(--radius-button);
+  cursor: pointer;
+}
+
+.btn-accent {
+  padding: 0.75rem 1.5rem;
+  background: var(--color-accent); /* Vert basilic */
+  color: var(--color-bg-white);
+  border: none;
+  border-radius: var(--radius-button);
+  min-height: 44px;
+  cursor: pointer;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  transition: background var(--transition-normal);
+}
+
+.btn-accent:hover {
+  background: var(--color-accent-hover);
+}
+
+/* === Responsive === */
+
+/* ── Desktop/tablette : sidebar fixe pleine hauteur, toujours visible ── */
+@media (min-width: 768px) {
+  /* Container pleine largeur, pas de padding horizontal — sidebar flush left */
+  .recipes-container {
+    padding: 0;
+    max-width: none;
+  }
+
+  .recipes-body {
+    display: grid;
+    grid-template-columns: 270px 1fr;
+    gap: 0;
+    align-items: start;
+  }
+
+  .recipes-main {
+    padding: 1.5rem 2rem 2rem;
+    min-width: 0;
+  }
+
+  /* Sidebar collée à gauche, pleine hauteur, fond quasi-blanc, fixe au scroll */
+  .recipes-sidebar {
+    position: sticky;
+    top: 0;
+    left: auto;
+    width: auto;
+    max-width: none;
+    height: 100vh;
+    max-height: none;
+    background: var(--color-bg-white);
+    border-radius: 0;
+    border-right: 1px solid var(--color-border-light);
+    padding: 0.75rem 0.85rem;
+    font-size: var(--font-size-xs);
+    overflow-x: hidden;
+    transition: none;
+    box-shadow: none !important;
+    z-index: auto;
+  }
+
+  /* ── Éléments compacts dans la sidebar ── */
+
+  .sidebar-header {
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.35rem;
+  }
+
+  .sidebar-title {
+    font-size: 0.85rem;
+  }
+
+  .filters-search-row {
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .search-field-wrapper .search-input {
+    padding: 0.4rem 2rem 0.4rem 0.6rem;
+    font-size: 0.78rem;
+  }
+
+  .search-inline-btn {
+    font-size: 0.85rem;
+    padding: 0.2rem;
+  }
+
+  .filters-quick-column {
+    gap: 0.35rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .filter-group {
+    gap: 0.1rem;
+  }
+
+  .filter-group label,
+  .filter-label {
+    font-size: 0.72rem;
+  }
+
+  .filter-group select,
+  .filter-select {
+    padding: 0.25rem 0.4rem;
+    font-size: 0.72rem;
+  }
+
+  .filter-checkbox {
+    padding: 0.25rem 0.4rem;
+  }
+
+  .filter-label-inline {
+    font-size: 0.72rem;
+  }
+
+  .filters-section-title {
+    font-size: 0.68rem;
+    margin: 0.25rem 0 0.4rem;
+    padding-top: 0.4rem;
+  }
+
+  .filters-tags-sublabel {
+    font-size: 0.6rem;
+    margin-bottom: 0.15rem;
+  }
+
+  .filter-tag-check {
+    padding: 0.15rem 0.1rem;
+  }
+
+  .filter-tag-check-label {
+    font-size: 0.72rem;
+  }
+
+  .filter-tag-input {
+    width: 12px;
+    height: 12px;
+  }
+
+  .filters-tags-group {
+    margin-bottom: 0.4rem;
+  }
+
+  .active-filters-bar {
+    gap: 0.25rem;
+    margin-top: 0.4rem;
+    padding-top: 0.4rem;
+  }
+
+  .active-filter-badge {
+    padding: 0.1rem 0.4rem;
+    font-size: 0.68rem;
+  }
+
+  .sidebar-footer {
+    margin-top: 0.4rem;
+    padding-top: 0.35rem;
+  }
+
+  .reset-filters-btn {
+    font-size: 0.68rem;
+    padding: 0.2rem 0.6rem;
+  }
+
+  /* La sidebar est toujours visible, pas besoin du bouton flottant ni du backdrop */
+  .filters-mobile-btn {
+    display: none;
+  }
+
+  .filters-backdrop {
+    display: none !important;
+  }
+
+  .sidebar-close-btn {
+    display: none;
+  }
+
+  /* Sur desktop, ne pas flouter les résultats pendant le chargement des filtres */
+  .recipes-results.loading {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+/* ── Mobile : drawer + bouton flottant (styles de base, redéfinis ici si besoin) ── */
+@media (max-width: 767px) {
+  .recipes-sidebar {
+    width: 85vw;
+  }
+
+  .recipes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .recipes-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  /* Barre de recherche (rétro-compat) */
+  .recipes-search-bar {
+    flex-direction: column;
+  }
+
+  .recipes-search-bar .search-input,
+  .recipes-search-bar input[type="search"] {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .search-buttons {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .recipes-search-bar .btn,
+  .search-buttons .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .recipe-meta-row {
+    flex-direction: column;
+  }
+
+  .recipe-actions {
+    flex-direction: column;
+  }
+
+  .nested-fields {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .nested-fields .form-group {
+    flex: none;
+    width: 100%;
+  }
+}
+
+/* ── Très petit écran : bouton flottant un peu plus compact ── */
+@media (max-width: 360px) {
+  .filters-mobile-btn {
+    bottom: 1rem;
+    padding: 0.65rem 1.25rem;
+    font-size: var(--font-size-sm);
+  }
+}
+
+/* === Formulaires recettes (admin) === */
+
+.recipe-form-header {
+  margin-bottom: 2rem;
+}
+
+.recipe-form-header h1 {
+  color: var(--color-ink);
+  margin-top: 0.5rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.form-row .form-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+.form-row .form-group-large {
+  flex: 2;
+}
+
+.form-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* Input natif masqué — déclenché par le label stylé */
+.photo-upload-input {
+  display: none;
+}
+
+.photo-upload-hint {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-4);
+  font-style: italic;
+}
+
+.photo-upload-notice {
+  margin-top: 0.5rem;
+  font-size: var(--font-size-xs);
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+.current-photo {
+  margin-top: 0.75rem;
+}
+
+.photo-preview {
+  border-radius: var(--radius-input);
+  border: 1px solid var(--color-border);
+  display: block;
+}
+
+.btn-change-photo {
+  display: inline-block;
+  margin-top: 0.75rem;
+  font-size: var(--font-size-sm);
+}
+
+.photo-upload-area {
+  margin-top: 1rem;
+}
+
+/* === Tags grid === */
+
+.tags-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.tag-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--color-bg-secondary);
+  border: 2px solid var(--color-bg-secondary);
+  border-radius: var(--radius-badge);
+  cursor: pointer;
+  transition: all var(--transition-normal) ease;
+  font-size: 0.95rem;
+}
+
+.tag-checkbox:hover {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-bg-white);
+}
+
+.tag-checkbox input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+.tag-checkbox input:checked + .tag-name {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.tag-checkbox:has(input:checked) {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-bg-white);
+}
+
+.tag-checkbox:has(input:checked) .tag-name {
+  color: var(--color-bg-white);
+}
+
+/* === Nested fields (ingrédients) === */
+
+.preparations-container {
+  margin-bottom: 0;
+}
+
+.preparation-fields {
+  display: flex;
+  width: 100%;
+  gap: 1rem;
+  align-items: center;
+  border-radius: var(--radius-input);
+}
+
+.preparation-ingredient {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.preparation-quantity {
+  flex: 0 0 120px;
+  max-width: 120px;
+}
+
+.preparation-unit {
+  min-width: 50px;
+  color: var(--color-ink);
+  font-weight: 500;
+}
+
+.preparation-remove {
+  flex: 0 0 auto;
+  margin-left: auto;
+  align-items: self-end;
+}
+
+.remove-preparation {
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  background: var(--color-primary);
+  color: var(--color-bg-white);
+  border-radius: var(--radius-button);
+  cursor: pointer;
+  font-size: var(--font-size-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-normal);
+}
+
+.remove-preparation:hover {
+  background: var(--color-primary-hover);
+}
+
+.btn-accent {
+  padding: 0.75rem 1.5rem;
+  background: var(--color-accent);
+  color: var(--color-bg-white);
+  border: none;
+  border-radius: var(--radius-button);
+  min-height: 44px;
+  cursor: pointer;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-normal);
+}
+
+.btn-accent:hover {
+  background: var(--color-accent-hover);
+}
+
+.marked-for-deletion {
+  opacity: 0.5;
+  pointer-events: none;
+  background: #fee;
+}
+
+/* Boutons icônes pour modifier/supprimer */
+.icon-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  font-size: 1.25rem;
+  transition: transform 0.2s;
+}
+
+.icon-btn:hover {
+  transform: scale(1.2);
+}
+
+.icon-btn-edit:hover {
+  filter: brightness(0.8);
+}
+
+.icon-btn-delete:hover {
+  filter: brightness(0.8);
+}
+
+/* === Danger buttons (shared: ingredients, modals) === */
+
+.btn-danger {
+  background: var(--color-danger);
+  color: var(--color-bg-white);
+}
+
+.btn-danger:hover {
+  background: var(--color-danger-hover);
+}
+
+.text-danger {
+  color: var(--color-danger);
+}
+
+/* === Empty state === */
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  background: var(--color-bg-main);
+  border-radius: var(--radius-input);
+}
+
+.empty-state-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.empty-state h2 {
+  color: var(--color-ink);
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+/* === Wrapper carte avec bouton favori en overlay === */
+
+.recipe-card-wrapper {
+  position: relative;
+}
+
+.recipe-card-wrapper .recipe-favorite-container {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 1;
+}
+
+/* Bouton favori compact (icône ronde) — index uniquement */
+.favorite-btn.favorite-btn-compact {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(4px);
+  gap: 0;
+}
+
+/* État favorié en compact : fond rouge explicite (spécificité plus haute) */
+.favorite-btn.favorite-btn-compact.favorited {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-bg-white);
+}
+
+/* Hover compact non-favorié : fond blanc opaque + cœur rouge pour indiquer l'action */
+.favorite-btn.favorite-btn-compact:not(.favorited):hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* === Recipe card link === */
+
+.recipe-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.recipe-card-link:hover {
+  text-decoration: none;
+}
+
+/* === Meta items === */
+
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #666;
+}
+
+.meta-icon {
+  font-size: 1rem;
+}
+
+/* === Global rating on show page === */
+
+.recipe-global-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--color-bg-main);
+  border-radius: var(--radius-input);
+}
+
+.rating-label {
+  color: var(--color-ink);
+}
+
+.rating-stars {
+  color: var(--color-secondary);
+  font-size: var(--font-size-xl);
+}
+
+.rating-value {
+  color: #666;
+  font-size: var(--font-size-sm);
+}
+
+/* === Favorite indicator on cards === */
+
+.recipe-favorite-indicator {
+  color: var(--color-secondary);
+  font-size: var(--font-size-xl);
+}
+
+/* === Recipe tags === */
+
+.recipe-tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+/* === Recipe info list === */
+
+.recipe-info-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.recipe-info-list li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-bg-main);
+}
+
+.recipe-info-list li:last-child {
+  border-bottom: none;
+}
+
+/* === SR only (screen reader) === */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ============================================
+   FICHE RECETTE (SHOW) — Slate Craft Premium
+   ============================================
+   Préfixe : rs- (recipe show)
+   5 zones empilées verticalement.
+   ============================================ */
+
+/* === Zone 1 — Lien retour === */
+
+.rs-back-bar {
+  background: var(--color-bg-white);
+  border-bottom: 0.5px solid var(--color-border);
+  padding: 11px 28px;
+}
+
+.rs-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--color-ink-3);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.rs-back-link:hover {
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.rs-back-chevron {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* === Zone 2 — Hero fond sombre === */
+
+/* Couleurs dérivées pour le contexte sombre du hero */
+.rs-hero {
+  --rs-border-dark: var(--color-primary-hover);
+  --rs-bg-dark: #292524;
+  background: var(--color-primary);
+}
+
+.rs-hero-inner {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* -- Colonne gauche -- */
+
+.rs-hero-content {
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.rs-kicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.rs-kicker-line {
+  display: inline-block;
+  width: 20px;
+  height: 1px;
+  background: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.rs-title {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 28px;
+  font-weight: 400;
+  color: #FFFFFF;
+  line-height: 1.15;
+  margin: 0;
+}
+
+/* -- Bloc méta (cases) -- */
+
+.rs-meta-box {
+  display: inline-flex;
+  border: 0.5px solid var(--rs-border-dark);
+  border-radius: var(--radius-button);
+  overflow: hidden;
+  align-self: flex-start;
+}
+
+.rs-meta-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 18px;
+  gap: 2px;
+}
+
+.rs-meta-cell + .rs-meta-cell {
+  border-left: 0.5px solid var(--rs-border-dark);
+}
+
+.rs-meta-value {
+  font-size: 15px;
+  font-weight: 500;
+  color: #FFFFFF;
+}
+
+.rs-meta-label {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+
+/* -- Badges hero (fond sombre) -- */
+
+.rs-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.rs-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: var(--radius-button);
+  background: var(--rs-bg-dark);
+  color: #D6D3D1;
+  border: 0.5px solid var(--rs-border-dark);
+  white-space: nowrap;
+}
+
+.rs-badge--green {
+  background: rgba(236, 252, 203, 0.12);
+  color: #BEF264;
+  border-color: rgba(190, 242, 100, 0.2);
+}
+
+.rs-badge--amber {
+  background: rgba(251, 191, 36, 0.1);
+  color: var(--color-accent);
+  border-color: rgba(251, 191, 36, 0.2);
+}
+
+/* -- Boutons d'action hero -- */
+
+.rs-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.rs-btn-accent {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--color-accent);
+  color: var(--color-accent-text);
+  border: none;
+  border-radius: var(--radius-button);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.rs-btn-accent:hover {
+  background: var(--color-accent-hover);
+  text-decoration: none;
+  color: var(--color-accent-text);
+}
+
+/* Bouton favori variante hero */
+.rs-btn-fav {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  background: transparent;
+  color: var(--color-ink-4);
+  border: 0.5px solid var(--rs-border-dark);
+  border-radius: var(--radius-button);
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.rs-btn-fav:hover {
+  color: #FFFFFF;
+  border-color: #78716C;
+}
+
+.rs-btn-fav.favorited {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.rs-btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  background: transparent;
+  color: var(--color-ink-4);
+  border: 0.5px solid var(--rs-border-dark);
+  border-radius: var(--radius-button);
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.rs-btn-icon:hover {
+  color: #FFFFFF;
+  border-color: #78716C;
+}
+
+/* -- Colonne droite — Photo -- */
+
+.rs-hero-photo {
+  position: relative;
+  min-height: 280px;
+  background: var(--rs-bg-dark);
+  overflow: hidden;
+}
+
+.rs-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.rs-photo-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 14px 16px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.65));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rs-photo-stars {
+  color: var(--color-accent);
+  font-size: 13px;
+}
+
+.rs-photo-score {
+  color: #D6D3D1;
+  font-size: 11px;
+}
+
+/* === Zone 3 — Corps principal en deux colonnes === */
+
+.rs-body {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: 400px;
+}
+
+.rs-main {
+  padding: 28px;
+  border-right: 0.5px solid var(--color-border);
+}
+
+/* -- Titre de section générique -- */
+
+.rs-section-title {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink-4);
+  padding-bottom: 8px;
+  border-bottom: 0.5px solid var(--color-border);
+  margin-bottom: 16px;
+}
+
+/* -- Étapes de préparation -- */
+
+.rs-step {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 14px;
+  padding: 16px 0;
+  border-bottom: 0.5px solid var(--color-border);
+}
+
+.rs-step--last {
+  border-bottom: none;
+}
+
+.rs-step-number {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary);
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: var(--radius-button);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.rs-step-text {
+  font-size: 13px;
+  color: var(--color-ink-3);
+  line-height: 1.6;
+}
+
+/* === Zone 4 — Section Avis === */
+
+.rs-section--reviews {
+  margin-top: 36px;
+}
+
+/* -- Résumé de notation -- */
+
+.rs-rating-summary {
+  display: flex;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-card);
+  padding: 16px;
+  gap: 0;
+  margin-bottom: 20px;
+}
+
+.rs-rating-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+  border-right: 0.5px solid var(--color-border);
+  min-width: 90px;
+}
+
+.rs-rating-big {
+  font-size: 36px;
+  font-weight: 500;
+  color: var(--color-ink);
+  line-height: 1;
+}
+
+.rs-rating-stars-row {
+  font-size: 13px;
+  color: var(--color-accent);
+  margin: 4px 0;
+}
+
+.rs-rating-count {
+  font-size: 11px;
+  color: var(--color-ink-4);
+}
+
+.rs-rating-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 16px;
+  justify-content: center;
+}
+
+.rs-histo-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rs-histo-label {
+  font-size: 10px;
+  color: var(--color-ink-3);
+  width: 12px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.rs-histo-bar {
+  flex: 1;
+  height: 4px;
+  background: var(--color-border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.rs-histo-fill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 2px;
+  transition: width var(--transition-normal);
+}
+
+.rs-histo-count {
+  font-size: 10px;
+  color: var(--color-ink-4);
+  width: 16px;
+  flex-shrink: 0;
+}
+
+/* -- Formulaire d'avis -- */
+
+.rs-review-form {
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-button);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.rs-review-form-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-ink);
+  margin: 0 0 10px;
+}
+
+.rs-rating-input {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.rs-star-radio {
+  display: none;
+}
+
+.rs-star-label {
+  cursor: pointer;
+}
+
+.rs-star {
+  font-size: 22px;
+  color: var(--color-ink-4);
+  transition: color var(--transition-fast);
+}
+
+.rs-star.star-filled {
+  color: var(--color-accent);
+}
+
+.rs-star-label:hover .rs-star {
+  color: var(--color-accent);
+}
+
+.rs-form-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--color-ink);
+  background: var(--color-bg-secondary);
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-button);
+  resize: vertical;
+  min-height: 70px;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+  box-sizing: border-box;
+}
+
+.rs-form-textarea:focus {
+  outline: none;
+  background: var(--color-bg-white);
+  border-color: var(--color-primary);
+}
+
+.rs-form-actions {
+  margin-top: 10px;
+}
+
+.rs-btn-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 18px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--color-primary);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--radius-button);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.rs-btn-submit:hover {
+  background: var(--color-primary-hover);
+}
+
+/* -- Liste des avis -- */
+
+.rs-reviews-list {
+  margin-top: 16px;
+}
+
+.rs-review {
+  padding: 14px 0;
+  border-bottom: 0.5px solid var(--color-border);
+}
+
+.rs-review:last-child {
+  border-bottom: none;
+}
+
+.rs-review-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.rs-review-author-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rs-review-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-bg-secondary);
+  border: 0.5px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--color-ink-3);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.rs-review-author {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+.rs-review-stars {
+  font-size: 11px;
+  color: var(--color-accent);
+}
+
+.rs-review-date {
+  font-size: 11px;
+  color: var(--color-ink-4);
+  flex-shrink: 0;
+}
+
+.rs-review-text {
+  font-size: 12px;
+  color: var(--color-ink-3);
+  line-height: 1.6;
+}
+
+.rs-review-delete {
+  margin-top: 6px;
+}
+
+.rs-empty-reviews {
+  text-align: center;
+  padding: 2rem;
+  color: var(--color-ink-3);
+}
+
+/* -- Barre admin -- */
+
+.rs-admin-bar {
+  display: flex;
+  gap: 8px;
+  border-top: 0.5px solid var(--color-border);
+  padding-top: 16px;
+  margin-top: 8px;
+}
+
+.rs-admin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--color-bg-white);
+  color: var(--color-ink-2);
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-button);
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+
+.rs-admin-btn:hover {
+  border-color: var(--color-border-strong);
+  text-decoration: none;
+  color: var(--color-ink);
+}
+
+.rs-admin-btn--danger {
+  background: var(--color-danger-light);
+  color: var(--color-danger-text);
+  border-color: #FECACA;
+}
+
+.rs-admin-btn--danger:hover {
+  border-color: var(--color-danger);
+  color: var(--color-danger-text);
+}
+
+.rs-admin-delete {
+  display: inline;
+}
+
+/* === Colonne droite — Ingrédients (sidebar) === */
+
+.rs-sidebar {
+  background: var(--color-bg-white);
+  padding: 28px 20px;
+}
+
+.rs-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.rs-sidebar-header .rs-section-title {
+  margin-bottom: 0;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.rs-sidebar-servings {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rs-servings-btn {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--color-ink-3);
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-button);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background var(--transition-fast), color var(--transition-fast);
+  padding: 0;
+}
+
+.rs-servings-btn:hover {
+  background: var(--color-primary);
+  color: #FFFFFF;
+  border-color: var(--color-primary);
+}
+
+.rs-servings-val {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-ink);
+  min-width: 18px;
+  text-align: center;
+}
+
+/* -- Groupes ingrédients par catégorie -- */
+
+.rs-ing-group {
+  margin-top: 16px;
+}
+
+.rs-ing-category {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink-4);
+  padding-bottom: 6px;
+  border-bottom: 0.5px solid var(--color-border);
+  margin-bottom: 4px;
+}
+
+.rs-ing-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 0.5px solid var(--color-border-light);
+}
+
+.rs-ing-row:last-child {
+  border-bottom: none;
+}
+
+.rs-ing-name {
+  font-size: 13px;
+  color: var(--color-ink-2);
+}
+
+.rs-ing-qty {
+  display: inline-block;
+  padding: 2px 8px;
+  background: var(--color-bg-secondary);
+  border-radius: 2px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-ink-3);
+  white-space: nowrap;
+}
+
+.rs-empty {
+  font-size: 13px;
+  color: var(--color-ink-4);
+  font-style: italic;
+  padding: 16px 0;
+}
+
+/* ============================================
+   FICHE RECETTE — RESPONSIVE
+   ============================================ */
+
+/* Mobile (max-width: 767px) */
+@media (max-width: 767px) {
+  .rs-back-bar {
+    padding: 8px 16px;
+  }
+
+  .rs-hero-inner {
+    grid-template-columns: 1fr;
+  }
+
+  .rs-hero-photo {
+    order: -1;
+    min-height: 220px;
+    max-height: 260px;
+  }
+
+  .rs-hero-content {
+    padding: 16px;
+    gap: 14px;
+  }
+
+  .rs-title {
+    font-size: 1.375rem;
+  }
+
+  .rs-meta-box {
+    align-self: stretch;
+  }
+
+  .rs-meta-cell {
+    flex: 1;
+    padding: 8px 10px;
+  }
+
+  .rs-actions {
+    flex-direction: column;
+  }
+
+  .rs-actions > *,
+  .rs-actions .recipe-favorite-container,
+  .rs-actions .rs-btn-fav,
+  .rs-actions .rs-btn-accent {
+    width: 100%;
+    justify-content: center;
+    min-height: var(--min-touch-target);
+    box-sizing: border-box;
+  }
+
+  .rs-btn-icon {
+    width: var(--min-touch-target);
+    height: var(--min-touch-target);
+    align-self: flex-start;
+  }
+
+  .rs-body {
+    grid-template-columns: 1fr;
+  }
+
+  .rs-sidebar {
+    order: -1;
+    padding: 16px;
+    border-top: none;
+    border-bottom: 0.5px solid var(--color-border);
+  }
+
+  .rs-main {
+    padding: 16px;
+    border-right: none;
+  }
+
+  .rs-rating-summary {
+    flex-direction: column;
+  }
+
+  .rs-rating-left {
+    border-right: none;
+    border-bottom: 0.5px solid var(--color-border);
+    padding: 0 0 12px;
+    margin-bottom: 12px;
+  }
+
+  .rs-rating-right {
+    padding: 0;
+  }
+
+  .rs-admin-bar {
+    flex-direction: column;
+  }
+
+  .rs-admin-btn {
+    width: 100%;
+    justify-content: center;
+    min-height: var(--min-touch-target);
+  }
+}
+
+/* Tablette (768px – 1024px) */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .rs-hero-inner {
+    grid-template-columns: 1fr 260px;
+  }
+
+  .rs-hero-content {
+    padding: 24px 20px;
+  }
+
+  .rs-body {
+    grid-template-columns: 1fr 240px;
+  }
+
+  .rs-main {
+    padding: 20px;
+  }
+
+  .rs-sidebar {
+    padding: 20px 16px;
+  }
+
+  .rs-title {
+    font-size: 24px;
+  }
+}
+
+/* === Filter checkbox inline === */
+
+.filter-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter-label-inline {
+  cursor: pointer;
+}
+
+/* === Button small === */
+
+.btn-small {
+  padding: 0.5rem 1rem;
+  font-size: var(--font-size-sm);
+}
+
+/* ============================================
+   FORMULAIRE RECETTE — Slate Craft Premium
+   ============================================
+   Préfixe : rf- (recipe form)
+   Design éditorial cohérent avec la fiche recette (rs-).
+   Compact, bordures fines, typo serrée.
+   ============================================ */
+
+/* === Back bar === */
+
+.rf-back-bar {
+  background: var(--color-bg-white);
+  border-bottom: 0.5px solid var(--color-border);
+  padding: 11px 28px;
+}
+
+.rf-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--color-ink-3);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.rf-back-link:hover {
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.rf-back-chevron {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* === Mini Hero sombre === */
+
+.rf-hero {
+  background: var(--color-primary);
+  padding: 20px 28px 22px;
+}
+
+.rf-hero-inner {
+  max-width: 820px;
+  margin: 0 auto;
+}
+
+.rf-kicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin-bottom: 6px;
+}
+
+.rf-kicker-line {
+  display: inline-block;
+  width: 20px;
+  height: 1px;
+  background: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.rf-hero-title {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 24px;
+  font-weight: 400;
+  color: #FFFFFF;
+  line-height: 1.15;
+  margin: 0;
+}
+
+/* === Body (conteneur centré du formulaire) === */
+
+.rf-body {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 20px 28px 32px;
+}
+
+/* === Formulaire === */
+
+.rf-form {
+  display: flex;
+  flex-direction: column;
+}
+
+/* === Sections === */
+
+.rf-section {
+  padding: 16px 0;
+}
+
+.rf-section:first-child {
+  padding-top: 0;
+}
+
+.rf-section-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink-4);
+  padding-bottom: 6px;
+  border-bottom: 0.5px solid var(--color-border);
+  margin-bottom: 12px;
+}
+
+/* === Overrides de formulaire dans le contexte rf === */
+
+.rf-form .form-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-ink-2);
+}
+
+.rf-form .form-group {
+  gap: 4px;
+}
+
+.rf-form .form-row {
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.rf-form .form-row:last-child {
+  margin-bottom: 0;
+}
+
+.rf-form .form-input,
+.rf-form .form-select {
+  padding: 8px 12px;
+  font-size: 13px;
+  border: 0.5px solid var(--color-border);
+  background: var(--color-bg-white);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.rf-form .form-input:focus,
+.rf-form .form-select:focus {
+  border-color: var(--color-primary);
+  background: var(--color-bg-white);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+.rf-form .form-textarea {
+  padding: 8px 12px;
+  font-size: 13px;
+  border: 0.5px solid var(--color-border);
+  background: var(--color-bg-secondary);
+  line-height: 1.7;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.rf-form .form-textarea:focus {
+  border-color: var(--color-primary);
+  background: var(--color-bg-white);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+/* === Tags — sous-groupes style éditorial === */
+
+.rf-tags-group {
+  margin-bottom: 10px;
+}
+
+.rf-tags-group:last-child {
+  margin-bottom: 0;
+}
+
+.rf-tags-category {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-4);
+  margin-bottom: 6px;
+}
+
+.rf-form .tags-grid {
+  gap: 6px;
+  margin-top: 0;
+}
+
+.rf-form .tag-checkbox {
+  padding: 4px 10px;
+  font-size: 12px;
+  border: 0.5px solid var(--color-border);
+  background: var(--color-bg-white);
+  border-radius: var(--radius-button);
+  transition: all var(--transition-fast);
+}
+
+.rf-form .tag-checkbox:hover {
+  border-color: var(--color-primary);
+  background: var(--color-bg-secondary);
+  color: var(--color-ink);
+}
+
+.rf-form .tag-checkbox:has(input:checked) {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #FFFFFF;
+}
+
+.rf-form .tag-checkbox:has(input:checked) .tag-name {
+  color: #FFFFFF;
+}
+
+/* === Photo === */
+
+.rf-photo-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rf-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 18px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--color-bg-white);
+  color: var(--color-ink-2);
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-button);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+  align-self: flex-start;
+}
+
+.rf-btn-outline:hover {
+  border-color: var(--color-primary);
+  color: var(--color-ink);
+}
+
+.rf-btn-photo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 18px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--color-primary);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--radius-button);
+  cursor: pointer;
+  align-self: flex-start;
+  transition: background var(--transition-fast);
+}
+
+.rf-btn-photo:hover {
+  background: var(--color-primary-hover);
+}
+
+.rf-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--color-ink-4);
+  font-style: italic;
+}
+
+.rf-form .current-photo {
+  margin-bottom: 8px;
+}
+
+.rf-form .photo-preview {
+  border-radius: var(--radius-card);
+  border: 0.5px solid var(--color-border);
+}
+
+/* === Ingrédients — nested fields === */
+
+.rf-form .preparations-container {
+  margin-bottom: 10px;
+}
+
+.rf-form .nested-fields {
+  padding: 8px 0;
+  border-bottom: 0.5px solid var(--color-border-light);
+  gap: 10px;
+}
+
+.rf-form .nested-fields:last-child {
+  border-bottom: none;
+}
+
+.rf-form .remove-preparation {
+  width: 28px;
+  height: 28px;
+  font-size: 12px;
+  background: transparent;
+  color: var(--color-ink-4);
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-button);
+  transition: all var(--transition-fast);
+}
+
+.rf-form .remove-preparation:hover {
+  background: var(--color-danger-light);
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+.rf-form .preparations-actions {
+  margin-top: 10px;
+  margin-bottom: 0;
+  gap: 8px;
+}
+
+/* Bouton ajouter un ingrédient */
+.rf-btn-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 18px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--color-primary);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--radius-button);
+  cursor: pointer;
+  min-height: 40px;
+  transition: background var(--transition-fast);
+}
+
+.rf-btn-add:hover {
+  background: var(--color-primary-hover);
+}
+
+/* Bouton créer un ingrédient */
+.rf-btn-create {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 18px;
+  font-size: 12px;
+  font-weight: 500;
+  background: transparent;
+  color: var(--color-ink-3);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-button);
+  cursor: pointer;
+  min-height: 40px;
+  transition: all var(--transition-fast);
+}
+
+.rf-btn-create:hover {
+  background: var(--color-primary);
+  color: #FFFFFF;
+  border-style: solid;
+  border-color: var(--color-primary);
+}
+
+/* === Actions du formulaire === */
+
+.rf-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-top: 18px;
+  margin-top: 4px;
+}
+
+.rf-actions .btn-primary {
+  padding: 11px 28px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.rf-cancel-link {
+  font-size: 12px;
+  color: var(--color-ink-4);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.rf-cancel-link:hover {
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+/* ============================================
+   FORMULAIRE RECETTE — RESPONSIVE
+   ============================================ */
+
+/* Mobile (max-width: 767px) */
+@media (max-width: 767px) {
+  .rf-back-bar {
+    padding: 8px 16px;
+  }
+
+  .rf-hero {
+    padding: 14px 16px 16px;
+  }
+
+  .rf-hero-title {
+    font-size: 1.25rem;
+  }
+
+  .rf-body {
+    padding: 14px 16px 28px;
+  }
+
+  .rf-section {
+    padding: 12px 0;
+  }
+
+  .rf-section-label {
+    margin-bottom: 10px;
+  }
+
+  .rf-form .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .rf-form .form-row .form-group {
+    flex: none;
+    width: 100%;
+    min-width: auto;
+  }
+
+  .rf-form .nested-fields {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .rf-form .nested-fields .form-group {
+    flex: none;
+    width: 100%;
+  }
+
+  .rf-form .preparation-quantity {
+    flex: none;
+    max-width: none;
+  }
+
+  .rf-form .preparations-actions {
+    flex-direction: column;
+  }
+
+  .rf-btn-add,
+  .rf-btn-create {
+    width: 100%;
+  }
+
+  .rf-actions {
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 16px;
+  }
+
+  .rf-actions .btn-primary {
+    width: 100%;
+    justify-content: center;
+    min-height: var(--min-touch-target);
+  }
+
+  .rf-cancel-link {
+    font-size: 13px;
+    text-align: center;
+  }
+}
+
+/* Tablette (768px – 1024px) */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .rf-hero {
+    padding: 16px 20px 18px;
+  }
+
+  .rf-hero-title {
+    font-size: 22px;
+  }
+
+  .rf-body {
+    padding: 16px 20px 32px;
+  }
+}

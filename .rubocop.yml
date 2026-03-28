@@ -1,8 +1,52 @@
 # Omakase Ruby styling for Rails
 inherit_gem: { rubocop-rails-omakase: rubocop.yml }
 
-# Overwrite or add rules to create your own house style
-#
-# # Use `[a, [b, c]]` not `[ a, [ b, c ] ]`
-# Layout/SpaceInsideArrayLiteralBrackets:
-#   Enabled: false
+AllCops:
+  NewCops: enable
+  Exclude:
+    - "db/schema.rb"
+    - "db/migrate/**/*"
+    - "bin/**/*"
+    - "node_modules/**/*"
+    - "vendor/**/*"
+
+# Longueur de ligne
+# Les seeds sont des fichiers de données : les hashes inline sont volontairement longs.
+# Le fichier devise.rb est généré par la gem et contient des commentaires d'exemple très longs.
+Layout/LineLength:
+  Max: 120
+  Enabled: true
+  Exclude:
+    - "db/seeds/**/*"
+    - "config/initializers/devise.rb"
+
+# Longueur maximale d'une méthode : 20 lignes (simplicité)
+# ingredient.rb : human_attribute_name est une table de correspondance catégorie → libellé,
+#   intentionnellement longue et non décomposable sans perte de lisibilité.
+Metrics/MethodLength:
+  Max: 20
+  Enabled: true
+  Exclude:
+    - "app/models/ingredient.rb"
+
+# Longueur maximale d'une classe : 150 lignes
+Metrics/ClassLength:
+  Max: 150
+  Enabled: true
+
+# Complexité d'une méthode (branches if/else/case...)
+# attribute_cleaner.rb : clean_aliases gère un case/when multi-types intentionnel.
+# filter_service.rb : call chaîne des filtres optionnels, structure volontairement branchée.
+Metrics/CyclomaticComplexity:
+  Max: 7
+  Enabled: true
+  Exclude:
+    - "app/models/concerns/attribute_cleaner.rb"
+    - "app/services/recipes/filter_service.rb"
+
+# Complexité perçue (combinaison de conditions)
+Metrics/PerceivedComplexity:
+  Max: 8
+  Enabled: true
+  Exclude:
+    - "app/models/concerns/attribute_cleaner.rb"

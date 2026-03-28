@@ -30,7 +30,7 @@ Rails.application.configure do
 
   # Disable request forgery protection in test environment.
   config.action_controller.allow_forgery_protection = false
-  
+
   # Configure cloudinary as the Active Storage service for Rails
   config.active_storage.service = :cloudinary
 

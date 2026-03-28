@@ -866,3 +866,165 @@ db/
 6. **Feature flags** : Si déploiement incrémental souhaité
 
 Bonne chance ! 🎉
+
+LES TABLES
+
+# users (UC6)
+
+- email, encrypted_password (Devise)
+- admin:boolean (default: false)
+- default_diet:integer (enum)
+- default_people:integer (default: 4)
+
+# ingredients (UC3/UC5) ✅ DÉJÀ FAIT
+
+- name:string (unique)
+- category:integer (enum rayon)
+- unit_group:integer (enum mass/volume/count/spoon)
+- base_unit:string (g/ml/piece/cac)
+- season_months:integer[] (array 1..12)
+- aliases:jsonb
+
+# recipes (UC1/UC4/UC5)
+
+- name:string
+- description:text
+- instructions:text
+- default_servings:integer (NOT NULL)
+- prep_time_minutes:integer
+- cook_time_minutes:integer
+- difficulty:integer (enum)
+- price:integer (enum)
+- diet:integer (enum, NOT NULL)
+- appliance:string
+- source_url:string
+
+# + photo via ActiveStorage
+
+# preparations (UC1/UC3/UC4)
+
+- recipe_id, ingredient_id
+- quantity_base:decimal(10,3)
+
+# tags (UC4/UC5)
+
+- name:string (unique)
+- tag_type:integer (enum optionnel)
+
+# recipe_tags (UC4/UC5)
+
+- recipe_id, tag_id (unique ensemble)
+
+# menus (UC1/UC2)
+
+- user_id
+- diet:integer (enum)
+- number_of_people:integer
+- number_of_meals:integer
+
+# menu_recipes (UC1/UC2)
+
+- menu_id, recipe_id
+- number_of_people:integer
+- source:integer (enum generated/manual)
+
+# grocery_items (UC3)
+
+- menu_id, menu_recipe_id (optionnel), ingredient_id (optionnel)
+- name:string
+- quantity_base:decimal(10,3)
+- unit_group:integer, base_unit:string
+- quantity_display:decimal(10,3), unit_display:string
+- category:integer (enum rayon)
+- checked:boolean
+- source:integer (enum generated/manual)
+
+# favorite_recipes (UC4)
+
+- user_id, recipe_id (unique)
+
+# reviews (UC4)
+
+- user_id, recipe_id (unique)
+- rating:integer (1..5)
+- content:text
+
+# accesses (UC7 - partage, plus tard)
+
+- user_id, menu_id
+
+🔍 Analyse comparative de votre ancien schéma vs. besoins UC1-UC6
+Votre ancien schéma a une bonne base, mais il manque beaucoup d'éléments critiques pour les nouveaux objectifs. Voici l'analyse détaillée :
+
+✅ Ce qui est BIEN dans l'ancien schéma
+Structure générale cohérente (users, recipes, ingredients, preparations, menus, menu_recipes)
+Relations claires et logiques
+favorite_recipes et reviews déjà en place
+grocery_items pour la liste de courses
+❌ Problèmes MAJEURS par rapport aux UC1-UC6
+1️⃣ ingredients : TROP SIMPLE ⚠️
+Ancien :
+
+Nécessaire pour UC3/UC5 :
+
+Impact : Sans ces champs, impossible de faire UC1 (saison), UC3 (conversions kg↔g), UC5 (recherche).
+
+2️⃣ preparations : Quantités mal stockées
+Ancien :
+
+Nécessaire pour UC3/UC4 :
+
+Impact : Impossible de recalculer/convertir (UC3, UC4).
+
+3️⃣ recipes : Champs manquants/mal typés
+Ancien :
+
+Nécessaire pour UC1/UC4/UC5 :
+
+Impact : Sans default_servings, impossible de recalculer les quantités (UC4, UC3). Sans temps/difficulté en integer, filtres UC5 cassés.
+
+4️⃣ filters/filters_recipes : Système rigide ❌
+Ancien :
+
+Nécessaire pour UC4/UC5 :
+
+Impact : Filtres UC5 limités, pas de navigation par tags UC4.
+
+5️⃣ grocery_items : Manque champs UC3
+Ancien :
+
+Nécessaire pour UC3 :
+
+Impact : Impossible de régénérer correctement (UC3 Option A).
+
+6️⃣ menu_recipes : Champs inutiles
+Ancien :
+
+Nécessaire pour UC2 :
+
+Impact : Champs done/favorite créent confusion.
+
+7️⃣ users : Manque préférences UC6
+Ancien :
+
+Nécessaire pour UC6 :
+
+Impact : UC6 impossible, pas de pré-remplissage UC1.
+
+8️⃣ menus : Diet en string
+Ancien :
+
+Nécessaire pour UC1/UC2 :
+
+🎯 Schéma recommandé pour EasyMeal v2
+Voici le schéma optimal intégrant toutes les améliorations :
+
+🚀 Plan d'action recommandé
+Vu que vous avez déjà ingredients (nouveau modèle ✅), je recommande :
+
+Créer recipes + preparations (base UC1/UC4/UC5)
+Créer tags + recipe_tags (UC4/UC5)
+Mettre à jour users avec admin/default_diet/default_people (UC6)
+Créer menus + menu_recipes (UC1/UC2)
+Créer grocery_items amélioré (UC3)
+Créer favorite_recipes + reviews (UC4)

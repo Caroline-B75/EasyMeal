@@ -1,0 +1,53 @@
+-# Partial pour la liste des tags (utilisé par Turbo)
+%table.tags-table
+  %thead
+    %tr
+      %th Nom
+      %th Utilisation
+      %th.actions-column Actions
+  %tbody
+    - tags.each do |tag|
+      %tr{ id: dom_id(tag) }
+        %td.tag-name-cell{ data: { label: "Nom" } }
+          -# Mode affichage
+          .tag-display{ data: { tag_inline_target: "display" } }
+            %strong= tag.name
+
+          -# Mode édition (caché par défaut)
+          .tag-edit-form{ data: { tag_inline_target: "form" }, style: "display: none;" }
+            = form_with model: tag, 
+                        url: tag_path(tag), 
+                        method: :patch,
+                        data: { turbo_frame: "tags_list" } do |f|
+              = f.text_field :name, 
+                             class: "tag-inline-input",
+                             data: { tag_inline_target: "input" },
+                             required: true
+              %button.btn-icon-save{ type: "submit", title: "Enregistrer" }
+                ✓
+              %button.btn-icon-cancel{ type: "button", 
+                                      title: "Annuler",
+                                      data: { action: "click->tag-inline#cancel" } }
+                ×
+
+        %td{ data: { label: "Utilisation" } }
+          - recipes_count = tag.recipes_count
+          - if recipes_count > 0
+            %span.tag-usage
+              = recipes_count
+              = recipes_count > 1 ? "recettes" : "recette"
+          - else
+            %span.text-muted Aucune recette
+
+        %td.actions-cell{ data: { label: "Actions" } }
+          = link_to "#", class: "icon-btn edit-btn", 
+                         title: "Modifier",
+                         data: { action: "click->tag-inline#edit" } do
+            %svg{ width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2" }
+              %path{ d: "M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" }
+              %path{ d: "M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" }
+
+          = button_to tag_path(tag), method: :delete, class: "icon-btn delete-btn", title: "Supprimer", form: { style: "display: inline;", data: { action: "submit->modal#open" } } do
+            %svg{ width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2" }
+              %polyline{ points: "3 6 5 6 21 6" }
+              %path{ d: "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" }

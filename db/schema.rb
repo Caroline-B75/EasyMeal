@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_30_161950) do
+ActiveRecord::Schema[7.2].define(version: 2026_02_01_100001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -42,6 +42,16 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_30_161950) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "favorite_recipes", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "recipe_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["recipe_id"], name: "index_favorite_recipes_on_recipe_id"
+    t.index ["user_id", "recipe_id"], name: "index_favorite_recipes_on_user_id_and_recipe_id", unique: true
+    t.index ["user_id"], name: "index_favorite_recipes_on_user_id"
+  end
+
   create_table "ingredients", force: :cascade do |t|
     t.string "name", null: false
     t.integer "category", null: false
@@ -54,6 +64,91 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_30_161950) do
     t.index ["aliases"], name: "index_ingredients_on_aliases", using: :gin
     t.index ["category"], name: "index_ingredients_on_category"
     t.index ["name"], name: "index_ingredients_on_name", unique: true
+  end
+
+  create_table "menu_recipes", force: :cascade do |t|
+    t.bigint "menu_id", null: false
+    t.bigint "recipe_id", null: false
+    t.integer "number_of_people", null: false
+    t.string "meal_type"
+    t.date "scheduled_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["menu_id", "recipe_id"], name: "index_menu_recipes_on_menu_id_and_recipe_id"
+    t.index ["menu_id", "scheduled_date"], name: "index_menu_recipes_on_menu_id_and_scheduled_date"
+    t.index ["menu_id"], name: "index_menu_recipes_on_menu_id"
+    t.index ["recipe_id"], name: "index_menu_recipes_on_recipe_id"
+  end
+
+  create_table "menus", force: :cascade do |t|
+    t.string "name", null: false
+    t.bigint "user_id", null: false
+    t.date "start_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "start_date"], name: "index_menus_on_user_id_and_start_date"
+    t.index ["user_id"], name: "index_menus_on_user_id"
+  end
+
+  create_table "preparations", force: :cascade do |t|
+    t.bigint "recipe_id", null: false
+    t.bigint "ingredient_id", null: false
+    t.decimal "quantity_base", precision: 10, scale: 3, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ingredient_id"], name: "index_preparations_on_ingredient_id"
+    t.index ["recipe_id", "ingredient_id"], name: "index_preparations_on_recipe_id_and_ingredient_id", unique: true
+    t.index ["recipe_id"], name: "index_preparations_on_recipe_id"
+  end
+
+  create_table "recipe_tags", force: :cascade do |t|
+    t.bigint "recipe_id", null: false
+    t.bigint "tag_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["recipe_id", "tag_id"], name: "index_recipe_tags_on_recipe_id_and_tag_id", unique: true
+    t.index ["recipe_id"], name: "index_recipe_tags_on_recipe_id"
+    t.index ["tag_id"], name: "index_recipe_tags_on_tag_id"
+  end
+
+  create_table "recipes", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.text "instructions"
+    t.integer "default_servings", null: false
+    t.integer "prep_time_minutes"
+    t.integer "cook_time_minutes"
+    t.integer "difficulty"
+    t.integer "price"
+    t.integer "diet", null: false
+    t.string "appliance"
+    t.string "source_url"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["diet"], name: "index_recipes_on_diet"
+    t.index ["difficulty"], name: "index_recipes_on_difficulty"
+    t.index ["name"], name: "index_recipes_on_name"
+  end
+
+  create_table "reviews", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "recipe_id", null: false
+    t.integer "rating", null: false
+    t.text "content"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["rating"], name: "index_reviews_on_rating"
+    t.index ["recipe_id"], name: "index_reviews_on_recipe_id"
+    t.index ["user_id", "recipe_id"], name: "index_reviews_on_user_id_and_recipe_id", unique: true
+    t.index ["user_id"], name: "index_reviews_on_user_id"
+  end
+
+  create_table "tags", force: :cascade do |t|
+    t.string "name", null: false
+    t.integer "tag_type"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_tags_on_name", unique: true
   end
 
   create_table "users", force: :cascade do |t|
@@ -75,4 +170,15 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_30_161950) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "favorite_recipes", "recipes"
+  add_foreign_key "favorite_recipes", "users"
+  add_foreign_key "menu_recipes", "menus"
+  add_foreign_key "menu_recipes", "recipes"
+  add_foreign_key "menus", "users"
+  add_foreign_key "preparations", "ingredients"
+  add_foreign_key "preparations", "recipes"
+  add_foreign_key "recipe_tags", "recipes"
+  add_foreign_key "recipe_tags", "tags"
+  add_foreign_key "reviews", "recipes"
+  add_foreign_key "reviews", "users"
 end

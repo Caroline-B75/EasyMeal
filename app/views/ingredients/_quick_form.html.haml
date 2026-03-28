@@ -1,0 +1,46 @@
+-# Formulaire de création rapide d'ingrédient dans un slideout
+-# Utilisé depuis le formulaire de recette pour ajouter un ingrédient à la volée
+-# Soumet en AJAX et dispatch un événement pour mettre à jour les selects
+
+= simple_form_for ingredient, url: quick_create_ingredients_path, html: { class: "ingredient-form ingredient-form-slideout", id: "quick-ingredient-form-content", data: { controller: "ingredient-form" } } do |f|
+
+  .slideout-form-content
+    = f.error_notification message: "Des erreurs empêchent la sauvegarde :"
+
+    .form-group
+      = f.input :name, label: "Nom de l'ingrédient *", placeholder: "Ex: Tomates", input_html: { class: "form-input", autofocus: true }, label_html: { class: "form-label" }, error_class: "has-error"
+
+    .form-group
+      = f.input :category, label: "Rayon *", collection: Ingredient.categories.map { |k, _v| [Ingredient.human_attribute_name("category.#{k}"), k] }, prompt: "Sélectionnez un rayon", input_html: { class: "form-select" }, label_html: { class: "form-label" }, error_class: "has-error"
+
+    .form-group
+      = f.input :unit_group, label: "Groupe d'unités *", collection: Ingredient.unit_groups.map { |k, _v| [Ingredient.human_attribute_name("unit_group.#{k}"), k] }, prompt: "Sélectionnez un groupe", input_html: { class: "form-select", data: { ingredient_form_target: "unitGroup", action: "change->ingredient-form#updateBaseUnit" } }, label_html: { class: "form-label" }, error_class: "has-error"
+
+    .form-group
+      = f.input :base_unit, label: "Unité de base *", hint: "Déterminée automatiquement", readonly: true, input_html: { class: "form-input", data: { ingredient_form_target: "baseUnit" } }, label_html: { class: "form-label" }, hint_html: { class: "form-hint" }, error_class: "has-error"
+
+    -# Champs optionnels repliables
+    %details.optional-fields
+      %summary.optional-fields-toggle
+        %span Options avancées
+
+      .optional-fields-content
+        .form-group
+          %label.form-label Alias (synonymes)
+          %small.form-hint Noms alternatifs (séparés par des virgules)
+          = text_field_tag "ingredient[aliases]", "", class: "form-input", placeholder: "Ex: tomate cerise, cherry tomato"
+
+        .form-group
+          %label.form-label Mois de saison
+          %small.form-hint Mois où l'ingrédient est de saison
+          = hidden_field_tag "ingredient[season_months][]", ""
+          .months-grid.months-grid-compact
+            - (1..12).each do |month|
+              %label.month-checkbox
+                = check_box_tag "ingredient[season_months][]", month, false, id: "quick_ingredient_season_months_#{month}"
+                %span= Date::ABBR_MONTHNAMES[month]
+
+  .slideout-form-actions
+    = f.submit "Créer l'ingrédient", class: "btn btn-primary"
+    %button.btn.btn-secondary{ type: "button", data: { action: "click->slideout#close" } }
+      Annuler

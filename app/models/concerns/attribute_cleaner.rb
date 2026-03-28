@@ -3,6 +3,14 @@
 module AttributeCleaner
   extend ActiveSupport::Concern
 
+  # Table de dispatch : chaque type de valeur a sa propre lambda de normalisation.
+  # Évite un case/when à forte complexité cyclomatique.
+  ALIASES_NORMALIZERS = {
+    String => ->(v) { v.split(",").map(&:strip).reject(&:blank?).uniq },
+    Array  => ->(v) { v.map(&:to_s).map(&:strip).reject(&:blank?).uniq },
+    Hash   => ->(v) { v.values.map(&:to_s).map(&:strip).reject(&:blank?).uniq }
+  }.freeze
+
   included do
     before_validation :clean_attributes
   end
@@ -15,21 +23,13 @@ module AttributeCleaner
     clean_season_months if respond_to?(:season_months) && season_months_changed?
   end
 
-  # Convertit aliases en tableau propre
-  # Gère les cas : String, Array, Hash
+  # Convertit aliases en tableau propre via la table de dispatch ALIASES_NORMALIZERS.
+  # Retourne un tableau vide pour tout type non reconnu.
   def clean_aliases
     return if aliases.nil?
 
-    self.aliases = case aliases
-                   when String
-                     parse_string_to_array(aliases)
-                   when Array
-                     aliases.map(&:to_s).map(&:strip).reject(&:blank?).uniq
-                   when Hash
-                     aliases.values.map(&:to_s).map(&:strip).reject(&:blank?).uniq
-                   else
-                     []
-                   end
+    normalizer = ALIASES_NORMALIZERS[aliases.class]
+    self.aliases = normalizer ? normalizer.call(aliases) : []
   end
 
   # Nettoie season_months : supprime valeurs vides et convertit en entiers
@@ -43,13 +43,13 @@ module AttributeCleaner
                              .select { |m| m.between?(1, 12) }
                              .uniq
                              .sort
-                         else
+    else
                            []
-                         end
+    end
   end
 
   # Parse une chaîne en tableau (délimitée par virgules)
   def parse_string_to_array(string)
-    string.split(',').map(&:strip).reject(&:blank?).uniq
+    string.split(",").map(&:strip).reject(&:blank?).uniq
   end
 end

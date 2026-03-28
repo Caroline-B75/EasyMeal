@@ -1,0 +1,166 @@
+-# UC4 : Fiche recette détaillée — Slate Craft Premium
+- content_for :title, @recipe.name
+- rating_avg = @recipe.rating_avg
+- reviews_count = @recipe.reviews_count
+
+-# Zone 1 — Lien retour
+.rs-back-bar
+  = link_to recipes_path, class: "rs-back-link" do
+    = svg_icon("chevron-left", css_class: "rs-back-chevron")
+    Retour aux recettes
+
+-# Zone 2 — Hero sur fond sombre
+.rs-hero
+  .rs-hero-inner
+    -# Colonne gauche
+    .rs-hero-content
+      -# Kicker
+      .rs-kicker
+        %span.rs-kicker-line
+        - kicker_parts = [@recipe.diet_human]
+        - kicker_parts += @recipe.tags.first(2).map(&:name)
+        = kicker_parts.join(" · ").upcase
+
+      -# Titre
+      %h1.rs-title= @recipe.name
+
+      -# Métadonnées
+      .rs-meta-box
+        .rs-meta-cell
+          %span.rs-meta-value= @recipe.prep_time_minutes || "–"
+          %span.rs-meta-label PRÉPA (MIN)
+        .rs-meta-cell
+          %span.rs-meta-value= @recipe.cook_time_minutes || "–"
+          %span.rs-meta-label CUISSON (MIN)
+        .rs-meta-cell
+          %span.rs-meta-value= @servings
+          %span.rs-meta-label PERSONNES
+
+      -# Badges
+      .rs-badges
+        = show_hero_badge(@recipe.diet_human, badge_variant_for_diet(@recipe.diet))
+        - if @recipe.difficulty.present?
+          = show_hero_badge(@recipe.difficulty_human, :default)
+        - if @recipe.price.present?
+          = show_hero_badge(@recipe.price_human, price_badge_variant(@recipe.price))
+        - @recipe.tags.each do |tag|
+          = show_hero_badge(tag.name, :default)
+
+      -# Boutons d'action
+      .rs-actions
+        = link_to "#", class: "rs-btn-accent" do
+          Ajouter à mon menu
+
+        - if current_user
+          = render "recipes/favorite_button", recipe: @recipe, is_favorited: @is_favorited, container_id: "favorite-btn-#{@recipe.id}", show_page: true
+
+        %button.rs-btn-icon{ type: "button", title: "Partager" }
+          = svg_icon(:share, size: 14)
+
+    -# Colonne droite — Photo
+    .rs-hero-photo
+      - if @recipe.photo.attached?
+        = image_tag cloudinary_photo_url(@recipe.photo, width: 680, height: 560, crop: :fill),
+                    alt: @recipe.name, class: "rs-photo-img"
+      .rs-photo-overlay
+        %span.rs-photo-stars= rating_stars(rating_avg)
+        %span.rs-photo-score
+          = rating_avg
+          = "· #{reviews_count} avis"
+
+-# Zone 3 — Corps principal en deux colonnes
+.rs-body{ data: { controller: "servings", servings_default_value: @recipe.default_servings } }
+  -# Colonne gauche — Préparation + Avis
+  .rs-main
+    -# Section Préparation
+    .rs-section
+      .rs-section-title PRÉPARATION
+
+      - steps = @recipe.instructions.to_s.split("\n").reject(&:blank?)
+      - steps.each_with_index do |step, index|
+        .rs-step{ class: ("rs-step--last" if index == steps.length - 1) }
+          .rs-step-number= index + 1
+          .rs-step-text= step.strip
+
+    -# Zone 4 — Section Avis
+    .rs-section.rs-section--reviews
+      .rs-section-title AVIS
+
+      -# Résumé de notation
+      .rs-rating-summary
+        .rs-rating-left
+          .rs-rating-big= rating_avg
+          .rs-rating-stars-row= rating_stars(rating_avg)
+          .rs-rating-count= "#{reviews_count} avis"
+        .rs-rating-right
+          - distribution = review_distribution(@recipe)
+          - total = reviews_count
+          - (1..5).to_a.reverse.each do |star|
+            - count = distribution[star] || 0
+            - pct = total > 0 ? (count.to_f / total * 100).round : 0
+            .rs-histo-row
+              %span.rs-histo-label= star
+              .rs-histo-bar
+                .rs-histo-fill{ style: "width: #{pct}%" }
+              %span.rs-histo-count= count
+
+      -# Formulaire nouvel avis
+      #review-form-container
+        - if current_user && !@user_review
+          = render "recipes/review_form", recipe: @recipe
+
+      -# Liste des avis
+      #reviews-list.rs-reviews-list
+        - if @reviews.any?
+          - @reviews.each do |review|
+            = render "recipes/review_card", review: review, current_user: current_user
+        - elsif !current_user
+          .rs-empty-reviews
+            %p Connectez-vous pour voir et laisser des avis.
+            = link_to "Se connecter", new_user_session_path, class: "btn btn-primary"
+
+      -# Pagination des avis
+      - if @reviews.any?
+        .pagination-container
+          = pagy_nav(@pagy_reviews) if @pagy_reviews.pages > 1
+
+    -# Barre admin (Pundit)
+    - if policy(@recipe).edit?
+      .rs-admin-bar
+        = link_to edit_recipe_path(@recipe), class: "rs-admin-btn" do
+          = svg_icon(:edit, size: 13)
+          Modifier la recette
+
+        - if policy(@recipe).destroy?
+          .rs-admin-delete{ data: { controller: "modal" } }
+            = button_to recipe_path(@recipe),
+                        method: :delete,
+                        class: "rs-admin-btn rs-admin-btn--danger",
+                        form: { data: { action: "submit->modal#open" } } do
+              = svg_icon(:trash, size: 13)
+              Supprimer
+            = render "shared/delete_confirmation_modal", resource_name: "recette"
+
+  -# Colonne droite — Ingrédients
+  .rs-sidebar
+    .rs-sidebar-header
+      %span.rs-section-title INGRÉDIENTS
+      .rs-sidebar-servings
+        %button.rs-servings-btn{ type: "button", data: { action: "click->servings#decrease" } } −
+        %span.rs-servings-val{ data: { servings_target: "value" } }= @servings
+        %button.rs-servings-btn{ type: "button", data: { action: "click->servings#increase" } } +
+
+    - if @preparations_by_category.any?
+      - @preparations_by_category.each do |category, preparations|
+        .rs-ing-group
+          .rs-ing-category= Ingredient.human_attribute_name("category.#{category}")
+          - preparations.each do |preparation|
+            .rs-ing-row{ data: { servings_target: "ingredient",
+                                 base_quantity: preparation.quantity_base,
+                                 unit_group: preparation.ingredient.unit_group,
+                                 default_servings: @recipe.default_servings } }
+              %span.rs-ing-name= preparation.ingredient.name
+              %span.rs-ing-qty{ data: { servings_target: "quantity" } }
+                = preparation.humanized_quantity(servings: @servings)
+    - else
+      %p.rs-empty Aucun ingrédient renseigné.

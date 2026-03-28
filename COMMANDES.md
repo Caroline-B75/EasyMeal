@@ -7,7 +7,8 @@
 cd /mnt/c/Caroline/easymeal
 
 # 2. Activer Ruby avec RVM
-rvm use 3.2.3@easymeal --create
+rvm use 3.3.7@easymeal --create -> la première fois seulement
+rvm use 3.3.7@easymeal
 
 # 3. Installer/mettre à jour les gems seulement si nécessaire
 bundle install
@@ -26,7 +27,7 @@ bin/rails server
 
 Nouveau terminal :
 cd /mnt/c/Caroline/easymeal
-rvm use 3.2.3@easymeal --create
+rvm use 3.3.7@easymeal --create
 rails c
 
 -> pour afficher "joliment" les attributs il faut mettre "ap" avant la commande. Ex:
@@ -509,3 +510,22 @@ alias rr='bin/rails routes'
 alias gmerge='git merge --no-ff'
 # Utilisation : gmerge ma-branche -m "Merge branch 'ma-branche' - Description"
 ```
+
+/////////////// SCORE DE QUALITÉ DE CODE ///////////////
+
+# ⭐ SCORE GLOBAL + rapport HTML (ouvre tmp/rubycritic/overview.html)
+
+bundle exec rubycritic app
+explorer.exe "C:\Caroline\easymeal\tmp\rubycritic\overview.html"
+
+# 🏗️ Bonnes pratiques Rails spécifiques
+
+bundle exec rails_best_practices .
+
+# 🎨 Style, complexité, conventions Ruby/Rails
+
+bundle exec rubocop
+
+# 🔒 Sécurité
+
+bundle exec brakeman -q

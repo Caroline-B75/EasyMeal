@@ -1,0 +1,22 @@
+-# Page d'édition d'un tag (admin only)
+- content_for :title, "Modifier un tag"
+
+.tags-container
+  .tags-header
+    = link_to "← Retour aux tags", tags_path, class: "btn-link"
+    %h1 ✏️ Modifier le tag
+
+  .tag-form-container
+    = form_with model: @tag, class: "tag-form", data: { controller: "form-errors" } do |f|
+
+      .form-group{ class: field_error_class(@tag, :name) }
+        = f.label :name, "Nom du tag *", class: "form-label"
+        = f.text_field :name, 
+                       class: "form-input", 
+                       placeholder: "Ex: rapide, sans gluten", 
+                       required: true
+        = field_errors(@tag, :name)
+
+      .form-actions
+        = f.submit "Enregistrer", class: "btn btn-primary"
+        = link_to "Annuler", tags_path, class: "btn btn-secondary"

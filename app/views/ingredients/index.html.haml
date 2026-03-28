@@ -74,7 +74,7 @@
 
       -# Pagination Pagy
       .pagination-container
-        = pagy_nav(@pagy).html_safe if @pagy.pages > 1
+        != pagy_nav(@pagy) if @pagy.pages > 1
 
     - else
       .empty-state

@@ -1,0 +1,101 @@
+/* ============================================
+   VARIABLES CSS - EasyMeal Design System
+   ============================================
+   Charte graphique « Slate Craft Premium »
+   Interface premium de type éditorial/magazine culinaire.
+   Anthracite comme couleur principale, ambre comme seul accent coloré.
+   ============================================ */
+
+:root {
+  /* === COULEURS PRINCIPALES === */
+  --color-primary: #1C1917;
+  --color-primary-hover: #44403C;
+  --color-primary-light: rgba(28, 25, 23, 0.08);
+
+  --color-secondary: #F1F0EC;
+  --color-secondary-hover: #E7E5E4;
+  --color-secondary-text: #44403C;
+
+  --color-accent: #FBBF24;
+  --color-accent-hover: #F59E0B;
+  --color-accent-light: #FEF3C7;
+  --color-accent-text: #92400E;
+
+  /* === COULEURS SÉMANTIQUES === */
+  --color-success: #65A30D;
+  --color-success-light: #ECFCCB;
+  --color-success-text: #365314;
+
+  --color-danger: #DC2626;
+  --color-danger-hover: #B91C1C;
+  --color-danger-light: #FEF2F2;
+  --color-danger-text: #991B1B;
+
+  --color-warning: #F59E0B;
+  --color-warning-light: #FEF3C7;
+  --color-warning-text: #92400E;
+
+  --color-info: #3B82F6;
+  --color-info-light: #EFF6FF;
+  --color-info-text: #1E40AF;
+
+  /* === NEUTRALS / TEXTE === */
+  --color-ink: #1C1917;
+  --color-ink-2: #44403C;
+  --color-ink-3: #78716C;
+  --color-ink-4: #A8A29E;
+
+  /* === FONDS === */
+  --color-bg-main: #F8F7F4;
+  --color-bg-secondary: #F1F0EC;
+  --color-bg-tertiary: #E7E5E4;
+  --color-bg-white: #FFFFFF;
+
+  /* === BORDURES === */
+  --color-border: #E7E5E4;
+  --color-border-light: #F1F0EC;
+  --color-border-strong: #D6D3D1;
+
+  /* === BORDER RADIUS === */
+  --radius-button: 4px;
+  --radius-badge: 2px;
+  --radius-card: 6px;
+  --radius-card-compact: 4px;
+  --radius-input: 4px;
+  --radius-icon-btn: 4px;
+
+  /* === ESPACEMENTS (inchangés) === */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+
+  /* === OMBRES === */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 1px 4px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  /* === TRANSITIONS (inchangées) === */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.2s ease;
+  --transition-slow: 0.3s ease;
+
+  /* === TYPOGRAPHIE (inchangée) === */
+  --font-size-xs: 0.875rem;
+  --font-size-sm: 1rem;
+  --font-size-base: 1.0625rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 2rem;
+  --font-size-4xl: 2.5rem;
+
+  /* === BREAKPOINTS (inchangés) === */
+  --breakpoint-mobile: 768px;
+  --breakpoint-tablet: 1024px;
+  --breakpoint-desktop: 1280px;
+
+  --min-touch-target: 44px;
+}

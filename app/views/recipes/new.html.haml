@@ -1,0 +1,19 @@
+-# Page de création d'une nouvelle recette (admin only)
+- content_for :title, "Nouvelle recette"
+
+-# Back bar — même style que la fiche recette
+.rf-back-bar
+  = link_to recipes_path, class: "rf-back-link" do
+    = svg_icon("chevron-left", size: 14, css_class: "rf-back-chevron")
+    Retour aux recettes
+
+-# Mini hero sombre
+.rf-hero
+  .rf-hero-inner
+    .rf-kicker
+      %span.rf-kicker-line
+      NOUVELLE RECETTE
+    %h1.rf-hero-title Créer une recette
+
+.rf-body
+  = render "form", recipe: @recipe

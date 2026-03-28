@@ -10,7 +10,7 @@ class GreetingService
     "Hello %{name}, et si on composait un menu aux petits oignons ?",
     "Salut %{name} ! L'inspiration culinaire frappe à ta porte...",
     "%{name}, %{ready} à épater tes papilles ?",
-    
+
     # Nouvelles phrases
     "Salut %{name} ! On met les petits plats dans les grands ?",
     "Coucou %{name}, c'est l'heure de mettre la main à la pâte !",
@@ -61,9 +61,9 @@ class GreetingService
   def greeting_variables
     {
       name: user_first_name,
-      ready: gendered_adjective('prêt', 'prête'),
-      hot: gendered_adjective('chaud bouillant', 'chaude bouillante'),
-      alone: gendered_adjective('tout seul', 'toute seule')
+      ready: gendered_adjective("prêt", "prête"),
+      hot: gendered_adjective("chaud bouillant", "chaude bouillante"),
+      alone: gendered_adjective("tout seul", "toute seule")
     }
   end
 
@@ -73,9 +73,9 @@ class GreetingService
   # @return [String] forme genrée ou neutre
   def gendered_adjective(masculine, feminine)
     case @user.gender
-    when 'male'
+    when "male"
       masculine
-    when 'female'
+    when "female"
       feminine
     else
       "#{masculine}(e)" # Format neutre si genre non spécifié
@@ -84,6 +84,6 @@ class GreetingService
 
   # Extrait le prénom de l'utilisateur ou génère un nom à partir de l'email
   def user_first_name
-    @user.first_name.presence || @user.email.split('@').first.capitalize
+    @user.first_name.presence || @user.email.split("@").first.capitalize
   end
 end

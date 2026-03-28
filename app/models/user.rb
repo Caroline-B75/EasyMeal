@@ -5,9 +5,12 @@ class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable
 
+  # === Associations ===
+  has_many :menus, dependent: :destroy
+
+  # === Validations ===
   validates :username, presence: true, uniqueness: true
   validates :first_name, presence: true
   validates :last_name, presence: true
   validates :gender, presence: true, inclusion: { in: %w[male female] }
-  
 end

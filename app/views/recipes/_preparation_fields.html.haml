@@ -1,0 +1,40 @@
+-# Partial pour un champ ingrédient (nested field dans le formulaire recette)
+-# Utilisé par le controller Stimulus nested-form pour ajouter/supprimer dynamiquement
+.nested-fields.preparation-fields{ data: { nested_form_target: "fields", controller: "ingredient-unit" } }
+  .form-group.preparation-ingredient{ class: field_error_class(f.object, :ingredient_id) }
+    = f.label :ingredient_id, "Ingrédient", class: "form-label sr-only"
+    %select.form-select{ name: f.object_name + "[ingredient_id]",
+                         id: f.field_id(:ingredient_id),
+                         data: { ingredient_unit_target: "select", action: "change->ingredient-unit#updateUnit" } }
+      %option{ value: "" } Choisir un ingrédient...
+      - Ingredient.alphabetical.each do |ingredient|
+        %option{ value: ingredient.id,
+                 selected: f.object.ingredient_id == ingredient.id,
+                 data: { unit: ingredient.base_unit } }
+          = ingredient.display_name
+    = field_errors(f.object, :ingredient_id)
+
+  .form-group.preparation-quantity{ class: field_error_class(f.object, :quantity_base) }
+    = f.label :quantity_base, "Quantité", class: "form-label sr-only"
+    = f.number_field :quantity_base, 
+                     class: "form-input", 
+                     step: "0.01", 
+                     min: "0.01", 
+                     placeholder: "Quantité"
+    = field_errors(f.object, :quantity_base)
+
+  .form-group.preparation-unit
+    -# Affiche l'unité de base de l'ingrédient sélectionné (en lecture seule)
+    %span.unit-display{ data: { ingredient_unit_target: "display" } }
+      - if f.object.ingredient.present?
+        = f.object.ingredient.base_unit
+      - else
+        —
+
+  -# Bouton supprimer
+  .form-group.preparation-remove
+    = f.hidden_field :_destroy, value: false, data: { nested_form_target: "destroy" }
+    %button.remove-preparation{ type: "button", 
+                                data: { action: "click->nested-form#remove" },
+                                title: "Supprimer cet ingrédient" }
+      ✕

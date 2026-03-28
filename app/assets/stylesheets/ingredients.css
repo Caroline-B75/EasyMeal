@@ -19,18 +19,18 @@
 }
 
 .ingredients-header h1 {
-  font-size: 2rem;
+  font-size: var(--font-size-3xl);
   font-weight: 600;
-  color: #3D3D3D;
+  color: var(--color-ink);
   margin: 0;
 }
 
 /* === Filtres de recherche === */
 .ingredients-filters {
-  background: white;
+  background: var(--color-bg-white);
   padding: 1.5rem;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-md);
   margin-bottom: 2rem;
 }
 
@@ -52,34 +52,34 @@
   flex: 1;
   min-width: 250px;
   padding: 0.75rem 1rem;
-  border: 2px solid #FFF1E0;
-  border-radius: 12px;
-  font-size: 1rem;
-  background: white;
-  color: #3D3D3D;
-  transition: all 0.2s;
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-input);
+  font-size: var(--font-size-base);
+  background: var(--color-bg-white);
+  color: var(--color-ink);
+  transition: all var(--transition-normal);
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #D73A49;
-  box-shadow: 0 0 0 3px rgba(215, 58, 73, 0.1);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
 }
 
 .filter-select {
   padding: 0.75rem 1rem;
-  border: 2px solid #FFF1E0;
-  border-radius: 12px;
-  font-size: 1rem;
-  background: white;
-  color: #3D3D3D;
-  transition: all 0.2s;
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-input);
+  font-size: var(--font-size-base);
+  background: var(--color-bg-white);
+  color: var(--color-ink);
+  transition: all var(--transition-normal);
   min-width: 180px;
 }
 
 .filter-select:focus {
   outline: none;
-  border-color: #D73A49;
+  border-color: var(--color-primary);
 }
 
 .season-checkbox {
@@ -87,8 +87,8 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  border-radius: 12px;
-  background: #F9F5F2;
+  border-radius: var(--radius-card-compact);
+  background: var(--color-bg-main);
   cursor: pointer;
   user-select: none;
 }
@@ -97,20 +97,20 @@
   width: 18px;
   height: 18px;
   cursor: pointer;
-  accent-color: #D73A49;
+  accent-color: var(--color-primary);
 }
 
 .season-checkbox span {
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   font-weight: 500;
-  color: #3D3D3D;
+  color: var(--color-ink);
 }
 
 /* === Table des ingrédients === */
 .table-container {
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: var(--color-bg-white);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-md);
   overflow: hidden;
   margin-bottom: 2rem;
 }
@@ -121,27 +121,27 @@
 }
 
 .ingredients-table thead {
-  background: #F9F5F2;
+  background: var(--color-bg-main);
 }
 
 .ingredients-table th {
   padding: 1rem 1.5rem;
   text-align: left;
   font-weight: 600;
-  color: #3D3D3D;
-  font-size: 0.875rem;
+  color: var(--color-ink);
+  font-size: var(--font-size-sm);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 2px solid #FFF1E0;
+  border-bottom: 0.5px solid var(--color-border);
 }
 
 .ingredients-table td {
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid #F3F0EC;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .ingredients-table tbody tr:hover {
-  background: #F9F5F2;
+  background: var(--color-bg-main);
 }
 
 .ingredients-table tbody tr:last-child td {
@@ -149,15 +149,15 @@
 }
 
 .ingredient-name-cell strong {
-  color: #3D3D3D;
-  font-size: 1rem;
+  color: var(--color-ink);
+  font-size: var(--font-size-base);
   font-weight: 600;
 }
 
 .ingredient-name-cell .aliases {
-  color: #6B6B6B;
+  color: var(--color-ink-3);
   font-style: italic;
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   display: block;
   margin-top: 0.25rem;
 }
@@ -191,10 +191,10 @@
 
 .pagination-container nav span {
   padding: 0.5rem 0.75rem;
-  border-radius: 8px;
+  border-radius: var(--radius-input);
   text-decoration: none;
-  font-size: 0.875rem;
-  transition: all 0.2s;
+  font-size: var(--font-size-sm);
+  transition: all var(--transition-normal);
   min-width: 38px;
   text-align: center;
   display: inline-block;
@@ -206,28 +206,28 @@
 }
 
 .pagination-container nav a {
-  color: #4A4A4A;
+  color: var(--color-ink-2);
   text-decoration: none;
-  border-radius: 8px;
+  border-radius: var(--radius-input);
   display: inline-block;
   min-width: 38px;
   text-align: center;
-  transition: all 0.2s;
+  transition: all var(--transition-normal);
 }
 
 .pagination-container nav span.page a:hover {
-  background: #FFF1E0;
+  background: var(--color-bg-secondary);
 }
 
 .pagination-container nav span.prev a:hover,
 .pagination-container nav span.next a:hover {
-  background: #FF9E4D;
-  color: white;
+  background: var(--color-primary);
+  color: var(--color-bg-white);
 }
 
 .pagination-container nav span.page.active {
-  background: #D73A49;
-  color: white;
+  background: var(--color-primary);
+  color: var(--color-bg-white);
   font-weight: 600;
 }
 
@@ -239,7 +239,7 @@
 }
 
 .pagination-container nav span.gap {
-  color: #6B6B6B;
+  color: var(--color-ink-3);
   cursor: default;
 }
 
@@ -257,7 +257,7 @@
   }
 
   .ingredients-header h1 {
-    font-size: 1.5rem;
+    font-size: var(--font-size-2xl);
     text-align: center;
   }
 
@@ -317,11 +317,11 @@
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    background: white;
-    border-radius: 12px;
+    background: var(--color-bg-white);
+    border-radius: var(--radius-card-compact);
     padding: 1rem;
     margin-bottom: 0.75rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow-md);
     gap: 0.5rem;
   }
 
@@ -345,7 +345,7 @@
     flex: 1;
     font-size: 1.0625rem;
     font-weight: 600;
-    color: #3D3D3D;
+    color: var(--color-ink-2);
     line-height: 1.3;
   }
 
@@ -353,8 +353,8 @@
   .ingredient-name-cell .aliases {
     order: 3;
     width: 100%;
-    font-size: 0.75rem;
-    color: #9CA3AF;
+    font-size: var(--font-size-xs);
+    color: var(--color-ink-4);
     font-style: italic;
     margin-bottom: 0.25rem;
   }
@@ -389,7 +389,7 @@
   }
 
   .text-muted {
-    font-size: 0.6875rem;
+    font-size: var(--font-size-xs);
   }
 
   /* Pagination mobile */
@@ -409,7 +409,7 @@
   .pagination-container nav span.next {
     min-width: 40px;
     min-height: 40px;
-    font-size: 0.875rem;
+    font-size: var(--font-size-sm);
   }
 }
 

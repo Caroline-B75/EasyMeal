@@ -1,11 +1,28 @@
 Rails.application.routes.draw do
   root "home#index"
   get "home/index"
-  devise_for :users, controllers: { registrations: 'users/registrations' }
+  devise_for :users, controllers: { registrations: "users/registrations" }
 
   # Gestion des ingrédients
-  resources :ingredients
-  
+  resources :ingredients do
+    collection do
+      post :quick_create  # Création rapide depuis le formulaire recette
+    end
+  end
+
+  # Gestion des tags (admin only)
+  resources :tags, except: [ :show, :new, :create ]
+
+  # Gestion des recettes (UC4 - Fiche recette, UC5 - Catalogue)
+  resources :recipes do
+    # Actions sociales (UC4)
+    member do
+      post :toggle_favorite  # Toggle favori
+    end
+    # Avis (UC4) — gérés par Recipes::ReviewsController
+    resources :reviews, only: [ :create, :destroy ], module: :recipes
+  end
+
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
