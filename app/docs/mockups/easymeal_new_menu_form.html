@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>EasyMeal — Générer un nouveau menu</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#1C1917;--ink2:#44403C;--ink3:#78716C;--ink4:#A8A29E;
+  --bg:#F8F7F4;--bg2:#F1F0EC;--bg3:#E7E5E4;--bg4:#D6D3D1;
+  --white:#FFFFFF;
+  --amber:#FBBF24;--amber2:#F59E0B;--amber3:#FEF3C7;--amber4:#92400E;
+  --green2:#ECFCCB;--green3:#365314;
+  --r:4px;
+}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink)}
+
+.nav{background:var(--white);border-bottom:0.5px solid var(--bg3);padding:0 28px;height:52px;display:flex;align-items:center;gap:20px}
+
+.nav-links{display:flex;gap:20px;margin-left:16px}
+.nav-link{font-size:13px;color:var(--ink3);cursor:pointer}
+.nav-link.active{color:var(--ink);border-bottom:1.5px solid var(--amber);padding-bottom:2px}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.av{width:32px;height:32px;border-radius:50%;background:var(--ink);color:#fff;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center}
+
+.back-bar{padding:11px 28px;background:var(--white);border-bottom:0.5px solid var(--bg3);display:flex;align-items:center}
+.back-link{font-size:12px;color:var(--ink3);display:inline-flex;align-items:center;gap:5px;text-decoration:none;cursor:pointer}
+.back-link:hover{color:var(--ink)}
+
+.page-wrap{max-width:640px;margin:0 auto;padding:40px 28px 60px}
+
+.page-header{margin-bottom:32px}
+.page-kicker{font-size:10px;letter-spacing:0.12em;color:var(--amber2);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.page-kicker-sep{width:16px;height:0.5px;background:var(--amber2);opacity:0.6}
+.page-title{font-family:Georgia,serif;font-size:24px;font-weight:400;color:var(--ink);line-height:1.2;margin-bottom:6px}
+.page-sub{font-size:13px;color:var(--ink3);line-height:1.5}
+
+.form-card{background:var(--white);border:0.5px solid var(--bg3);border-radius:var(--r);overflow:hidden;margin-bottom:12px}
+.form-card-header{padding:14px 20px 13px;border-bottom:0.5px solid var(--bg3);display:flex;align-items:center;gap:8px}
+.form-card-num{width:20px;height:20px;border-radius:var(--r);background:var(--ink);color:#fff;font-size:10px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.form-card-title{font-size:12px;font-weight:500;color:var(--ink);letter-spacing:0.01em}
+.form-card-body{padding:20px}
+
+.field-label{font-size:11px;color:var(--ink3);margin-bottom:6px;display:block}
+.field-hint{font-size:11px;color:var(--ink4);margin-top:5px;line-height:1.4}
+.field-optional{font-size:10px;color:var(--ink4);font-style:italic;margin-left:5px}
+
+.text-input{width:100%;border:0.5px solid var(--bg3);border-radius:var(--r);padding:9px 12px;font-size:13px;color:var(--ink);background:var(--white);font-family:inherit;transition:border-color 0.15s}
+.text-input:focus{outline:none;border-color:var(--ink)}
+.text-input::placeholder{color:var(--ink4)}
+.text-input.filled{border-color:var(--bg4)}
+
+.people-control{display:flex;align-items:center;gap:0;border:0.5px solid var(--bg3);border-radius:var(--r);overflow:hidden;width:fit-content}
+.people-btn{width:32px;height:32px;border:none;background:var(--bg2);color:var(--ink2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.1s;user-select:none}
+.people-btn:hover{background:var(--bg3)}
+.people-btn:first-child{border-right:0.5px solid var(--bg3)}
+.people-btn:last-child{border-left:0.5px solid var(--bg3)}
+.people-val{min-width:36px;text-align:center;font-size:14px;font-weight:500;color:var(--ink);padding:0 6px;background:var(--white)}
+.people-unit{font-size:12px;color:var(--ink3);margin-left:10px}
+
+.diet-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.diet-option{border:0.5px solid var(--bg3);border-radius:var(--r);padding:12px 14px;cursor:pointer;transition:border-color 0.15s,background 0.15s;display:flex;align-items:flex-start;gap:10px;background:var(--white)}
+.diet-option:hover{border-color:var(--bg4);background:var(--bg2)}
+.diet-option.selected{border-color:var(--ink);background:var(--bg2)}
+.diet-option.selected .diet-radio{background:var(--ink);border-color:var(--ink)}
+.diet-option.selected .diet-radio::after{display:block}
+.diet-radio{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--bg4);background:var(--white);flex-shrink:0;margin-top:1px;position:relative;transition:border-color 0.15s,background 0.15s}
+.diet-radio::after{content:'';display:none;width:6px;height:6px;border-radius:50%;background:#fff;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
+.diet-name{font-size:13px;font-weight:500;color:var(--ink);margin-bottom:2px}
+.diet-desc{font-size:11px;color:var(--ink3);line-height:1.4}
+
+.meals-row{display:flex;align-items:center;gap:12px}
+.meals-slider{flex:1;-webkit-appearance:none;appearance:none;height:4px;background:var(--bg3);border-radius:2px;outline:none;cursor:pointer}
+.meals-slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--ink);cursor:pointer;border:2px solid var(--white);box-shadow:0 0 0 1.5px var(--ink)}
+.meals-slider::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--ink);cursor:pointer;border:2px solid var(--white)}
+.meals-val-display{font-size:14px;font-weight:500;color:var(--ink);min-width:20px;text-align:center}
+.meals-unit{font-size:12px;color:var(--ink3);white-space:nowrap}
+
+.summary-bar{background:var(--bg2);border:0.5px solid var(--bg3);border-radius:var(--r);padding:12px 16px;margin-bottom:20px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.summary-label{font-size:11px;color:var(--ink4);margin-right:4px}
+.summary-chip{font-size:11px;padding:3px 9px;background:var(--white);border:0.5px solid var(--bg3);border-radius:var(--r);color:var(--ink2)}
+.summary-chip.highlighted{background:var(--amber3);border-color:var(--amber2);color:var(--amber4)}
+.summary-sep{color:var(--bg4);font-size:10px}
+
+.submit-zone{display:flex;flex-direction:column;gap:10px}
+.btn-generate{background:var(--ink);color:#fff;border:none;border-radius:var(--r);padding:13px 24px;font-size:14px;font-weight:500;cursor:pointer;width:100%;letter-spacing:0.02em;transition:background 0.15s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-generate:hover{background:var(--ink2)}
+.btn-generate:disabled{background:var(--bg3);color:var(--ink4);cursor:not-allowed}
+.btn-generate svg{width:16px;height:16px;flex-shrink:0}
+.submit-note{font-size:11px;color:var(--ink4);text-align:center;line-height:1.5}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinning{animation:spin 1s linear infinite}
+
+@media(max-width:600px){
+  .nav-links{display:none}
+  .page-wrap{padding:24px 16px 48px}
+  .diet-grid{grid-template-columns:1fr}
+  .back-bar{padding:11px 16px}
+  .page-title{font-size:20px}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="#" style="display:flex;align-items:center;text-decoration:none"><svg width="120" height="31" viewBox="0 0 1015 265" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M331.704 231V117.76H406.336V133.72H349.64V166.248H403.296V182.208H349.64V215.04H406.336V231H331.704ZM445.945 232.824C440.372 232.824 435.457 231.861 431.201 229.936C427.046 227.909 423.804 225.173 421.473 221.728C419.142 218.181 417.977 214.027 417.977 209.264C417.977 204.805 418.94 200.803 420.865 197.256C422.892 193.709 425.982 190.72 430.137 188.288C434.292 185.856 439.51 184.133 445.793 183.12L474.369 178.408V191.936L449.137 196.344C444.577 197.155 441.233 198.624 439.105 200.752C436.977 202.779 435.913 205.413 435.913 208.656C435.913 211.797 437.078 214.381 439.409 216.408C441.841 218.333 444.932 219.296 448.681 219.296C453.342 219.296 457.396 218.283 460.841 216.256C464.388 214.229 467.124 211.544 469.049 208.2C470.974 204.755 471.937 200.955 471.937 196.8V175.672C471.937 171.619 470.417 168.325 467.377 165.792C464.438 163.157 460.486 161.84 455.521 161.84C450.961 161.84 446.958 163.056 443.513 165.488C440.169 167.819 437.686 170.859 436.065 174.608L421.777 167.464C423.297 163.411 425.78 159.864 429.225 156.824C432.67 153.683 436.673 151.251 441.233 149.528C445.894 147.805 450.809 146.944 455.977 146.944C462.462 146.944 468.188 148.16 473.153 150.592C478.22 153.024 482.121 156.419 484.857 160.776C487.694 165.032 489.113 169.997 489.113 175.672V231H472.697V216.104L476.193 216.56C474.268 219.904 471.785 222.792 468.745 225.224C465.806 227.656 462.412 229.531 458.561 230.848C454.812 232.165 450.606 232.824 445.945 232.824ZM539.596 232.824C531.185 232.824 523.788 230.747 517.404 226.592C511.121 222.437 506.713 216.864 504.18 209.872L517.404 203.64C519.633 208.301 522.673 212 526.524 214.736C530.476 217.472 534.833 218.84 539.596 218.84C543.649 218.84 546.943 217.928 549.476 216.104C552.009 214.28 553.276 211.797 553.276 208.656C553.276 206.629 552.719 205.008 551.604 203.792C550.489 202.475 549.071 201.411 547.348 200.6C545.727 199.789 544.055 199.181 542.332 198.776L529.412 195.128C522.319 193.101 516.999 190.061 513.452 186.008C510.007 181.853 508.284 177.04 508.284 171.568C508.284 166.603 509.551 162.296 512.084 158.648C514.617 154.899 518.113 152.011 522.572 149.984C527.031 147.957 532.047 146.944 537.62 146.944C545.119 146.944 551.807 148.819 557.684 152.568C563.561 156.216 567.716 161.333 570.148 167.92L556.924 174.152C555.303 170.2 552.719 167.059 549.172 164.728C545.727 162.397 541.825 161.232 537.468 161.232C533.719 161.232 530.729 162.144 528.5 163.968C526.271 165.691 525.156 167.971 525.156 170.808C525.156 172.733 525.663 174.355 526.676 175.672C527.689 176.888 529.007 177.901 530.628 178.712C532.249 179.421 533.921 180.029 535.644 180.536L549.02 184.488C555.809 186.413 561.028 189.453 564.676 193.608C568.324 197.661 570.148 202.525 570.148 208.2C570.148 213.064 568.831 217.371 566.196 221.12C563.663 224.768 560.116 227.656 555.556 229.784C550.996 231.811 545.676 232.824 539.596 232.824ZM592.789 264.44C590.762 264.44 588.736 264.237 586.709 263.832C584.784 263.528 583.01 263.021 581.389 262.312V247.568C582.605 247.872 584.074 248.125 585.797 248.328C587.52 248.632 589.192 248.784 590.813 248.784C595.576 248.784 599.072 247.72 601.301 245.592C603.632 243.565 605.709 240.424 607.533 236.168L613.005 223.704L612.701 238.144L577.133 148.768H595.525L621.821 217.32H615.589L641.733 148.768H660.277L623.949 239.968C622.024 244.832 619.592 249.088 616.653 252.736C613.816 256.485 610.421 259.373 606.469 261.4C602.618 263.427 598.058 264.44 592.789 264.44Z" fill="#D73A49"/><path d="M673.704 231V117.76H690.424L732.984 176.736H724.624L766.424 117.76H783.144V231H765.36V138.888L772.048 140.712L729.336 199.08H727.512L685.712 140.712L691.64 138.888V231H673.704ZM843.492 232.824C835.284 232.824 827.988 230.949 821.604 227.2C815.321 223.349 810.406 218.181 806.86 211.696C803.313 205.109 801.54 197.763 801.54 189.656C801.54 181.347 803.313 174 806.86 167.616C810.508 161.232 815.372 156.216 821.452 152.568C827.532 148.819 834.422 146.944 842.124 146.944C848.305 146.944 853.828 148.008 858.692 150.136C863.556 152.264 867.66 155.203 871.004 158.952C874.348 162.6 876.881 166.805 878.604 171.568C880.428 176.331 881.34 181.397 881.34 186.768C881.34 188.085 881.289 189.453 881.188 190.872C881.086 192.291 880.884 193.608 880.58 194.824H815.068V181.144H870.852L862.644 187.376C863.657 182.411 863.302 178.003 861.58 174.152C859.958 170.2 857.425 167.109 853.98 164.88C850.636 162.549 846.684 161.384 842.124 161.384C837.564 161.384 833.51 162.549 829.964 164.88C826.417 167.109 823.681 170.352 821.756 174.608C819.83 178.763 819.07 183.829 819.476 189.808C818.969 195.381 819.729 200.245 821.756 204.4C823.884 208.555 826.822 211.797 830.572 214.128C834.422 216.459 838.78 217.624 843.644 217.624C848.609 217.624 852.814 216.509 856.26 214.28C859.806 212.051 862.593 209.163 864.62 205.616L878.604 212.456C876.982 216.307 874.449 219.803 871.004 222.944C867.66 225.984 863.606 228.416 858.844 230.24C854.182 231.963 849.065 232.824 843.492 232.824ZM921.984 232.824C916.411 232.824 911.496 231.861 907.24 229.936C903.085 227.909 899.843 225.173 897.512 221.728C895.181 218.181 894.016 214.027 894.016 209.264C894.016 204.805 894.979 200.803 896.904 197.256C898.931 193.709 902.021 190.72 906.176 188.288C910.331 185.856 915.549 184.133 921.832 183.12L950.408 178.408V191.936L925.176 196.344C920.616 197.155 917.272 198.624 915.144 200.752C913.016 202.779 911.952 205.413 911.952 208.656C911.952 211.797 913.117 214.381 915.448 216.408C917.88 218.333 920.971 219.296 924.72 219.296C929.381 219.296 933.435 218.283 936.88 216.256C940.427 214.229 943.163 211.544 945.088 208.2C947.013 204.755 947.976 200.955 947.976 196.8V175.672C947.976 171.619 946.456 168.325 943.416 165.792C940.477 163.157 936.525 161.84 931.56 161.84C927 161.84 922.997 163.056 919.552 165.488C916.208 167.819 913.725 170.859 912.104 174.608L897.816 167.464C899.336 163.411 901.819 159.864 905.264 156.824C908.709 153.683 912.712 151.251 917.272 149.528C921.933 147.805 926.848 146.944 932.016 146.944C938.501 146.944 944.227 148.16 949.192 150.592C954.259 153.024 958.16 156.419 960.896 160.776C963.733 165.032 965.152 169.997 965.152 175.672V231H948.736V216.104L952.232 216.56C950.307 219.904 947.824 222.792 944.784 225.224C941.845 227.656 938.451 229.531 934.6 230.848C930.851 232.165 926.645 232.824 921.984 232.824ZM985.235 231V115.936H1002.41V231H985.235Z" fill="#F5A855"/><path d="M55.2824 252.081C68.4202 256.827 82.2904 259.225 96.2591 259.166C111.512 259.113 126.649 256.507 141.042 251.454C169.972 241.391 193.993 222.666 208.68 198.728C223.565 174.468 227.122 147.765 218.696 123.539C218.533 123.078 218.344 122.626 218.132 122.185C220.246 123.682 222.667 124.69 225.218 125.138C227.77 125.585 230.389 125.46 232.887 124.772L312.504 86.139C314.303 85.2746 315.912 84.0608 317.238 82.5685C318.563 81.0761 319.578 79.335 320.224 77.4464C320.871 75.5579 321.134 73.5597 321.001 71.5682C320.867 69.5767 320.339 67.6316 319.446 65.8464L318.271 63.497C316.538 60.0161 313.522 57.343 309.859 56.0397C306.195 54.7363 302.169 54.9044 298.627 56.5085L223.65 90.7424C219.914 91.779 216.622 94.0138 214.28 97.1033C211.938 100.193 210.675 103.966 210.686 107.843C210.685 109.833 211.024 111.809 211.689 113.685L210.213 114.669C190.531 104.825 142.797 112.761 98.1977 128.275C95.5773 129.186 92.9648 130.125 90.3603 131.093C85.4315 112.833 98.1864 99.5423 98.8805 98.8382L91.7742 91.7582C86.9137 97.0144 83.278 103.282 81.1284 110.111C78.5904 118.11 78.5203 126.688 80.9272 134.727C72.9016 137.931 65.1896 141.319 57.892 144.84C53.8447 129.816 53.4855 114.314 54.0366 103.112C54.1447 100.851 53.8 98.5911 53.0225 96.4652C52.245 94.3394 51.0506 92.3904 49.5093 90.7326C47.9681 89.0749 46.111 87.7419 44.0474 86.8119C41.9837 85.8819 39.755 85.3737 37.4922 85.3171C35.2293 85.2606 32.978 85.6568 30.8705 86.4825C28.7629 87.3082 26.8416 88.5467 25.2194 90.1254C23.5972 91.704 22.3069 93.5909 21.4242 95.6753C20.5415 97.7596 20.0842 99.9993 20.0792 102.263V137.738C20.0777 138.457 19.7914 139.145 19.2831 139.653C18.7748 140.161 18.0859 140.446 17.3674 140.447C15.6876 140.446 14.0243 140.778 12.4732 141.423C10.922 142.067 9.51367 143.012 8.3292 144.203C7.14473 145.395 6.2075 146.808 5.57147 148.363C4.93543 149.918 4.61314 151.583 4.62315 153.263C4.84552 161.401 6.29582 169.459 8.92496 177.165C1.24992 185.382 -1.49507 192.83 0.767758 199.337C9.19519 223.563 28.5555 242.295 55.2824 252.081ZM137.746 241.975C110.997 251.279 82.9367 251.523 58.7315 242.661C40.8471 236.112 26.6921 225.164 17.6007 211.101C22.8455 212.127 28.1825 212.608 33.5264 212.534C36.599 212.534 39.8803 212.415 43.3702 212.176C60.6646 210.989 81.4783 206.863 103.322 200.378C103.76 200.448 115.721 196.53 121.27 194.6C133.927 190.22 146.348 185.187 158.485 179.522L158.74 179.403C171.863 173.227 183.606 166.66 193.261 160.039C201.901 154.116 208.408 148.511 212.784 143.224C216.557 183.281 185.958 225.207 137.746 241.975Z" fill="url(#lg0)"/><path d="M45.159 35.1117C42.1828 35.1117 39.2735 35.9943 36.7989 37.6477C34.3243 39.3012 32.3955 41.6514 31.2566 44.401C30.1177 47.1507 29.8197 50.1763 30.4003 53.0953C30.9809 56.0143 32.4141 58.6956 34.5186 60.8C36.6231 62.9045 39.3043 64.3377 42.2233 64.9183C45.1423 65.4989 48.168 65.2009 50.9176 64.062C53.6672 62.9231 56.0174 60.9943 57.6709 58.5197C59.3244 56.0451 60.2069 53.1358 60.2069 50.1596C60.2024 46.17 58.6156 42.3451 55.7945 39.5241C52.9735 36.703 49.1486 35.1162 45.159 35.1117ZM45.159 55.1755C44.167 55.1755 43.1972 54.8814 42.3723 54.3302C41.5474 53.779 40.9045 52.9957 40.5249 52.0791C40.1452 51.1626 40.0459 50.154 40.2394 49.181C40.433 48.208 40.9107 47.3143 41.6122 46.6128C42.3137 45.9113 43.2075 45.4335 44.1805 45.24C45.1535 45.0465 46.162 45.1458 47.0786 45.5254C47.9951 45.9051 48.7785 46.548 49.3296 47.3729C49.8808 48.1977 50.175 49.1675 50.175 50.1596C50.1735 51.4894 49.6445 52.7644 48.7042 53.7048C47.7638 54.6451 46.4889 55.1741 45.159 55.1755Z" fill="url(#lg1)"/><path d="M95.3186 15.0479C95.3186 12.0717 94.4361 9.16234 92.7826 6.68773C91.1291 4.21312 88.7789 2.2844 86.0293 1.14546C83.2797 0.00652004 80.254 -0.291478 77.335 0.289147C74.416 0.869773 71.7347 2.30294 69.6303 4.40743C67.5258 6.51191 66.0926 9.19318 65.512 12.1122C64.9314 15.0312 65.2294 18.0568 66.3683 20.8065C67.5072 23.5561 69.436 25.9063 71.9106 27.5597C74.3852 29.2132 77.2945 30.0958 80.2707 30.0958C84.2603 30.0913 88.0852 28.5044 90.9062 25.6834C93.7273 22.8623 95.3141 19.0375 95.3186 15.0479ZM75.2548 15.0479C75.2548 14.0558 75.5489 13.086 76.1001 12.2612C76.6513 11.4363 77.4347 10.7934 78.3512 10.4137C79.2677 10.0341 80.2763 9.93476 81.2493 10.1283C82.2223 10.3218 83.1161 10.7996 83.8175 11.5011C84.519 12.2026 84.9968 13.0963 85.1903 14.0693C85.3838 15.0423 85.2845 16.0509 84.9049 16.9674C84.5252 17.884 83.8823 18.6673 83.0574 19.2185C82.2326 19.7697 81.2628 20.0638 80.2707 20.0638C78.9409 20.0623 77.6659 19.5334 76.7256 18.593C75.7852 17.6527 75.2563 16.3777 75.2548 15.0479Z" fill="url(#lg2)"/><path d="M65.2228 70.2234H75.2548V80.2553H65.2228V70.2234Z" fill="url(#lg3)"/><path d="M60.2069 115.367H70.2388V125.399H60.2069V115.367Z" fill="url(#lg4)"/><path d="M90.3026 160.511H100.335V170.543H90.3026V160.511Z" fill="url(#lg5)"/><path d="M10.0474 65.2075H20.0793V75.2394H10.0474V65.2075Z" fill="url(#lg6)"/><path d="M52.409 199.796L57.9736 191.449C45.7146 183.276 45.1735 175.747 45.1591 175.43L35.1271 175.559C35.1271 176.86 35.6118 188.6 52.409 199.796Z" fill="url(#lg7)"/><path d="M101.895 47.4566C103.967 44.322 106.312 41.3765 108.902 38.6542L101.804 31.5648C101.13 32.2395 85.2867 48.2786 85.2867 65.2075H95.3186C95.3186 60.0924 97.5927 53.9542 101.895 47.4566Z" fill="url(#lg8)"/><defs><linearGradient id="lg0" x1="303.877" y1="-40.2957" x2="-6.28344" y2="269.865" gradientUnits="userSpaceOnUse"><stop offset="0.259615" stop-color="#FF9E4D"/><stop offset="0.745192" stop-color="#D73A49"/></linearGradient><linearGradient id="lg1" x1="219.746" y1="-124.427" x2="-90.4148" y2="185.733" gradientUnits="userSpaceOnUse"><stop stop-color="#F7941E"/><stop offset="1" stop-color="#EE2A7B"/></linearGradient><linearGradient id="lg2" x1="219.746" y1="-124.427" x2="-90.4148" y2="185.733" gradientUnits="userSpaceOnUse"><stop stop-color="#F7941E"/><stop offset="1" stop-color="#EE2A7B"/></linearGradient><linearGradient id="lg3" x1="244.825" y1="-99.3473" x2="-65.335" y2="210.813" gradientUnits="userSpaceOnUse"><stop stop-color="#F7941E"/><stop offset="1" stop-color="#EE2A7B"/></linearGradient><linearGradient id="lg4" x1="264.889" y1="-79.2835" x2="-45.2712" y2="230.877" gradientUnits="userSpaceOnUse"><stop stop-color="#F7941E"/><stop offset="1" stop-color="#EE2A7B"/></linearGradient><linearGradient id="lg5" x1="302.509" y1="-41.6638" x2="-7.65153" y2="268.497" gradientUnits="userSpaceOnUse"><stop stop-color="#F7941E"/><stop offset="1" stop-color="#EE2A7B"/></linearGradient><linearGradient id="lg6" x1="214.73" y1="-129.443" x2="-95.4307" y2="180.717" gradientUnits="userSpaceOnUse"><stop stop-color="#F7941E"/><stop offset="1" stop-color="#EE2A7B"/></linearGradient><linearGradient id="lg7" x1="287.809" y1="-56.3636" x2="-22.3519" y2="253.797" gradientUnits="userSpaceOnUse"><stop stop-color="#F7941E"/><stop offset="1" stop-color="#EE2A7B"/></linearGradient><linearGradient id="lg8" x1="245.56" y1="-98.6125" x2="-64.6008" y2="211.548" gradientUnits="userSpaceOnUse"><stop stop-color="#F7941E"/><stop offset="1" stop-color="#EE2A7B"/></linearGradient></defs></svg></a>
+  <div class="nav-links">
+    <span class="nav-link">Accueil</span>
+    <span class="nav-link">Recettes</span>
+    <span class="nav-link active">Mon menu</span>
+    <span class="nav-link">Courses</span>
+  </div>
+  <div class="nav-right">
+    <div class="av">CB</div>
+    <span style="font-size:13px;color:var(--ink2)">Caroline</span>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A8A29E" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+</div>
+
+<div class="back-bar">
+  <a class="back-link" href="#">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    Retour à mes menus
+  </a>
+</div>
+
+<div class="page-wrap">
+
+  <div class="page-header">
+    <div class="page-kicker"><div class="page-kicker-sep"></div>Planification</div>
+    <div class="page-title">Générer un nouveau menu</div>
+    <div class="page-sub">Quelques paramètres suffisent — EasyMeal sélectionne des recettes adaptées et de saison.</div>
+  </div>
+
+  <!-- CARTE 1 — RÉGIME -->
+  <div class="form-card">
+    <div class="form-card-header">
+      <div class="form-card-num">1</div>
+      <span class="form-card-title">Régime alimentaire</span>
+    </div>
+    <div class="form-card-body">
+      <div class="diet-grid" id="dietGrid">
+        <div class="diet-option selected" data-diet="omnivore">
+          <div class="diet-radio"></div>
+          <div>
+            <div class="diet-name">Omnivore</div>
+            <div class="diet-desc">Toutes les recettes disponibles</div>
+          </div>
+        </div>
+        <div class="diet-option" data-diet="vegetarien">
+          <div class="diet-radio"></div>
+          <div>
+            <div class="diet-name">Végétarien</div>
+            <div class="diet-desc">Sans viande ni poisson</div>
+          </div>
+        </div>
+        <div class="diet-option" data-diet="vegan">
+          <div class="diet-radio"></div>
+          <div>
+            <div class="diet-name">Vegan</div>
+            <div class="diet-desc">Sans produits d'origine animale</div>
+          </div>
+        </div>
+        <div class="diet-option" data-diet="pescetarien">
+          <div class="diet-radio"></div>
+          <div>
+            <div class="diet-name">Pescétarien</div>
+            <div class="diet-desc">Végétarien + poisson</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARTE 2 — PERSONNES -->
+  <div class="form-card">
+    <div class="form-card-header">
+      <div class="form-card-num">2</div>
+      <span class="form-card-title">Nombre de personnes par repas</span>
+    </div>
+    <div class="form-card-body" style="padding:16px 20px">
+      <div style="display:flex;align-items:center;gap:0;flex-wrap:nowrap">
+        <div class="people-control">
+          <button class="people-btn" id="peopleMinus">−</button>
+          <span class="people-val" id="peopleVal">4</span>
+          <button class="people-btn" id="peoplePlus">+</button>
+        </div>
+        <span class="people-unit" id="peopleUnit">personnes par repas</span>
+      </div>
+      <div class="field-hint" style="margin-top:8px">Vous pourrez ajuster le nombre de personnes repas par repas une fois le menu généré.</div>
+    </div>
+  </div>
+
+  <!-- CARTE 3 — REPAS -->
+  <div class="form-card">
+    <div class="form-card-header">
+      <div class="form-card-num">3</div>
+      <span class="form-card-title">Nombre de repas</span>
+    </div>
+    <div class="form-card-body" style="padding:16px 20px">
+      <div class="meals-row">
+        <input type="range" class="meals-slider" id="mealsSlider" min="1" max="14" value="7" step="1"/>
+        <span class="meals-val-display" id="mealsVal">7</span>
+        <span class="meals-unit">repas (14 max)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARTE 4 — NOM -->
+  <div class="form-card">
+    <div class="form-card-header">
+      <div class="form-card-num">4</div>
+      <span class="form-card-title">Nom du menu <span class="field-optional">— optionnel</span></span>
+    </div>
+    <div class="form-card-body">
+      <input
+        type="text"
+        class="text-input"
+        id="menuName"
+        placeholder="Ex : Menu de la semaine, Repas de vacances…"
+        maxlength="60"
+      />
+      <div class="field-hint">Si laissé vide, le menu sera nommé "Menu du <span id="todayDate"></span>".</div>
+    </div>
+  </div>
+
+  <!-- RÉSUMÉ -->
+  <div class="summary-bar">
+    <span class="summary-label">Résumé :</span>
+    <span class="summary-chip highlighted" id="sumDiet">Omnivore</span>
+    <span class="summary-sep">·</span>
+    <span class="summary-chip" id="sumPeople">4 personnes</span>
+    <span class="summary-sep">·</span>
+    <span class="summary-chip" id="sumMeals">7 repas</span>
+    <span class="summary-sep">·</span>
+    <span class="summary-chip" id="sumName"></span>
+  </div>
+
+  <!-- BOUTON -->
+  <div class="submit-zone">
+    <button class="btn-generate" id="generateBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+      Générer mon menu
+    </button>
+    <div class="submit-note">La génération prend quelques secondes. Les recettes sont sélectionnées en priorité parmi celles de saison.</div>
+  </div>
+
+</div>
+
+<script>
+const today = new Date();
+const formatted = today.toLocaleDateString('fr-FR', {day:'numeric', month:'long', year:'numeric'});
+document.getElementById('todayDate').textContent = formatted;
+document.getElementById('sumName').textContent = 'Menu du ' + formatted;
+
+let people = 4;
+let meals = 7;
+let diet = 'omnivore';
+const dietLabels = {omnivore:'Omnivore', vegetarien:'Végétarien', vegan:'Vegan', pescetarien:'Pescétarien'};
+
+function updatePeople(v) {
+  people = Math.max(1, Math.min(12, v));
+  document.getElementById('peopleVal').textContent = people;
+  document.getElementById('peopleUnit').textContent = people === 1 ? 'personne par repas' : 'personnes par repas';
+  document.getElementById('sumPeople').textContent = people + (people === 1 ? ' personne' : ' personnes');
+}
+document.getElementById('peopleMinus').onclick = () => updatePeople(people - 1);
+document.getElementById('peoplePlus').onclick  = () => updatePeople(people + 1);
+
+const slider = document.getElementById('mealsSlider');
+function updateMeals(v) {
+  meals = parseInt(v);
+  slider.value = meals;
+  document.getElementById('mealsVal').textContent = meals;
+  document.getElementById('sumMeals').textContent = meals + ' repas';
+  const pct = Math.round((meals - 1) / 13 * 100);
+  slider.style.background = 'linear-gradient(to right, #1C1917 ' + pct + '%, #E7E5E4 ' + pct + '%)';
+}
+slider.addEventListener('input', e => updateMeals(e.target.value));
+updateMeals(7);
+
+document.querySelectorAll('.diet-option').forEach(opt => {
+  opt.onclick = () => {
+    document.querySelectorAll('.diet-option').forEach(o => o.classList.remove('selected'));
+    opt.classList.add('selected');
+    diet = opt.dataset.diet;
+    document.getElementById('sumDiet').textContent = dietLabels[diet];
+  };
+});
+
+const nameInput = document.getElementById('menuName');
+nameInput.addEventListener('input', () => {
+  const v = nameInput.value.trim();
+  document.getElementById('sumName').textContent = v || ('Menu du ' + formatted);
+  nameInput.classList.toggle('filled', v.length > 0);
+});
+
+document.getElementById('generateBtn').addEventListener('click', function() {
+  this.disabled = true;
+  const svg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spinning" style="width:16px;height:16px"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>';
+  this.innerHTML = svg + ' Génération en cours…';
+  const btn = this;
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Générer mon menu';
+  }, 2000);
+});
+</script>
+</body>
+</html>

@@ -1,49 +1,105 @@
 -# Formulaire de génération d'un menu (UC1)
--# Paramètres : régime, nombre de personnes, nombre de repas, nom optionnel
+-# Design card-based avec régime radio, compteur de personnes, slider de repas, nom optionnel
+- default_diet = menu.diet || current_user.default_diet || "omnivore"
+- default_people = menu.default_people || current_user.default_people || 4
+- default_meals = 7
+- default_name_placeholder = "Menu du #{french_date(Date.today)}"
 
-= form_with model: menu, url: menus_path, method: :post, class: "mn-form" do |f|
+= form_with model: menu, url: menus_path, method: :post, class: "mn-generate-form",
+            data: { controller: "menu-generate",
+                    menu_generate_default_name_value: default_name_placeholder } do |f|
 
-  -# ── Section principale ──────────────────────────────────
-  .mn-form-section
-    .mn-section-label PARAMÈTRES DE GÉNÉRATION
+  -# ── Carte 1 — Régime alimentaire ────────────────────────
+  .mn-form-card
+    .mn-form-card-header
+      .mn-form-card-num 1
+      %span.mn-form-card-title Régime alimentaire
+    .mn-form-card-body
+      .mn-diet-grid
+        - Menu.diets.keys.each do |diet_key|
+          %label.mn-diet-option{ class: (diet_key == default_diet ? "selected" : ""),
+                                 data: { action: "click->menu-generate#selectDiet",
+                                         menu_generate_target: "dietOption" } }
+            = f.radio_button :diet, diet_key, checked: diet_key == default_diet,
+                             class: "mn-diet-radio-input",
+                             data: { action: "change->menu-generate#updateSummary",
+                                     menu_generate_target: "dietInput" }
+            %span.mn-diet-radio
+            .mn-diet-text
+              %span.mn-diet-name= menu_diet_label(diet_key)
+              %span.mn-diet-desc= menu_diet_description(diet_key)
 
-    .form-row
-      -# Régime alimentaire
-      .form-group{ class: field_error_class(menu, :diet) }
-        = f.label :diet, "Régime alimentaire *", class: "form-label"
-        = f.select :diet,
-                   Menu.diets.keys.map { |d| [menu_diet_label(d), d] },
-                   { selected: menu.diet || current_user.default_diet },
-                   class: "form-select"
-        = field_errors(menu, :diet)
+  -# ── Carte 2 — Nombre de personnes ──────────────────────
+  .mn-form-card
+    .mn-form-card-header
+      .mn-form-card-num 2
+      %span.mn-form-card-title Nombre de personnes par repas
+    .mn-form-card-body.mn-form-card-body--compact
+      .mn-people-row
+        .mn-people-control
+          %button.mn-people-btn{ type: "button",
+                                 data: { action: "click->menu-generate#decrementPeople" } }
+            −
+          %span.mn-people-val{ data: { menu_generate_target: "peopleDisplay" } }= default_people
+          %button.mn-people-btn{ type: "button",
+                                 data: { action: "click->menu-generate#incrementPeople" } }
+            +
+          = f.hidden_field :default_people, value: default_people,
+                           data: { menu_generate_target: "peopleInput" }
+        %span.mn-people-unit{ data: { menu_generate_target: "peopleUnit" } }
+          = default_people == 1 ? "personne par repas" : "personnes par repas"
+      %p.mn-field-hint Vous pourrez ajuster le nombre de personnes repas par repas une fois le menu généré.
 
-      -# Nombre de personnes
-      .form-group{ class: field_error_class(menu, :default_people) }
-        = f.label :default_people, "Personnes *", class: "form-label"
-        = f.number_field :default_people,
-                         value: menu.default_people || current_user.default_people,
-                         min: 1, max: 20,
-                         class: "form-input"
-        = field_errors(menu, :default_people)
+  -# ── Carte 3 — Nombre de repas ──────────────────────────
+  .mn-form-card
+    .mn-form-card-header
+      .mn-form-card-num 3
+      %span.mn-form-card-title Nombre de repas
+    .mn-form-card-body.mn-form-card-body--compact
+      .mn-meals-row
+        = f.range_field :number_of_meals, min: 1, max: 14, value: default_meals,
+                        class: "mn-meals-slider",
+                        data: { action: "input->menu-generate#updateMeals",
+                                menu_generate_target: "mealsSlider" }
+        %span.mn-meals-val{ data: { menu_generate_target: "mealsDisplay" } }= default_meals
+        %span.mn-meals-unit repas (14 max)
 
-    .form-row
-      -# Nombre de repas
-      .form-group
-        = f.label :number_of_meals, "Nombre de repas *", class: "form-label"
-        = f.select :number_of_meals,
-                   (3..7).map { |n| ["#{n} repas", n] },
-                   { selected: 5 },
-                   class: "form-select"
+  -# ── Carte 4 — Nom du menu (optionnel) ──────────────────
+  .mn-form-card
+    .mn-form-card-header
+      .mn-form-card-num 4
+      %span.mn-form-card-title
+        Nom du menu
+        %span.mn-field-optional — optionnel
+    .mn-form-card-body
+      = f.text_field :name, value: menu.name, maxlength: 60,
+                     placeholder: "Ex : Menu de la semaine, Repas de vacances…",
+                     class: "mn-text-input",
+                     data: { action: "input->menu-generate#updateName",
+                             menu_generate_target: "nameInput" }
+      %p.mn-field-hint
+        Si laissé vide, le menu sera nommé
+        = "\"#{default_name_placeholder}\"."
 
-      -# Nom du menu (optionnel)
-      .form-group
-        = f.label :name, "Nom du menu (optionnel)", class: "form-label"
-        = f.text_field :name,
-                       value: menu.name,
-                       placeholder: "Ex: Semaine du 31 mars",
-                       class: "form-input"
+  -# ── Barre résumé ───────────────────────────────────────
+  .mn-summary-bar
+    %span.mn-summary-label Résumé :
+    %span.mn-summary-chip.mn-summary-chip--highlighted{ data: { menu_generate_target: "sumDiet" } }
+      = menu_diet_label(default_diet)
+    %span.mn-summary-sep ·
+    %span.mn-summary-chip{ data: { menu_generate_target: "sumPeople" } }
+      = "#{default_people} personnes"
+    %span.mn-summary-sep ·
+    %span.mn-summary-chip{ data: { menu_generate_target: "sumMeals" } }
+      = "#{default_meals} repas"
+    %span.mn-summary-sep ·
+    %span.mn-summary-chip{ data: { menu_generate_target: "sumName" } }
+      = default_name_placeholder
 
-  -# ── Actions ──────────────────────────────────────────────
-  .mn-form-actions
-    = f.submit "Générer mon menu →", class: "btn btn-primary btn-lg"
-    = link_to "Annuler", menus_path, class: "btn btn-link"
+  -# ── Bouton de soumission ───────────────────────────────
+  .mn-submit-zone
+    %button.mn-btn-generate{ type: "submit",
+                             data: { menu_generate_target: "submitBtn" } }
+      = svg_icon("sparkle", size: 16)
+      Générer mon menu
+    %p.mn-submit-note La génération prend quelques secondes. Les recettes sont sélectionnées en priorité parmi celles de saison.

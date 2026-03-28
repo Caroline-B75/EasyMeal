@@ -552,3 +552,453 @@
     justify-content: center;
   }
 }
+
+/* ── Formulaire de génération (design card-based) ──────── */
+
+.mn-page-wrap {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 40px 28px 60px;
+}
+
+.mn-page-header {
+  margin-bottom: 32px;
+}
+
+.mn-page-kicker {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--color-accent-hover);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mn-page-kicker-sep {
+  width: 16px;
+  height: 0.5px;
+  background: var(--color-accent-hover);
+  opacity: 0.6;
+}
+
+.mn-page-title {
+  font-family: Georgia, serif;
+  font-size: 24px;
+  font-weight: 400;
+  color: var(--color-ink);
+  line-height: 1.2;
+  margin: 0 0 6px;
+}
+
+.mn-page-sub {
+  font-size: 13px;
+  color: var(--color-ink-3);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── Form cards ──────────────────────────────────────────── */
+
+.mn-form-card {
+  background: var(--color-bg-white);
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-button);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.mn-form-card-header {
+  padding: 14px 20px 13px;
+  border-bottom: 0.5px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mn-form-card-num {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-button);
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mn-form-card-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-ink);
+  letter-spacing: 0.01em;
+}
+
+.mn-form-card-body {
+  padding: 20px;
+}
+
+.mn-form-card-body--compact {
+  padding: 16px 20px;
+}
+
+.mn-field-hint {
+  font-size: 11px;
+  color: var(--color-ink-4);
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+.mn-field-optional {
+  font-size: 10px;
+  color: var(--color-ink-4);
+  font-style: italic;
+  margin-left: 5px;
+}
+
+/* ── Diet grid ───────────────────────────────────────────── */
+
+.mn-diet-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mn-diet-option {
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-button);
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--color-bg-white);
+}
+
+.mn-diet-option:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-secondary);
+}
+
+.mn-diet-option.selected {
+  border-color: var(--color-primary);
+  background: var(--color-bg-secondary);
+}
+
+/* Masquer le radio natif */
+.mn-diet-radio-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.mn-diet-radio {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-border-strong);
+  background: var(--color-bg-white);
+  flex-shrink: 0;
+  margin-top: 1px;
+  position: relative;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.mn-diet-radio::after {
+  content: '';
+  display: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.mn-diet-option.selected .mn-diet-radio {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.mn-diet-option.selected .mn-diet-radio::after {
+  display: block;
+}
+
+.mn-diet-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.mn-diet-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-ink);
+  margin-bottom: 2px;
+}
+
+.mn-diet-desc {
+  font-size: 11px;
+  color: var(--color-ink-3);
+  line-height: 1.4;
+}
+
+/* ── People counter ──────────────────────────────────────── */
+
+.mn-people-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-wrap: nowrap;
+}
+
+.mn-people-control {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-button);
+  overflow: hidden;
+  width: fit-content;
+}
+
+.mn-people-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: var(--color-bg-secondary);
+  color: var(--color-ink-2);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.1s;
+  user-select: none;
+}
+
+.mn-people-btn:hover {
+  background: var(--color-bg-tertiary);
+}
+
+.mn-people-btn:first-child {
+  border-right: 0.5px solid var(--color-border);
+}
+
+.mn-people-btn:last-of-type {
+  border-left: 0.5px solid var(--color-border);
+}
+
+.mn-people-val {
+  min-width: 36px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-ink);
+  padding: 0 6px;
+  background: var(--color-bg-white);
+}
+
+.mn-people-unit {
+  font-size: 12px;
+  color: var(--color-ink-3);
+  margin-left: 10px;
+}
+
+/* ── Meals slider ────────────────────────────────────────── */
+
+.mn-meals-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mn-meals-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: var(--color-bg-tertiary);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.mn-meals-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+  border: 2px solid var(--color-bg-white);
+  box-shadow: 0 0 0 1.5px var(--color-primary);
+}
+
+.mn-meals-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+  border: 2px solid var(--color-bg-white);
+}
+
+.mn-meals-val {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-ink);
+  min-width: 20px;
+  text-align: center;
+}
+
+.mn-meals-unit {
+  font-size: 12px;
+  color: var(--color-ink-3);
+  white-space: nowrap;
+}
+
+/* ── Text input ──────────────────────────────────────────── */
+
+.mn-text-input {
+  width: 100%;
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-button);
+  padding: 9px 12px;
+  font-size: 13px;
+  color: var(--color-ink);
+  background: var(--color-bg-white);
+  font-family: inherit;
+  transition: border-color var(--transition-fast);
+}
+
+.mn-text-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.mn-text-input::placeholder {
+  color: var(--color-ink-4);
+}
+
+/* ── Summary bar ─────────────────────────────────────────── */
+
+.mn-summary-bar {
+  background: var(--color-bg-secondary);
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-button);
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.mn-summary-label {
+  font-size: 11px;
+  color: var(--color-ink-4);
+  margin-right: 4px;
+}
+
+.mn-summary-chip {
+  font-size: 11px;
+  padding: 3px 9px;
+  background: var(--color-bg-white);
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-button);
+  color: var(--color-ink-2);
+}
+
+.mn-summary-chip--highlighted {
+  background: var(--color-accent-light);
+  border-color: var(--color-accent-hover);
+  color: var(--color-accent-text);
+}
+
+.mn-summary-sep {
+  color: var(--color-border-strong);
+  font-size: 10px;
+}
+
+/* ── Submit zone ─────────────────────────────────────────── */
+
+.mn-submit-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mn-btn-generate {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-button);
+  padding: 13px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  width: 100%;
+  letter-spacing: 0.02em;
+  transition: background var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.mn-btn-generate:hover {
+  background: var(--color-primary-hover);
+}
+
+.mn-btn-generate:disabled {
+  background: var(--color-bg-tertiary);
+  color: var(--color-ink-4);
+  cursor: not-allowed;
+}
+
+.mn-btn-generate svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.mn-submit-note {
+  font-size: 11px;
+  color: var(--color-ink-4);
+  text-align: center;
+  line-height: 1.5;
+  margin: 0;
+}
+
+@keyframes mn-spin {
+  to { transform: rotate(360deg); }
+}
+
+.mn-spinning {
+  animation: mn-spin 1s linear infinite;
+}
+
+/* ── Responsive formulaire de génération ──────────────── */
+
+@media (max-width: 600px) {
+  .mn-page-wrap {
+    padding: 24px 16px 48px;
+  }
+
+  .mn-page-title {
+    font-size: 20px;
+  }
+
+  .mn-diet-grid {
+    grid-template-columns: 1fr;
+  }
+}

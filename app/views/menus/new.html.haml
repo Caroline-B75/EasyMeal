@@ -1,17 +1,17 @@
--# UC1 — Génération d'un nouveau menu
-- content_for :title, "Créer un menu"
+-# UC1 — Génération d'un nouveau menu (design mockup card-based)
+- content_for :title, "Générer un nouveau menu"
 
 .mn-back-bar
   = link_to menus_path, class: "mn-back-link" do
     = svg_icon("chevron-left", size: 14, css_class: "mn-back-chevron")
-    Mes menus
+    Retour à mes menus
 
-.mn-hero
-  .mn-hero-inner
-    .mn-kicker
-      %span.mn-kicker-line
-      NOUVEAU MENU
-    %h1.mn-hero-title Génère ton menu
+.mn-page-wrap
+  .mn-page-header
+    .mn-page-kicker
+      %span.mn-page-kicker-sep
+      Planification
+    %h1.mn-page-title Générer un nouveau menu
+    %p.mn-page-sub Quelques paramètres suffisent — EasyMeal sélectionne des recettes adaptées et de saison.
 
-.mn-body
   = render "form_generate", menu: @menu
