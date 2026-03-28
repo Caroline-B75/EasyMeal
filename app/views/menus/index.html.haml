@@ -1,55 +1,136 @@
--# UC1/UC2/UC3 — Liste de mes menus (brouillons + actifs)
+-# UC1/UC2/UC3 — Liste de mes menus (brouillon, actif, historique)
+-# Design : mockup easymeal_menus_index.html — Slate Craft Premium
 - content_for :title, "Mes menus"
 
-.menus-container
-  .menus-header
-    %h1.menus-title Mes menus
-    = link_to "Créer un menu", new_menu_path, class: "btn btn-primary"
+.mi-page-wrap{ data: { controller: "menus-index" } }
+
+  -# ── En-tête page ─────────────────────────────────────────
+  .mi-page-top
+    %h1.mi-page-title Mes menus
+    - if @draft
+      .mi-draft-guard{ data: { controller: "modal" } }
+        %a.mi-btn-new{ href: "#", data: { action: "click->modal#open" } }
+          = svg_icon("plus", size: 14)
+          Créer un menu
+        .modal-overlay{ data: { modal_target: "overlay", action: "click->modal#closeOnOverlay" }, style: "display: none;" }
+          .modal-container
+            .modal-content
+              .modal-header.mn-modal-header
+                %h3 Brouillon en cours
+                %button.mn-modal-close{ type: "button", data: { action: "click->modal#close" }, "aria-label": "Fermer" } ×
+              .modal-body
+                %p Vous avez déjà un brouillon en attente :
+                .mn-draft-guard-preview
+                  %span.mn-draft-guard-name= @draft.name.presence || "Menu sans nom"
+                  %span.mn-draft-guard-meta= "#{@draft.menu_recipes.size} repas · #{@draft.default_people} pers. · #{menu_diet_label(@draft.diet)}"
+                %p Souhaitez-vous le reprendre ou créer un nouveau menu ?
+              .mn-draft-guard-actions
+                = link_to new_menu_path, class: "btn btn-secondary" do
+                  Nouveau menu
+                = link_to menu_path(@draft), class: "btn btn-primary" do
+                  Reprendre le brouillon
+    - else
+      = link_to new_menu_path, class: "mi-btn-new" do
+        = svg_icon("plus", size: 14)
+        Créer un menu
 
   -# ── Brouillon en cours ────────────────────────────────────
   - if @draft
-    .menus-section
-      .menus-section-label BROUILLON EN COURS
-      .menus-grid
-        .menu-card.menu-card--draft{ id: "menu_#{@draft.id}" }
-          .menu-card-header
-            %h3.menu-card-title= @draft.name.presence || "Menu sans nom"
-            %span{ class: menu_status_badge_class(@draft) }= menu_status_label(@draft)
-          .menu-card-meta
-            %span.menu-card-diet= menu_diet_label(@draft.diet)
-            %span.menu-card-people= "#{@draft.default_people} pers."
-            %span.menu-card-meals= "#{@draft.menu_recipes.size} repas"
-          .menu-card-actions
-            = link_to "Personnaliser", menu_path(@draft), class: "btn btn-primary btn-sm"
-            = link_to "Modifier", edit_menu_path(@draft), class: "btn btn-secondary btn-sm"
-            = button_to menu_path(@draft), method: :delete, class: "btn btn-link btn-sm",
-                        form: { data: { turbo_confirm: "Supprimer ce menu ?" } } do
+    .mi-section
+      .mi-section-label Brouillon en cours
+      .mi-draft-card{ id: "menu_#{@draft.id}" }
+        .mi-draft-card-body
+          .mi-draft-card-info
+            .mi-draft-card-top
+              %span.mi-draft-badge Brouillon
+              %span.mi-draft-card-name= @draft.name.presence || "Menu sans nom"
+            .mi-draft-card-meta
+              %span= menu_diet_label(@draft.diet)
+              %span ·
+              %span= "#{@draft.default_people} pers."
+              %span ·
+              %span= "#{@draft.menu_recipes.size} repas"
+          .mi-draft-card-actions
+            = link_to menu_path(@draft), class: "mi-btn-sm" do
+              = svg_icon("edit", size: 11)
+              Personnaliser
+            = link_to "Modifier les paramètres", edit_menu_path(@draft), class: "mi-btn-sm"
+            = button_to menu_path(@draft), method: :delete, class: "mi-btn-sm-danger",
+                        form: { data: { turbo_confirm: "Supprimer ce brouillon ?" } } do
+              = svg_icon("trash", size: 11)
               Supprimer
 
-  -# ── Menus actifs ─────────────────────────────────────────
-  - if @active.any?
-    .menus-section
-      .menus-section-label MENUS ACTIFS
-      .menus-grid
-        - @active.each do |menu|
-          .menu-card{ id: "menu_#{menu.id}" }
-            .menu-card-header
-              %h3.menu-card-title= menu.name.presence || "Menu sans nom"
-              %span{ class: menu_status_badge_class(menu) }= menu_status_label(menu)
-            .menu-card-meta
-              %span.menu-card-diet= menu_diet_label(menu.diet)
-              %span.menu-card-people= "#{menu.default_people} pers."
-              %span.menu-card-meals= "#{menu.menu_recipes.size} repas"
-            .menu-card-actions
-              = link_to "Voir la liste", menu_path(menu), class: "btn btn-secondary btn-sm"
-              = button_to menu_path(menu), method: :delete, class: "btn btn-link btn-sm",
-                          form: { data: { turbo_confirm: "Supprimer ce menu ?" } } do
-                Supprimer
+  -# ── Menu actif (hero card sur fond sombre) ───────────────
+  - if @active
+    .mi-section
+      .mi-section-label Menu actif
+      .mi-hero-card{ id: "menu_#{@active.id}" }
+        .mi-hero-card-top
+          .mi-hero-card-info
+            .mi-hero-card-badges
+              .mi-hero-card-badges-left
+                %span.mi-badge-active En cours
+                %span.mi-hero-date= "Créé le #{french_date(@active.created_at)}"
+              .mi-hero-card-badges-right
+                = link_to menu_path(@active, anchor: "grocery_list"), class: "mi-btn-hero-primary" do
+                  = svg_icon("list", size: 13)
+                  Voir la liste de courses
+                = button_to menu_path(@active), method: :delete, class: "mi-btn-hero-danger",
+                            form: { data: { turbo_confirm: "Supprimer ce menu ?" } } do
+                  = svg_icon("trash", size: 13)
+                  Supprimer
+            %h2.mi-hero-menu-name= @active.name.presence || "Menu sans nom"
+        -# Mini-cartes des recettes du menu
+        - if @active.menu_recipes.any?
+          .mi-recipe-cards-section
+            .mi-recipe-cards-label Repas du menu
+            .mi-recipe-cards-grid
+              - @active.menu_recipes.each do |mr|
+                = link_to recipe_path(mr.recipe), class: "mi-recipe-card-mini" do
+                  .mi-recipe-card-mini-img
+                    - if mr.recipe.photo.attached?
+                      = image_tag mr.recipe.photo.variant(resize_to_fill: [120, 60]),
+                                 class: "mi-recipe-card-mini-photo"
+                    - else
+                      = svg_icon("heart", size: 20, css_class: "mi-recipe-placeholder-icon")
+                  .mi-recipe-card-mini-body
+                    .mi-recipe-card-mini-name= mr.recipe.name
+                    .mi-recipe-card-mini-meta
+                      - total_time = mr.recipe.total_time_minutes
+                      = "#{total_time} min" if total_time > 0
+                      - if mr.recipe.diet.present?
+                        = " · #{menu_diet_label(mr.recipe.diet)}"
+
+  -# ── Historique (menus archivés) ──────────────────────────
+  - if @archived.any?
+    .mi-section
+      .mi-section-label
+        Historique
+        %span.mi-section-count= "#{@archived.size} menus"
+
+      .mi-history-list
+        -# Menus récents (toujours visibles)
+        - @recent_archived.each do |menu|
+          = render "menus/history_card", menu: menu
+
+        -# Menus plus anciens (masqués par défaut)
+        - if @older_archived.any?
+          .mi-older-menus{ data: { menus_index_target: "olderMenus", count: @older_archived.size } }
+            - @older_archived.each do |menu|
+              = render "menus/history_card", menu: menu
+
+          %button.mi-toggle-old{ type: "button",
+                                 data: { menus_index_target: "toggleOlderBtn",
+                                         action: "click->menus-index#toggleOlder" } }
+            = svg_icon("chevron-down", size: 14, css_class: "mi-toggle-old-icon")
+            %span{ data: { menus_index_target: "toggleOlderText" } }
+              = "Afficher #{@older_archived.size} menus plus anciens"
 
   -# ── État vide ────────────────────────────────────────────
-  - if @draft.nil? && @active.empty?
-    .menus-empty
-      .menus-empty-icon 🍽
-      %h2.menus-empty-title Aucun menu pour l'instant
-      %p.menus-empty-text Génère ton premier menu personnalisé en quelques secondes.
-      = link_to "Créer mon premier menu", new_menu_path, class: "btn btn-primary"
+  - if @draft.nil? && @active.nil? && @archived.empty?
+    .mi-empty
+      .mi-empty-icon 🍽
+      %h2.mi-empty-title Aucun menu pour l'instant
+      %p.mi-empty-text Génère ton premier menu personnalisé en quelques secondes.
+      = link_to new_menu_path, class: "btn btn-primary" do
+        Créer mon premier menu

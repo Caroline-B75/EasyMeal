@@ -36,11 +36,21 @@ module MenusHelper
 
   # Retourne le label du statut du menu
   def menu_status_label(menu)
-    menu.status_draft? ? "Brouillon" : "Actif"
+    case
+    when menu.status_draft?    then "Brouillon"
+    when menu.status_active?   then "Actif"
+    when menu.status_archived? then "Archivé"
+    else menu.status.to_s.humanize
+    end
   end
 
   # Classe CSS du badge de statut
   def menu_status_badge_class(menu)
-    menu.status_draft? ? "badge badge-draft" : "badge badge-active"
+    case
+    when menu.status_draft?    then "badge badge-draft"
+    when menu.status_active?   then "badge badge-active"
+    when menu.status_archived? then "badge badge-archived"
+    else "badge"
+    end
   end
 end

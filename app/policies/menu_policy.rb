@@ -62,6 +62,11 @@ class MenuPolicy < ApplicationPolicy
     owner?
   end
 
+  # Réactivation d'un menu archivé (devient le nouveau menu actif)
+  def reactivate?
+    owner?
+  end
+
   # Scope : un utilisateur ne voit que ses propres menus
   class Scope < ApplicationPolicy::Scope
     def resolve

@@ -6,120 +6,746 @@
    Design Slate Craft Premium — no box-shadow on cards, border 0.5px.
    ============================================ */
 
-/* ── Container index ───────────────────────────────────── */
-.menus-container {
-  max-width: 1100px;
+/* ─────────────────────────────────────────────────────────
+   MENUS INDEX (mi-*) — design mockup hero card / historique
+   ───────────────────────────────────────────────────────── */
+
+.mi-page-wrap {
+  max-width: 1400px;
+  width: 50%;
   margin: 0 auto;
-  padding: 2rem 1.5rem;
+  padding: 36px 0 60px;
 }
 
-.menus-header {
+.mi-page-top {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 32px;
 }
 
-.menus-title {
-  font-size: var(--font-size-3xl);
-  font-weight: 600;
+.mi-page-title {
+  font-family: Georgia, serif;
+  font-size: 22px;
+  font-weight: 400;
   color: var(--color-ink);
   margin: 0;
 }
 
-/* ── Sections (brouillon / actifs) ─────────────────────── */
-.menus-section {
-  margin-bottom: 2.5rem;
+.mi-btn-new {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-button);
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background var(--transition-fast);
 }
 
-.menus-section-label {
-  font-size: 0.6875rem;
-  font-weight: 600;
+.mi-btn-new:hover {
+  background: var(--color-primary-hover);
+  color: #fff;
+  text-decoration: none;
+}
+
+.mi-btn-new svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+/* ── Draft guard (modale avant création si brouillon existant) ── */
+
+/* Wrapper inline pour ne pas rompre le layout flexbox de .mi-page-top */
+.mi-draft-guard {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+}
+
+/* Aperçu du brouillon dans la modale */
+.mn-draft-guard-preview {
+  background: var(--color-bg-main);
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-button);
+  padding: 10px 14px;
+  margin: 10px 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mn-draft-guard-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+.mn-draft-guard-meta {
+  font-size: 12px;
+  color: var(--color-ink-3);
+}
+
+/* En-tête de la modale avec croix de fermeture */
+.mn-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mn-modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--color-ink-3);
+  padding: 0 0 0 8px;
+  transition: color var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.mn-modal-close:hover {
+  color: var(--color-ink);
+}
+
+/* Boutons d'action pleine largeur en 2 colonnes */
+.mn-draft-guard-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 0.5rem;
+}
+
+.mn-draft-guard-actions .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+@media (max-width: 767px) {
+  .mn-draft-guard-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Section labels ────────────────────────────────────── */
+
+.mi-section {
+  margin-bottom: 24px;
+}
+
+.mi-section-label {
+  font-size: 10px;
+  font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-ink-4);
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 0.5px solid var(--color-border);
-}
-
-/* ── Grille de menu-cards ──────────────────────────────── */
-.menus-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1rem;
-}
-
-/* ── Card de menu ──────────────────────────────────────── */
-.menu-card {
-  background: var(--color-bg-white);
-  border-radius: var(--radius-card);
-  border: 0.5px solid var(--color-border);
-  padding: 1.25rem 1.5rem;
+  margin-bottom: 10px;
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  align-items: center;
+  gap: 8px;
 }
 
-.menu-card--draft {
-  border-color: var(--color-accent);
-  border-width: 1px;
+.mi-section-label::after {
+  content: '';
+  flex: 1;
+  height: 0.5px;
+  background: var(--color-border);
 }
 
-.menu-card-header {
+.mi-section-count {
+  font-size: 10px;
+  color: var(--color-ink-4);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* ── Brouillon card ────────────────────────────────────── */
+
+.mi-draft-card {
+  background: var(--color-bg-white);
+  border: 0.5px solid var(--color-accent-hover);
+  border-radius: var(--radius-button);
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.mi-draft-card-body {
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.mi-draft-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.mi-draft-card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.mi-draft-badge {
+  background: var(--color-accent-light);
+  color: var(--color-accent-text);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: var(--radius-badge);
+  flex-shrink: 0;
+}
+
+.mi-draft-card-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+.mi-draft-card-meta {
+  font-size: 11px;
+  color: var(--color-ink-4);
+  display: flex;
+  gap: 8px;
+}
+
+.mi-draft-card-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+/* ── Boutons compacts (brouillon + historique) ──────────── */
+
+.mi-btn-sm {
+  font-size: 11px;
+  padding: 5px 10px;
+  border-radius: var(--radius-button);
+  border: 0.5px solid var(--color-border);
+  background: var(--color-bg-white);
+  color: var(--color-ink-2);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+  transition: background var(--transition-fast);
+}
+
+.mi-btn-sm:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-ink-2);
+  text-decoration: none;
+}
+
+.mi-btn-sm svg { width: 11px; height: 11px; }
+
+.mi-btn-sm-danger {
+  font-size: 11px;
+  padding: 5px 10px;
+  border-radius: var(--radius-button);
+  border: 0.5px solid #FECACA;
+  background: #FEF2F2;
+  color: #991B1B;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  text-decoration: none;
+  transition: background var(--transition-fast);
+}
+
+.mi-btn-sm-danger:hover {
+  background: #FEE2E2;
+}
+
+.mi-btn-sm-danger svg { width: 11px; height: 11px; }
+
+/* ── Hero card (menu actif) ────────────────────────────── */
+
+.mi-hero-card {
+  background: var(--color-primary);
+  border-radius: var(--radius-button);
+  overflow: hidden;
+  margin-bottom: 32px;
+}
+
+.mi-hero-card-top {
+  padding: 20px 24px 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mi-hero-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.mi-hero-card-badges {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
 }
 
-.menu-card-title {
-  font-size: var(--font-size-lg);
-  font-weight: 600;
-  color: var(--color-ink);
-  margin: 0;
+.mi-hero-card-badges-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mi-hero-card-badges-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mi-badge-active {
+  background: var(--color-accent-light);
+  color: var(--color-accent-text);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: var(--radius-badge);
+  letter-spacing: 0.04em;
+}
+
+.mi-hero-date {
+  font-size: 11px;
+  color: var(--color-ink-4);
+}
+
+.mi-hero-menu-name {
+  font-family: Georgia, serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: #fff;
+  line-height: 1.2;
+  margin: 0 0 4px;
+}
+
+.mi-hero-meta {
+  font-size: 12px;
+  color: var(--color-ink-4);
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.mi-hero-meta-sep { color: #44403C; }
+
+/* Stats */
+.mi-hero-stats {
+  display: flex;
+  gap: 0;
+  border: 0.5px solid #44403C;
+  border-radius: var(--radius-button);
+  overflow: hidden;
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+.mi-hero-stat {
+  padding: 8px 14px;
+  border-right: 0.5px solid #44403C;
+  text-align: center;
+}
+
+.mi-hero-stat:last-child { border-right: none; }
+
+.mi-hero-stat-val {
+  font-size: 16px;
+  font-weight: 500;
+  color: #fff;
+  line-height: 1;
+}
+
+.mi-hero-stat-lbl {
+  font-size: 9px;
+  color: var(--color-ink-4);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+/* ── Mini recipe cards (dans le hero) ──────────────────── */
+
+.mi-recipe-cards-section {
+  border-top: 0.5px solid #292524;
+  padding: 16px 24px;
+}
+
+.mi-recipe-cards-label {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-4);
+  margin-bottom: 10px;
+}
+
+.mi-recipe-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.mi-recipe-card-mini {
+  background: #292524;
+  border: 0.5px solid #3C3836;
+  border-radius: var(--radius-button);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+  text-decoration: none;
+  display: block;
+}
+
+.mi-recipe-card-mini:hover {
+  border-color: #57534E;
+  text-decoration: none;
+}
+
+.mi-recipe-card-mini-img {
+  height: 60px;
+  background: #1C1917;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 0.5px solid #3C3836;
+  overflow: hidden;
+}
+
+.mi-recipe-card-mini-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mi-recipe-placeholder-icon {
+  color: #57534E;
+}
+
+.mi-recipe-card-mini-body {
+  padding: 7px 8px;
+}
+
+.mi-recipe-card-mini-name {
+  font-size: 11px;
+  font-weight: 500;
+  color: #D6D3D1;
+  line-height: 1.3;
+  margin-bottom: 3px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.menu-card-meta {
-  display: flex;
-  gap: 0.75rem;
-  font-size: var(--font-size-xs);
-  color: var(--color-ink-3);
+.mi-recipe-card-mini-meta {
+  font-size: 10px;
+  color: var(--color-ink-4);
 }
 
-.menu-card-actions {
+/* ── Hero actions ──────────────────────────────────────── */
+
+.mi-hero-actions {
+  border-top: 0.5px solid #292524;
+  padding: 14px 24px;
   display: flex;
-  gap: 0.5rem;
+  gap: 8px;
+  align-items: center;
   flex-wrap: wrap;
-  margin-top: 0.25rem;
 }
 
-/* ── Badges statut ─────────────────────────────────────── */
-.badge-draft {
-  background: var(--color-accent-light);
+.mi-btn-hero-primary {
+  background: var(--color-accent);
   color: var(--color-accent-text);
-  border-radius: var(--radius-badge);
-  font-size: 0.75rem;
+  font-size: 12px;
   font-weight: 500;
-  padding: 0.2em 0.6em;
-  border: 0.5px solid var(--color-accent);
+  padding: 8px 16px;
+  border-radius: var(--radius-button);
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+  transition: background var(--transition-fast);
 }
 
-.badge-active {
+.mi-btn-hero-primary:hover {
+  background: var(--color-accent-hover);
+  color: var(--color-accent-text);
+  text-decoration: none;
+}
+
+.mi-btn-hero-primary svg { width: 13px; height: 13px; }
+
+.mi-btn-hero-ghost {
+  background: transparent;
+  color: #A8A29E;
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: var(--radius-button);
+  border: 0.5px solid #44403C;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.mi-btn-hero-ghost:hover {
+  border-color: #57534E;
+  color: #D6D3D1;
+  text-decoration: none;
+}
+
+.mi-btn-hero-ghost svg { width: 13px; height: 13px; }
+
+.mi-btn-hero-danger {
+  background: transparent;
+  color: #F87171;
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: var(--radius-button);
+  border: 0.5px solid #3C1515;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.mi-btn-hero-danger:hover {
+  border-color: #F87171;
+  text-decoration: none;
+}
+
+.mi-btn-hero-danger svg { width: 13px; height: 13px; }
+
+/* ── History list + cards ──────────────────────────────── */
+
+.mi-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.mi-history-card {
+  background: var(--color-bg-white);
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-button);
+  overflow: hidden;
+  transition: border-color var(--transition-fast);
+  width: 100%;
+  min-width: 0;
+}
+
+.mi-history-card:hover {
+  border-color: var(--color-border-strong);
+}
+
+.mi-history-card-header {
+  padding: 13px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mi-history-card-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.mi-history-card-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-ink);
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mi-history-card-meta {
+  font-size: 11px;
+  color: var(--color-ink-4);
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mi-history-card-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.mi-badge-done {
   background: var(--color-success-light);
   color: var(--color-success-text);
+  font-size: 10px;
+  padding: 2px 7px;
   border-radius: var(--radius-badge);
-  font-size: 0.75rem;
   font-weight: 500;
-  padding: 0.2em 0.6em;
-  border: 0.5px solid var(--color-success);
 }
 
-/* ── État vide ─────────────────────────────────────────── */
-.menus-empty {
+.mi-expand-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--color-ink-4);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.mi-expand-icon.open {
+  transform: rotate(180deg);
+}
+
+/* Expanded content (hidden by default) */
+.mi-history-expanded {
+  display: none;
+  border-top: 0.5px solid var(--color-border);
+}
+
+.mi-history-expanded.open {
+  display: block;
+}
+
+/* Recipe thumbnails in history */
+.mi-history-recipes {
+  padding: 12px 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 6px;
+  background: var(--color-bg-secondary);
+  overflow: hidden;
+}
+
+.mi-hist-recipe-card {
+  background: var(--color-bg-white);
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-button);
+  overflow: hidden;
+}
+
+.mi-hist-recipe-img {
+  height: 64px;
+  background: var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 0.5px solid var(--color-border);
+  overflow: hidden;
+}
+
+.mi-hist-recipe-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mi-hist-recipe-placeholder {
+  color: var(--color-ink-4);
+}
+
+.mi-hist-recipe-body {
+  padding: 5px 7px;
+}
+
+.mi-hist-recipe-name {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--color-ink);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mi-hist-recipe-time {
+  font-size: 9px;
+  color: var(--color-ink-4);
+  margin-top: 1px;
+}
+
+/* History card actions */
+.mi-history-card-actions {
+  padding: 8px 16px;
+  display: flex;
+  gap: 6px;
+  background: var(--color-bg-secondary);
+  border-top: 0.5px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+/* ── Older menus toggle ────────────────────────────────── */
+
+.mi-older-menus {
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mi-older-menus.open {
+  display: flex;
+}
+
+.mi-toggle-old {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--color-ink-3);
+  cursor: pointer;
+  padding: 8px 0;
+  border: none;
+  background: none;
+  width: 100%;
+  transition: color var(--transition-fast);
+}
+
+.mi-toggle-old:hover {
+  color: var(--color-ink);
+}
+
+.mi-toggle-old svg {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.mi-toggle-old-icon.open {
+  transform: rotate(180deg);
+}
+
+/* ── Empty state ───────────────────────────────────────── */
+
+.mi-empty {
   text-align: center;
   padding: 4rem 2rem;
   background: var(--color-bg-white);
@@ -127,22 +753,65 @@
   border: 0.5px solid var(--color-border);
 }
 
-.menus-empty-icon {
+.mi-empty-icon {
   font-size: 3rem;
   margin-bottom: 1rem;
 }
 
-.menus-empty-title {
+.mi-empty-title {
   font-size: var(--font-size-2xl);
   font-weight: 600;
   color: var(--color-ink);
   margin-bottom: 0.5rem;
 }
 
-.menus-empty-text {
+.mi-empty-text {
   color: var(--color-ink-3);
   margin-bottom: 1.5rem;
 }
+
+/* ── Responsive index ──────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .mi-page-wrap {
+    padding: 20px 16px 48px;
+    width: auto;
+  }
+
+  .mi-hero-stats {
+    display: none;
+  }
+
+  .mi-hero-card-top {
+    flex-direction: column;
+  }
+
+  .mi-recipe-cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mi-history-recipes {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .mi-draft-card-body {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .mi-draft-card-actions {
+    width: 100%;
+  }
+
+  .mi-page-top {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────
+   Legacy index classes preserved for other usages
+   ───────────────────────────────────────────────────────── */
 
 /* ── Hero new/edit ─────────────────────────────────────── */
 .mn-back-bar {
@@ -491,16 +1160,6 @@
 
 /* ── Responsive ────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .menus-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .menus-grid {
-    grid-template-columns: 1fr;
-  }
-
   .menu-show-header {
     flex-direction: column;
     align-items: flex-start;

@@ -4,16 +4,20 @@
 class MenusController < ApplicationController
   before_action :authenticate_user!
   before_action :set_menu, only: [ :show, :edit, :update, :destroy,
-                                   :activate, :add_random_meal, :replace_meal, :regenerate_grocery ]
+                                   :activate, :reactivate, :add_random_meal, :replace_meal, :regenerate_grocery ]
   before_action :authorize_menu, only: [ :show, :edit, :update, :destroy,
-                                         :activate, :add_random_meal, :replace_meal, :regenerate_grocery ]
+                                         :activate, :reactivate, :add_random_meal, :replace_meal, :regenerate_grocery ]
 
   # GET /menus
   def index
     authorize Menu
     @menus = policy_scope(Menu).recent.includes(menu_recipes: :recipe)
-    @draft  = @menus.find(&:status_draft?)
-    @active = @menus.reject(&:status_draft?)
+    @draft    = @menus.find(&:status_draft?)
+    @active   = @menus.find(&:status_active?)
+    @archived = @menus.select(&:status_archived?)
+    # Sépare les 3 premiers menus archivés (visibles) des plus anciens (masqués)
+    @recent_archived = @archived.first(3)
+    @older_archived  = @archived.drop(3)
   end
 
   # GET /menus/:id
@@ -69,11 +73,22 @@ class MenusController < ApplicationController
 
   # POST /menus/:id/activate
   # UC1 : Valide le menu brouillon et génère la liste de courses
+  # Archive automatiquement l'éventuel menu actif précédent
   def activate
     @menu.activate!
     redirect_to @menu, notice: "Menu activé ! Votre liste de courses est prête.", status: :see_other
   rescue => e
     redirect_to @menu, alert: "Impossible d'activer le menu : #{e.message}", status: :see_other
+  end
+
+  # POST /menus/:id/reactivate
+  # Réactive un menu archivé : l'ancien menu actif est archivé,
+  # celui-ci redevient actif et sa liste de courses est régénérée.
+  def reactivate
+    @menu.reactivate!
+    redirect_to @menu, notice: "Menu réactivé ! Votre liste de courses a été mise à jour.", status: :see_other
+  rescue => e
+    redirect_to @menu, alert: "Impossible de réactiver le menu : #{e.message}", status: :see_other
   end
 
   # POST /menus/:id/add_random_meal

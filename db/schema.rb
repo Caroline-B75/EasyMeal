@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_03_28_100003) do
+ActiveRecord::Schema[7.2].define(version: 2026_03_28_100004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -113,6 +113,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_28_100003) do
     t.index ["user_id", "start_date"], name: "index_menus_on_user_id_and_start_date"
     t.index ["user_id", "status"], name: "index_menus_on_user_id_and_status"
     t.index ["user_id"], name: "index_menus_on_user_id"
+    t.index ["user_id"], name: "index_menus_on_user_id_unique_active", unique: true, where: "(status = 1)"
   end
 
   create_table "preparations", force: :cascade do |t|

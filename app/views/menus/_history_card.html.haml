@@ -1,0 +1,45 @@
+-# Carte historique d'un menu archivé (index des menus)
+-# Affiche un résumé cliquable + détails dépliables avec les recettes
+-# menu : Menu(status: :archived)
+
+.mi-history-card{ id: "menu_#{menu.id}" }
+  .mi-history-card-header{ data: { action: "click->menus-index#toggleHistory" } }
+    .mi-history-card-left
+      .mi-history-card-name= menu.name.presence || "Menu sans nom"
+      .mi-history-card-meta
+        %span= french_date(menu.created_at)
+        %span ·
+        %span= menu_diet_label(menu.diet)
+        %span ·
+        %span= "#{menu.default_people} pers."
+        %span ·
+        %span= "#{menu.menu_recipes.size} repas"
+    .mi-history-card-right
+      %span.mi-badge-done Terminé
+      = svg_icon("chevron-down", size: 16, css_class: "mi-expand-icon")
+
+  .mi-history-expanded
+    - if menu.menu_recipes.any?
+      .mi-history-recipes
+        - menu.menu_recipes.each do |mr|
+          .mi-hist-recipe-card
+            .mi-hist-recipe-img
+              - if mr.recipe.photo.attached?
+                = image_tag mr.recipe.photo.variant(resize_to_fill: [96, 48]),
+                           class: "mi-hist-recipe-photo"
+              - else
+                = svg_icon("heart", size: 16, css_class: "mi-hist-recipe-placeholder")
+            .mi-hist-recipe-body
+              .mi-hist-recipe-name= mr.recipe.name
+              - total_time = mr.recipe.total_time_minutes
+              - if total_time > 0
+                .mi-hist-recipe-time= "#{total_time} min"
+
+    .mi-history-card-actions
+      = button_to reactivate_menu_path(menu), method: :post, class: "mi-btn-sm",
+                  form: { data: { turbo_confirm: "Rendre ce menu actif ? Le menu actif actuel sera archivé." } } do
+        = svg_icon("upload", size: 11)
+        Réutiliser ce menu
+      = button_to menu_path(menu), method: :delete, class: "mi-btn-sm-danger",
+                  form: { data: { turbo_confirm: "Supprimer ce menu ?" } } do
+        Supprimer

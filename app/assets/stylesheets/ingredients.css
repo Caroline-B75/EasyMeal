@@ -9,6 +9,7 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 2rem 1rem;
+  width: 50%;
 }
 
 .ingredients-header {
@@ -248,6 +249,7 @@
 @media (max-width: 767px) {
   .ingredients-container {
     padding: 1rem 0.75rem;
+    width: auto;
   }
 
   .ingredients-header {

@@ -1,0 +1,37 @@
+-# Vue d'un menu archivé : recettes en lecture seule + bouton de réactivation
+-# menu : Menu(status: :archived)
+-# menu_recipes : collection ordonnée des MenuRecipe
+
+.menu-archived
+
+  -# ── Barre d'information ──────────────────────────────────
+  .menu-archived-banner
+    %p.menu-archived-banner-text
+      Ce menu est archivé. Tu peux le consulter ou le rendre à nouveau actif.
+    = button_to "Rendre ce menu actif", reactivate_menu_path(menu),
+                method: :post,
+                class: "btn btn-primary",
+                form: { data: { turbo_confirm: "Rendre ce menu actif ? Le menu actif actuel sera archivé." } }
+
+  -# ── Liste des recettes (lecture seule) ───────────────────
+  - if menu_recipes.any?
+    %h2.menu-archived-title
+      = "#{menu_recipes.size} repas"
+    .meal-cards-list
+      - menu_recipes.each do |mr|
+        .meal-card.meal-card--readonly
+          .meal-card-info
+            %h3.meal-card-title
+              = link_to mr.recipe.name, recipe_path(mr.recipe), class: "meal-card-recipe-link"
+            .meal-card-badges
+              %span.badge= menu_diet_label(mr.recipe.diet)
+              - total_time = (mr.recipe.prep_time_minutes.to_i + mr.recipe.cook_time_minutes.to_i)
+              - if total_time > 0
+                %span.badge= "#{total_time} min"
+              - if mr.recipe.seasonal_for_month?(Date.today.month)
+                %span.badge.badge-amber De saison
+          .meal-card-people
+            %span.people-display= "#{mr.number_of_people} pers."
+  - else
+    .menu-archived-empty
+      %p Aucun repas dans ce menu.

@@ -1,4 +1,4 @@
--# Vue principale d'un menu — deux états : brouillon (personnalisation) ou actif (liste de courses)
+-# Vue principale d'un menu — trois états : brouillon, actif (liste de courses) ou archivé
 - content_for :title, @menu.name.presence || "Mon menu"
 
 .menu-show
@@ -16,6 +16,11 @@
       %span.menu-meta-people= "#{@menu.default_people} pers. par défaut"
 
     .menu-show-actions
+      - if @menu.status_archived?
+        = button_to "Rendre actif", reactivate_menu_path(@menu),
+                    method: :post,
+                    class: "btn btn-primary btn-sm",
+                    form: { data: { turbo_confirm: "Rendre ce menu actif ? Le menu actif actuel sera archivé." } }
       = link_to "Modifier", edit_menu_path(@menu), class: "btn btn-secondary btn-sm"
       = button_to menu_path(@menu), method: :delete, class: "btn btn-link btn-sm",
                   form: { data: { turbo_confirm: "Supprimer ce menu définitivement ?" } } do
@@ -24,5 +29,8 @@
   -# ── Contenu principal selon le statut ──────────────────
   - if @menu.status_draft?
     = render "draft_view", menu: @menu, menu_recipes: @menu_recipes
-  - else
+  - elsif @menu.status_active?
     = render "active_view", menu: @menu, grocery_items: @grocery_items
+  - else
+    -# Menu archivé : affiche les recettes en lecture seule
+    = render "archived_view", menu: @menu, menu_recipes: @menu_recipes
