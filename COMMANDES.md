@@ -125,7 +125,20 @@ git push origin main
 ```bash
 git checkout main
 git merge --no-ff feature/recipes -m "Merge branch 'feature/recipes' - Ajout modèle Recipe"
-git push origin main
+git push origin main  ##ça va demander le username : Caroline-B75 et le mot de passe sera le token à créer dans github comme ceci :
+# Sur Github — Créer un Personal Access Token sur GitHub :
+# Va sur github.com → connecte-toi avec ton mot de passe habituel
+# Clique sur ta photo de profil (en haut à droite) → Settings
+# Dans le menu gauche, tout en bas → Developer settings
+# Personal access tokens → Tokens (classic)
+# Generate new token → Generate new token (classic)
+# Donne-lui un nom (ex: easymeal-wsl), une expiration, et coche la case repo (accès complet aux repos)
+# Clique Generate token
+# ⚠️ Copie le token immédiatement — il ne s'affichera qu'une seule fois !
+# Étape 2 — Utiliser le token à la place du mot de passe
+# Quand Git te demande le mot de passe, colle ton token à la place :
+# Username: Caroline-B75
+# Password: <colle ton token ici>
 ```
 
 ---

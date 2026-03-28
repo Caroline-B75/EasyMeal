@@ -1,13 +1,11 @@
 # frozen_string_literal: true
 
-# Table de jointure entre Menu et Recipe
-# Stocke le nombre de personnes spécifique pour chaque recette dans un menu
-# Permet d'avoir la même recette plusieurs fois avec des portions différentes
+# Table de jointure entre Menu et Recipe.
+# Stocke le nombre de personnes spécifique pour chaque repas du menu,
+# permettant un override local du nombre de convives recette par recette.
 #
-# Exemple : Menu "Semaine 5" contient :
-# - Pâtes carbonara pour 4 personnes (lundi midi)
-# - Pâtes carbonara pour 2 personnes (mercredi soir)
-# - Salade César pour 6 personnes (samedi midi)
+# Règle : une recette ne peut apparaître qu'UNE FOIS dans un menu donné
+# (contrainte DB unique sur menu_id + recipe_id + validation Rails).
 class MenuRecipe < ApplicationRecord
   # === Constantes ===
   # Types de repas disponibles
@@ -26,6 +24,13 @@ class MenuRecipe < ApplicationRecord
                                }
 
   validates :meal_type, inclusion: { in: MEAL_TYPES, allow_blank: true }
+
+  # Unicité de la recette dans un menu (filet de sécurité côté Rails,
+  # la contrainte DB unique sur menu_id+recipe_id est le vrai garde-fou)
+  validates :recipe_id, uniqueness: {
+    scope: :menu_id,
+    message: "est déjà dans ce menu"
+  }
 
   # === Scopes ===
   # Trie par date planifiée

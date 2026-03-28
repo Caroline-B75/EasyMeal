@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_02_01_100001) do
+ActiveRecord::Schema[7.2].define(version: 2026_03_28_100003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -52,6 +52,26 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_01_100001) do
     t.index ["user_id"], name: "index_favorite_recipes_on_user_id"
   end
 
+  create_table "grocery_items", force: :cascade do |t|
+    t.bigint "menu_id", null: false
+    t.bigint "ingredient_id"
+    t.string "name", null: false
+    t.decimal "quantity_base", precision: 10, scale: 3, null: false
+    t.integer "unit_group", null: false
+    t.string "base_unit", null: false
+    t.integer "category"
+    t.boolean "checked", default: false, null: false
+    t.integer "source", default: 0, null: false
+    t.integer "position"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ingredient_id"], name: "index_grocery_items_on_ingredient_id"
+    t.index ["menu_id", "category"], name: "index_grocery_items_on_menu_id_and_category"
+    t.index ["menu_id", "ingredient_id"], name: "index_grocery_items_on_menu_id_and_ingredient_id"
+    t.index ["menu_id", "source"], name: "index_grocery_items_on_menu_id_and_source"
+    t.index ["menu_id"], name: "index_grocery_items_on_menu_id"
+  end
+
   create_table "ingredients", force: :cascade do |t|
     t.string "name", null: false
     t.integer "category", null: false
@@ -86,7 +106,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_01_100001) do
     t.date "start_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "status", default: 0, null: false
+    t.integer "diet"
+    t.integer "default_people", default: 2, null: false
+    t.index ["status"], name: "index_menus_on_status"
     t.index ["user_id", "start_date"], name: "index_menus_on_user_id_and_start_date"
+    t.index ["user_id", "status"], name: "index_menus_on_user_id_and_status"
     t.index ["user_id"], name: "index_menus_on_user_id"
   end
 
@@ -164,6 +189,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_01_100001) do
     t.string "last_name"
     t.boolean "admin", default: false
     t.string "gender"
+    t.integer "default_diet", default: 0, null: false
+    t.integer "default_people", default: 2, null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
@@ -172,6 +199,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_01_100001) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "favorite_recipes", "recipes"
   add_foreign_key "favorite_recipes", "users"
+  add_foreign_key "grocery_items", "ingredients"
+  add_foreign_key "grocery_items", "menus"
   add_foreign_key "menu_recipes", "menus"
   add_foreign_key "menu_recipes", "recipes"
   add_foreign_key "menus", "users"
