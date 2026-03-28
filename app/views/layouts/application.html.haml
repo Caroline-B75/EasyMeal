@@ -17,15 +17,9 @@
     = javascript_importmap_tags
 
   %body{ class: ("home-page" if home_page?) }
-    -# Flash messages modernes
-    - if notice.present? || alert.present?
-      .flash-messages
-        - if notice.present?
-          .flash-message.notice{data: {controller: "flash"}}
-            = notice
-        - if alert.present?
-          .flash-message.alert{data: {controller: "flash"}}
-            = alert
+    -# Flash messages — turbo_stream cible l'id "flash" pour les mises à jour dynamiques
+    #flash
+      = render "shared/flash"
 
     -# Navigation principale responsive
     - if user_signed_in?
@@ -71,6 +65,14 @@
                     %path{ d: "M12 2l9 7-9 7-9-7 9-7z" }
                     %path{ d: "M12 22V9" }
                   %span Recettes
+
+                = link_to menus_path, class: "dropdown-link" do
+                  %svg{ width: "20", height: "20", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2" }
+                    %path{ d: "M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" }
+                    %rect{ x: "9", y: "3", width: "6", height: "4", rx: "2" }
+                    %line{ x1: "9", y1: "12", x2: "15", y2: "12" }
+                    %line{ x1: "9", y1: "16", x2: "13", y2: "16" }
+                  %span Mes menus
 
                 = link_to destroy_user_session_path, data: { turbo_method: :delete }, class: "dropdown-link logout" do
                   %svg{ width: "20", height: "20", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2" }

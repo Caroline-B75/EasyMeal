@@ -1,0 +1,28 @@
+-# Vue principale d'un menu — deux états : brouillon (personnalisation) ou actif (liste de courses)
+- content_for :title, @menu.name.presence || "Mon menu"
+
+.menu-show
+
+  -# ── En-tête ──────────────────────────────────────────────
+  .menu-show-header
+    .menu-show-breadcrumb
+      = link_to "Mes menus", menus_path, class: "menu-breadcrumb-link"
+      %span.menu-breadcrumb-sep ›
+      %span.menu-breadcrumb-current= @menu.name.presence || "Menu sans nom"
+
+    .menu-show-meta
+      %span{ class: menu_status_badge_class(@menu) }= menu_status_label(@menu)
+      %span.menu-meta-diet= menu_diet_label(@menu.diet)
+      %span.menu-meta-people= "#{@menu.default_people} pers. par défaut"
+
+    .menu-show-actions
+      = link_to "Modifier", edit_menu_path(@menu), class: "btn btn-secondary btn-sm"
+      = button_to menu_path(@menu), method: :delete, class: "btn btn-link btn-sm",
+                  form: { data: { turbo_confirm: "Supprimer ce menu définitivement ?" } } do
+        Supprimer
+
+  -# ── Contenu principal selon le statut ──────────────────
+  - if @menu.status_draft?
+    = render "draft_view", menu: @menu, menu_recipes: @menu_recipes
+  - else
+    = render "active_view", menu: @menu, grocery_items: @grocery_items

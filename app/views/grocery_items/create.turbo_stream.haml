@@ -1,0 +1,5 @@
+-# Turbo Stream : remplace toute la liste de courses après ajout d'un item manuel
+= turbo_stream.replace "grocery_list" do
+  = render "menus/active_view",
+           menu: @menu,
+           grocery_items: GroceryItem.where(menu: @menu).sorted

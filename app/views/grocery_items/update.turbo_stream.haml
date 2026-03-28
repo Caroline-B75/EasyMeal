@@ -1,0 +1,3 @@
+-# Turbo Stream : met à jour l'item après toggle coché ou modification quantité
+= turbo_stream.replace "grocery_item_#{@grocery_item.id}" do
+  = render "menus/grocery_item", item: @grocery_item, menu: @menu

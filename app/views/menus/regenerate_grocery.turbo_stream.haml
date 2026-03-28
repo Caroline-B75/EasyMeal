@@ -1,0 +1,6 @@
+-# Turbo Stream : régénère la liste de courses complète (UC3)
+-# Les items manuels sont préservés par le service ; on recharge tout pour la cohérence
+= turbo_stream.replace "grocery_list" do
+  = render "menus/active_view",
+           menu: @menu,
+           grocery_items: GroceryItem.where(menu: @menu).sorted

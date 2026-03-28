@@ -1,0 +1,38 @@
+-# UC2 — Vue brouillon : personnalisation du menu avant validation
+-# menu : Menu(status: :draft)
+-# menu_recipes : collection ordonnée des MenuRecipe
+
+.menu-draft
+
+  -# ── Barre d'outils ───────────────────────────────────────
+  .menu-draft-toolbar
+    %h2.menu-draft-title Personnalise ton menu
+    .menu-draft-toolbar-actions
+      = button_to "＋ Repas aléatoire", add_random_meal_menu_path(menu),
+                  method: :post,
+                  class: "btn btn-secondary"
+
+  -# ── Liste des repas (turbo frame cible pour append/replace) ──
+  = turbo_frame_tag "menu_recipes_list" do
+    - if menu_recipes.any?
+      .meal-cards-list
+        - menu_recipes.each do |mr|
+          = render "menu_recipe_card", menu_recipe: mr, menu: menu
+    - else
+      .menu-draft-empty
+        %p.menu-draft-empty-text Aucun repas dans ce menu.
+        %p Utilise le bouton ci-dessus pour en ajouter.
+
+  -# ── Pied de page : résumé + validation ──────────────────
+  .menu-draft-footer
+    .menu-draft-summary
+      %strong= "#{menu_recipes.size} repas"
+      %span.menu-draft-summary-sep ·
+      %span= "#{menu.default_people} pers. par défaut"
+
+    = button_to "Valider et générer la liste de courses →",
+                activate_menu_path(menu),
+                method: :post,
+                class: "btn btn-primary btn-lg",
+                disabled: menu_recipes.empty?,
+                form: { data: { turbo_confirm: "Valider le menu ? Tu ne pourras plus le modifier." } }

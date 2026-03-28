@@ -1,0 +1,40 @@
+-# Item de la liste de courses (UC3)
+-# Chaque item est encapsulé dans un turbo_frame pour les mises à jour individuelles.
+-# item : GroceryItem
+-# menu : Menu
+
+= turbo_frame_tag "grocery_item_#{item.id}" do
+  .grocery-item{ class: ("grocery-item--checked" if item.checked),
+                 data: { controller: "grocery-check" } }
+
+    -# Bouton toggle coché/non coché (feedback optimiste via grocery-check)
+    .grocery-item-check
+      = button_to menu_grocery_item_path(menu, item),
+                  method: :patch,
+                  params: { grocery_item: { checked: !item.checked } },
+                  class: "btn-checkbox #{'btn-checkbox--checked' if item.checked}",
+                  title: item.checked ? "Décocher" : "Cocher",
+                  "aria-label": item.checked ? "Décocher l'article" : "Cocher l'article",
+                  data: { "grocery-check-target": "checkbox",
+                          action: "click->grocery-check#toggle" } do
+        = item.checked ? "✓" : "○"
+
+    -# Nom et quantité
+    .grocery-item-body
+      %span.grocery-item-name{ class: ("grocery-item-name--checked" if item.checked),
+                                data: { "grocery-check-target": "label" } }= item.name
+      - if item.quantity_base.present?
+        %span.grocery-item-qty= item.quantity_display
+
+    -# Badge source (manuel uniquement)
+    - if item.source_manual?
+      %span.badge.grocery-item-manual-badge Manuel
+
+    -# Suppression (items manuels uniquement via l'UI)
+    - if item.source_manual?
+      = button_to "✕", menu_grocery_item_path(menu, item),
+                  method: :delete,
+                  class: "btn-remove",
+                  title: "Supprimer",
+                  "aria-label": "Supprimer l'article #{item.name}",
+                  form: { data: { turbo_confirm: "Supprimer \"#{item.name}\" ?" } }

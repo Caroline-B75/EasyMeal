@@ -3,7 +3,7 @@
 # Create/Update/Destroy : réservés aux admins (gestion du catalogue)
 class RecipesController < ApplicationController
   before_action :authenticate_user!, except: [ :index, :show ]
-  before_action :set_recipe, only: [ :show, :edit, :update, :destroy, :toggle_favorite ]
+  before_action :set_recipe, only: [ :show, :edit, :update, :destroy, :toggle_favorite, :add_to_menu ]
   before_action :authorize_recipe, only: [ :show, :edit, :update, :destroy ]
 
   # GET /recipes
@@ -79,6 +79,25 @@ class RecipesController < ApplicationController
     respond_to do |format|
       format.html { redirect_with_favorite_notice(added) }
       format.turbo_stream { render_favorite_turbo_stream(added) }
+    end
+  end
+
+  # POST /recipes/:id/add_to_menu
+  # UC2 : Ajoute la recette au menu brouillon en cours de l'utilisateur
+  def add_to_menu
+    draft = current_user.menus.status_draft.recent.first
+
+    if draft.nil?
+      redirect_to recipe, alert: "Aucun menu brouillon en cours. Générez d'abord un menu."
+      return
+    end
+
+    menu_recipe = draft.menu_recipes.new(recipe: recipe, number_of_people: draft.default_people)
+
+    if menu_recipe.save
+      redirect_to draft, notice: "\"#{recipe.name}\" ajoutée au menu."
+    else
+      redirect_to recipe, alert: menu_recipe.errors.full_messages.to_sentence
     end
   end
 

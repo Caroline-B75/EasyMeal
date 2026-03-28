@@ -148,8 +148,9 @@ class Recipe < ApplicationRecord
   end
 
   # Vérifie si la recette est de saison pour un mois donné
+  # Utilise le champ season_months (integer[]) de chaque ingrédient
   def seasonal_for_month?(month)
-    ingredients.any? { |ingredient| ingredient.in_season_for_month?(month) }
+    ingredients.any? { |ingredient| ingredient.season_months&.include?(month.to_i) }
   end
 
   # Note moyenne des avis (arrondi à 1 décimale)

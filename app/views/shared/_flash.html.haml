@@ -1,0 +1,7 @@
+-# Partial flash — rendu initial par le layout ET mis à jour dynamiquement par Turbo Streams.
+-# Accepte un local `flash` (hash) ou utilise le flash Rails global.
+- flash_messages = local_assigns.key?(:flash) ? local_assigns[:flash] : flash
+- flash_messages.each do |type, message|
+  - next if message.blank?
+  .flash-message{ class: type.to_s, data: { controller: "flash" } }
+    = message

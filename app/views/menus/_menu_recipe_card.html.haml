@@ -1,0 +1,45 @@
+-# Carte d'un repas dans le menu brouillon (UC2)
+-# Chaque carte est encapsulée dans un turbo_frame pour les remplacements dynamiques.
+-# menu_recipe : MenuRecipe
+-# menu : Menu
+
+= turbo_frame_tag "menu_recipe_#{menu_recipe.id}" do
+  .meal-card
+    -# Infos recette
+    .meal-card-info
+      %h3.meal-card-title
+        = link_to menu_recipe.recipe.name, recipe_path(menu_recipe.recipe), class: "meal-card-recipe-link"
+
+      .meal-card-badges
+        %span.badge= menu_diet_label(menu_recipe.recipe.diet)
+        - total_time = (menu_recipe.recipe.prep_time_minutes.to_i + menu_recipe.recipe.cook_time_minutes.to_i)
+        - if total_time > 0
+          %span.badge= "#{total_time} min"
+        - if menu_recipe.recipe.seasonal_for_month?(Date.today.month)
+          %span.badge.badge-amber De saison
+
+    -# Contrôle du nombre de personnes pour ce repas (auto-submit debounced)
+    .meal-card-people
+      = form_with model: [menu, menu_recipe], method: :patch,
+                  class: "people-form",
+                  data: { controller: "people-counter" } do |f|
+        %label.people-label
+          = f.number_field :number_of_people,
+                           value: menu_recipe.number_of_people,
+                           min: 1, max: 20,
+                           class: "people-input",
+                           data: { action: "input->people-counter#scheduleSubmit" }
+          %span.people-label-text pers.
+        = f.submit "✓", class: "btn btn-icon btn-sm",
+                         data: { action: "click->people-counter#submitNow" }
+
+    -# Actions : remplacer ou supprimer
+    .meal-card-actions
+      = form_with url: replace_meal_menu_path(menu), method: :post, class: "inline-form" do |f|
+        = f.hidden_field :menu_recipe_id, value: menu_recipe.id
+        = f.submit "Remplacer", class: "btn btn-secondary btn-sm"
+
+      = button_to "Supprimer", menu_menu_recipe_path(menu, menu_recipe),
+                  method: :delete,
+                  class: "btn btn-link btn-sm",
+                  form: { data: { turbo_confirm: "Supprimer ce repas du menu ?" } }

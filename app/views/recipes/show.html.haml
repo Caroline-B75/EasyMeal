@@ -48,8 +48,13 @@
 
       -# Boutons d'action
       .rs-actions
-        = link_to "#", class: "rs-btn-accent" do
-          Ajouter à mon menu
+        - if current_user
+          = button_to "Ajouter à mon menu", add_to_menu_recipe_path(@recipe),
+                      method: :post,
+                      class: "rs-btn-accent",
+                      title: "Ajouter cette recette à mon menu brouillon"
+        - else
+          = link_to "Ajouter à mon menu", new_user_session_path, class: "rs-btn-accent"
 
         - if current_user
           = render "recipes/favorite_button", recipe: @recipe, is_favorited: @is_favorited, container_id: "favorite-btn-#{@recipe.id}", show_page: true

@@ -1,0 +1,17 @@
+-# UC1/UC2 — Édition du nom et des paramètres de base du menu
+- content_for :title, "Modifier le menu"
+
+.mn-back-bar
+  = link_to menu_path(@menu), class: "mn-back-link" do
+    = svg_icon("chevron-left", size: 14, css_class: "mn-back-chevron")
+    Retour au menu
+
+.mn-hero
+  .mn-hero-inner
+    .mn-kicker
+      %span.mn-kicker-line
+      MODIFIER LE MENU
+    %h1.mn-hero-title= @menu.name.presence || "Menu sans nom"
+
+.mn-body
+  = render "form_edit", menu: @menu

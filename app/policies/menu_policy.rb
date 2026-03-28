@@ -9,6 +9,11 @@
 #   utilisateur connecté ET propriétaire du menu.
 # - Scope : un utilisateur ne voit que ses propres menus.
 class MenuPolicy < ApplicationPolicy
+  # Tout utilisateur connecté peut lister ses propres menus
+  def index?
+    user.present?
+  end
+
   # Tout utilisateur connecté peut créer un menu
   def create?
     user.present?

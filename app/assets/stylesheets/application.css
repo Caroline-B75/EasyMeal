@@ -19,5 +19,7 @@
  *= require recipes
  *= require tags
  *= require authentication
+ *= require menus
+ *= require grocery_items
  *= require_self
  */

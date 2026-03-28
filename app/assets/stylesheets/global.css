@@ -30,8 +30,9 @@ body.home-page {
   overflow: hidden;
 }
 
-/* Flash Messages Container */
-.flash-messages {
+/* Flash Messages Container — supporte .flash-messages et #flash (cible Turbo Stream) */
+.flash-messages,
+#flash {
   position: fixed;
   top: 1.5rem;
   right: 1.5rem;
@@ -122,7 +123,8 @@ p.alert:empty,
 
 /* Responsive */
 @media (max-width: 640px) {
-  .flash-messages {
+  .flash-messages,
+  #flash {
     top: 1rem;
     right: 1rem;
     left: 1rem;

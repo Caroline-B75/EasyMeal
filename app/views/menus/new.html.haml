@@ -1,0 +1,17 @@
+-# UC1 — Génération d'un nouveau menu
+- content_for :title, "Créer un menu"
+
+.mn-back-bar
+  = link_to menus_path, class: "mn-back-link" do
+    = svg_icon("chevron-left", size: 14, css_class: "mn-back-chevron")
+    Mes menus
+
+.mn-hero
+  .mn-hero-inner
+    .mn-kicker
+      %span.mn-kicker-line
+      NOUVEAU MENU
+    %h1.mn-hero-title Génère ton menu
+
+.mn-body
+  = render "form_generate", menu: @menu

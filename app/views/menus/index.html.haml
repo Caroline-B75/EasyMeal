@@ -1,0 +1,55 @@
+-# UC1/UC2/UC3 — Liste de mes menus (brouillons + actifs)
+- content_for :title, "Mes menus"
+
+.menus-container
+  .menus-header
+    %h1.menus-title Mes menus
+    = link_to "Créer un menu", new_menu_path, class: "btn btn-primary"
+
+  -# ── Brouillon en cours ────────────────────────────────────
+  - if @draft
+    .menus-section
+      .menus-section-label BROUILLON EN COURS
+      .menus-grid
+        .menu-card.menu-card--draft{ id: "menu_#{@draft.id}" }
+          .menu-card-header
+            %h3.menu-card-title= @draft.name.presence || "Menu sans nom"
+            %span{ class: menu_status_badge_class(@draft) }= menu_status_label(@draft)
+          .menu-card-meta
+            %span.menu-card-diet= menu_diet_label(@draft.diet)
+            %span.menu-card-people= "#{@draft.default_people} pers."
+            %span.menu-card-meals= "#{@draft.menu_recipes.size} repas"
+          .menu-card-actions
+            = link_to "Personnaliser", menu_path(@draft), class: "btn btn-primary btn-sm"
+            = link_to "Modifier", edit_menu_path(@draft), class: "btn btn-secondary btn-sm"
+            = button_to menu_path(@draft), method: :delete, class: "btn btn-link btn-sm",
+                        form: { data: { turbo_confirm: "Supprimer ce menu ?" } } do
+              Supprimer
+
+  -# ── Menus actifs ─────────────────────────────────────────
+  - if @active.any?
+    .menus-section
+      .menus-section-label MENUS ACTIFS
+      .menus-grid
+        - @active.each do |menu|
+          .menu-card{ id: "menu_#{menu.id}" }
+            .menu-card-header
+              %h3.menu-card-title= menu.name.presence || "Menu sans nom"
+              %span{ class: menu_status_badge_class(menu) }= menu_status_label(menu)
+            .menu-card-meta
+              %span.menu-card-diet= menu_diet_label(menu.diet)
+              %span.menu-card-people= "#{menu.default_people} pers."
+              %span.menu-card-meals= "#{menu.menu_recipes.size} repas"
+            .menu-card-actions
+              = link_to "Voir la liste", menu_path(menu), class: "btn btn-secondary btn-sm"
+              = button_to menu_path(menu), method: :delete, class: "btn btn-link btn-sm",
+                          form: { data: { turbo_confirm: "Supprimer ce menu ?" } } do
+                Supprimer
+
+  -# ── État vide ────────────────────────────────────────────
+  - if @draft.nil? && @active.empty?
+    .menus-empty
+      .menus-empty-icon 🍽
+      %h2.menus-empty-title Aucun menu pour l'instant
+      %p.menus-empty-text Génère ton premier menu personnalisé en quelques secondes.
+      = link_to "Créer mon premier menu", new_menu_path, class: "btn btn-primary"
