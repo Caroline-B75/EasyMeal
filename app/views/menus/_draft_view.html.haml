@@ -1,38 +1,37 @@
--# UC2 — Vue brouillon : personnalisation du menu avant validation
+-# UC2 — Vue brouillon : personnalisation du menu (card grid)
+-# Design : mockup easymeal_menu_customize.html — Slate Craft Premium
 -# menu : Menu(status: :draft)
 -# menu_recipes : collection ordonnée des MenuRecipe
 
-.menu-draft
+.mc-page-outer
+  .mc-page-wrap
 
-  -# ── Barre d'outils ───────────────────────────────────────
-  .menu-draft-toolbar
-    %h2.menu-draft-title Personnalise ton menu
-    .menu-draft-toolbar-actions
-      = button_to "＋ Repas aléatoire", add_random_meal_menu_path(menu),
-                  method: :post,
-                  class: "btn btn-secondary"
+    .mc-page-header
+      .mc-page-title Personnalise ton menu
+      .mc-page-hint Glisse pour réordonner
 
-  -# ── Liste des repas (turbo frame cible pour append/replace) ──
-  = turbo_frame_tag "menu_recipes_list" do
-    - if menu_recipes.any?
-      .meal-cards-list
+    .mc-card-grid{ data: { menu_customize_target: "grid" } }
+
+      - if menu_recipes.any?
         - menu_recipes.each do |mr|
           = render "menu_recipe_card", menu_recipe: mr, menu: menu
-    - else
-      .menu-draft-empty
-        %p.menu-draft-empty-text Aucun repas dans ce menu.
-        %p Utilise le bouton ci-dessus pour en ajouter.
+      - else
+        .mc-empty-grid
+          %p.mc-empty-text Aucun repas dans ce menu.
 
-  -# ── Pied de page : résumé + validation ──────────────────
-  .menu-draft-footer
-    .menu-draft-summary
-      %strong= "#{menu_recipes.size} repas"
-      %span.menu-draft-summary-sep ·
-      %span= "#{menu.default_people} pers. par défaut"
+      -# ── Slot d'ajout (2 boutons empilés) ─────────────────
+      .mc-add-slot{ id: "add_slot", data: { menu_customize_target: "addSlot" } }
+        = link_to recipes_path, class: "mc-add-btn" do
+          = svg_icon("search", size: 15)
+          %span Depuis le catalogue
+        = button_to add_random_meal_menu_path(menu), method: :post, class: "mc-add-btn" do
+          = svg_icon("shuffle", size: 15)
+          %span Repas aléatoire
 
-    = button_to "Valider et générer la liste de courses →",
-                activate_menu_path(menu),
-                method: :post,
-                class: "btn btn-primary btn-lg",
-                disabled: menu_recipes.empty?,
-                form: { data: { turbo_confirm: "Valider le menu ? Tu ne pourras plus le modifier." } }
+    -# ── Bouton de validation ───────────────────────────────
+    .mc-validate-zone
+      = button_to activate_menu_path(menu), method: :post, class: "mc-btn-validate",
+                  disabled: menu_recipes.empty?,
+                  form: { data: { turbo_confirm: "Valider le menu ? La liste de courses sera générée." } } do
+        Valider et générer la liste de courses
+        = svg_icon("arrow-right", size: 15)

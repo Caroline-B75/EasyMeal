@@ -282,9 +282,9 @@
   min-height: 0;
 }
 
-/* Sur la home uniquement, pas de scroll */
+/* Sur la home, le contenu peut s'étendre au-delà du viewport */
 .home-page .main-content {
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* === Container de page === */

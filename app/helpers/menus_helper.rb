@@ -53,4 +53,11 @@ module MenusHelper
     else "badge"
     end
   end
+
+  # Options pour le select du nombre de personnes (mockup card grid)
+  PEOPLE_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12].freeze
+
+  def people_select_options
+    PEOPLE_OPTIONS.map { |n| ["#{n} pers.", n] }
+  end
 end

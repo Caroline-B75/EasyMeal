@@ -1,36 +1,77 @@
--# Vue principale d'un menu — trois états : brouillon, actif (liste de courses) ou archivé
+-# Vue principale d'un menu — trois états : brouillon, actif ou archivé
 - content_for :title, @menu.name.presence || "Mon menu"
 
-.menu-show
+- if @menu.status_draft?
+  -# ── Layout card-grid pour la personnalisation du brouillon ──
+  .mc-wrapper{ data: { controller: "menu-customize",
+                        menu_customize_reorder_url_value: reorder_menu_menu_recipes_path(@menu) } }
 
-  -# ── En-tête ──────────────────────────────────────────────
-  .menu-show-header
-    .menu-show-breadcrumb
-      = link_to "Mes menus", menus_path, class: "menu-breadcrumb-link"
-      %span.menu-breadcrumb-sep ›
-      %span.menu-breadcrumb-current= @menu.name.presence || "Menu sans nom"
+    -# ── Barre contextuelle ─────────────────────────────────
+    .mc-context-bar
+      = link_to "Mes menus", menus_path, class: "mc-bc-link"
+      %span.mc-bc-sep ›
+      %span.mc-bc-current= @menu.name.presence || "Menu sans nom"
+      %span.mc-chip.mc-chip-draft Brouillon
+      %span.mc-chip= menu_diet_label(@menu.diet)
+      %span.mc-chip= "#{@menu.default_people} pers. par défaut"
+      %span.mc-chip{ data: { menu_customize_target: "countChip" } }
+        = "#{@menu_recipes.size} repas"
+      .mc-ctx-btns
+        = link_to edit_menu_path(@menu), class: "mc-btn-outline-sm" do
+          = svg_icon("edit", size: 11)
+          Modifier les paramètres
+        = button_to menu_path(@menu), method: :delete, class: "mc-btn-danger-sm",
+                    form: { data: { turbo_confirm: "Supprimer ce menu définitivement ?" } } do
+          Supprimer ce menu
 
-    .menu-show-meta
-      %span{ class: menu_status_badge_class(@menu) }= menu_status_label(@menu)
-      %span.menu-meta-diet= menu_diet_label(@menu.diet)
-      %span.menu-meta-people= "#{@menu.default_people} pers. par défaut"
+    = render "draft_view", menu: @menu, menu_recipes: @menu_recipes
 
-    .menu-show-actions
-      - if @menu.status_archived?
+- elsif @menu.status_active?
+  -# ── Layout card-grid en lecture seule (même design que le brouillon) ──
+  .mc-wrapper
+
+    -# ── Barre contextuelle ─────────────────────────────────
+    .mc-context-bar
+      = link_to "Mes menus", menus_path, class: "mc-bc-link"
+      %span.mc-bc-sep ›
+      %span.mc-bc-current= @menu.name.presence || "Menu sans nom"
+      %span.mc-chip.mc-chip-active En cours
+      %span.mc-chip= menu_diet_label(@menu.diet)
+      %span.mc-chip= "#{@menu.default_people} pers. par défaut"
+      %span.mc-chip= "#{@menu_recipes.size} repas"
+      .mc-ctx-btns
+        = link_to grocery_menu_path(@menu), class: "mc-btn-outline-sm" do
+          = svg_icon("list", size: 11)
+          Liste de courses
+        = button_to menu_path(@menu), method: :delete, class: "mc-btn-danger-sm",
+                    form: { data: { turbo_confirm: "Supprimer ce menu définitivement ?" } } do
+          Supprimer ce menu
+
+    = render "active_view", menu: @menu, menu_recipes: @menu_recipes
+
+- else
+  .menu-show
+
+    -# ── En-tête (archivé) ────────────────────────────────────
+    .menu-show-header
+      .menu-show-breadcrumb
+        = link_to "Mes menus", menus_path, class: "menu-breadcrumb-link"
+        %span.menu-breadcrumb-sep ›
+        %span.menu-breadcrumb-current= @menu.name.presence || "Menu sans nom"
+
+      .menu-show-meta
+        %span{ class: menu_status_badge_class(@menu) }= menu_status_label(@menu)
+        %span.menu-meta-diet= menu_diet_label(@menu.diet)
+        %span.menu-meta-people= "#{@menu.default_people} pers. par défaut"
+
+      .menu-show-actions
         = button_to "Rendre actif", reactivate_menu_path(@menu),
                     method: :post,
                     class: "btn btn-primary btn-sm",
                     form: { data: { turbo_confirm: "Rendre ce menu actif ? Le menu actif actuel sera archivé." } }
-      = link_to "Modifier", edit_menu_path(@menu), class: "btn btn-secondary btn-sm"
-      = button_to menu_path(@menu), method: :delete, class: "btn btn-link btn-sm",
-                  form: { data: { turbo_confirm: "Supprimer ce menu définitivement ?" } } do
-        Supprimer
+        = button_to menu_path(@menu), method: :delete, class: "btn btn-link btn-sm",
+                    form: { data: { turbo_confirm: "Supprimer ce menu définitivement ?" } } do
+          Supprimer
 
-  -# ── Contenu principal selon le statut ──────────────────
-  - if @menu.status_draft?
-    = render "draft_view", menu: @menu, menu_recipes: @menu_recipes
-  - elsif @menu.status_active?
-    = render "active_view", menu: @menu, grocery_items: @grocery_items
-  - else
-    -# Menu archivé : affiche les recettes en lecture seule
+    -# ── Contenu principal ──────────────────────────────────
     = render "archived_view", menu: @menu, menu_recipes: @menu_recipes

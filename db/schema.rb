@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_03_28_100004) do
+ActiveRecord::Schema[7.2].define(version: 2026_03_31_100001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -94,6 +94,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_28_100004) do
     t.date "scheduled_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "position", default: 0, null: false
+    t.index ["menu_id", "position"], name: "index_menu_recipes_on_menu_id_and_position"
     t.index ["menu_id", "recipe_id"], name: "index_menu_recipes_on_menu_id_and_recipe_id"
     t.index ["menu_id", "scheduled_date"], name: "index_menu_recipes_on_menu_id_and_scheduled_date"
     t.index ["menu_id"], name: "index_menu_recipes_on_menu_id"

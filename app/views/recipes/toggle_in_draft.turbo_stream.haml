@@ -1,0 +1,20 @@
+-# Turbo Stream : toggle ajout/retrait d'une recette dans le menu brouillon
+-# Remplace 3 cibles : le bouton draft sur la carte, la barre contextuelle, le flash
+
+- draft_count = @draft.menu_recipes.size
+
+-# 1. Remplace le bouton draft sur la carte de la recette
+= turbo_stream.replace "draft-btn-#{@recipe.id}" do
+  = render "recipes/draft_button", recipe: @recipe,
+                                    in_draft: @added,
+                                    container_id: "draft-btn-#{@recipe.id}"
+
+-# 2. Remplace la barre contextuelle (compteur mis à jour)
+= turbo_stream.replace "draft-status-bar" do
+  = render "recipes/draft_status_bar", draft: @draft
+
+-# 3. Affiche le flash de confirmation (wrapper #flash préservé pour les remplacements suivants)
+- notice_msg = @added ? "\"#{@recipe.name}\" ajoutée au menu brouillon (#{draft_count} recette#{'s' if draft_count != 1})" : "\"#{@recipe.name}\" retirée du menu brouillon (#{draft_count} recette#{'s' if draft_count != 1})"
+= turbo_stream.update "flash" do
+  .flash-message.notice{ data: { controller: "flash" } }
+    = notice_msg

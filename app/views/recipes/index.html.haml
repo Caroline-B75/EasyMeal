@@ -182,6 +182,10 @@
             %span.btn-icon ✚
             Ajouter une recette
 
+      -# ── Barre contextuelle menu brouillon ──
+      - if current_user
+        = render "recipes/draft_status_bar", draft: @draft
+
       -# Loader de chargement
       .recipes-loader.hidden{ data: { recipe_filter_target: "loader" } }
         .loader-spinner
@@ -233,6 +237,12 @@
                                                         is_favorited: recipe.favorited_by?(current_user),
                                                         container_id: "favorite-btn-#{recipe.id}",
                                                         compact: true
+
+                  -# Bouton ajout/retrait du menu brouillon en overlay
+                  - if current_user && @draft
+                    = render "recipes/draft_button", recipe: recipe,
+                                                     in_draft: @draft_recipe_ids.include?(recipe.id),
+                                                     container_id: "draft-btn-#{recipe.id}"
 
             .pagination-container
               = pagy_nav(@pagy) if @pagy.pages > 1

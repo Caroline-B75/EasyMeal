@@ -1,0 +1,4 @@
+-# Partial brouillon en cours — Boutons de reprise (sans card)
+.hero-dashboard-actions
+  = link_to "Reprendre mon menu", menu_path(draft), class: "btn-hero"
+  = link_to "Valider le menu", activate_menu_path(draft), method: :post, class: "btn-hero btn-hero--secondary"

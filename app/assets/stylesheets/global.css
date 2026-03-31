@@ -24,10 +24,9 @@ body {
   display: none !important;
 }
 
-/* === Page d'accueil uniquement : pas de scroll === */
+/* === Page d'accueil : pleine hauteur minimum, scrollable si contenu déborde === */
 body.home-page {
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
 }
 
 /* Flash Messages Container — supporte .flash-messages et #flash (cible Turbo Stream) */

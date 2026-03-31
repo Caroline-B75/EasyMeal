@@ -3,6 +3,8 @@
 # Les items :generated sont produits par BuildForMenuService (non modifiables manuellement).
 # Les items :manual sont créés ici et peuvent être édités/supprimés librement.
 class GroceryItemsController < ApplicationController
+  include TurboFlashable
+
   before_action :authenticate_user!
   before_action :set_menu
   before_action :set_grocery_item, only: [ :update, :destroy ]
@@ -15,15 +17,9 @@ class GroceryItemsController < ApplicationController
     authorize @grocery_item
 
     if @grocery_item.save
-      respond_to do |format|
-        format.turbo_stream
-        format.html { redirect_to @menu }
-      end
+      respond_success(redirect_path: @menu)
     else
-      respond_to do |format|
-        format.turbo_stream { render_flash_stream(alert: @grocery_item.errors.full_messages.to_sentence) }
-        format.html { redirect_to @menu, alert: @grocery_item.errors.full_messages.to_sentence }
-      end
+      respond_error(@grocery_item, redirect_path: @menu)
     end
   end
 
@@ -31,15 +27,9 @@ class GroceryItemsController < ApplicationController
   # UC3 : Cocher/décocher un item ou modifier sa quantité/unité
   def update
     if @grocery_item.update(grocery_item_update_params)
-      respond_to do |format|
-        format.turbo_stream
-        format.html { redirect_to @menu }
-      end
+      respond_success(redirect_path: @menu)
     else
-      respond_to do |format|
-        format.turbo_stream { render_flash_stream(alert: @grocery_item.errors.full_messages.to_sentence) }
-        format.html { redirect_to @menu, alert: @grocery_item.errors.full_messages.to_sentence }
-      end
+      respond_error(@grocery_item, redirect_path: @menu)
     end
   end
 
@@ -47,10 +37,7 @@ class GroceryItemsController < ApplicationController
   # Suppression d'un item (manual uniquement depuis l'UI ; generated via regenerate_grocery)
   def destroy
     @grocery_item.destroy
-    respond_to do |format|
-      format.turbo_stream
-      format.html { redirect_to @menu }
-    end
+    respond_success(redirect_path: @menu)
   end
 
   private
@@ -66,14 +53,6 @@ class GroceryItemsController < ApplicationController
 
   def authorize_grocery_item
     authorize @grocery_item
-  end
-
-  def render_flash_stream(alert:)
-    render turbo_stream: turbo_stream.replace(
-      "flash",
-      partial: "shared/flash",
-      locals: { flash: { alert: alert } }
-    )
   end
 
   # Paramètres pour la création d'un item manuel

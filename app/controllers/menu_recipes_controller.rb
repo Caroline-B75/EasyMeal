@@ -2,27 +2,25 @@
 # Toutes les actions sont nestées sous /menus/:menu_id/menu_recipes.
 # Réponses Turbo Stream pour une expérience fluide sans rechargement de page.
 class MenuRecipesController < ApplicationController
+  include TurboFlashable
+
   before_action :authenticate_user!
   before_action :set_menu
   before_action :set_menu_recipe, only: [ :update, :destroy ]
   before_action :authorize_menu_recipe, only: [ :update, :destroy ]
+  before_action :authorize_reorder, only: [ :reorder ]
 
   # POST /menus/:menu_id/menu_recipes
   # Ajout manuel d'une recette au menu (via fiche recette → "Ajouter à mon menu")
   def create
     @menu_recipe = @menu.menu_recipes.new(menu_recipe_create_params)
+    @menu_recipe.position = next_position
     authorize @menu_recipe
 
     if @menu_recipe.save
-      respond_to do |format|
-        format.turbo_stream
-        format.html { redirect_to @menu }
-      end
+      respond_success(redirect_path: @menu)
     else
-      respond_to do |format|
-        format.turbo_stream { render_flash_stream(alert: @menu_recipe.errors.full_messages.to_sentence) }
-        format.html { redirect_to @menu, alert: @menu_recipe.errors.full_messages.to_sentence }
-      end
+      respond_error(@menu_recipe, redirect_path: @menu)
     end
   end
 
@@ -30,26 +28,27 @@ class MenuRecipesController < ApplicationController
   # Mise à jour du nombre de personnes pour ce repas
   def update
     if @menu_recipe.update(menu_recipe_update_params)
-      respond_to do |format|
-        format.turbo_stream
-        format.html { redirect_to @menu }
-      end
+      respond_success(redirect_path: @menu)
     else
-      respond_to do |format|
-        format.turbo_stream { render_flash_stream(alert: @menu_recipe.errors.full_messages.to_sentence) }
-        format.html { redirect_to @menu, alert: @menu_recipe.errors.full_messages.to_sentence }
-      end
+      respond_error(@menu_recipe, redirect_path: @menu)
     end
+  end
+
+  # PATCH /menus/:menu_id/menu_recipes/reorder
+  # UC2 : Persiste l'ordre des repas après réordonnement drag & drop
+  def reorder
+    ids = Array(params[:ids]).map(&:to_i)
+    ids.each_with_index do |id, index|
+      @menu.menu_recipes.where(id: id).update_all(position: index)
+    end
+    head :ok
   end
 
   # DELETE /menus/:menu_id/menu_recipes/:id
   # Suppression d'un repas du menu brouillon
   def destroy
     @menu_recipe.destroy
-    respond_to do |format|
-      format.turbo_stream
-      format.html { redirect_to @menu }
-    end
+    respond_success(redirect_path: @menu)
   end
 
   private
@@ -68,12 +67,9 @@ class MenuRecipesController < ApplicationController
     authorize @menu_recipe
   end
 
-  def render_flash_stream(alert:)
-    render turbo_stream: turbo_stream.replace(
-      "flash",
-      partial: "shared/flash",
-      locals: { flash: { alert: alert } }
-    )
+  # Seul le propriétaire du menu peut réordonner ses repas
+  def authorize_reorder
+    authorize @menu, :update?
   end
 
   # Paramètres pour la création (recette + nombre de personnes)
@@ -84,5 +80,10 @@ class MenuRecipesController < ApplicationController
   # Seul le nombre de personnes est modifiable après création
   def menu_recipe_update_params
     params.require(:menu_recipe).permit(:number_of_people)
+  end
+
+  # Calcule la prochaine position disponible pour ce menu
+  def next_position
+    @menu.menu_recipes.maximum(:position).to_i + 1
   end
 end

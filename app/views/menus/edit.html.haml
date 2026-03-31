@@ -1,4 +1,6 @@
--# UC1/UC2 — Édition du nom et des paramètres de base du menu
+-# UC1/UC2 — Édition des paramètres du menu
+-# Brouillon : formulaire complet (régime, personnes, repas, nom) → re-génération
+-# Actif/Archivé : formulaire simple (nom, personnes)
 - content_for :title, "Modifier le menu"
 
 .mn-back-bar
@@ -6,12 +8,24 @@
     = svg_icon("chevron-left", size: 14, css_class: "mn-back-chevron")
     Retour au menu
 
-.mn-hero
-  .mn-hero-inner
-    .mn-kicker
-      %span.mn-kicker-line
-      MODIFIER LE MENU
-    %h1.mn-hero-title= @menu.name.presence || "Menu sans nom"
+- if @menu.status_draft?
+  .mn-page-wrap
+    .mn-page-header
+      .mn-page-kicker
+        %span.mn-page-kicker-sep
+        Modifier les paramètres
+      %h1.mn-page-title Régénérer le menu
+      %p.mn-page-sub Modifie les paramètres ci-dessous. Le menu sera re-généré avec de nouvelles recettes.
 
-.mn-body
-  = render "form_edit", menu: @menu
+    = render "form_regenerate", menu: @menu
+
+- else
+  .mn-hero
+    .mn-hero-inner
+      .mn-kicker
+        %span.mn-kicker-line
+        MODIFIER LE MENU
+      %h1.mn-hero-title= @menu.name.presence || "Menu sans nom"
+
+  .mn-body
+    = render "form_edit", menu: @menu

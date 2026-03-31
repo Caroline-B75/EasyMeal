@@ -1,45 +1,44 @@
--# Carte d'un repas dans le menu brouillon (UC2)
--# Chaque carte est encapsulée dans un turbo_frame pour les remplacements dynamiques.
+-# Carte compacte d'un repas (UC2 — card grid)
+-# Photo carrée + nom + barre d'actions (remplacer / personnes / supprimer)
 -# menu_recipe : MenuRecipe
 -# menu : Menu
 
 = turbo_frame_tag "menu_recipe_#{menu_recipe.id}" do
-  .meal-card
-    -# Infos recette
-    .meal-card-info
-      %h3.meal-card-title
-        = link_to menu_recipe.recipe.name, recipe_path(menu_recipe.recipe), class: "meal-card-recipe-link"
+  .mc-recipe-card{ draggable: "true",
+                   data: { menu_customize_target: "card",
+                           action: "dragstart->menu-customize#dragStart dragend->menu-customize#dragEnd dragover->menu-customize#dragOver dragleave->menu-customize#dragLeave drop->menu-customize#drop" } }
 
-      .meal-card-badges
-        %span.badge= menu_diet_label(menu_recipe.recipe.diet)
-        - total_time = (menu_recipe.recipe.prep_time_minutes.to_i + menu_recipe.recipe.cook_time_minutes.to_i)
-        - if total_time > 0
-          %span.badge= "#{total_time} min"
-        - if menu_recipe.recipe.seasonal_for_month?(Date.today.month)
-          %span.badge.badge-amber De saison
+    -# ── Photo carrée ──────────────────────────────────────
+    .mc-card-photo
+      - if menu_recipe.recipe.photo.attached?
+        = image_tag menu_recipe.recipe.photo.variant(resize_to_fill: [260, 260]),
+                    alt: menu_recipe.recipe.name
+      - else
+        = image_tag "photo_par_defaut_recette.png", alt: menu_recipe.recipe.name, class: "mc-card-photo-default"
+      .mc-drag-hint
+        = svg_icon("grip-vertical", size: 10)
 
-    -# Contrôle du nombre de personnes pour ce repas (auto-submit debounced)
-    .meal-card-people
-      = form_with model: [menu, menu_recipe], method: :patch,
-                  class: "people-form",
-                  data: { controller: "people-counter" } do |f|
-        %label.people-label
-          = f.number_field :number_of_people,
-                           value: menu_recipe.number_of_people,
-                           min: 1, max: 20,
-                           class: "people-input",
-                           data: { action: "input->people-counter#scheduleSubmit" }
-          %span.people-label-text pers.
-        = f.submit "✓", class: "btn btn-icon btn-sm",
-                         data: { action: "click->people-counter#submitNow" }
+    -# ── Nom de la recette ─────────────────────────────────
+    .mc-card-name-wrap
+      .mc-card-name= menu_recipe.recipe.name
 
-    -# Actions : remplacer ou supprimer
-    .meal-card-actions
-      = form_with url: replace_meal_menu_path(menu), method: :post, class: "inline-form" do |f|
+    -# ── Barre d'actions : remplacer | personnes | supprimer
+    .mc-card-actions
+      = form_with url: replace_meal_menu_path(menu), method: :post, class: "mc-act-form" do |f|
         = f.hidden_field :menu_recipe_id, value: menu_recipe.id
-        = f.submit "Remplacer", class: "btn btn-secondary btn-sm"
+        %button.mc-act-btn{ type: "submit", title: "Remplacer aléatoirement" }
+          = svg_icon("shuffle", size: 12)
 
-      = button_to "Supprimer", menu_menu_recipe_path(menu, menu_recipe),
-                  method: :delete,
-                  class: "btn btn-link btn-sm",
-                  form: { data: { turbo_confirm: "Supprimer ce repas du menu ?" } }
+      = form_with model: [menu, menu_recipe], method: :patch, class: "mc-act-form",
+                  data: { controller: "auto-submit" } do |f|
+        = f.select :number_of_people,
+                   people_select_options,
+                   { selected: menu_recipe.number_of_people },
+                   class: "mc-ppl-select", title: "Nombre de personnes",
+                   data: { action: "change->auto-submit#submit" }
+
+      = form_with url: menu_menu_recipe_path(menu, menu_recipe), method: :delete,
+                  class: "mc-act-form",
+                  data: { turbo_confirm: "Retirer ce repas du menu ?" } do
+        %button.mc-act-btn.mc-del{ type: "submit", title: "Retirer du menu" }
+          = svg_icon("trash", size: 12)

@@ -27,9 +27,11 @@ module Menus
     def call
       recipe = CandidatePickerService.call(menu: @menu)
 
+      next_position = @menu.menu_recipes.maximum(:position).to_i + 1
       @menu.menu_recipes.create!(
         recipe:           recipe,
-        number_of_people: @menu.default_people
+        number_of_people: @menu.default_people,
+        position:         next_position
       )
     end
   end

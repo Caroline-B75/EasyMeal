@@ -1,0 +1,4 @@
+-# Partial menu actif — Boutons d'accès rapide (sans card)
+.hero-dashboard-actions
+  = link_to "Mon menu", menu_path(active_menu), class: "btn-hero"
+  = link_to "Ma liste de courses", grocery_menu_path(active_menu), class: "btn-hero btn-hero--secondary"

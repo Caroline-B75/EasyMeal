@@ -20,6 +20,20 @@ export default class extends Controller {
     icon.classList.toggle("open", !isOpen)
   }
 
+  // Toggle l'expansion de la carte brouillon (détails + recettes)
+  toggleDraft(event) {
+    const card = event.currentTarget.closest(".mi-draft-card")
+    if (!card) return
+
+    const expanded = card.querySelector(".mi-draft-expanded")
+    const icon = event.currentTarget.querySelector(".mi-expand-icon")
+    if (!expanded || !icon) return
+
+    const isOpen = expanded.classList.contains("open")
+    expanded.classList.toggle("open", !isOpen)
+    icon.classList.toggle("open", !isOpen)
+  }
+
   // Afficher/masquer les menus plus anciens
   toggleOlder() {
     const isVisible = this.olderMenusTarget.classList.contains("open")

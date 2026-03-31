@@ -1,3 +1,3 @@
--# Turbo Stream : ajoute le nouveau repas aléatoire à la liste (UC2)
-= turbo_stream.append "menu_recipes_list" do
+-# Turbo Stream : insère le nouveau repas aléatoire avant le slot d'ajout (UC2)
+= turbo_stream.before "add_slot" do
   = render "menus/menu_recipe_card", menu_recipe: @menu_recipe, menu: @menu

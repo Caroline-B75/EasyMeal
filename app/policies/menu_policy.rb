@@ -62,6 +62,16 @@ class MenuPolicy < ApplicationPolicy
     owner?
   end
 
+  # Accès à la page dédiée de la liste de courses — UC3
+  def grocery?
+    owner?
+  end
+
+  # Re-génération du menu brouillon avec de nouveaux paramètres — UC2
+  def regenerate?
+    owner?
+  end
+
   # Réactivation d'un menu archivé (devient le nouveau menu actif)
   def reactivate?
     owner?

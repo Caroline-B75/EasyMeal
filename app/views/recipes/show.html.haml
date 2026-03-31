@@ -67,6 +67,8 @@
       - if @recipe.photo.attached?
         = image_tag cloudinary_photo_url(@recipe.photo, width: 680, height: 560, crop: :fill),
                     alt: @recipe.name, class: "rs-photo-img"
+      - else
+        = image_tag "photo_par_defaut_recette.png", alt: @recipe.name, class: "rs-photo-img"
       .rs-photo-overlay
         %span.rs-photo-stars= rating_stars(rating_avg)
         %span.rs-photo-score

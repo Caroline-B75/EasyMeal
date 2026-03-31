@@ -175,17 +175,25 @@
   margin-bottom: 8px;
 }
 
-.mi-draft-card-body {
-  padding: 14px 16px;
+.mi-draft-card-header {
+  padding: 13px 16px;
   display: flex;
   align-items: center;
   gap: 12px;
-  flex-wrap: wrap;
+  cursor: pointer;
+  user-select: none;
 }
 
-.mi-draft-card-info {
+.mi-draft-card-left {
   flex: 1;
   min-width: 0;
+}
+
+.mi-draft-card-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .mi-draft-card-top {
@@ -218,10 +226,22 @@
   gap: 8px;
 }
 
+/* Draft expanded content (hidden by default) */
+.mi-draft-expanded {
+  display: none;
+  border-top: 0.5px solid var(--color-accent-hover);
+}
+
+.mi-draft-expanded.open {
+  display: block;
+}
+
 .mi-draft-card-actions {
+  padding: 8px 16px;
   display: flex;
   gap: 6px;
-  flex-shrink: 0;
+  background: var(--color-bg-secondary);
+  border-top: 0.5px solid var(--color-border);
   flex-wrap: wrap;
 }
 
@@ -424,7 +444,7 @@
 
 .mi-recipe-card-mini-img {
   height: 60px;
-  background: #1C1917;
+  background: var(--color-bg-main);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -794,9 +814,8 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .mi-draft-card-body {
-    flex-direction: column;
-    align-items: flex-start;
+  .mi-draft-card-header {
+    gap: 8px;
   }
 
   .mi-draft-card-actions {
@@ -976,6 +995,33 @@
 .menu-show-actions {
   display: flex;
   gap: 0.5rem;
+}
+
+/* ── Readonly recipe card (menu actif) ─────────────────── */
+.mc-recipe-card--readonly {
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+}
+.mc-recipe-card--readonly:hover { text-decoration: none; }
+
+.mc-card-meta {
+  padding: 4px 8px 7px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mc-card-meta-people {
+  font-size: 10px;
+  color: var(--color-ink-3);
+  font-weight: 500;
+}
+
+/* Chip "En cours" (barre contextuelle menu actif) */
+.mc-chip-active {
+  background: var(--color-success-light);
+  color: var(--color-success-text);
 }
 
 /* ── Draft view : personnalisation ─────────────────────── */
@@ -1659,5 +1705,401 @@
 
   .mn-diet-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================
+   MENU CUSTOMIZE — Card grid (mc-*)
+   Maquette : easymeal_menu_customize.html — Slate Craft Premium
+   ============================================================ */
+
+/* ── Context bar ───────────────────────────────────────── */
+.mc-context-bar {
+  background: var(--color-bg-white);
+  border-bottom: 0.5px solid var(--color-border);
+  padding: 10px 28px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mc-bc-link {
+  font-size: 12px;
+  color: var(--color-ink-3);
+  text-decoration: none;
+  cursor: pointer;
+}
+.mc-bc-link:hover { color: var(--color-ink); }
+
+.mc-bc-sep {
+  font-size: 10px;
+  color: var(--color-border);
+}
+
+.mc-bc-current {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+.mc-chip {
+  font-size: 11px;
+  padding: 2px 8px;
+  background: var(--color-bg-secondary);
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-button);
+  color: var(--color-ink-3);
+}
+
+.mc-chip-draft {
+  background: var(--color-accent-light);
+  border-color: var(--color-accent-hover);
+  color: var(--color-accent-text);
+}
+
+.mc-ctx-btns {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+}
+
+/* Les form générés par button_to doivent rester inline */
+.mc-ctx-btns form.button_to,
+.mc-ctx-btns form {
+  display: inline;
+}
+
+.mc-btn-outline-sm {
+  font-size: 11px;
+  padding: 5px 10px;
+  border-radius: var(--radius-button);
+  border: 0.5px solid var(--color-border);
+  background: var(--color-bg-white);
+  color: var(--color-ink-2);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+  transition: background var(--transition-fast);
+}
+.mc-btn-outline-sm:hover { background: var(--color-bg-secondary); }
+.mc-btn-outline-sm svg { width: 11px; height: 11px; flex-shrink: 0; }
+
+.mc-btn-danger-sm {
+  font-size: 11px;
+  padding: 5px 10px;
+  border-radius: var(--radius-button);
+  border: 0.5px solid #FECACA;
+  background: var(--color-danger-light);
+  color: var(--color-danger-text);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+.mc-btn-danger-sm:hover { background: #FEE2E2; }
+
+/* ── Page layout ───────────────────────────────────────── */
+.mc-page-outer {
+  display: flex;
+  justify-content: center;
+  padding: 28px 28px 56px;
+}
+
+.mc-page-wrap {
+  width: 50%;
+  min-width: 480px;
+  max-width: 760px;
+}
+
+.mc-page-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 12px;
+}
+
+.mc-page-title {
+  font-family: Georgia, serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--color-ink);
+}
+
+.mc-page-hint {
+  font-size: 11px;
+  color: var(--color-ink-4);
+}
+
+/* ── Card grid ─────────────────────────────────────────── */
+.mc-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+/* ── Recipe card ───────────────────────────────────────── */
+.mc-recipe-card {
+  background: var(--color-bg-white);
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-button);
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
+  transition: border-color var(--transition-fast), opacity 0.2s, transform var(--transition-fast);
+}
+.mc-recipe-card:hover { border-color: var(--color-border-strong); }
+
+/* Turbo frame wrapper ne doit pas casser le grid */
+.mc-card-grid turbo-frame {
+  display: contents;
+}
+
+/* Drag states */
+.mc-recipe-card.mc-dragging {
+  opacity: 0.4;
+  cursor: grabbing;
+  transform: scale(0.97);
+  border-color: var(--color-ink-4);
+}
+.mc-recipe-card.mc-drag-over {
+  border: 1.5px solid var(--color-accent-hover);
+  background: var(--color-accent-light);
+}
+
+/* ── Photo carrée ──────────────────────────────────────── */
+.mc-card-photo {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: var(--color-bg-secondary);
+  overflow: hidden;
+  position: relative;
+  display: block;
+}
+.mc-card-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+.mc-card-photo-ph {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mc-card-photo-ph svg { width: 24px; height: 24px; opacity: 0.3; }
+
+/* Drag handle */
+.mc-drag-hint {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  background: rgba(28, 25, 23, 0.65);
+  border-radius: 2px;
+  padding: 3px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mc-recipe-card:hover .mc-drag-hint { opacity: 1; }
+.mc-drag-hint svg { width: 10px; height: 10px; color: #fff; }
+
+/* ── Nom de la recette ─────────────────────────────────── */
+.mc-card-name-wrap { padding: 7px 8px 0; }
+
+.mc-card-name {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-ink);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 28px;
+}
+
+/* ── Barre d'actions (3 éléments) ──────────────────────── */
+.mc-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 7px 7px;
+  gap: 5px;
+}
+
+/* Les formulaires dans la barre d'actions disparaissent du layout */
+.mc-card-actions form,
+.mc-act-form {
+  display: contents;
+}
+
+/* Bouton d'action icône (remplacer / supprimer) */
+.mc-act-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-button);
+  border: 0.5px solid var(--color-border);
+  background: var(--color-bg-white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.12s;
+  padding: 0;
+}
+.mc-act-btn svg { width: 12px; height: 12px; color: var(--color-ink-3); flex-shrink: 0; }
+.mc-act-btn:hover { background: var(--color-bg-secondary); border-color: var(--color-border-strong); }
+.mc-act-btn:hover svg { color: var(--color-ink); }
+
+/* Variante danger (supprimer) */
+.mc-del:hover { background: var(--color-danger-light); border-color: #FECACA; }
+.mc-del:hover svg { color: var(--color-danger); }
+
+/* Select nombre de personnes */
+.mc-ppl-select {
+  height: 28px;
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-button);
+  background: var(--color-bg-white);
+  color: var(--color-ink);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 0 18px 0 6px;
+  cursor: pointer;
+  min-width: 52px;
+  flex: 1;
+  max-width: 64px;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='8' height='5' viewBox='0 0 8 5' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l3 3 3-3' stroke='%23A8A29E' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 5px center;
+}
+.mc-ppl-select:hover { border-color: var(--color-border-strong); }
+.mc-ppl-select:focus { outline: none; border-color: var(--color-ink); }
+
+/* ── Add slot (2 boutons empilés) ──────────────────────── */
+.mc-add-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mc-add-btn {
+  background: var(--color-bg-white);
+  border: 0.5px dashed var(--color-border-strong);
+  border-radius: var(--radius-button);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+  text-decoration: none;
+  padding: 0;
+}
+.mc-add-btn:hover {
+  border-color: var(--color-ink-4);
+  background: var(--color-bg-secondary);
+}
+.mc-add-btn svg { width: 15px; height: 15px; color: var(--color-ink-4); flex-shrink: 0; }
+.mc-add-btn span {
+  font-size: 10px;
+  color: var(--color-ink-3);
+  text-align: center;
+  line-height: 1.3;
+  padding: 0 6px;
+}
+.mc-add-btn:hover svg,
+.mc-add-btn:hover span { color: var(--color-ink-2); }
+
+/* Le form généré par button_to dans le slot d'ajout doit être transparent */
+.mc-add-slot form.button_to,
+.mc-add-slot form {
+  display: contents;
+}
+
+/* ── Empty grid ────────────────────────────────────────── */
+.mc-empty-grid {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 2rem;
+  color: var(--color-ink-3);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-card);
+  border: 0.5px dashed var(--color-border-strong);
+}
+
+.mc-empty-text {
+  font-weight: 500;
+  color: var(--color-ink-2);
+}
+
+/* ── Bouton de validation ──────────────────────────────── */
+.mc-validate-zone { text-align: center; }
+
+/* Le form de button_to doit rester inline */
+.mc-validate-zone form.button_to,
+.mc-validate-zone form {
+  display: inline;
+}
+
+.mc-btn-validate {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-button);
+  padding: 13px 32px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0.02em;
+  transition: background var(--transition-fast);
+}
+.mc-btn-validate:hover { background: var(--color-primary-hover); }
+.mc-btn-validate:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.mc-btn-validate svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+/* ── Responsive (mc-*) ─────────────────────────────────── */
+@media (max-width: 768px) {
+  .mc-ctx-btns { display: none; }
+
+  .mc-page-outer { padding: 16px 16px 48px; }
+
+  .mc-page-wrap {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .mc-card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 8px;
+  }
+
+  .mc-context-bar {
+    padding: 8px 16px;
+  }
+
+  .mc-btn-validate {
+    width: 100%;
+    justify-content: center;
   }
 }

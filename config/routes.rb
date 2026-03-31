@@ -20,9 +20,15 @@ Rails.application.routes.draw do
       post :reactivate          # Réactiver un menu archivé (remplace le menu actif courant)
       post :add_random_meal    # UC2 : Ajouter un repas aléatoire au menu
       post :replace_meal       # UC2 : Remplacer un repas (params: menu_recipe_id)
+      get  :grocery            # UC3 : Page dédiée de la liste de courses
       post :regenerate_grocery # UC3 : Régénérer la liste de courses
+      post :regenerate         # UC2 : Re-générer le menu brouillon avec de nouveaux paramètres
     end
-    resources :menu_recipes, only: [ :create, :update, :destroy ]
+    resources :menu_recipes, only: [ :create, :update, :destroy ] do
+      collection do
+        patch :reorder
+      end
+    end
     resources :grocery_items, only: [ :create, :update, :destroy ]
   end
 
@@ -32,6 +38,7 @@ Rails.application.routes.draw do
     member do
       post :toggle_favorite  # Toggle favori
       post :add_to_menu      # UC2 : Ajouter la recette au menu brouillon en cours
+      post :toggle_in_draft  # UC2 : Toggle ajout/retrait de la recette dans le menu brouillon
     end
     # Avis (UC4) — gérés par Recipes::ReviewsController
     resources :reviews, only: [ :create, :destroy ], module: :recipes

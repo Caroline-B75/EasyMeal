@@ -39,8 +39,8 @@
     .mi-section
       .mi-section-label Brouillon en cours
       .mi-draft-card{ id: "menu_#{@draft.id}" }
-        .mi-draft-card-body
-          .mi-draft-card-info
+        .mi-draft-card-header{ data: { action: "click->menus-index#toggleDraft" } }
+          .mi-draft-card-left
             .mi-draft-card-top
               %span.mi-draft-badge Brouillon
               %span.mi-draft-card-name= @draft.name.presence || "Menu sans nom"
@@ -50,6 +50,26 @@
               %span= "#{@draft.default_people} pers."
               %span ·
               %span= "#{@draft.menu_recipes.size} repas"
+          .mi-draft-card-right
+            = svg_icon("chevron-down", size: 16, css_class: "mi-expand-icon")
+
+        .mi-draft-expanded
+          - if @draft.menu_recipes.any?
+            .mi-history-recipes
+              - @draft.menu_recipes.each do |mr|
+                .mi-hist-recipe-card
+                  .mi-hist-recipe-img
+                    - if mr.recipe.photo.attached?
+                      = image_tag mr.recipe.photo.variant(resize_to_fill: [192, 96]),
+                                 class: "mi-hist-recipe-photo"
+                    - else
+                      = image_tag "photo_par_defaut_recette.png", alt: mr.recipe.name, class: "mi-hist-recipe-photo"
+                  .mi-hist-recipe-body
+                    .mi-hist-recipe-name= mr.recipe.name
+                    - total_time = mr.recipe.total_time_minutes
+                    - if total_time > 0
+                      .mi-hist-recipe-time= "#{total_time} min"
+
           .mi-draft-card-actions
             = link_to menu_path(@draft), class: "mi-btn-sm" do
               = svg_icon("edit", size: 11)
@@ -72,7 +92,10 @@
                 %span.mi-badge-active En cours
                 %span.mi-hero-date= "Créé le #{french_date(@active.created_at)}"
               .mi-hero-card-badges-right
-                = link_to menu_path(@active, anchor: "grocery_list"), class: "mi-btn-hero-primary" do
+                = link_to menu_path(@active), class: "mi-btn-hero-primary" do
+                  = svg_icon("book-open", size: 13)
+                  Voir le menu
+                = link_to grocery_menu_path(@active), class: "mi-btn-hero-primary" do
                   = svg_icon("list", size: 13)
                   Voir la liste de courses
                 = button_to menu_path(@active), method: :delete, class: "mi-btn-hero-danger",
@@ -89,10 +112,10 @@
                 = link_to recipe_path(mr.recipe), class: "mi-recipe-card-mini" do
                   .mi-recipe-card-mini-img
                     - if mr.recipe.photo.attached?
-                      = image_tag mr.recipe.photo.variant(resize_to_fill: [120, 60]),
+                      = image_tag mr.recipe.photo.variant(resize_to_fill: [280, 140]),
                                  class: "mi-recipe-card-mini-photo"
                     - else
-                      = svg_icon("heart", size: 20, css_class: "mi-recipe-placeholder-icon")
+                      = image_tag "photo_par_defaut_recette.png", alt: mr.recipe.name, class: "mi-recipe-card-mini-photo"
                   .mi-recipe-card-mini-body
                     .mi-recipe-card-mini-name= mr.recipe.name
                     .mi-recipe-card-mini-meta
@@ -103,6 +126,8 @@
 
   -# ── Historique (menus archivés) ──────────────────────────
   - if @archived.any?
+    - recent_archived = @archived.first(3)
+    - older_archived  = @archived.drop(3)
     .mi-section
       .mi-section-label
         Historique
@@ -110,13 +135,13 @@
 
       .mi-history-list
         -# Menus récents (toujours visibles)
-        - @recent_archived.each do |menu|
+        - recent_archived.each do |menu|
           = render "menus/history_card", menu: menu
 
         -# Menus plus anciens (masqués par défaut)
-        - if @older_archived.any?
-          .mi-older-menus{ data: { menus_index_target: "olderMenus", count: @older_archived.size } }
-            - @older_archived.each do |menu|
+        - if older_archived.any?
+          .mi-older-menus{ data: { menus_index_target: "olderMenus", count: older_archived.size } }
+            - older_archived.each do |menu|
               = render "menus/history_card", menu: menu
 
           %button.mi-toggle-old{ type: "button",
@@ -124,7 +149,7 @@
                                          action: "click->menus-index#toggleOlder" } }
             = svg_icon("chevron-down", size: 14, css_class: "mi-toggle-old-icon")
             %span{ data: { menus_index_target: "toggleOlderText" } }
-              = "Afficher #{@older_archived.size} menus plus anciens"
+              = "Afficher #{older_archived.size} menus plus anciens"
 
   -# ── État vide ────────────────────────────────────────────
   - if @draft.nil? && @active.nil? && @archived.empty?

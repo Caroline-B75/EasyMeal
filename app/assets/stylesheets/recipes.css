@@ -1294,7 +1294,7 @@
 }
 
 .empty-state-icon {
-  font-size: 4rem;
+  font-size: 3.5rem;
   margin-bottom: 1rem;
 }
 
@@ -1725,6 +1725,7 @@
   max-width: 1400px;
   margin: 0 auto;
   min-height: 400px;
+  min-width: 50%;
 }
 
 .rs-main {
@@ -2250,6 +2251,7 @@
 
   .rs-body {
     grid-template-columns: 1fr;
+    min-width: 100%;
   }
 
   .rs-sidebar {
@@ -2371,6 +2373,153 @@
   width: 14px;
   height: 14px;
   flex-shrink: 0;
+}
+
+/* ============================================
+   DRAFT STATUS BAR — Barre contextuelle menu brouillon
+   ============================================ */
+
+.draft-status-bar {
+  display: flex;
+  align-items: center;
+  background: var(--color-bg-secondary);
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 0.625rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.draft-bar-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.draft-bar-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.draft-bar-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.draft-bar-text {
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.draft-bar-text strong {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.draft-bar-count {
+  color: var(--color-ink-3);
+  font-weight: 400;
+}
+
+.draft-bar-link {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-ink);
+  text-decoration: none;
+  white-space: nowrap;
+  padding: 0.375rem 0.75rem;
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-button);
+  background: var(--color-bg-white);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.draft-bar-link:hover {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-bg-white);
+  text-decoration: none;
+}
+
+/* ============================================
+   DRAFT BUTTON — Bouton d'ajout au menu brouillon (overlay sur carte)
+   ============================================ */
+
+.recipe-card-wrapper .recipe-draft-container {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 1;
+}
+
+.draft-btn.draft-btn-compact {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1.5px solid transparent;
+  font-size: 1.1rem;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(4px);
+  color: var(--color-ink-3);
+  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+  line-height: 1;
+}
+
+/* État : recette dans le brouillon */
+.draft-btn.draft-btn-compact.in-draft {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-bg-white);
+}
+
+/* Hover : pas dans le brouillon → indiquer l'action d'ajout */
+.draft-btn.draft-btn-compact:not(.in-draft):hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  transform: scale(1.08);
+}
+
+/* Hover : déjà dans le brouillon → indiquer le retrait */
+.draft-btn.draft-btn-compact.in-draft:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+/* ============================================
+   RESPONSIVE — Draft bar + Draft button
+   ============================================ */
+
+@media (max-width: 767px) {
+  .draft-status-bar {
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .draft-bar-content {
+    gap: 0.5rem;
+  }
+
+  .draft-bar-text {
+    font-size: 0.8rem;
+  }
+
+  .draft-bar-link {
+    font-size: 0.8rem;
+    padding: 0.3rem 0.6rem;
+  }
 }
 
 /* === Mini Hero sombre === */

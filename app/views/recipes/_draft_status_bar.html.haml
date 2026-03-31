@@ -1,0 +1,25 @@
+-# Barre contextuelle "menu brouillon" affichée en haut de l'index des recettes.
+-# Affiche le lien vers le brouillon en cours ou vers la création d'un menu.
+-#
+-# Locals :
+-#   draft : Menu (status: :draft) ou nil
+- draft = local_assigns.fetch(:draft, nil)
+#draft-status-bar.draft-status-bar
+  - if draft
+    .draft-bar-content
+      .draft-bar-info
+        %span.draft-bar-icon 📋
+        %span.draft-bar-text
+          Menu brouillon :
+          %strong= draft.name.presence || "Menu sans nom"
+          %span.draft-bar-count
+            = "(#{draft.menu_recipes.size} recette#{'s' if draft.menu_recipes.size != 1})"
+      = link_to menu_path(draft), class: "draft-bar-link" do
+        Voir le menu →
+  - else
+    .draft-bar-content
+      .draft-bar-info
+        %span.draft-bar-icon 📋
+        %span.draft-bar-text Pas de menu en cours.
+      = link_to new_menu_path, class: "draft-bar-link" do
+        Créer un menu →

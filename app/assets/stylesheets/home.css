@@ -10,7 +10,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow: visible;
   background-color: var(--color-ink);
 }
 
@@ -65,20 +65,9 @@
   height: auto;
 }
 
-/* Phrase d'accueil personnalisée */
-.hero-greeting {
-  font-size: var(--font-size-3xl);
-  font-weight: 600;
-  color: var(--color-ink);
-  margin-bottom: 2rem;
-  text-align: center;
-  animation: fadeInUp 1.3s ease-out;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-}
-
 /* Titre et sous-titre */
 .hero-title {
-  font-size: 3.5rem;
+  font-size: 3.2rem;
   font-weight: 700;
   color: #2a2a2a;
   margin-bottom: 1.5rem;
@@ -154,6 +143,96 @@
   box-shadow: var(--shadow-md);
 }
 
+/* ======================================
+   BTN-HERO SECONDARY (fond blanc, texte foncé)
+   ====================================== */
+.btn-hero--secondary {
+  background: var(--color-bg-white);
+  color: var(--color-ink-2);
+  box-shadow: none;
+  border: 0.5px solid var(--color-border);
+  margin-left: var(--spacing-md);
+}
+
+.btn-hero--secondary:hover,
+.btn-hero--secondary:focus,
+.btn-hero--secondary:active,
+.btn-hero--secondary:visited {
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.btn-hero--secondary::before {
+  background: var(--color-bg-secondary);
+}
+
+/* ======================================
+   DASHBOARD ACTIONS (boutons connecté)
+   ====================================== */
+.hero-dashboard-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+  flex-wrap: wrap;
+  animation: fadeInUp 1.4s ease-out;
+}
+
+.hero-dashboard-actions .btn-hero {
+  padding: 1rem 2rem;
+  font-size: var(--font-size-base);
+}
+
+.hero-dashboard-actions .btn-hero--secondary {
+  margin-left: 0;
+}
+
+/* ======================================
+   SECTION « COMMENT ÇA MARCHE » (vitrine)
+   ====================================== */
+.hero-steps {
+  display: flex;
+  gap: var(--spacing-xl);
+  justify-content: center;
+  margin-top: var(--spacing-2xl);
+  animation: fadeInUp 2s ease-out;
+}
+
+.hero-step {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(6px);
+  border-radius: var(--radius-card);
+  padding: var(--spacing-lg);
+  max-width: 220px;
+  text-align: center;
+}
+
+.hero-step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: var(--color-bg-white);
+  font-weight: 700;
+  font-size: var(--font-size-base);
+  margin-bottom: var(--spacing-sm);
+}
+
+.hero-step-title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-ink);
+  margin-bottom: var(--spacing-xs);
+}
+
+.hero-step-text {
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
+  line-height: 1.5;
+}
+
 /* Animations */
 @keyframes fadeIn {
   from {
@@ -219,6 +298,42 @@
     width: 100%;
     max-width: 320px;
   }
+
+  .btn-hero--secondary {
+    margin-left: 0;
+    margin-top: var(--spacing-sm);
+  }
+
+  /* Dashboard actions mobile */
+  .hero-dashboard-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hero-dashboard-actions .btn-hero {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  /* Steps empilées sur mobile */
+  .hero-steps {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
+  }
+
+  .hero-step {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  /* CTA vitrine empilés sur mobile */
+  .hero-cta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
 }
 
 /* Tablette (768px - 1024px) */
@@ -239,12 +354,29 @@
     padding: 1.15rem 2.5rem;
     font-size: var(--font-size-xl);
   }
+
+  /* Steps sur tablette : 3 colonnes serrées */
+  .hero-steps {
+    gap: var(--spacing-md);
+  }
+
+  .hero-step {
+    max-width: 200px;
+  }
+
+  /* CTA côte à côte sur tablette */
+  .hero-cta {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-md);
+  }
 }
 
 /* Desktop (> 1024px) */
 @media (min-width: 1025px) {
   .hero-section {
     min-height: 100vh;
+    min-height: 100dvh;
   }
 
   .hero-content {
@@ -254,16 +386,23 @@
   .hero-logo img {
     max-width: 440px;
   }
+
+  /* CTA côte à côte sur desktop */
+  .hero-cta {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-md);
+  }
 }
 
 /* Très grands écrans (> 1440px) */
 @media (min-width: 1441px) {
   .hero-title {
-    font-size: 4rem;
+    font-size: 3.5rem;
   }
 
   .hero-subtitle {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
   }
 
   .hero-logo img {

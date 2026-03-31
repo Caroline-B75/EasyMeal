@@ -1,0 +1,30 @@
+-# Partial vitrine — visiteur non connecté
+-# Présente le service EasyMeal et incite à l'inscription
+
+%h1.hero-title
+  Simplifie tes repas,
+  %br
+  Savoure chaque instant
+
+%p.hero-subtitle
+  Crée tes menus personnalisés en quelques clics et redécouvre le plaisir de cuisiner sans stress.
+
+-# Double CTA : inscription + découverte catalogue
+.hero-cta
+  = link_to "Commencer gratuitement", new_user_registration_path, class: "btn-hero"
+  = link_to "Découvrir les recettes", recipes_path, class: "btn-hero btn-hero--secondary"
+
+-# Section « Comment ça marche » en 3 étapes
+.hero-steps
+  .hero-step
+    %span.hero-step-number 1
+    %h3.hero-step-title Génère ton menu
+    %p.hero-step-text Choisis ton régime et le nombre de personnes, on s'occupe du reste.
+  .hero-step
+    %span.hero-step-number 2
+    %h3.hero-step-title Personnalise
+    %p.hero-step-text Remplace, ajoute ou retire des recettes selon tes envies.
+  .hero-step
+    %span.hero-step-number 3
+    %h3.hero-step-title Obtiens ta liste
+    %p.hero-step-text Ta liste de courses est générée automatiquement, prête pour le marché.

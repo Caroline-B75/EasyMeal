@@ -80,10 +80,11 @@ module Menus
           status:         :draft
         )
 
-        selection.each do |recipe|
+        selection.each_with_index do |recipe, index|
           menu.menu_recipes.create!(
-            recipe:          recipe,
-            number_of_people: @default_people
+            recipe:           recipe,
+            number_of_people: @default_people,
+            position:         index
           )
         end
 

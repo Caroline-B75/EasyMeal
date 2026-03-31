@@ -1,28 +1,16 @@
--# Page d'accueil EasyMeal - Hero Section moderne et responsive
+-# Page d'accueil EasyMeal — contextuelle selon l'état de l'utilisateur
 %section.hero-section
   -# Image de fond avec overlay gradient
   .hero-background
     = image_tag "backgrounds/kitchen_2.jpg", alt: "Cuisine moderne EasyMeal"
-  
+
   -# Contenu principal
   .hero-content
     -# Logo EasyMeal
     .hero-logo
       = image_tag "logos/logo_EasyMeal.svg", alt: "EasyMeal - Planification de repas simplifiée"
-    
-    -# Titre principal
-    %h1.hero-title
-      Simplifie tes repas,
-      %br
-      Savoure chaque instant
-    
-    -# Sous-titre / Description
-    %p.hero-subtitle
-      Crée tes menus personnalisés en quelques clics et redécouvre le plaisir de cuisiner sans stress.
-    
-    -# Call-to-Action
-    .hero-cta
-      - if user_signed_in?
-        = link_to "Créer mon menu", new_menu_path, class: "btn-hero"
-      - else
-        = link_to "Créer mon menu", new_user_session_path, class: "btn-hero"
+
+    - if user_signed_in?
+      = render "home/dashboard"
+    - else
+      = render "home/vitrine"

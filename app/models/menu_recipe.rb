@@ -33,6 +33,9 @@ class MenuRecipe < ApplicationRecord
   }
 
   # === Scopes ===
+  # Trie par position (ordre défini par l'utilisateur via drag & drop)
+  scope :by_position, -> { order(:position) }
+
   # Trie par date planifiée
   scope :chronological, -> { order(:scheduled_date, :meal_type) }
 
