@@ -19,11 +19,11 @@
                 %h3 Brouillon en cours
                 %button.mn-modal-close{ type: "button", data: { action: "click->modal#close" }, "aria-label": "Fermer" } ×
               .modal-body
-                %p Vous avez déjà un brouillon en attente :
+                %p Tu avais déjà un brouillon en attente :
                 .mn-draft-guard-preview
                   %span.mn-draft-guard-name= @draft.name.presence || "Menu sans nom"
                   %span.mn-draft-guard-meta= "#{@draft.menu_recipes.size} repas · #{@draft.default_people} pers. · #{menu_diet_label(@draft.diet)}"
-                %p Souhaitez-vous le reprendre ou créer un nouveau menu ?
+                %p Souhaites-tu le reprendre ou créer un nouveau menu ?
               .mn-draft-guard-actions
                 = link_to new_menu_path, class: "btn btn-secondary" do
                   Nouveau menu

@@ -123,7 +123,7 @@
             = render "recipes/review_card", review: review, current_user: current_user
         - elsif !current_user
           .rs-empty-reviews
-            %p Connectez-vous pour voir et laisser des avis.
+            %p Connecte toi pour voir et laisser des avis.
             = link_to "Se connecter", new_user_session_path, class: "btn btn-primary"
 
       -# Pagination des avis
