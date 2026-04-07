@@ -1,20 +1,24 @@
 module ApplicationHelper
   include Pagy::Frontend
 
-  # Retourne un message d'accueil personnalisé et aléatoire
-  # Délègue la logique au GreetingService pour une meilleure séparation des responsabilités
-  # La phrase est stockée en session pour rester cohérente pendant toute la journée
-  # Une nouvelle phrase est générée chaque jour pour garder le charme de la personnalisation
+  # Retourne un Greeting(text:, subtext:) personnalisé et aléatoire.
+  # Délègue la logique au GreetingService pour une meilleure séparation des responsabilités.
+  # La paire est stockée en session pour rester cohérente pendant toute la journée.
+  # Une nouvelle paire est générée chaque jour pour garder le charme de la personnalisation.
   def random_greeting(user)
     today = Date.today.to_s
+    data = session[:user_greeting]
 
-    # Réinitialiser la phrase si on est un nouveau jour
-    if session[:greeting_date] != today
+    # Réinitialiser si nouveau jour ou si le format en session est invalide (ex: ancienne session)
+    if session[:greeting_date] != today || !data.is_a?(Hash)
       session[:greeting_date] = today
-      session[:user_greeting] = GreetingService.new(user).random_greeting
+      greeting = GreetingService.new(user).random_greeting
+      # Stocker avec clés string : JSON (cookie store) dépersiste les symboles en strings
+      session[:user_greeting] = { "text" => greeting.text, "subtext" => greeting.subtext }
+      data = session[:user_greeting]
     end
 
-    session[:user_greeting]
+    GreetingService::Greeting.new(data["text"], data["subtext"])
   end
 
   # Vérifie si on est sur la page d'accueil

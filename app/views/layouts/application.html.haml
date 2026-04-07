@@ -28,11 +28,7 @@
           .nav-brand
             = link_to root_path, class: "brand-link" do
               = image_tag "logos/logo_EasyMeal.svg", alt: "EasyMeal", class: "logo"
-          - if home_page?
-            .nav-content
-              %span.user-greeting
-                = random_greeting(current_user)
-          
+
           -# Menu utilisateur dropdown
           .user-menu
             %button.user-menu-button{ type: "button", data: { action: "click->menu#toggle", menu_target: "button" } }
