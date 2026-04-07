@@ -82,6 +82,33 @@
   color: var(--color-ink);
 }
 
+/* === Liens de navigation header (utilisateur connecté) === */
+.header-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-left: 16px;
+}
+
+.header-nav-link {
+  font-size: 1rem;
+  color: var(--color-ink-3);
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+
+.header-nav-link:hover {
+  color: var(--color-ink);
+}
+
+.header-nav-link.active {
+  color: var(--color-ink);
+  border-bottom: 1.5px solid var(--color-accent);
+  padding-bottom: 2px;
+}
+
 .btn-signup {
   background: var(--color-primary);
   color: white;
@@ -104,30 +131,22 @@
 .user-menu-button {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  background: var(--color-bg-white);
-  border: 2px solid var(--color-bg-secondary);
-  border-radius: var(--radius-button);
-  padding: 0.5rem 1rem;
+  gap: 0.5rem;
+  background: transparent;
+  border: none;
+  padding: 0.35rem 0.5rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: opacity 0.15s;
   font-family: inherit;
 }
 
 .user-menu-button:hover {
-  border-color: var(--color-border-strong);
-  background: var(--color-bg-secondary);
-  box-shadow: var(--shadow-sm);
-}
-
-.user-menu-button.active {
-  border-color: var(--color-primary);
-  background: var(--color-bg-secondary);
+  opacity: 0.8;
 }
 
 .user-avatar {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: var(--color-primary);
   color: #FFFFFF;
@@ -135,40 +154,45 @@
   align-items: center;
   justify-content: center;
   font-weight: 500;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   flex-shrink: 0;
 }
 
 .user-name {
-  color: var(--color-ink);
-  font-weight: 600;
-  font-size: var(--font-size-sm);
+  color: var(--color-ink-2);
+  font-weight: 500;
+  font-size: 13px;
 }
 
 .chevron {
-  color: var(--color-ink-3);
-  transition: transform 0.3s ease;
+  color: var(--color-ink-4);
+  transition: transform 0.2s ease;
 }
 
 .user-menu-button.active .chevron {
   transform: rotate(180deg);
 }
 
+/* Icône hamburger — masquée par défaut (visible uniquement sur mobile) */
+.hamburger-icon {
+  display: none;
+}
+
 /* Dropdown menu */
 .user-dropdown {
   position: absolute;
-  top: calc(100% + 0.5rem);
+  top: calc(100% + 0.35rem);
   right: 0;
-  width: 280px;
+  min-width: 180px;
   background: var(--color-bg-white);
-  border-radius: var(--radius-card-compact);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-radius: var(--radius-button);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-10px);
-  transition: all 0.3s ease;
+  transform: translateY(-8px);
+  transition: all 0.2s ease;
   z-index: 1000;
-  border: 1px solid var(--color-bg-secondary);
+  border: 0.5px solid var(--color-border-light);
 }
 
 .user-dropdown.active {
@@ -177,75 +201,30 @@
   transform: translateY(0);
 }
 
-.dropdown-header {
-  padding: 1.25rem;
-  background: linear-gradient(135deg, var(--color-bg-secondary) 0%, var(--color-bg-main) 100%);
-  border-radius: var(--radius-card-compact) var(--radius-card-compact) 0 0;
-}
-
-.dropdown-user-info {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.dropdown-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  color: #FFFFFF;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 500;
-  font-size: var(--font-size-lg);
-  flex-shrink: 0;
-}
-
-.dropdown-user-details {
-  flex: 1;
-  min-width: 0;
-}
-
-.dropdown-user-details strong {
-  display: block;
-  color: var(--color-ink);
-  font-size: var(--font-size-base);
-  margin-bottom: 0.25rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.dropdown-user-details small {
-  display: block;
-  color: var(--color-ink);
-  font-size: var(--font-size-xs);
-  opacity: 0.7;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* Liens de navigation dans le dropdown (mobile uniquement) */
+.dropdown-nav-links {
+  display: none;
 }
 
 .dropdown-divider {
   height: 1px;
-  background: var(--color-bg-secondary);
+  background: var(--color-border-light);
   margin: 0;
 }
 
 .dropdown-links {
-  padding: 0.5rem 0;
+  padding: 0.25rem 0;
 }
 
 .dropdown-link {
   display: flex;
   align-items: center;
-  gap: 0.875rem;
-  padding: 0.875rem 1.25rem;
+  gap: 0.75rem;
+  padding: 0.625rem 1rem;
   color: var(--color-ink);
   text-decoration: none;
-  transition: var(--transition-normal);
+  transition: background 0.15s;
+  font-size: 13px;
   font-weight: 500;
 }
 
@@ -257,7 +236,7 @@
 .dropdown-link svg {
   flex-shrink: 0;
   color: currentColor;
-  opacity: 0.8;
+  opacity: 0.7;
 }
 
 .dropdown-link:hover svg {
@@ -320,19 +299,12 @@
 /* === Responsive navigation === */
 @media (max-width: 767px) {
   .main-header {
-    padding: 0.75rem 1rem;
+    padding: 0.5rem 1rem;
   }
 
   .nav-container {
-    gap: 0.75rem;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-between;
-  }
-
-  /* Logo et menu sur la première ligne */
-  .nav-brand {
-    flex: 0 0 auto;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
   }
 
   .nav-brand .logo {
@@ -340,39 +312,38 @@
     max-width: 160px;
   }
 
-  .user-menu {
-    flex: 0 0 auto;
-    order: 1;
-  }
-
-  /* Phrase d'accueil sur la deuxième ligne, pleine largeur */
-  .nav-content {
-    width: 100%;
-    order: 2;
-    flex: 1 1 100%;
-    justify-content: center;
-    padding-top: 0.5rem;
-  }
-
-  .user-greeting {
-    font-size: var(--font-size-base);
-  }
-
-  /* Masquer le nom de l'utilisateur sur mobile */
-  .user-name {
+  /* Masquer les nav links desktop */
+  .header-nav-links {
     display: none;
   }
 
-  /* Ajuster le bouton menu sur mobile */
+  /* Masquer avatar, nom, chevron — afficher le hamburger */
+  .user-avatar,
+  .user-name,
+  .chevron {
+    display: none;
+  }
+
+  .hamburger-icon {
+    display: block;
+    color: var(--color-ink);
+  }
+
   .user-menu-button {
     padding: 0.5rem;
   }
 
-  /* Dropdown aligné à droite sur mobile */
+  /* Afficher les liens de navigation dans le dropdown mobile */
+  .dropdown-nav-links {
+    display: block;
+    padding: 0.25rem 0;
+  }
+
+  /* Dropdown pleine largeur sur mobile */
   .user-dropdown {
     right: 0;
     left: auto;
-    width: 280px;
+    min-width: 200px;
     max-width: calc(100vw - 2rem);
   }
 

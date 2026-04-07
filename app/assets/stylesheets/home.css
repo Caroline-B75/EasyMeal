@@ -76,12 +76,11 @@
 
 /* Phrase de salutation — serif, couleur accent fort */
 .hero-greeting-text {
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 40px;
-  font-weight: 400;
-  color: var(--color-danger-hover);
-  line-height: 1.4;
-  margin: 0;
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  line-height: 1.2;
+  margin-bottom: 1.5rem;
 }
 
 /* Sous-texte contextuel — voix douce, sans-serif système */

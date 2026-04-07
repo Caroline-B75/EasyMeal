@@ -26,6 +26,26 @@ module ApplicationHelper
     controller_name == "home" && action_name == "index"
   end
 
+  # Retourne le menu actif de l'utilisateur courant (mémorisé pour éviter les requêtes multiples)
+  def current_active_menu
+    return nil unless user_signed_in?
+
+    @_current_active_menu ||= current_user.menus.active_menus.first
+  end
+
+  # Classe CSS pour les liens de navigation du header (avec état actif)
+  def header_nav_class(section)
+    is_active = case section
+                when :recipes then controller_name == "recipes"
+                when :menus   then controller_name == "menus" && action_name == "index"
+                when :current then controller_name == "menus" && action_name == "show"
+                when :grocery then controller_name == "menus" && action_name == "grocery"
+                else false
+                end
+
+    "header-nav-link #{'active' if is_active}"
+  end
+
   # ============================================
   # SYSTÈME DE GESTION D'ERREURS INLINE
   # ============================================

@@ -29,7 +29,15 @@
             = link_to root_path, class: "brand-link" do
               = image_tag "logos/logo_EasyMeal.svg", alt: "EasyMeal", class: "logo"
 
-          -# Menu utilisateur dropdown
+          -# Liens de navigation principaux (masqués sur mobile)
+          .header-nav-links
+            = link_to "Recettes", recipes_path, class: header_nav_class(:recipes)
+            = link_to "Mes menus", menus_path, class: header_nav_class(:menus)
+            - if (active = current_active_menu)
+              = link_to "Menu en cours", menu_path(active), class: header_nav_class(:current)
+              = link_to "Courses", grocery_menu_path(active), class: header_nav_class(:grocery)
+
+          -# Menu utilisateur (avatar desktop / hamburger mobile)
           .user-menu
             %button.user-menu-button{ type: "button", data: { action: "click->menu#toggle", menu_target: "button" } }
               .user-avatar
@@ -37,41 +45,25 @@
               %span.user-name= current_user.first_name
               %svg.chevron{ width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "3" }
                 %polyline{ points: "6 9 12 15 18 9" }
-            
+              -# Icône hamburger (visible uniquement sur mobile via CSS)
+              %svg.hamburger-icon{ width: "22", height: "22", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2" }
+                %line{ x1: "3", y1: "6", x2: "21", y2: "6" }
+                %line{ x1: "3", y1: "12", x2: "21", y2: "12" }
+                %line{ x1: "3", y1: "18", x2: "21", y2: "18" }
+
             .user-dropdown{ data: { menu_target: "dropdown" } }
-              .dropdown-header
-                .dropdown-user-info
-                  .dropdown-avatar
-                    = current_user.first_name[0].upcase + current_user.last_name[0].upcase
-                  .dropdown-user-details
-                    %strong= "#{current_user.first_name} #{current_user.last_name}"
-                    %small= current_user.email
-              
-              .dropdown-divider
-              
+              -# Liens de navigation dans le dropdown (mobile uniquement via CSS)
+              .dropdown-nav-links
+                = link_to "Recettes", recipes_path, class: "dropdown-link"
+                = link_to "Mes menus", menus_path, class: "dropdown-link"
+                - if (active = current_active_menu)
+                  = link_to "Menu en cours", menu_path(active), class: "dropdown-link"
+                  = link_to "Courses", grocery_menu_path(active), class: "dropdown-link"
+                .dropdown-divider
+
               .dropdown-links
-                = link_to ingredients_path, class: "dropdown-link" do
-                  %svg{ width: "20", height: "20", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2" }
-                    %path{ d: "M3 3h18v18H3V3z" }
-                    %path{ d: "M9 3v18M15 3v18M3 9h18M3 15h18" }
-                  %span Ingrédients
-
-                = link_to recipes_path, class: "dropdown-link" do
-                  %svg{ width: "20", height: "20", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2" }
-                    %path{ d: "M12 2l9 7-9 7-9-7 9-7z" }
-                    %path{ d: "M12 22V9" }
-                  %span Recettes
-
-                = link_to menus_path, class: "dropdown-link" do
-                  %svg{ width: "20", height: "20", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2" }
-                    %path{ d: "M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" }
-                    %rect{ x: "9", y: "3", width: "6", height: "4", rx: "2" }
-                    %line{ x1: "9", y1: "12", x2: "15", y2: "12" }
-                    %line{ x1: "9", y1: "16", x2: "13", y2: "16" }
-                  %span Mes menus
-
                 = link_to destroy_user_session_path, data: { turbo_method: :delete }, class: "dropdown-link logout" do
-                  %svg{ width: "20", height: "20", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2" }
+                  %svg{ width: "18", height: "18", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2" }
                     %path{ d: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" }
                     %polyline{ points: "16 17 21 12 16 7" }
                     %line{ x1: "21", y1: "12", x2: "9", y2: "12" }

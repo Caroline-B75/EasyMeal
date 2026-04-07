@@ -19,7 +19,7 @@ class GreetingService
     [ "Hello %{name}, et si on composait un menu aux petits oignons ?",
       "Laisse EasyMeal faire le travail, toi tu régales." ],
     [ "Salut %{name} ! L'inspiration culinaire frappe à ta porte...",
-      "Ouvre-lui — ça sent bon là-dedans." ],
+      "Ouvre-lui, ça sent bon là-dedans." ],
     [ "%{name}, %{ready} à épater tes papilles ?",
       "Le bon repas du soir commence toujours par un bon menu." ],
     [ "Salut %{name} ! On met les petits plats dans les grands ?",
@@ -33,7 +33,7 @@ class GreetingService
     [ "Hey %{name} ! %{ready} pour un festin ?",
       "EasyMeal est prêt si tu l'es." ],
     [ "Salut %{name} ! On cuisine quoi ce soir ?",
-      "Un menu complet en quelques secondes — promis." ],
+      "Un menu complet en quelques secondes, promis." ],
     [ "Hello %{name}, ton frigo attend tes talents !",
       "La liste de courses qui va avec est déjà là." ],
     [ "Bonjour %{name} ! Et si on se faisait un bon petit plat ?",
@@ -61,7 +61,7 @@ class GreetingService
     [ "Bonjour %{name}, t'es %{hot} aujourd'hui ?",
       "Alors profites-en pour composer un menu de champion." ],
     [ "Salut %{name} ! On va faire mijoter tout ça",
-      "Prends le temps de bien choisir — le résultat en vaut la peine." ],
+      "Prends le temps de bien choisir, le résultat en vaut la peine." ],
     [ "Hey %{name} ! C'est pas de la tarte... ou peut-être que si ?",
       "On a justement quelques tartes de saison à te proposer." ],
     [ "Salut %{name} ! Level up culinaire en cours...",
@@ -106,7 +106,7 @@ class GreetingService
     {
       name: user_first_name,
       ready: gendered_adjective("prêt", "prête"),
-      hot: gendered_adjective("chaud bouillant", "chaude bouillante"),
+      hot: gendered_adjective("chaud bouillant", "chaud bouillant"),
       alone: gendered_adjective("tout seul", "toute seule")
     }
   end
