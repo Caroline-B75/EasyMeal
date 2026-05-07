@@ -31,10 +31,15 @@ module Menus
       excluded_ids = present_recipe_ids + @extra_excluded_ids
       month = Date.current.month
 
-      # Tentative 1 : pool de saison
-      candidate = seasonal_pool(month).where.not(id: excluded_ids).sample
-      # Tentative 2 : pool hors saison
-      candidate ||= offseason_pool(month).where.not(id: excluded_ids).sample
+      # Tentative 1 : pool de saison (sous-requête pour éviter DISTINCT + ORDER BY RANDOM())
+      candidate = Recipe.where(id: seasonal_pool(month).select(:id))
+                        .where.not(id: excluded_ids)
+                        .order(Arel.sql("RANDOM()"))
+                        .first
+      # Tentative 2 : pool hors saison (pas de DISTINCT, ORDER BY RANDOM() direct)
+      candidate ||= offseason_pool(month).where.not(id: excluded_ids)
+                                         .order(Arel.sql("RANDOM()"))
+                                         .first
 
       candidate || raise(Menus::NoCandidatesError)
     end

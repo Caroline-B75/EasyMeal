@@ -16,10 +16,18 @@ class RecipesController < ApplicationController
   def index
     authorize Recipe
     recipes = Recipes::FilterService.call(recipes_base_scope, params)
-                .includes(:tags, :ingredients, photo_attachment: :blob)
+                .includes(:tags, :reviews, :photo_attachment)
                 .order(params[:sort] || :name)
     @pagy, @recipes = pagy(recipes, items: 20)
-    @tags = Tag.joins(:recipes).distinct.alphabetical
+    @recipes = @recipes.to_a
+    @tags = Rails.cache.fetch("tags/with_recipes", expires_in: 1.hour) do
+      Tag.joins(:recipes).distinct.alphabetical.to_a
+    end
+    @favorited_ids = if current_user
+      Set.new(FavoriteRecipe.where(user: current_user, recipe_id: @recipes.map(&:id)).pluck(:recipe_id))
+    else
+      Set.new
+    end
     load_draft_data
   end
 

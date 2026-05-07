@@ -5,7 +5,7 @@
 # Règles :
 # - Créer un menu : tout utilisateur connecté.
 # - Toutes les autres actions (show, edit, update, destroy, activate,
-#   add_random_meal, replace_meal, regenerate_grocery) :
+#   add_random_meal, replace_meal) :
 #   utilisateur connecté ET propriétaire du menu.
 # - Scope : un utilisateur ne voit que ses propres menus.
 class MenuPolicy < ApplicationPolicy
@@ -57,13 +57,13 @@ class MenuPolicy < ApplicationPolicy
     owner?
   end
 
-  # Régénération de la liste de courses — UC2/UC3
-  def regenerate_grocery?
+  # Accès à la page dédiée de la liste de courses — UC3
+  def grocery?
     owner?
   end
 
-  # Accès à la page dédiée de la liste de courses — UC3
-  def grocery?
+  # Régénération de la liste de courses — UC3
+  def regenerate_grocery?
     owner?
   end
 

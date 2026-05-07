@@ -1,2 +1,9 @@
--# Turbo Stream : retire l'item de la liste de courses
-= turbo_stream.remove "grocery_item_#{@grocery_item.id}"
+-# Turbo Stream : re-rend le rayon après suppression d'un item (ou retire le rayon s'il est vide)
+- category      = @grocery_item.category
+- section_id    = "grocery_section_#{(category.presence || 'divers').parameterize}"
+- remaining     = @menu.grocery_items.where(category: category).sorted
+- if remaining.any?
+  = turbo_stream.replace section_id do
+    = render "menus/grocery_section", category: category, items: remaining, menu: @menu
+- else
+  = turbo_stream.remove section_id

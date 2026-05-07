@@ -22,7 +22,7 @@
         .meal-card.meal-card--readonly
           .meal-card-info
             %h3.meal-card-title
-              = link_to mr.recipe.name, recipe_path(mr.recipe), class: "meal-card-recipe-link"
+              = link_to mr.recipe.name, recipe_path(mr.recipe), class: "meal-card-recipe-link", data: { turbo_prefetch: "false" }
             .meal-card-badges
               %span.badge= menu_diet_label(mr.recipe.diet)
               - total_time = (mr.recipe.prep_time_minutes.to_i + mr.recipe.cook_time_minutes.to_i)

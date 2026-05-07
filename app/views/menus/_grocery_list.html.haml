@@ -1,0 +1,17 @@
+-# Contenu de la liste de courses groupée par rayon
+-# grocery_items : collection triée GroceryItem
+-# menu          : Menu
+
+#grocery_list{ data: { controller: "grocery-sections" } }
+  - if grocery_items.any?
+    .grocery-list-controls
+      %button.btn-text-sm{ type: "button",
+                            data: { action: "click->grocery-sections#toggleAll",
+                                    "grocery-sections-target": "toggleBtn" } }
+        Tout fermer
+
+    - grocery_items.group_by(&:category).each do |category, items|
+      = render "menus/grocery_section", category: category, items: items, menu: menu
+  - else
+    .grocery-empty
+      %p La liste de courses est vide.

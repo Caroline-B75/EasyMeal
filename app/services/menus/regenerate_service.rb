@@ -31,14 +31,27 @@ module Menus
     private
 
     def pick_recipes
-      month    = Date.current.month
-      diet     = @menu.diet.to_s
-      seasonal = Recipe.compatible_with(diet).seasonal_for_month(month).to_a.shuffle
-      other    = Recipe.compatible_with(diet)
-                       .where.not(id: seasonal.map(&:id))
-                       .to_a.shuffle
+      month          = Date.current.month
+      diet           = @menu.diet.to_s
+      base           = Recipe.compatible_with(diet)
+      seasonal_scope = base.seasonal_for_month(month)
 
-      selection = (seasonal + other).first(@number_of_meals)
+      seasonal = Recipe.where(id: seasonal_scope.select(:id))
+                       .order(Arel.sql("RANDOM()"))
+                       .limit(@number_of_meals)
+                       .to_a
+
+      remaining = @number_of_meals - seasonal.size
+      other = if remaining > 0
+                base.where.not(id: seasonal_scope.select(:id))
+                    .order(Arel.sql("RANDOM()"))
+                    .limit(remaining)
+                    .to_a
+              else
+                []
+              end
+
+      selection = seasonal + other
       raise Menus::NoCandidatesError if selection.empty?
 
       selection

@@ -109,7 +109,7 @@
             .mi-recipe-cards-label Repas du menu
             .mi-recipe-cards-grid
               - @active.menu_recipes.each do |mr|
-                = link_to recipe_path(mr.recipe), class: "mi-recipe-card-mini" do
+                = link_to recipe_path(mr.recipe), class: "mi-recipe-card-mini", data: { turbo_prefetch: "false" } do
                   .mi-recipe-card-mini-img
                     - if mr.recipe.photo.attached?
                       = image_tag mr.recipe.photo.variant(resize_to_fill: [280, 140]),

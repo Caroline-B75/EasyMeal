@@ -52,18 +52,32 @@ module Menus
 
     private
 
-    # Sélectionne number_of_meals recettes sans doublons (saison d'abord)
+    # Sélectionne number_of_meals recettes sans doublons (saison d'abord).
+    # Le tri aléatoire et la limite sont délégués à PostgreSQL.
+    # Le scope seasonal_for_month utilise DISTINCT (JOIN ingrédients) : on l'isole
+    # en sous-requête pour éviter le conflit PostgreSQL DISTINCT + ORDER BY RANDOM().
     def pick_recipes
-      month    = Date.current.month
-      seasonal = Recipe.compatible_with(@diet).seasonal_for_month(month).to_a.shuffle
-      other    = Recipe.compatible_with(@diet)
-                       .where.not(id: seasonal.map(&:id))
-                       .to_a.shuffle
+      month          = Date.current.month
+      base           = Recipe.compatible_with(@diet)
+      seasonal_scope = base.seasonal_for_month(month)
 
-      # Priorité saison, compléter hors saison si besoin
-      selection = (seasonal + other).first(@number_of_meals)
+      seasonal = Recipe.where(id: seasonal_scope.select(:id))
+                       .order(Arel.sql("RANDOM()"))
+                       .limit(@number_of_meals)
+                       .to_a
 
-      # Si le catalogue est vraiment vide pour ce régime
+      remaining = @number_of_meals - seasonal.size
+      other = if remaining > 0
+                # Exclure TOUTES les recettes saisonnières (pas seulement celles retenues)
+                base.where.not(id: seasonal_scope.select(:id))
+                    .order(Arel.sql("RANDOM()"))
+                    .limit(remaining)
+                    .to_a
+              else
+                []
+              end
+
+      selection = seasonal + other
       raise Menus::NoCandidatesError if selection.empty?
 
       selection

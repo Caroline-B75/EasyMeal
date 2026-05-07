@@ -154,13 +154,20 @@ class Recipe < ApplicationRecord
   end
 
   # Note moyenne des avis (arrondi à 1 décimale)
+  # Utilise la collection en mémoire si déjà chargée (includes), sinon SQL AVG.
   def rating_avg
-    reviews.average(:rating)&.round(1) || 0
+    if reviews.loaded?
+      return 0 if reviews.empty?
+      (reviews.sum(&:rating).to_f / reviews.size).round(1)
+    else
+      reviews.average(:rating)&.round(1) || 0
+    end
   end
 
   # Nombre total d'avis
+  # size utilise la collection en mémoire si chargée, COUNT SQL sinon.
   def reviews_count
-    reviews.count
+    reviews.size
   end
 
   # Nombre de fois mise en favori

@@ -1,3 +1,7 @@
--# Turbo Stream : met à jour l'item après toggle coché ou modification quantité
-= turbo_stream.replace "grocery_item_#{@grocery_item.id}" do
-  = render "menus/grocery_item", item: @grocery_item, menu: @menu
+-# Turbo Stream : re-rend le rayon entier après modification d'un item
+-# (recharge le tri unchecked-en-premier et met à jour la quantité affichée)
+- category    = @grocery_item.category
+- section_id  = "grocery_section_#{(category.presence || 'divers').parameterize}"
+- section_items = @menu.grocery_items.where(category: category).sorted
+= turbo_stream.replace section_id do
+  = render "menus/grocery_section", category: category, items: section_items, menu: @menu

@@ -20,9 +20,9 @@ Rails.application.routes.draw do
       post :reactivate          # Réactiver un menu archivé (remplace le menu actif courant)
       post :add_random_meal    # UC2 : Ajouter un repas aléatoire au menu
       post :replace_meal       # UC2 : Remplacer un repas (params: menu_recipe_id)
-      get  :grocery            # UC3 : Page dédiée de la liste de courses
-      post :regenerate_grocery # UC3 : Régénérer la liste de courses
-      post :regenerate         # UC2 : Re-générer le menu brouillon avec de nouveaux paramètres
+      get  :grocery                   # UC3 : Page dédiée de la liste de courses
+      post :regenerate_grocery       # UC3 : Régénérer la liste de courses
+      post :regenerate               # UC2 : Re-générer le menu brouillon avec de nouveaux paramètres
     end
     resources :menu_recipes, only: [ :create, :update, :destroy ] do
       collection do

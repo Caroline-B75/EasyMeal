@@ -4,7 +4,7 @@
 #
 # Actions extraites dans des concerns pour limiter la complexité :
 # - Menus::Customizable   → add_random_meal, replace_meal, regenerate  (UC2)
-# - Menus::GroceryManageable → grocery, regenerate_grocery             (UC3)
+# - Menus::GroceryManageable → grocery                                 (UC3)
 class MenusController < ApplicationController
   include TurboFlashable
   include Menus::Customizable
@@ -20,13 +20,13 @@ class MenusController < ApplicationController
   # GET /menus
   def index
     authorize Menu
-    @menus = policy_scope(Menu).recent.includes(menu_recipes: :recipe)
+    @menus = policy_scope(Menu).recent.includes(menu_recipes: { recipe: :photo_attachment })
     classify_menus
   end
 
   # GET /menus/:id
   def show
-    @menu_recipes = @menu.menu_recipes.includes(:recipe).by_position
+    @menu_recipes = @menu.menu_recipes.includes(recipe: [:photo_attachment, :ingredients]).by_position
   end
 
   # GET /menus/new

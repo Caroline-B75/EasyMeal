@@ -2,7 +2,7 @@
 -# Même design que la carte de personnalisation mais sans actions (drag/replace/delete)
 -# menu_recipe : MenuRecipe
 
-= link_to recipe_path(menu_recipe.recipe), class: "mc-recipe-card mc-recipe-card--readonly" do
+= link_to recipe_path(menu_recipe.recipe), class: "mc-recipe-card mc-recipe-card--readonly", data: { turbo_prefetch: "false" } do
   -# ── Photo carrée ──────────────────────────────────────
   .mc-card-photo
     - if menu_recipe.recipe.photo.attached?

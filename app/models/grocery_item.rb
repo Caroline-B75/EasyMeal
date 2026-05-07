@@ -24,6 +24,34 @@ class GroceryItem < ApplicationRecord
   # Groupe d'unités — dupliqué depuis Ingredient pour éviter la jointure à l'affichage
   enum :unit_group, { mass: 0, volume: 1, count: 2, spoon: 3 }, prefix: true
 
+  # Rayon de supermarché — dupliqué depuis Ingredient (même mapping)
+  enum :category, {
+    fruits_legumes: 0,
+    boucherie_viande: 1,
+    charcuterie_traiteur: 2,
+    poissonnerie: 3,
+    fromagerie_coupe: 4,
+    boulangerie_patisserie: 5,
+    produits_laitiers: 6,
+    produits_frais_libre_service: 7,
+    glaces_desserts_glaces: 8,
+    legumes_surgeles: 9,
+    viandes_poissons_surgeles: 10,
+    produits_aperitifs_surgeles: 11,
+    epicerie_salee: 12,
+    epicerie_sucree: 13,
+    boissons: 14,
+    petit_dejeuner: 15,
+    produits_monde: 16,
+    hygiene_beaute: 17,
+    entretien_maison: 18,
+    papeterie_fournitures: 19,
+    autre: 20
+  }, prefix: true
+
+  # === Callbacks ===
+  before_validation :derive_unit_group_from_base_unit
+
   # === Validations ===
   validates :name, presence: { message: "ne peut pas être vide" }
 
@@ -54,8 +82,27 @@ class GroceryItem < ApplicationRecord
   # La colonne category est dupliquée depuis ingredient pour éviter la jointure
   scope :by_category, ->(cat) { where(category: cat) }
 
-  # Tri : par rayon d'abord, puis alphabétique par nom au sein du rayon
-  scope :sorted, -> { order(:category, :name) }
+  # Tri : par rayon, non-cochés en premier, puis alphabétique par nom
+  scope :sorted, -> { order(:category, :checked, :name) }
+
+  # === Méthodes privées ===
+  private
+
+  UNIT_GROUP_MAP = {
+    "g"     => :mass,
+    "kg"    => :mass,
+    "ml"    => :volume,
+    "l"     => :volume,
+    "piece" => :count,
+    "cac"   => :spoon,
+    "cas"   => :spoon
+  }.freeze
+
+  def derive_unit_group_from_base_unit
+    self.unit_group = UNIT_GROUP_MAP[base_unit] if base_unit.present?
+  end
+
+  public
 
   # === Méthodes d'instance ===
 
