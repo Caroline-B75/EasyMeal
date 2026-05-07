@@ -3,24 +3,17 @@
 -# @grocery_items : collection triée GroceryItem
 - content_for :title, "Liste de courses"
 
+-# Navigation contextuelle avec breadcrumb
+- menu_label = @menu.name.presence || "Menu sans nom"
+= context_bar_breadcrumb([{ label: "Mes menus", path: menus_path }, { label: menu_label, path: menu_path(@menu) }, { label: "Liste de courses" }])
+
 .menu-show
-
-  -# ── En-tête ──────────────────────────────────────────────
-  .menu-show-header
-    .menu-show-breadcrumb
-      = link_to "Mes menus", menus_path, class: "menu-breadcrumb-link"
-      %span.menu-breadcrumb-sep ›
-      = link_to(@menu.name.presence || "Menu sans nom", menu_path(@menu), class: "menu-breadcrumb-link")
-      %span.menu-breadcrumb-sep ›
-      %span.menu-breadcrumb-current Liste de courses
-
-    .menu-show-actions
-      = link_to menu_path(@menu), class: "btn btn-secondary btn-sm" do
-        Retour au menu
-      = button_to "↻ Régénérer", regenerate_grocery_menu_path(@menu),
-                  method: :post,
-                  class: "btn btn-secondary btn-sm",
-                  form: { data: { turbo_confirm: "Régénérer la liste ? Les items manuels et cochés seront conservés." } }
+  -# ── Actions rapides ────────────────────────────────────
+  .grocery-actions
+    = button_to "↻ Régénérer", regenerate_grocery_menu_path(@menu),
+                method: :post,
+                class: "btn btn-secondary btn-sm",
+                form: { data: { turbo_confirm: "Régénérer la liste ? Les items manuels et cochés seront conservés." } }
 
   -# ── Liste groupée par rayon ──────────────────────────────
   .grocery-header

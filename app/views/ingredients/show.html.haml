@@ -1,9 +1,10 @@
 - content_for :title, @ingredient.name
 
+= context_bar_back(ingredients_path, "Retour à la liste", variant: :narrow)
+
 .show-container
   .show-header
     %h1= @ingredient.name
-    = link_to "← Retour à la liste", ingredients_path, class: "btn-link"
 
   .show-card
     .detail-grid

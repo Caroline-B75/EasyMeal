@@ -1,11 +1,7 @@
 -# Page d'édition d'une recette existante (admin only)
 - content_for :title, "Modifier #{@recipe.name}"
 
--# Back bar — même style que la fiche recette
-.rf-back-bar
-  = link_to recipe_path(@recipe), class: "rf-back-link" do
-    = svg_icon("chevron-left", size: 14, css_class: "rf-back-chevron")
-    Retour à la recette
+= context_bar_back(recipe_path(@recipe), "Retour à la recette", variant: :narrow)
 
 -# Mini hero sombre
 .rf-hero

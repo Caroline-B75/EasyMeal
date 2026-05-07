@@ -4,10 +4,7 @@
 - reviews_count = @recipe.reviews_count
 
 -# Zone 1 — Lien retour
-.rs-back-bar
-  = link_to recipes_path, class: "rs-back-link" do
-    = svg_icon("chevron-left", css_class: "rs-back-chevron")
-    Retour aux recettes
+= context_bar_back(recipes_path, "Retour aux recettes")
 
 -# Zone 2 — Hero sur fond sombre
 .rs-hero

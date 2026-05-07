@@ -833,29 +833,7 @@
    ───────────────────────────────────────────────────────── */
 
 /* ── Hero new/edit ─────────────────────────────────────── */
-.mn-back-bar {
-  padding: 1rem 1.5rem;
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-.mn-back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: var(--font-size-xs);
-  color: var(--color-ink-3);
-  text-decoration: none;
-  transition: color var(--transition-fast);
-}
-
-.mn-back-link:hover {
-  color: var(--color-ink);
-}
-
-.mn-back-chevron {
-  opacity: 0.7;
-}
+/* NOTE: .mn-back-bar et .mn-back-link supprimés — utilise .context-bar */
 
 .mn-hero {
   background: var(--color-primary);
@@ -948,29 +926,7 @@
   border-bottom: 0.5px solid var(--color-border);
 }
 
-.menu-show-breadcrumb {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: var(--font-size-xs);
-  color: var(--color-ink-3);
-}
-
-.menu-breadcrumb-link {
-  color: var(--color-ink-3);
-  text-decoration: none;
-  transition: color var(--transition-fast);
-}
-
-.menu-breadcrumb-link:hover { color: var(--color-ink); }
-
-.menu-breadcrumb-sep { color: var(--color-ink-4); }
-
-.menu-breadcrumb-current {
-  font-weight: 600;
-  color: var(--color-ink);
-}
+/* NOTE: .menu-show-breadcrumb et .menu-breadcrumb-* supprimés — utilise .context-bar */
 
 .menu-show-meta {
   display: flex;
@@ -1315,8 +1271,7 @@
 }
 
 .mn-form-card-header {
-  padding: 14px 20px 13px;
-  border-bottom: 0.5px solid var(--color-border);
+  padding: 14px 20px 0px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1386,13 +1341,13 @@
 }
 
 .mn-diet-option:hover {
-  border-color: var(--color-border-strong);
-  background: var(--color-bg-secondary);
+  border-color: #D73A49;
+  background: #FFF8F8;
 }
 
 .mn-diet-option.selected {
-  border-color: var(--color-primary);
-  background: var(--color-bg-secondary);
+  border-color: #D73A49;
+  background: #FFF8F8;
 }
 
 /* Masquer le radio natif */
@@ -1430,8 +1385,8 @@
 }
 
 .mn-diet-option.selected .mn-diet-radio {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
+  background: #D73A49;
+  border-color: #D73A49;
 }
 
 .mn-diet-option.selected .mn-diet-radio::after {
@@ -1458,76 +1413,49 @@
 
 /* ── People counter ──────────────────────────────────────── */
 
-.mn-people-row {
+/* ── Unified slider (people + meals) ─────────────────────── */
+
+.mn-slider-display {
   display: flex;
   align-items: center;
-  gap: 0;
-  flex-wrap: nowrap;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
-.mn-people-control {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  border: 0.5px solid var(--color-border);
-  border-radius: var(--radius-button);
-  overflow: hidden;
-  width: fit-content;
-}
-
-.mn-people-btn {
+.mn-slider-icon {
   width: 32px;
   height: 32px;
-  border: none;
-  background: var(--color-bg-secondary);
-  color: var(--color-ink-2);
-  font-size: 16px;
-  cursor: pointer;
+  border-radius: var(--radius-card);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.1s;
-  user-select: none;
+  flex-shrink: 0;
 }
 
-.mn-people-btn:hover {
-  background: var(--color-bg-tertiary);
+.mn-slider-icon--people {
+  background: #EDE9FE;
+  color: #7C3AED;
 }
 
-.mn-people-btn:first-child {
-  border-right: 0.5px solid var(--color-border);
+.mn-slider-icon--meals {
+  background: #FEF3C7;
+  color: #D97706;
 }
 
-.mn-people-btn:last-of-type {
-  border-left: 0.5px solid var(--color-border);
-}
-
-.mn-people-val {
-  min-width: 36px;
-  text-align: center;
-  font-size: 14px;
+.mn-slider-big {
+  font-size: 26px;
   font-weight: 500;
   color: var(--color-ink);
-  padding: 0 6px;
-  background: var(--color-bg-white);
+  line-height: 1;
 }
 
-.mn-people-unit {
-  font-size: 12px;
+.mn-slider-label {
+  font-size: 13px;
   color: var(--color-ink-3);
-  margin-left: 10px;
 }
 
-/* ── Meals slider ────────────────────────────────────────── */
-
-.mn-meals-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.mn-meals-slider {
-  flex: 1;
+.mn-slider {
+  width: 100%;
   -webkit-appearance: none;
   appearance: none;
   height: 4px;
@@ -1537,7 +1465,7 @@
   cursor: pointer;
 }
 
-.mn-meals-slider::-webkit-slider-thumb {
+.mn-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 18px;
   height: 18px;
@@ -1548,27 +1476,13 @@
   box-shadow: 0 0 0 1.5px var(--color-primary);
 }
 
-.mn-meals-slider::-moz-range-thumb {
+.mn-slider::-moz-range-thumb {
   width: 18px;
   height: 18px;
   border-radius: 50%;
   background: var(--color-primary);
   cursor: pointer;
   border: 2px solid var(--color-bg-white);
-}
-
-.mn-meals-val {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--color-ink);
-  min-width: 20px;
-  text-align: center;
-}
-
-.mn-meals-unit {
-  font-size: 12px;
-  color: var(--color-ink-3);
-  white-space: nowrap;
 }
 
 /* ── Text input ──────────────────────────────────────────── */
@@ -1692,6 +1606,49 @@
   animation: mn-spin 1s linear infinite;
 }
 
+/* ── Two-column layout (étapes 2+3) ──────────────────────── */
+
+.mn-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.mn-two-col .mn-form-card {
+  margin-bottom: 0;
+}
+
+/* ── Diet icons (backgrounds thématiques) ────────────────── */
+
+.mn-diet-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mn-diet-icon--omni  { background: #FFF0EE; }
+.mn-diet-icon--vege  { background: #EDF7E6; }
+.mn-diet-icon--vegan { background: #E6F5EE; }
+.mn-diet-icon--pesc  { background: #E6F1FB; }
+
+/* ── Slider marks (graduation) ───────────────────────────── */
+
+.mn-slider-marks {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.mn-slider-mark {
+  font-size: 10px;
+  color: var(--color-ink-4);
+}
+
 /* ── Responsive formulaire de génération ──────────────── */
 
 @media (max-width: 600px) {
@@ -1704,6 +1661,10 @@
   }
 
   .mn-diet-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mn-two-col {
     grid-template-columns: 1fr;
   }
 }

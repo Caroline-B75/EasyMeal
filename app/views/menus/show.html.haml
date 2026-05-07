@@ -50,15 +50,12 @@
     = render "active_view", menu: @menu, menu_recipes: @menu_recipes
 
 - else
-  .menu-show
+  -# Navigation contextuelle pour menu archivé
+  = context_bar_breadcrumb([{ label: "Mes menus", path: menus_path }, { label: @menu.name.presence || "Menu sans nom" }])
 
+  .menu-show
     -# ── En-tête (archivé) ────────────────────────────────────
     .menu-show-header
-      .menu-show-breadcrumb
-        = link_to "Mes menus", menus_path, class: "menu-breadcrumb-link"
-        %span.menu-breadcrumb-sep ›
-        %span.menu-breadcrumb-current= @menu.name.presence || "Menu sans nom"
-
       .menu-show-meta
         %span{ class: menu_status_badge_class(@menu) }= menu_status_label(@menu)
         %span.menu-meta-diet= menu_diet_label(@menu.diet)

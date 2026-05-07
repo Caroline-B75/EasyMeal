@@ -3,10 +3,7 @@
 -# Actif/Archivé : formulaire simple (nom, personnes)
 - content_for :title, "Modifier le menu"
 
-.mn-back-bar
-  = link_to menu_path(@menu), class: "mn-back-link" do
-    = svg_icon("chevron-left", size: 14, css_class: "mn-back-chevron")
-    Retour au menu
+= context_bar_back(menu_path(@menu), "Retour au menu", variant: :narrow)
 
 - if @menu.status_draft?
   .mn-page-wrap

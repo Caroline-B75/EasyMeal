@@ -1,0 +1,146 @@
+/* ============================================
+   CONTEXT BAR - Composant unifié de navigation contextuelle
+   ============================================
+   
+   Deux modes d'affichage :
+   - Mode back-link : lien retour simple (par défaut)
+   - Mode breadcrumb : fil d'Ariane hiérarchique
+   
+   Responsive :
+   - Desktop : breadcrumb complet
+   - Mobile (< 768px) : collapse vers lien retour
+   
+   Hauteur cible : ~36px pour minimiser l'espace vertical
+   ============================================ */
+
+/* === Base Container === */
+.context-bar {
+  background: var(--color-bg-white);
+  border-bottom: 0.5px solid var(--color-border);
+  padding: 10px 28px;
+}
+
+/* Conteneur interne centré avec max-width cohérent */
+.context-bar__inner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Variante sans max-width (hérite du parent) */
+.context-bar--fluid .context-bar__inner {
+  max-width: none;
+}
+
+/* Variante étroite pour les formulaires */
+.context-bar--narrow .context-bar__inner {
+  max-width: 900px;
+}
+
+/* === Mode Back Link === */
+.context-bar__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--color-ink-3);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.context-bar__back:hover {
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.context-bar__back-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+/* === Mode Breadcrumb === */
+.context-bar__breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.context-bar__crumb {
+  color: var(--color-ink-3);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.context-bar__crumb:hover {
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.context-bar__sep {
+  font-size: 10px;
+  color: var(--color-ink-4);
+  user-select: none;
+}
+
+.context-bar__current {
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+/* === Responsive Mobile === */
+@media (max-width: 767px) {
+  .context-bar {
+    padding: 8px 16px;
+  }
+
+  /* Sur mobile, on masque les crumbs intermédiaires pour n'afficher que le lien retour */
+  .context-bar__breadcrumb .context-bar__crumb:not(:last-of-type),
+  .context-bar__breadcrumb .context-bar__sep:not(:last-of-type),
+  .context-bar__breadcrumb .context-bar__current {
+    display: none;
+  }
+
+  /* Le dernier crumb devient un back-link sur mobile */
+  .context-bar__breadcrumb .context-bar__crumb:last-of-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* Préfixe avec chevron sur mobile */
+  .context-bar__breadcrumb .context-bar__crumb:last-of-type::before {
+    content: "←";
+    margin-right: 4px;
+  }
+
+  /* Masque le séparateur final sur mobile */
+  .context-bar__breadcrumb .context-bar__sep:last-of-type {
+    display: none;
+  }
+}
+
+/* === Variante sans bordure (pour intégration dans header existant) === */
+.context-bar--borderless {
+  border-bottom: none;
+  background: transparent;
+}
+
+/* === Variante compacte === */
+.context-bar--compact {
+  padding: 6px 16px;
+}
+
+.context-bar--compact .context-bar__back,
+.context-bar--compact .context-bar__breadcrumb {
+  font-size: 11px;
+}
+
+.context-bar--compact .context-bar__back-icon {
+  width: 12px;
+  height: 12px;
+}

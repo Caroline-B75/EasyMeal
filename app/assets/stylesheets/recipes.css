@@ -1453,33 +1453,7 @@
    ============================================ */
 
 /* === Zone 1 — Lien retour === */
-
-.rs-back-bar {
-  background: var(--color-bg-white);
-  border-bottom: 0.5px solid var(--color-border);
-  padding: 11px 28px;
-}
-
-.rs-back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  color: var(--color-ink-3);
-  text-decoration: none;
-  transition: color var(--transition-fast);
-}
-
-.rs-back-link:hover {
-  color: var(--color-ink);
-  text-decoration: none;
-}
-
-.rs-back-chevron {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-}
+/* NOTE: .rs-back-bar et .rs-back-link supprimés — utilise .context-bar */
 
 /* === Zone 2 — Hero fond sombre === */
 
@@ -2197,9 +2171,7 @@
 
 /* Mobile (max-width: 767px) */
 @media (max-width: 767px) {
-  .rs-back-bar {
-    padding: 8px 16px;
-  }
+  /* NOTE: .rs-back-bar responsive supprimé — utilise .context-bar */
 
   .rs-hero-inner {
     grid-template-columns: 1fr;
@@ -2347,33 +2319,7 @@
    ============================================ */
 
 /* === Back bar === */
-
-.rf-back-bar {
-  background: var(--color-bg-white);
-  border-bottom: 0.5px solid var(--color-border);
-  padding: 11px 28px;
-}
-
-.rf-back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  color: var(--color-ink-3);
-  text-decoration: none;
-  transition: color var(--transition-fast);
-}
-
-.rf-back-link:hover {
-  color: var(--color-ink);
-  text-decoration: none;
-}
-
-.rf-back-chevron {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-}
+/* NOTE: .rf-back-bar et .rf-back-link supprimés — utilise .context-bar */
 
 /* ============================================
    DRAFT STATUS BAR — Barre contextuelle menu brouillon
@@ -2885,9 +2831,7 @@
 
 /* Mobile (max-width: 767px) */
 @media (max-width: 767px) {
-  .rf-back-bar {
-    padding: 8px 16px;
-  }
+  /* NOTE: .rf-back-bar responsive supprimé — utilise .context-bar */
 
   .rf-hero {
     padding: 14px 16px 16px;

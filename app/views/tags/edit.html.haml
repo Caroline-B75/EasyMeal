@@ -1,9 +1,10 @@
 -# Page d'édition d'un tag (admin only)
 - content_for :title, "Modifier un tag"
 
+= context_bar_back(tags_path, "Retour aux tags", variant: :narrow)
+
 .tags-container
   .tags-header
-    = link_to "← Retour aux tags", tags_path, class: "btn-link"
     %h1 ✏️ Modifier le tag
 
   .tag-form-container

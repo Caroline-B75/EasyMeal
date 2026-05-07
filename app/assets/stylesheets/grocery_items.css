@@ -6,6 +6,14 @@
    Design Slate Craft Premium.
    ============================================ */
 
+/* ── Actions en haut de page ───────────────────────────── */
+.grocery-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
 /* ── En-tête liste de courses ──────────────────────────── */
 .grocery-header {
   display: flex;
