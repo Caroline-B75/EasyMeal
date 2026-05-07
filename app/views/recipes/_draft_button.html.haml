@@ -1,0 +1,15 @@
+-# Partial bouton "ajouter au menu brouillon" — index (compact)
+-# Pattern identique au bouton favori pour cohérence UX.
+-#
+-# Locals :
+-#   recipe       : Recipe (required)
+-#   in_draft     : Boolean — recette déjà dans le brouillon (required)
+-#   container_id : String, id du wrapper DOM (default: "draft-btn-<recipe.id>")
+- container_id = local_assigns.fetch(:container_id, "draft-btn-#{recipe.id}")
+%div.recipe-draft-container{ id: container_id }
+  = button_to toggle_in_draft_recipe_path(recipe),
+              method: :post,
+              class: "draft-btn draft-btn-compact #{in_draft ? 'in-draft' : ''}",
+              title: in_draft ? "Retirer du menu brouillon" : "Ajouter au menu brouillon",
+              form: { data: { turbo_frame: "_top", turbo_stream: true } } do
+    = in_draft ? "✓" : "+"

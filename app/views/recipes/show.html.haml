@@ -4,10 +4,7 @@
 - reviews_count = @recipe.reviews_count
 
 -# Zone 1 — Lien retour
-.rs-back-bar
-  = link_to recipes_path, class: "rs-back-link" do
-    = svg_icon("chevron-left", css_class: "rs-back-chevron")
-    Retour aux recettes
+= context_bar_back(recipes_path, "Retour aux recettes")
 
 -# Zone 2 — Hero sur fond sombre
 .rs-hero
@@ -48,8 +45,13 @@
 
       -# Boutons d'action
       .rs-actions
-        = link_to "#", class: "rs-btn-accent" do
-          Ajouter à mon menu
+        - if current_user
+          = button_to "Ajouter à mon menu", add_to_menu_recipe_path(@recipe),
+                      method: :post,
+                      class: "rs-btn-accent",
+                      title: "Ajouter cette recette à mon menu brouillon"
+        - else
+          = link_to "Ajouter à mon menu", new_user_session_path, class: "rs-btn-accent"
 
         - if current_user
           = render "recipes/favorite_button", recipe: @recipe, is_favorited: @is_favorited, container_id: "favorite-btn-#{@recipe.id}", show_page: true
@@ -62,6 +64,8 @@
       - if @recipe.photo.attached?
         = image_tag cloudinary_photo_url(@recipe.photo, width: 680, height: 560, crop: :fill),
                     alt: @recipe.name, class: "rs-photo-img"
+      - else
+        = image_tag "photo_par_defaut_recette.png", alt: @recipe.name, class: "rs-photo-img"
       .rs-photo-overlay
         %span.rs-photo-stars= rating_stars(rating_avg)
         %span.rs-photo-score
@@ -116,7 +120,7 @@
             = render "recipes/review_card", review: review, current_user: current_user
         - elsif !current_user
           .rs-empty-reviews
-            %p Connectez-vous pour voir et laisser des avis.
+            %p Connecte toi pour voir et laisser des avis.
             = link_to "Se connecter", new_user_session_path, class: "btn btn-primary"
 
       -# Pagination des avis

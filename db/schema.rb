@@ -10,8 +10,9 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_02_01_100001) do
+ActiveRecord::Schema[7.2].define(version: 2026_05_07_100001) do
   # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_trgm"
   enable_extension "plpgsql"
 
   create_table "active_storage_attachments", force: :cascade do |t|
@@ -52,6 +53,26 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_01_100001) do
     t.index ["user_id"], name: "index_favorite_recipes_on_user_id"
   end
 
+  create_table "grocery_items", force: :cascade do |t|
+    t.bigint "menu_id", null: false
+    t.bigint "ingredient_id"
+    t.string "name", null: false
+    t.decimal "quantity_base", precision: 10, scale: 3, null: false
+    t.integer "unit_group", null: false
+    t.string "base_unit", null: false
+    t.integer "category"
+    t.boolean "checked", default: false, null: false
+    t.integer "source", default: 0, null: false
+    t.integer "position"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ingredient_id"], name: "index_grocery_items_on_ingredient_id"
+    t.index ["menu_id", "category"], name: "index_grocery_items_on_menu_id_and_category"
+    t.index ["menu_id", "ingredient_id"], name: "index_grocery_items_on_menu_id_and_ingredient_id"
+    t.index ["menu_id", "source"], name: "index_grocery_items_on_menu_id_and_source"
+    t.index ["menu_id"], name: "index_grocery_items_on_menu_id"
+  end
+
   create_table "ingredients", force: :cascade do |t|
     t.string "name", null: false
     t.integer "category", null: false
@@ -64,6 +85,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_01_100001) do
     t.index ["aliases"], name: "index_ingredients_on_aliases", using: :gin
     t.index ["category"], name: "index_ingredients_on_category"
     t.index ["name"], name: "index_ingredients_on_name", unique: true
+    t.index ["name"], name: "index_ingredients_on_name_trgm", opclass: :gin_trgm_ops, using: :gin
+    t.index ["season_months"], name: "index_ingredients_on_season_months", using: :gin
   end
 
   create_table "menu_recipes", force: :cascade do |t|
@@ -74,6 +97,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_01_100001) do
     t.date "scheduled_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "position", default: 0, null: false
+    t.index ["menu_id", "position"], name: "index_menu_recipes_on_menu_id_and_position"
     t.index ["menu_id", "recipe_id"], name: "index_menu_recipes_on_menu_id_and_recipe_id"
     t.index ["menu_id", "scheduled_date"], name: "index_menu_recipes_on_menu_id_and_scheduled_date"
     t.index ["menu_id"], name: "index_menu_recipes_on_menu_id"
@@ -86,8 +111,14 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_01_100001) do
     t.date "start_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "status", default: 0, null: false
+    t.integer "diet"
+    t.integer "default_people", default: 2, null: false
+    t.index ["status"], name: "index_menus_on_status"
     t.index ["user_id", "start_date"], name: "index_menus_on_user_id_and_start_date"
+    t.index ["user_id", "status"], name: "index_menus_on_user_id_and_status"
     t.index ["user_id"], name: "index_menus_on_user_id"
+    t.index ["user_id"], name: "index_menus_on_user_id_unique_active", unique: true, where: "(status = 1)"
   end
 
   create_table "preparations", force: :cascade do |t|
@@ -125,9 +156,11 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_01_100001) do
     t.string "source_url"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index "((COALESCE(prep_time_minutes, 0) + COALESCE(cook_time_minutes, 0)))", name: "index_recipes_on_total_time"
     t.index ["diet"], name: "index_recipes_on_diet"
     t.index ["difficulty"], name: "index_recipes_on_difficulty"
     t.index ["name"], name: "index_recipes_on_name"
+    t.index ["name"], name: "index_recipes_on_name_trgm", opclass: :gin_trgm_ops, using: :gin
   end
 
   create_table "reviews", force: :cascade do |t|
@@ -149,6 +182,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_01_100001) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_tags_on_name", unique: true
+    t.index ["name"], name: "index_tags_on_name_trgm", opclass: :gin_trgm_ops, using: :gin
   end
 
   create_table "users", force: :cascade do |t|
@@ -164,6 +198,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_01_100001) do
     t.string "last_name"
     t.boolean "admin", default: false
     t.string "gender"
+    t.integer "default_diet", default: 0, null: false
+    t.integer "default_people", default: 2, null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
@@ -172,6 +208,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_01_100001) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "favorite_recipes", "recipes"
   add_foreign_key "favorite_recipes", "users"
+  add_foreign_key "grocery_items", "ingredients"
+  add_foreign_key "grocery_items", "menus"
   add_foreign_key "menu_recipes", "menus"
   add_foreign_key "menu_recipes", "recipes"
   add_foreign_key "menus", "users"

@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>EasyMeal — Personnaliser mon menu</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#1C1917;--ink2:#44403C;--ink3:#78716C;--ink4:#A8A29E;
+  --bg:#F8F7F4;--bg2:#F1F0EC;--bg3:#E7E5E4;--bg4:#D6D3D1;
+  --white:#FFFFFF;
+  --amber:#FBBF24;--amber2:#F59E0B;--amber3:#FEF3C7;--amber4:#92400E;
+  --r:4px;
+}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+
+/* NAV */
+.nav{background:var(--white);border-bottom:0.5px solid var(--bg3);padding:0 28px;height:52px;display:flex;align-items:center;gap:20px}
+.nav-links{display:flex;gap:20px;margin-left:16px}
+.nav-link{font-size:13px;color:var(--ink3);cursor:pointer;text-decoration:none}
+.nav-link.active{color:var(--ink);border-bottom:1.5px solid var(--amber);padding-bottom:2px}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.av{width:32px;height:32px;border-radius:50%;background:var(--ink);color:#fff;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center}
+
+/* CONTEXT BAR */
+.context-bar{background:var(--white);border-bottom:0.5px solid var(--bg3);padding:10px 28px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.bc-link{font-size:12px;color:var(--ink3);text-decoration:none;cursor:pointer}
+.bc-link:hover{color:var(--ink)}
+.bc-sep{font-size:10px;color:var(--bg3)}
+.bc-current{font-size:12px;font-weight:500;color:var(--ink)}
+.chip{font-size:11px;padding:2px 8px;background:var(--bg2);border:0.5px solid var(--bg3);border-radius:var(--r);color:var(--ink3)}
+.chip-draft{background:var(--amber3);border-color:var(--amber2);color:var(--amber4)}
+.ctx-btns{margin-left:auto;display:flex;gap:6px}
+.btn-outline-sm{font-size:11px;padding:5px 10px;border-radius:var(--r);border:0.5px solid var(--bg3);background:var(--white);color:var(--ink2);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.btn-outline-sm:hover{background:var(--bg2)}
+.btn-outline-sm svg{width:11px;height:11px;flex-shrink:0}
+.btn-danger-sm{font-size:11px;padding:5px 10px;border-radius:var(--r);border:0.5px solid #FECACA;background:#FEF2F2;color:#991B1B;cursor:pointer}
+.btn-danger-sm:hover{background:#FEE2E2}
+
+/* PAGE LAYOUT */
+.page-outer{display:flex;justify-content:center;padding:28px 28px 56px}
+.page-wrap{width:50%;min-width:480px;max-width:760px}
+
+.page-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:20px;gap:12px}
+.page-title{font-family:Georgia,serif;font-size:20px;font-weight:400;color:var(--ink)}
+.page-hint{font-size:11px;color:var(--ink4)}
+
+/* CARD GRID */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:24px}
+
+/* RECIPE CARD */
+.recipe-card{background:var(--white);border:0.5px solid var(--bg3);border-radius:var(--r);overflow:hidden;cursor:grab;user-select:none;transition:border-color 0.15s,opacity 0.2s,transform 0.15s}
+.recipe-card:hover{border-color:var(--bg4)}
+.recipe-card.dragging{opacity:0.4;cursor:grabbing;transform:scale(0.97);border-color:var(--ink4)}
+.recipe-card.drag-over{border:1.5px solid var(--amber2);background:var(--amber3)}
+
+/* photo square */
+.card-photo{width:100%;aspect-ratio:1/1;background:var(--bg2);overflow:hidden;position:relative;display:block}
+.card-photo img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.card-photo-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.card-photo-ph svg{width:24px;height:24px;opacity:0.3}
+.drag-hint{position:absolute;top:5px;left:5px;opacity:0;transition:opacity 0.15s;background:rgba(28,25,23,0.65);border-radius:2px;padding:3px 4px;display:flex;align-items:center;justify-content:center}
+.recipe-card:hover .drag-hint{opacity:1}
+.drag-hint svg{width:10px;height:10px;color:#fff}
+
+/* card name */
+.card-name-wrap{padding:7px 8px 0}
+.card-name{font-size:11px;font-weight:500;color:var(--ink);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:28px}
+
+/* action bar — 3 items in a row */
+.card-actions{display:flex;align-items:center;justify-content:space-between;padding:6px 7px 7px;gap:5px}
+
+.act-btn{width:28px;height:28px;border-radius:var(--r);border:0.5px solid var(--bg3);background:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.12s}
+.act-btn svg{width:12px;height:12px;color:var(--ink3);flex-shrink:0}
+.act-btn:hover{background:var(--bg2);border-color:var(--bg4)}
+.act-btn:hover svg{color:var(--ink)}
+.act-btn.del:hover{background:#FEF2F2;border-color:#FECACA}
+.act-btn.del:hover svg{color:#DC2626}
+
+/* people select */
+.ppl-select{height:28px;border:0.5px solid var(--bg3);border-radius:var(--r);background:var(--white);color:var(--ink);font-size:11px;font-weight:500;padding:0 4px 0 6px;cursor:pointer;min-width:52px;flex:1;max-width:64px;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='8' height='5' viewBox='0 0 8 5' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l3 3 3-3' stroke='%23A8A29E' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 5px center;padding-right:18px}
+.ppl-select:hover{border-color:var(--bg4)}
+.ppl-select:focus{outline:none;border-color:var(--ink)}
+
+/* ADD SLOT — même taille qu'une recipe-card, divisé en 2 boutons */
+.add-slot{display:flex;flex-direction:column;gap:6px}
+.add-btn{background:var(--white);border:0.5px dashed var(--bg4);border-radius:var(--r);cursor:pointer;transition:border-color 0.15s,background 0.15s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;width:100%}
+.add-btn:hover{border-color:var(--ink4);background:var(--bg2)}
+.add-btn svg{width:15px;height:15px;color:var(--ink4);flex-shrink:0}
+.add-btn span{font-size:10px;color:var(--ink3);text-align:center;line-height:1.3;padding:0 6px}
+.add-btn:hover svg,.add-btn:hover span{color:var(--ink2)}
+
+/* VALIDATE */
+.validate-zone{text-align:center}
+.btn-validate{background:var(--ink);color:#fff;border:none;border-radius:var(--r);padding:13px 32px;font-size:14px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:8px;letter-spacing:0.02em;transition:background 0.15s}
+.btn-validate:hover{background:var(--ink2)}
+.btn-validate svg{width:15px;height:15px;flex-shrink:0}
+
+@media(max-width:768px){
+  .nav-links,.ctx-btns{display:none}
+  .page-outer{padding:16px 16px 48px}
+  .page-wrap{width:100%;min-width:0}
+  .card-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="nav">
+  <a href="#" style="display:flex;align-items:center;text-decoration:none">
+    <svg width="110" height="29" viewBox="0 0 1015 265" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M331.704 231V117.76H406.336V133.72H349.64V166.248H403.296V182.208H349.64V215.04H406.336V231H331.704ZM445.945 232.824C440.372 232.824 435.457 231.861 431.201 229.936C427.046 227.909 423.804 225.173 421.473 221.728C419.142 218.181 417.977 214.027 417.977 209.264C417.977 204.805 418.94 200.803 420.865 197.256C422.892 193.709 425.982 190.72 430.137 188.288C434.292 185.856 439.51 184.133 445.793 183.12L474.369 178.408V191.936L449.137 196.344C444.577 197.155 441.233 198.624 439.105 200.752C436.977 202.779 435.913 205.413 435.913 208.656C435.913 211.797 437.078 214.381 439.409 216.408C441.841 218.333 444.932 219.296 448.681 219.296C453.342 219.296 457.396 218.283 460.841 216.256C464.388 214.229 467.124 211.544 469.049 208.2C470.974 204.755 471.937 200.955 471.937 196.8V175.672C471.937 171.619 470.417 168.325 467.377 165.792C464.438 163.157 460.486 161.84 455.521 161.84C450.961 161.84 446.958 163.056 443.513 165.488C440.169 167.819 437.686 170.859 436.065 174.608L421.777 167.464C423.297 163.411 425.78 159.864 429.225 156.824C432.67 153.683 436.673 151.251 441.233 149.528C445.894 147.805 450.809 146.944 455.977 146.944C462.462 146.944 468.188 148.16 473.153 150.592C478.22 153.024 482.121 156.419 484.857 160.776C487.694 165.032 489.113 169.997 489.113 175.672V231H472.697V216.104L476.193 216.56C474.268 219.904 471.785 222.792 468.745 225.224C465.806 227.656 462.412 229.531 458.561 230.848C454.812 232.165 450.606 232.824 445.945 232.824ZM539.596 232.824C531.185 232.824 523.788 230.747 517.404 226.592C511.121 222.437 506.713 216.864 504.18 209.872L517.404 203.64C519.633 208.301 522.673 212 526.524 214.736C530.476 217.472 534.833 218.84 539.596 218.84C543.649 218.84 546.943 217.928 549.476 216.104C552.009 214.28 553.276 211.797 553.276 208.656C553.276 206.629 552.719 205.008 551.604 203.792C550.489 202.475 549.071 201.411 547.348 200.6C545.727 199.789 544.055 199.181 542.332 198.776L529.412 195.128C522.319 193.101 516.999 190.061 513.452 186.008C510.007 181.853 508.284 177.04 508.284 171.568C508.284 166.603 509.551 162.296 512.084 158.648C514.617 154.899 518.113 152.011 522.572 149.984C527.031 147.957 532.047 146.944 537.62 146.944C545.119 146.944 551.807 148.819 557.684 152.568C563.561 156.216 567.716 161.333 570.148 167.92L556.924 174.152C555.303 170.2 552.719 167.059 549.172 164.728C545.727 162.397 541.825 161.232 537.468 161.232C533.719 161.232 530.729 162.144 528.5 163.968C526.271 165.691 525.156 167.971 525.156 170.808C525.156 172.733 525.663 174.355 526.676 175.672C527.689 176.888 529.007 177.901 530.628 178.712C532.249 179.421 533.921 180.029 535.644 180.536L549.02 184.488C555.809 186.413 561.028 189.453 564.676 193.608C568.324 197.661 570.148 202.525 570.148 208.2C570.148 213.064 568.831 217.371 566.196 221.12C563.663 224.768 560.116 227.656 555.556 229.784C550.996 231.811 545.676 232.824 539.596 232.824ZM592.789 264.44C590.762 264.44 588.736 264.237 586.709 263.832C584.784 263.528 583.01 263.021 581.389 262.312V247.568C582.605 247.872 584.074 248.125 585.797 248.328C587.52 248.632 589.192 248.784 590.813 248.784C595.576 248.784 599.072 247.72 601.301 245.592C603.632 243.565 605.709 240.424 607.533 236.168L613.005 223.704L612.701 238.144L577.133 148.768H595.525L621.821 217.32H615.589L641.733 148.768H660.277L623.949 239.968C622.024 244.832 619.592 249.088 616.653 252.736C613.816 256.485 610.421 259.373 606.469 261.4C602.618 263.427 598.058 264.44 592.789 264.44Z" fill="#D73A49"/>
+      <path d="M673.704 231V117.76H690.424L732.984 176.736H724.624L766.424 117.76H783.144V231H765.36V138.888L772.048 140.712L729.336 199.08H727.512L685.712 140.712L691.64 138.888V231H673.704ZM843.492 232.824C835.284 232.824 827.988 230.949 821.604 227.2C815.321 223.349 810.406 218.181 806.86 211.696C803.313 205.109 801.54 197.763 801.54 189.656C801.54 181.347 803.313 174 806.86 167.616C810.508 161.232 815.372 156.216 821.452 152.568C827.532 148.819 834.422 146.944 842.124 146.944C848.305 146.944 853.828 148.008 858.692 150.136C863.556 152.264 867.66 155.203 871.004 158.952C874.348 162.6 876.881 166.805 878.604 171.568C880.428 176.331 881.34 181.397 881.34 186.768C881.34 188.085 881.289 189.453 881.188 190.872C881.086 192.291 880.884 193.608 880.58 194.824H815.068V181.144H870.852L862.644 187.376C863.657 182.411 863.302 178.003 861.58 174.152C859.958 170.2 857.425 167.109 853.98 164.88C850.636 162.549 846.684 161.384 842.124 161.384C837.564 161.384 833.51 162.549 829.964 164.88C826.417 167.109 823.681 170.352 821.756 174.608C819.83 178.763 819.07 183.829 819.476 189.808C818.969 195.381 819.729 200.245 821.756 204.4C823.884 208.555 826.822 211.797 830.572 214.128C834.422 216.459 838.78 217.624 843.644 217.624C848.609 217.624 852.814 216.509 856.26 214.28C859.806 212.051 862.593 209.163 864.62 205.616L878.604 212.456C876.982 216.307 874.449 219.803 871.004 222.944C867.66 225.984 863.606 228.416 858.844 230.24C854.182 231.963 849.065 232.824 843.492 232.824ZM921.984 232.824C916.411 232.824 911.496 231.861 907.24 229.936C903.085 227.909 899.843 225.173 897.512 221.728C895.181 218.181 894.016 214.027 894.016 209.264C894.016 204.805 894.979 200.803 896.904 197.256C898.931 193.709 902.021 190.72 906.176 188.288C910.331 185.856 915.549 184.133 921.832 183.12L950.408 178.408V191.936L925.176 196.344C920.616 197.155 917.272 198.624 915.144 200.752C913.016 202.779 911.952 205.413 911.952 208.656C911.952 211.797 913.117 214.381 915.448 216.408C917.88 218.333 920.971 219.296 924.72 219.296C929.381 219.296 933.435 218.283 936.88 216.256C940.427 214.229 943.163 211.544 945.088 208.2C947.013 204.755 947.976 200.955 947.976 196.8V175.672C947.976 171.619 946.456 168.325 943.416 165.792C940.477 163.157 936.525 161.84 931.56 161.84C927 161.84 922.997 163.056 919.552 165.488C916.208 167.819 913.725 170.859 912.104 174.608L897.816 167.464C899.336 163.411 901.819 159.864 905.264 156.824C908.709 153.683 912.712 151.251 917.272 149.528C921.933 147.805 926.848 146.944 932.016 146.944C938.501 146.944 944.227 148.16 949.192 150.592C954.259 153.024 958.16 156.419 960.896 160.776C963.733 165.032 965.152 169.997 965.152 175.672V231H948.736V216.104L952.232 216.56C950.307 219.904 947.824 222.792 944.784 225.224C941.845 227.656 938.451 229.531 934.6 230.848C930.851 232.165 926.645 232.824 921.984 232.824ZM985.235 231V115.936H1002.41V231H985.235Z" fill="#F5A855"/>
+      <path d="M55.2824 252.081C68.4202 256.827 82.2904 259.225 96.2591 259.166C111.512 259.113 126.649 256.507 141.042 251.454C169.972 241.391 193.993 222.666 208.68 198.728C223.565 174.468 227.122 147.765 218.696 123.539C220.246 123.682 222.667 124.69 225.218 125.138C227.77 125.585 230.389 125.46 232.887 124.772L298.627 56.5085L223.65 90.7424C214.28 97.1033 211.689 113.685L210.213 114.669C190.531 104.825 142.797 112.761 98.1977 128.275C85.4315 112.833 91.7742 91.7582C78.5203 126.688 80.9272 134.727C72.9016 137.931 57.892 144.84C54.0366 103.112C20.0792 102.263V137.738C4.62315 153.263C8.92496 177.165C0.767758 199.337C9.19519 223.563 28.5555 242.295 55.2824 252.081ZM137.746 241.975C110.997 251.279 82.9367 251.523 58.7315 242.661C40.8471 236.112 17.6007 211.101C22.8455 212.127 33.5264 212.534C60.6646 210.989 103.322 200.378C121.27 194.6C158.485 179.522L158.74 179.403C193.261 160.039C212.784 143.224C216.557 183.281 185.958 225.207 137.746 241.975Z" fill="url(#mc0)"/>
+      <defs>
+        <linearGradient id="mc0" x1="303.877" y1="-40.2957" x2="-6.28344" y2="269.865" gradientUnits="userSpaceOnUse">
+          <stop offset="0.259615" stop-color="#FF9E4D"/>
+          <stop offset="0.745192" stop-color="#D73A49"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  </a>
+  <div class="nav-links">
+    <a href="#" class="nav-link">Accueil</a>
+    <a href="#" class="nav-link">Recettes</a>
+    <a href="#" class="nav-link active">Mes menus</a>
+    <a href="#" class="nav-link">Courses</a>
+  </div>
+  <div class="nav-right">
+    <div class="av">CB</div>
+    <span style="font-size:13px;color:var(--ink2)">Caroline</span>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A8A29E" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+</div>
+
+<!-- CONTEXT BAR -->
+<div class="context-bar">
+  <a href="#" class="bc-link">Mes menus</a>
+  <span class="bc-sep">›</span>
+  <span class="bc-current">Menu du 28/03/2026</span>
+  <span class="chip chip-draft">Brouillon</span>
+  <span class="chip">Végétarien</span>
+  <span class="chip">6 pers. par défaut</span>
+  <span class="chip" id="countChip">5 repas</span>
+  <div class="ctx-btns">
+    <button class="btn-outline-sm">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      Modifier les paramètres
+    </button>
+    <button class="btn-danger-sm">Supprimer ce menu</button>
+  </div>
+</div>
+
+<!-- PAGE -->
+<div class="page-outer">
+  <div class="page-wrap">
+
+    <div class="page-header">
+      <div class="page-title">Personnalise ton menu</div>
+      <div class="page-hint">Glisse pour réordonner</div>
+    </div>
+
+    <div class="card-grid" id="grid">
+
+      <div class="recipe-card" draggable="true">
+        <div class="card-photo">
+          <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNFOEY1RTkiLz48ZWxsaXBzZSBjeD0iMTAwIiBjeT0iMTE1IiByeD0iNjUiIHJ5PSI0MCIgZmlsbD0iI0E1RDZBNyIvPjxlbGxpcHNlIGN4PSI4MCIgY3k9IjEwMCIgcng9IjI4IiByeT0iMjIiIGZpbGw9IiM2NkJCNkEiIHRyYW5zZm9ybT0icm90YXRlKC0yMCw4MCwxMDApIi8+PGVsbGlwc2UgY3g9IjEyMCIgY3k9Ijk1IiByeD0iMzIiIHJ5PSIyMCIgZmlsbD0iIzgxQzc4NCIgdHJhbnNmb3JtPSJyb3RhdGUoMTUsMTIwLDk1KSIvPjxlbGxpcHNlIGN4PSIxMDAiIGN5PSIxMDgiIHJ4PSIyNiIgcnk9IjE4IiBmaWxsPSIjNENBRjUwIiB0cmFuc2Zvcm09InJvdGF0ZSgtNSwxMDAsMTA4KSIvPjxjaXJjbGUgY3g9IjcyIiBjeT0iMTA1IiByPSI4IiBmaWxsPSIjRUY1MzUwIi8+PGNpcmNsZSBjeD0iMTI4IiBjeT0iMTAyIiByPSI3IiBmaWxsPSIjRUY1MzUwIi8+PGNpcmNsZSBjeD0iMTAwIiBjeT0iMTE4IiByPSI2IiBmaWxsPSIjRUY5QTlBIi8+PGVsbGlwc2UgY3g9IjkwIiBjeT0iOTIiIHJ4PSIxNSIgcnk9IjEwIiBmaWxsPSIjRjlBODI1IiB0cmFuc2Zvcm09InJvdGF0ZSgtMzAsOTAsOTIpIi8+PGVsbGlwc2UgY3g9IjExNSIgY3k9IjExMCIgcng9IjEyIiByeT0iOCIgZmlsbD0iI0ZERDgzNSIgdHJhbnNmb3JtPSJyb3RhdGUoMjAsMTE1LDExMCkiLz48ZWxsaXBzZSBjeD0iMTAwIiBjeT0iMTQwIiByeD0iNTUiIHJ5PSIxMiIgZmlsbD0iI0M4RTZDOSIgb3BhY2l0eT0iMC42Ii8+PC9zdmc+" alt="Salade Grecque" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+          <div class="card-photo-ph" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="#A8A29E" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg></div>
+          <div class="drag-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg></div>
+        </div>
+        <div class="card-name-wrap"><div class="card-name">Salade Grecque</div></div>
+        <div class="card-actions">
+          <button class="act-btn" title="Remplacer aléatoirement" onclick="replaceRandom(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+          </button>
+          <select class="ppl-select" title="Nombre de personnes">
+            <option>1 pers.</option><option>2 pers.</option><option>3 pers.</option><option>4 pers.</option><option>5 pers.</option><option selected>6 pers.</option><option>7 pers.</option><option>8 pers.</option><option>9 pers.</option><option>10 pers.</option><option>12 pers.</option>
+          </select>
+          <button class="act-btn del" title="Retirer du menu" onclick="removeCard(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="recipe-card" draggable="true">
+        <div class="card-photo">
+          <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNGRkY4RTEiLz48ZWxsaXBzZSBjeD0iMTAwIiBjeT0iMTIwIiByeD0iNzAiIHJ5PSI0NSIgZmlsbD0iI0UwRTBFMCIvPjxlbGxpcHNlIGN4PSIxMDAiIGN5PSIxMTIiIHJ4PSI2MiIgcnk9IjM4IiBmaWxsPSIjRjVGMEU4Ii8+PGVsbGlwc2UgY3g9IjEwMCIgY3k9IjEwOCIgcng9IjU1IiByeT0iMzIiIGZpbGw9IiNFREUwQzQiLz48Y2lyY2xlIGN4PSI4MiIgY3k9IjEwMCIgcj0iNCIgZmlsbD0iI0ExODg3RiIgb3BhY2l0eT0iMC43Ii8+PGNpcmNsZSBjeD0iOTUiIGN5PSI5NSIgcj0iMyIgZmlsbD0iIzhENkU2MyIgb3BhY2l0eT0iMC44Ii8+PGNpcmNsZSBjeD0iMTEyIiBjeT0iMTAyIiByPSI0IiBmaWxsPSIjNzk1NTQ4IiBvcGFjaXR5PSIwLjciLz48Y2lyY2xlIGN4PSI4OCIgY3k9IjExMiIgcj0iMyIgZmlsbD0iI0ExODg3RiIgb3BhY2l0eT0iMC42Ii8+PGNpcmNsZSBjeD0iMTA4IiBjeT0iMTA4IiByPSI1IiBmaWxsPSIjNkQ0QzQxIiBvcGFjaXR5PSIwLjciLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMTgiIHI9IjMiIGZpbGw9IiM4RDZFNjMiIG9wYWNpdHk9IjAuNSIvPjxlbGxpcHNlIGN4PSIxMDAiIGN5PSIxMDQiIHJ4PSI0MCIgcnk9IjI1IiBmaWxsPSIjRjBFNkQwIiBvcGFjaXR5PSIwLjUiLz48cGF0aCBkPSJNODUgODggUTEwMCA4MCAxMTUgODgiIHN0cm9rZT0iI0Y5QTgyNSIgc3Ryb2tlLXdpZHRoPSIzIiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=" alt="Risotto" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+          <div class="card-photo-ph" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="#A8A29E" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg></div>
+          <div class="drag-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg></div>
+        </div>
+        <div class="card-name-wrap"><div class="card-name">Risotto champignons</div></div>
+        <div class="card-actions">
+          <button class="act-btn" title="Remplacer aléatoirement" onclick="replaceRandom(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+          </button>
+          <select class="ppl-select" title="Nombre de personnes">
+            <option>1 pers.</option><option>2 pers.</option><option>3 pers.</option><option>4 pers.</option><option>5 pers.</option><option selected>6 pers.</option><option>7 pers.</option><option>8 pers.</option><option>9 pers.</option><option>10 pers.</option><option>12 pers.</option>
+          </select>
+          <button class="act-btn del" title="Retirer du menu" onclick="removeCard(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="recipe-card" draggable="true">
+        <div class="card-photo">
+          <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNGRkYzRTAiLz48cmVjdCB4PSIzMCIgeT0iODAiIHdpZHRoPSIxNDAiIGhlaWdodD0iODUiIHJ4PSI4IiBmaWxsPSIjRDdDQ0M4Ii8+PHJlY3QgeD0iMzUiIHk9Ijc1IiB3aWR0aD0iMTMwIiBoZWlnaHQ9Ijc1IiByeD0iNiIgZmlsbD0iI0ZGQ0M4MCIvPjxyZWN0IHg9IjM1IiB5PSI3NSIgd2lkdGg9IjEzMCIgaGVpZ2h0PSIyMCIgcng9IjQiIGZpbGw9IiNGRkE3MjYiLz48cmVjdCB4PSIzNSIgeT0iNzUiIHdpZHRoPSIxMzAiIGhlaWdodD0iMTAiIHJ4PSI0IiBmaWxsPSIjRkY4RjAwIi8+PHBhdGggZD0iTTM1IDg1IFE2NSA4MCA5NSA4NSBRMTI1IDkwIDE1NSA4NSIgc3Ryb2tlPSIjRTY1MTAwIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz48cGF0aCBkPSJNMzUgOTIgUTY1IDg4IDk1IDkyIFExMjUgOTYgMTU1IDkyIiBzdHJva2U9IiNFNjUxMDAiIHN0cm9rZS13aWR0aD0iMS41IiBmaWxsPSJub25lIiBvcGFjaXR5PSIwLjYiLz48ZWxsaXBzZSBjeD0iNjAiIGN5PSIxMTUiIHJ4PSIxNCIgcnk9IjEwIiBmaWxsPSIjRkZFMDgyIiBvcGFjaXR5PSIwLjgiLz48ZWxsaXBzZSBjeD0iMTAwIiBjeT0iMTE4IiByeD0iMTYiIHJ5PSIxMCIgZmlsbD0iI0ZGRDU0RiIgb3BhY2l0eT0iMC44Ii8+PGVsbGlwc2UgY3g9IjE0MCIgY3k9IjExMyIgcng9IjEzIiByeT0iOSIgZmlsbD0iI0ZGRTA4MiIgb3BhY2l0eT0iMC44Ii8+PGVsbGlwc2UgY3g9IjgwIiBjeT0iMTI4IiByeD0iMTQiIHJ5PSI5IiBmaWxsPSIjRkZDQzAyIiBvcGFjaXR5PSIwLjciLz48ZWxsaXBzZSBjeD0iMTIwIiBjeT0iMTMwIiByeD0iMTQiIHJ5PSI5IiBmaWxsPSIjRkZENzQwIiBvcGFjaXR5PSIwLjciLz48cmVjdCB4PSIyOCIgeT0iMTU1IiB3aWR0aD0iMTQ0IiBoZWlnaHQ9IjEwIiByeD0iNCIgZmlsbD0iI0JDQUFBNCIgb3BhY2l0eT0iMC42Ii8+PC9zdmc+" alt="Gratin" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+          <div class="card-photo-ph" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="#A8A29E" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg></div>
+          <div class="drag-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg></div>
+        </div>
+        <div class="card-name-wrap"><div class="card-name">Gratin dauphinois</div></div>
+        <div class="card-actions">
+          <button class="act-btn" title="Remplacer aléatoirement" onclick="replaceRandom(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+          </button>
+          <select class="ppl-select" title="Nombre de personnes">
+            <option>1 pers.</option><option>2 pers.</option><option>3 pers.</option><option>4 pers.</option><option>5 pers.</option><option>6 pers.</option><option>7 pers.</option><option selected>8 pers.</option><option>9 pers.</option><option>10 pers.</option><option>12 pers.</option>
+          </select>
+          <button class="act-btn del" title="Retirer du menu" onclick="removeCard(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="recipe-card" draggable="true">
+        <div class="card-photo">
+          <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNGRkZERTciLz48ZWxsaXBzZSBjeD0iMTAwIiBjeT0iMTE4IiByeD0iNjgiIHJ5PSI0NCIgZmlsbD0iI0UwRTBFMCIvPjxlbGxpcHNlIGN4PSIxMDAiIGN5PSIxMTIiIHJ4PSI2MiIgcnk9IjM4IiBmaWxsPSIjRkZGOUM0Ii8+PHBhdGggZD0iTTU1IDk1IFE3MCA4NSA4NSA5OCBRMTAwIDExMCAxMTUgOTggUTEzMCA4NiAxNDUgOTgiIHN0cm9rZT0iI0Y5QTgyNSIgc3Ryb2tlLXdpZHRoPSI1IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIG9wYWNpdHk9IjAuOSIvPjxwYXRoIGQ9Ik01OCAxMDUgUTczIDk1IDg4IDEwOCBRMTAzIDEyMCAxMTggMTA4IFExMzMgOTYgMTQ4IDEwOCIgc3Ryb2tlPSIjRkZENTRGIiBzdHJva2Utd2lkdGg9IjUiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgb3BhY2l0eT0iMC44Ii8+PHBhdGggZD0iTTYwIDExNSBRNzUgMTA1IDkwIDExOCBRMTA1IDEzMCAxMjAgMTE4IFExMzUgMTA2IDE1MCAxMTgiIHN0cm9rZT0iI0Y5QTgyNSIgc3Ryb2tlLXdpZHRoPSI0IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIG9wYWNpdHk9IjAuNyIvPjxwYXRoIGQ9Ik02MiAxMjUgUTc3IDExNSA5MiAxMjggUTEwNyAxNDAgMTIyIDEyOCBRMTM3IDExNiAxNTIgMTI4IiBzdHJva2U9IiNGRkMxMDciIHN0cm9rZS13aWR0aD0iNCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBvcGFjaXR5PSIwLjYiLz48Y2lyY2xlIGN4PSI3OCIgY3k9IjEwMCIgcj0iNyIgZmlsbD0iI0U1MzkzNSIgb3BhY2l0eT0iMC45Ii8+PGNpcmNsZSBjeD0iMTA1IiBjeT0iOTMiIHI9IjYiIGZpbGw9IiNFNTM5MzUiIG9wYWNpdHk9IjAuOCIvPjxjaXJjbGUgY3g9IjEzMCIgY3k9IjEwMiIgcj0iNyIgZmlsbD0iI0VGNTM1MCIgb3BhY2l0eT0iMC45Ii8+PGNpcmNsZSBjeD0iOTAiIGN5PSIxMTgiIHI9IjUiIGZpbGw9IiNFRjlBOUEiIG9wYWNpdHk9IjAuNyIvPjxjaXJjbGUgY3g9IjExNSIgY3k9IjExNCIgcj0iNiIgZmlsbD0iI0U1MzkzNSIgb3BhY2l0eT0iMC44Ii8+PC9zdmc+" alt="Pâtes" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+          <div class="card-photo-ph" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="#A8A29E" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg></div>
+          <div class="drag-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg></div>
+        </div>
+        <div class="card-name-wrap"><div class="card-name">Pâtes carbonara</div></div>
+        <div class="card-actions">
+          <button class="act-btn" title="Remplacer aléatoirement" onclick="replaceRandom(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+          </button>
+          <select class="ppl-select" title="Nombre de personnes">
+            <option>1 pers.</option><option>2 pers.</option><option>3 pers.</option><option>4 pers.</option><option>5 pers.</option><option selected>6 pers.</option><option>7 pers.</option><option>8 pers.</option><option>9 pers.</option><option>10 pers.</option><option>12 pers.</option>
+          </select>
+          <button class="act-btn del" title="Retirer du menu" onclick="removeCard(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="recipe-card" draggable="true">
+        <div class="card-photo">
+          <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNGRkY4RTEiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDUiIHI9IjY4IiBmaWxsPSIjRDdDQ0M4Ii8+PGNpcmNsZSBjeD0iMTAwIiBjeT0iMTAwIiByPSI2NSIgZmlsbD0iI0ZGQ0M4MCIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iNjIiIGZpbGw9IiNGRkUwODIiLz48cGF0aCBkPSJNMTAwIDEwMCBMMTAwIDM4IEE2MiA2MiAwIDAgMSAxNTMuNyAxMzEgWiIgZmlsbD0iI0ZGQTcyNiIgb3BhY2l0eT0iMC43Ii8+PHBhdGggZD0iTTEwMCAxMDAgTDE1My43IDEzMSBBNjIgNjIgMCAwIDEgNDYuMyAxMzEgWiIgZmlsbD0iI0ZGQjc0RCIgb3BhY2l0eT0iMC43Ii8+PHBhdGggZD0iTTEwMCAxMDAgTDQ2LjMgMTMxIEE2MiA2MiAwIDAgMSAxMDAgMzggWiIgZmlsbD0iI0ZGQ0EyOCIgb3BhY2l0eT0iMC44Ii8+PGNpcmNsZSBjeD0iODUiIGN5PSI4MCIgcj0iNSIgZmlsbD0iIzhENkU2MyIgb3BhY2l0eT0iMC43Ii8+PGNpcmNsZSBjeD0iMTE1IiBjeT0iODUiIHI9IjQiIGZpbGw9IiM3OTU1NDgiIG9wYWNpdHk9IjAuNyIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjExMCIgcj0iNSIgZmlsbD0iIzZENEM0MSIgb3BhY2l0eT0iMC43Ii8+PGNpcmNsZSBjeD0iNzUiIGN5PSIxMDgiIHI9IjQiIGZpbGw9IiM4RDZFNjMiIG9wYWNpdHk9IjAuNiIvPjxjaXJjbGUgY3g9IjEyMiIgY3k9IjExMiIgcj0iNCIgZmlsbD0iIzc5NTU0OCIgb3BhY2l0eT0iMC42Ii8+PHBhdGggZD0iTTEwMCAzOCBMMTAwIDEwMCIgc3Ryb2tlPSIjRTY1MTAwIiBzdHJva2Utd2lkdGg9IjEuNSIgb3BhY2l0eT0iMC41Ii8+PHBhdGggZD0iTTE1My43IDEzMSBMMTAwIDEwMCIgc3Ryb2tlPSIjRTY1MTAwIiBzdHJva2Utd2lkdGg9IjEuNSIgb3BhY2l0eT0iMC41Ii8+PHBhdGggZD0iTTQ2LjMgMTMxIEwxMDAgMTAwIiBzdHJva2U9IiNFNjUxMDAiIHN0cm9rZS13aWR0aD0iMS41IiBvcGFjaXR5PSIwLjUiLz48L3N2Zz4=" alt="Quiche" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+          <div class="card-photo-ph" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="#A8A29E" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg></div>
+          <div class="drag-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg></div>
+        </div>
+        <div class="card-name-wrap"><div class="card-name">Quiche lorraine</div></div>
+        <div class="card-actions">
+          <button class="act-btn" title="Remplacer aléatoirement" onclick="replaceRandom(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+          </button>
+          <select class="ppl-select" title="Nombre de personnes">
+            <option>1 pers.</option><option>2 pers.</option><option>3 pers.</option><option>4 pers.</option><option>5 pers.</option><option selected>6 pers.</option><option>7 pers.</option><option>8 pers.</option><option>9 pers.</option><option>10 pers.</option><option>12 pers.</option>
+          </select>
+          <button class="act-btn del" title="Retirer du menu" onclick="removeCard(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- ADD SLOT: 2 boutons empilés = hauteur d'une recipe-card -->
+      <div class="add-slot" id="addSlot">
+        <button class="add-btn" id="addCatalogBtn" onclick="addFromCatalog()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span>Depuis le<br>catalogue</span>
+        </button>
+        <button class="add-btn" onclick="addRandom()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+          <span>Repas<br>aléatoire</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- VALIDATE -->
+    <div class="validate-zone">
+      <button class="btn-validate">
+        Valider et générer la liste de courses
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const IMGS = [
+  'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNGRkYzRTAiLz48ZWxsaXBzZSBjeD0iMTAwIiBjeT0iMTI1IiByeD0iNjUiIHJ5PSI0NSIgZmlsbD0iI0JEQkRCRCIvPjxlbGxpcHNlIGN4PSIxMDAiIGN5PSIxMTgiIHJ4PSI2MiIgcnk9IjQwIiBmaWxsPSIjRkZDQzgwIi8+PGVsbGlwc2UgY3g9IjEwMCIgY3k9IjExMiIgcng9IjU4IiByeT0iMzUiIGZpbGw9IiNGRjhBNjUiLz48ZWxsaXBzZSBjeD0iMTAwIiBjeT0iMTA4IiByeD0iNTQiIHJ5PSIzMCIgZmlsbD0iI0ZGNzA0MyIvPjxwYXRoIGQ9Ik02MCAxMDUgUTgwIDk1IDEwMCAxMDIgUTEyMCAxMDkgMTQwIDEwMiIgc3Ryb2tlPSIjRkZBQjkxIiBzdHJva2Utd2lkdGg9IjMiIGZpbGw9Im5vbmUiIG9wYWNpdHk9IjAuNiIvPjxjaXJjbGUgY3g9Ijc1IiBjeT0iMTAwIiByPSI1IiBmaWxsPSIjRkZDQ0JDIiBvcGFjaXR5PSIwLjgiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSI5NSIgcj0iNCIgZmlsbD0iI0ZGQUI5MSIgb3BhY2l0eT0iMC43Ii8+PGNpcmNsZSBjeD0iMTI1IiBjeT0iMTAwIiByPSI1IiBmaWxsPSIjRkZDQ0JDIiBvcGFjaXR5PSIwLjgiLz48cGF0aCBkPSJNODUgNzggUTg4IDcwIDg1IDYzIiBzdHJva2U9IiNCREJEQkQiIHN0cm9rZS13aWR0aD0iMi41IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIG9wYWNpdHk9IjAuNiIvPjxwYXRoIGQ9Ik0xMDAgNzYgUTEwMyA2NyAxMDAgNjAiIHN0cm9rZT0iI0JEQkRCRCIgc3Ryb2tlLXdpZHRoPSIyLjUiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgb3BhY2l0eT0iMC42Ii8+PHBhdGggZD0iTTExNSA3OCBRMTE4IDcwIDExNSA2MyIgc3Ryb2tlPSIjQkRCREJEIiBzdHJva2Utd2lkdGg9IjIuNSIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBvcGFjaXR5PSIwLjYiLz48L3N2Zz4=',
+  'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNGM0U1RjUiLz48cmVjdCB4PSIyOCIgeT0iNzgiIHdpZHRoPSIxNDQiIGhlaWdodD0iOTAiIHJ4PSI2IiBmaWxsPSIjRDdDQ0M4Ii8+PHJlY3QgeD0iMzIiIHk9IjcyIiB3aWR0aD0iMTM2IiBoZWlnaHQ9Ijg1IiByeD0iNSIgZmlsbD0iI0ZGRjlDNCIvPjxyZWN0IHg9IjMyIiB5PSI3MiIgd2lkdGg9IjEzNiIgaGVpZ2h0PSIxOCIgcng9IjQiIGZpbGw9IiNGOUE4MjUiLz48cmVjdCB4PSIzMiIgeT0iNzIiIHdpZHRoPSIxMzYiIGhlaWdodD0iOSIgcng9IjQiIGZpbGw9IiNGNTdGMTciLz48Y2lyY2xlIGN4PSI2MiIgY3k9IjEwOCIgcj0iMTQiIGZpbGw9IiNFRjlBOUEiLz48Y2lyY2xlIGN4PSI2MiIgY3k9IjEwOCIgcj0iMTAiIGZpbGw9IiNFNTM5MzUiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDUiIHI9IjE0IiBmaWxsPSIjQTVENkE3Ii8+PGNpcmNsZSBjeD0iMTAwIiBjeT0iMTA1IiByPSIxMCIgZmlsbD0iIzQzQTA0NyIvPjxjaXJjbGUgY3g9IjEzOCIgY3k9IjEwOCIgcj0iMTQiIGZpbGw9IiNGRkNDODAiLz48Y2lyY2xlIGN4PSIxMzgiIGN5PSIxMDgiIHI9IjEwIiBmaWxsPSIjRkI4QzAwIi8+PGNpcmNsZSBjeD0iODAiIGN5PSIxMjYiIHI9IjEyIiBmaWxsPSIjQ0U5M0Q4Ii8+PGNpcmNsZSBjeD0iODAiIGN5PSIxMjYiIHI9IjgiIGZpbGw9IiM4RTI0QUEiLz48Y2lyY2xlIGN4PSIxMjAiIGN5PSIxMjgiIHI9IjEyIiBmaWxsPSIjODBDQkM0Ii8+PGNpcmNsZSBjeD0iMTIwIiBjeT0iMTI4IiByPSI4IiBmaWxsPSIjMDA4OTdCIi8+PC9zdmc+',
+  'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNGRkY4RTEiLz48ZWxsaXBzZSBjeD0iMTAwIiBjeT0iMTIwIiByeD0iNzAiIHJ5PSI0NSIgZmlsbD0iI0UwRTBFMCIvPjxlbGxpcHNlIGN4PSIxMDAiIGN5PSIxMTIiIHJ4PSI2MiIgcnk9IjM4IiBmaWxsPSIjRjVGMEU4Ii8+PGVsbGlwc2UgY3g9IjEwMCIgY3k9IjEwOCIgcng9IjU1IiByeT0iMzIiIGZpbGw9IiNFREUwQzQiLz48Y2lyY2xlIGN4PSI4MiIgY3k9IjEwMCIgcj0iNCIgZmlsbD0iI0ExODg3RiIgb3BhY2l0eT0iMC43Ii8+PGNpcmNsZSBjeD0iOTUiIGN5PSI5NSIgcj0iMyIgZmlsbD0iIzhENkU2MyIgb3BhY2l0eT0iMC44Ii8+PGNpcmNsZSBjeD0iMTEyIiBjeT0iMTAyIiByPSI0IiBmaWxsPSIjNzk1NTQ4IiBvcGFjaXR5PSIwLjciLz48Y2lyY2xlIGN4PSI4OCIgY3k9IjExMiIgcj0iMyIgZmlsbD0iI0ExODg3RiIgb3BhY2l0eT0iMC42Ii8+PGNpcmNsZSBjeD0iMTA4IiBjeT0iMTA4IiByPSI1IiBmaWxsPSIjNkQ0QzQxIiBvcGFjaXR5PSIwLjciLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMTgiIHI9IjMiIGZpbGw9IiM4RDZFNjMiIG9wYWNpdHk9IjAuNSIvPjxlbGxpcHNlIGN4PSIxMDAiIGN5PSIxMDQiIHJ4PSI0MCIgcnk9IjI1IiBmaWxsPSIjRjBFNkQwIiBvcGFjaXR5PSIwLjUiLz48cGF0aCBkPSJNODUgODggUTEwMCA4MCAxMTUgODgiIHN0cm9rZT0iI0Y5QTgyNSIgc3Ryb2tlLXdpZHRoPSIzIiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=',
+  'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNGRkY4RTEiLz48ZWxsaXBzZSBjeD0iMTAwIiBjeT0iMTIwIiByeD0iNjUiIHJ5PSI1MCIgZmlsbD0iI0Q3Q0NDOCIvPjxlbGxpcHNlIGN4PSIxMDAiIGN5PSIxMTUiIHJ4PSI2MCIgcnk9IjQ2IiBmaWxsPSIjQTE4ODdGIi8+PGVsbGlwc2UgY3g9IjEwMCIgY3k9IjEwOCIgcng9IjUyIiByeT0iNDAiIGZpbGw9IiM4RDZFNjMiLz48ZWxsaXBzZSBjeD0iODUiIGN5PSIxMDAiIHJ4PSIyNSIgcnk9IjMwIiBmaWxsPSIjNzk1NTQ4IiB0cmFuc2Zvcm09InJvdGF0ZSgtMTUsODUsMTAwKSIvPjxlbGxpcHNlIGN4PSIxMTUiIGN5PSI5OCIgcng9IjI4IiByeT0iMzIiIGZpbGw9IiM2RDRDNDEiIHRyYW5zZm9ybT0icm90YXRlKDEwLDExNSw5OCkiLz48ZWxsaXBzZSBjeD0iMTAwIiBjeT0iMTA1IiByeD0iMjAiIHJ5PSIyNCIgZmlsbD0iIzVENDAzNyIvPjxwYXRoIGQ9Ik02NSA5NSBRNzUgODIgODggOTAiIHN0cm9rZT0iI0ZGQ0MwMiIgc3Ryb2tlLXdpZHRoPSIzIiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIG9wYWNpdHk9IjAuNyIvPjxwYXRoIGQ9Ik0xMzUgOTUgUTEyNSA4MiAxMTIgOTAiIHN0cm9rZT0iI0ZGQ0MwMiIgc3Ryb2tlLXdpZHRoPSIzIiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIG9wYWNpdHk9IjAuNyIvPjxlbGxpcHNlIGN4PSI3NSIgY3k9IjEyNSIgcng9IjE0IiByeT0iOCIgZmlsbD0iI0ZGOEE2NSIgb3BhY2l0eT0iMC43Ii8+PGVsbGlwc2UgY3g9IjEyNSIgY3k9IjEyOCIgcng9IjEzIiByeT0iNyIgZmlsbD0iI0ZGOEE2NSIgb3BhY2l0eT0iMC43Ii8+PGVsbGlwc2UgY3g9IjEwMCIgY3k9IjEzNSIgcng9IjE1IiByeT0iOCIgZmlsbD0iI0ZGQUI5MSIgb3BhY2l0eT0iMC42Ii8+PC9zdmc+',
+];
+const NAMES = ['Soupe de poireaux','Tarte provençale','Blanquette de veau','Velouté carottes','Taboulé maison','Poulet rôti citron'];
+const PPL_OPTIONS = [1,2,3,4,5,6,7,8,9,10,12];
+const DRAG_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg>`;
+let rIdx = 0;
+
+function makePplOptions(selected) {
+  return PPL_OPTIONS.map(n => `<option${n===selected?' selected':''}>${n} pers.</option>`).join('');
+}
+
+function makeCard(name, imgSrc) {
+  const d = document.createElement('div');
+  d.className = 'recipe-card';
+  d.draggable = true;
+  d.innerHTML = `
+    <div class="card-photo">
+      <img src="${imgSrc}" alt="${name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+      <div class="card-photo-ph" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="#A8A29E" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg></div>
+      <div class="drag-hint">${DRAG_ICON}</div>
+    </div>
+    <div class="card-name-wrap"><div class="card-name">${name}</div></div>
+    <div class="card-actions">
+      <button class="act-btn" title="Remplacer aléatoirement" onclick="replaceRandom(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+      </button>
+      <select class="ppl-select" title="Nombre de personnes">${makePplOptions(6)}</select>
+      <button class="act-btn del" title="Retirer du menu" onclick="removeCard(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      </button>
+    </div>`;
+  initDrag(d);
+  return d;
+}
+
+function addFromCatalog() {
+  const name = NAMES[rIdx % NAMES.length];
+  const img  = IMGS[rIdx % IMGS.length];
+  rIdx++;
+  const card = makeCard(name, img);
+  card.style.opacity = '0';
+  card.style.transform = 'scale(0.92)';
+  document.getElementById('addSlot').before(card);
+  requestAnimationFrame(() => {
+    card.style.transition = 'opacity 0.2s, transform 0.2s';
+    card.style.opacity = '1';
+    card.style.transform = 'none';
+  });
+  updateCount();
+  sizeAddBtns();
+}
+
+function addRandom() {
+  const name = NAMES[(rIdx + 3) % NAMES.length];
+  const img  = IMGS[(rIdx + 2) % IMGS.length];
+  rIdx++;
+  const card = makeCard(name, img);
+  card.style.opacity = '0';
+  card.style.transform = 'scale(0.92)';
+  document.getElementById('addSlot').before(card);
+  requestAnimationFrame(() => {
+    card.style.transition = 'opacity 0.2s, transform 0.2s';
+    card.style.opacity = '1';
+    card.style.transform = 'none';
+  });
+  updateCount();
+  sizeAddBtns();
+}
+
+function sizeAddBtns() {
+  const cards = document.querySelectorAll('#grid .recipe-card');
+  if (!cards.length) return;
+  const cardH = cards[0].getBoundingClientRect().height;
+  if (cardH < 10) return;
+  const gap = 6;
+  const btnH = (cardH - gap) / 2;
+  const slot = document.getElementById('addSlot');
+  slot.querySelectorAll('.add-btn').forEach(b => {
+    b.style.height = Math.round(btnH) + 'px';
+    b.style.minHeight = 'unset';
+  });
+}
+
+function removeCard(btn) {
+  const card = btn.closest('.recipe-card');
+  card.style.transition = 'opacity 0.15s, transform 0.15s';
+  card.style.opacity = '0';
+  card.style.transform = 'scale(0.9)';
+  setTimeout(() => { card.remove(); updateCount(); }, 160);
+}
+
+function replaceRandom(btn) {
+  const card = btn.closest('.recipe-card');
+  const nameEl = card.querySelector('.card-name');
+  const imgEl  = card.querySelector('img');
+  const name = NAMES[rIdx % NAMES.length];
+  const img  = IMGS[rIdx % IMGS.length];
+  rIdx++;
+  card.style.transition = 'opacity 0.12s';
+  card.style.opacity = '0.3';
+  setTimeout(() => {
+    nameEl.textContent = name;
+    if(imgEl) { imgEl.style.display='block'; imgEl.src = img; }
+    card.style.opacity = '1';
+  }, 130);
+}
+
+function updateCount() {
+  const n = document.querySelectorAll('#grid .recipe-card').length;
+  document.getElementById('countChip').textContent = n + ' repas';
+}
+
+let dragSrc = null;
+function initDrag(el) {
+  el.addEventListener('dragstart', e => {
+    dragSrc = el;
+    setTimeout(() => el.classList.add('dragging'), 0);
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  el.addEventListener('dragend', () => {
+    el.classList.remove('dragging');
+    document.querySelectorAll('.recipe-card,.add-card').forEach(c => c.classList.remove('drag-over'));
+    dragSrc = null;
+  });
+  el.addEventListener('dragover', e => {
+    e.preventDefault();
+    if(dragSrc && dragSrc !== el) el.classList.add('drag-over');
+  });
+  el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+  el.addEventListener('drop', e => {
+    e.preventDefault();
+    el.classList.remove('drag-over');
+    if(!dragSrc || dragSrc === el) return;
+    const grid = document.getElementById('grid');
+    const all = [...grid.children];
+    const si = all.indexOf(dragSrc);
+    const ti = all.indexOf(el);
+    grid.insertBefore(dragSrc, si < ti ? el.nextSibling : el);
+  });
+}
+document.querySelectorAll('.recipe-card').forEach(initDrag);
+
+// Size the add buttons to match card height
+window.addEventListener('load', sizeAddBtns);
+window.addEventListener('resize', sizeAddBtns);
+setTimeout(sizeAddBtns, 100);
+</script>
+</body>
+</html>

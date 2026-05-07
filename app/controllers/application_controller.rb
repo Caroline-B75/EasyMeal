@@ -28,6 +28,7 @@ class ApplicationController < ActionController::Base
   def reset_greeting_on_sign_in
     if controller_name == "sessions" && action_name == "create"
       session.delete(:user_greeting)
+      session.delete(:greeting_date)
     end
   end
 end

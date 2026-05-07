@@ -1,0 +1,19 @@
+-# Formulaire d'édition d'un menu (nom + nombre de personnes par défaut)
+= form_with model: menu, url: menu_path(menu), method: :patch, class: "mn-form" do |f|
+
+  .mn-form-section
+    .mn-section-label INFORMATIONS DU MENU
+
+    .form-row
+      .form-group
+        = f.label :name, "Nom du menu", class: "form-label"
+        = f.text_field :name, value: menu.name, placeholder: "Ex: Semaine du 31 mars", class: "form-input"
+
+      .form-group{ class: field_error_class(menu, :default_people) }
+        = f.label :default_people, "Personnes par défaut", class: "form-label"
+        = f.number_field :default_people, value: menu.default_people, min: 1, max: 20, class: "form-input"
+        = field_errors(menu, :default_people)
+
+  .mn-form-actions
+    = f.submit "Enregistrer", class: "btn btn-primary"
+    = link_to "Annuler", menu_path(menu), class: "btn btn-link"

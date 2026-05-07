@@ -1,0 +1,454 @@
+/* ============================================
+   GROCERY ITEMS - Styles UC3 (liste de courses)
+   ============================================
+   Vue active du menu : liste groupée par rayon,
+   toggle coché, ajout manuel.
+   Design Slate Craft Premium.
+   ============================================ */
+
+/* ── Actions en haut de page ───────────────────────────── */
+.grocery-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* ── En-tête liste de courses ──────────────────────────── */
+.grocery-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.grocery-title {
+  font-size: var(--font-size-2xl);
+  font-weight: 600;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+.grocery-header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ── Contrôles liste (tout fermer/ouvrir) ───────────────── */
+.grocery-list-controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.75rem;
+}
+
+.btn-text-sm {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
+  padding: 0.25rem 0;
+  text-decoration: underline dotted;
+  line-height: 1;
+}
+
+.btn-text-sm:hover {
+  color: var(--color-ink);
+}
+
+/* ── Couleurs par rayon ─────────────────────────────────── */
+.grocery-section                                                { --section-color: #9E9E9E; }
+.grocery-section[data-category="fruits_legumes"]                { --section-color: #5A8A5B; }
+.grocery-section[data-category="boucherie_viande"]              { --section-color: #B05B5B; }
+.grocery-section[data-category="charcuterie_traiteur"]          { --section-color: #C4768A; }
+.grocery-section[data-category="poissonnerie"]                  { --section-color: #4E7FA8; }
+.grocery-section[data-category="fromagerie_coupe"]              { --section-color: #C49A27; }
+.grocery-section[data-category="boulangerie_patisserie"]        { --section-color: #B08060; }
+.grocery-section[data-category="produits_laitiers"]             { --section-color: #6A9BB5; }
+.grocery-section[data-category="produits_frais_libre_service"]  { --section-color: #6B9B72; }
+.grocery-section[data-category="glaces_desserts_glaces"]        { --section-color: #7AABC0; }
+.grocery-section[data-category="legumes_surgeles"]              { --section-color: #4E8A8A; }
+.grocery-section[data-category="viandes_poissons_surgeles"]     { --section-color: #6E8A9E; }
+.grocery-section[data-category="produits_aperitifs_surgeles"]   { --section-color: #C47845; }
+.grocery-section[data-category="epicerie_salee"]                { --section-color: #8A7055; }
+.grocery-section[data-category="epicerie_sucree"]               { --section-color: #9B7AB5; }
+.grocery-section[data-category="boissons"]                      { --section-color: #3D85C8; }
+.grocery-section[data-category="petit_dejeuner"]                { --section-color: #C49A27; }
+.grocery-section[data-category="produits_monde"]                { --section-color: #B08040; }
+.grocery-section[data-category="hygiene_beaute"]                { --section-color: #B87A8A; }
+.grocery-section[data-category="entretien_maison"]              { --section-color: #7A8A9E; }
+.grocery-section[data-category="papeterie_fournitures"]         { --section-color: #6E9B9B; }
+.grocery-section[data-category="autre"]                        { --section-color: #9E9E9E; }
+
+/* ── Sections par rayon (accordéon) ─────────────────────── */
+.grocery-section {
+  margin-bottom: 1.75rem;
+}
+
+.grocery-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  background: none;
+  border: none;
+  border-bottom: 0.5px solid var(--color-border);
+  border-left: 2.5px solid var(--section-color);
+  cursor: pointer;
+  padding: 0 0 0.375rem 0.625rem;
+  margin: 0 0 0.5rem;
+  text-align: left;
+  transition: opacity var(--transition-fast);
+}
+
+.grocery-section-header:hover {
+  opacity: 0.75;
+}
+
+.grocery-section-title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--section-color);
+}
+
+.grocery-section-count {
+  font-size: var(--font-size-base);
+  color: var(--section-color);
+  background: color-mix(in srgb, var(--section-color) 12%, var(--color-bg-secondary));
+  border-radius: 999px;
+  padding: 0.1em 0.45em;
+  font-weight: 500;
+}
+
+.grocery-section-chevron {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  color: var(--color-ink-4);
+}
+
+.grocery-section-chevron::after {
+  content: "›";
+  display: inline-block;
+  transform: rotate(90deg);
+  transition: transform var(--transition-fast);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.grocery-section-chevron--closed::after {
+  transform: rotate(0deg);
+}
+
+/* ── Liste d'items ──────────────────────────────────────── */
+.grocery-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* ── Item individuel ────────────────────────────────────── */
+.grocery-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  background: var(--color-bg-white);
+  border-radius: var(--radius-card-compact);
+  border: 0.5px solid var(--color-border);
+  transition: background var(--transition-fast), opacity var(--transition-fast);
+}
+
+.grocery-item--checked {
+  opacity: 0.5;
+  background: var(--color-bg-secondary);
+}
+
+/* ── Bouton checkbox ────────────────────────────────────── */
+.btn-checkbox {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border-strong);
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  color: transparent;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-checkbox:hover {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+
+.btn-checkbox .btn-checkbox-icon {
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.btn-checkbox--checked {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+  animation: checkPop 0.25s ease-out;
+}
+
+.btn-checkbox--checked:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.btn-checkbox--checked .btn-checkbox-icon {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@keyframes checkPop {
+  0%   { transform: scale(0.75); }
+  60%  { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+.grocery-item-name {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-size-base);
+  color: var(--color-ink);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color var(--transition-fast), text-decoration var(--transition-fast);
+}
+
+.grocery-item-name--checked {
+  text-decoration: line-through;
+  color: var(--color-ink-4);
+}
+
+/* ── Quantité éditable ──────────────────────────────────── */
+.grocery-item-qty-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.grocery-item-qty {
+  font-size: var(--font-size-sm);
+  color: var(--color-ink-3);
+  white-space: nowrap;
+  cursor: pointer;
+  border-bottom: 1px dotted transparent;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.grocery-item-qty:hover {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+/* Masqué par défaut — affiché via .is-editing (aucun flash avant Stimulus) */
+.grocery-qty-form {
+  display: none;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Mode édition : afficher le formulaire, masquer le texte */
+.grocery-item-qty-wrapper.is-editing .grocery-qty-form {
+  display: flex;
+}
+
+.grocery-item-qty-wrapper.is-editing .grocery-item-qty {
+  display: none;
+}
+
+.grocery-qty-input {
+  width: 5rem;
+  padding: 0.25rem 0.4rem;
+  font-size: var(--font-size-sm);
+  border: 1px solid var(--color-primary);
+  border-radius: 4px;
+  background: var(--color-bg-white);
+  color: var(--color-ink);
+  line-height: 1.4;
+}
+
+.grocery-qty-unit {
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
+  white-space: nowrap;
+}
+
+.grocery-qty-save-btn,
+.grocery-qty-cancel-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  transition: background var(--transition-fast), color var(--transition-fast);
+  min-width: unset;
+  min-height: unset;
+}
+
+.grocery-qty-save-btn {
+  background: var(--color-primary);
+  color: white;
+}
+
+.grocery-qty-save-btn:hover {
+  background: var(--color-primary-hover);
+}
+
+.grocery-qty-cancel-btn {
+  background: var(--color-bg-secondary);
+  color: var(--color-ink-3);
+}
+
+.grocery-qty-cancel-btn:hover {
+  background: var(--color-border);
+  color: var(--color-ink);
+}
+
+/* ── Bouton supprimer (✕) ───────────────────────────────── */
+.btn-remove {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem 0.375rem;
+  border-radius: var(--radius-icon-btn);
+  color: var(--color-ink-4);
+  font-size: 0.8rem;
+  line-height: 1;
+  transition: background var(--transition-fast), color var(--transition-fast);
+  flex-shrink: 0;
+  min-width: unset;
+  min-height: unset;
+}
+
+.btn-remove:hover {
+  background: var(--color-danger-light);
+  color: var(--color-danger);
+}
+
+/* ── État vide ──────────────────────────────────────────── */
+.grocery-empty {
+  padding: 2rem;
+  text-align: center;
+  color: var(--color-ink-3);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-card);
+  border: 0.5px dashed var(--color-border-strong);
+}
+
+/* ── Ajout manuel ───────────────────────────────────────── */
+.grocery-add-manual {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 0.5px solid var(--color-border);
+}
+
+.grocery-add-manual-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-4);
+  margin-bottom: 1rem;
+}
+
+.grocery-add-form {
+  background: var(--color-bg-white);
+  border-radius: var(--radius-card);
+  border: 0.5px solid var(--color-border);
+  padding: 1.25rem 1.5rem;
+}
+
+.grocery-add-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.grocery-add-row .form-group {
+  flex: 1;
+  min-width: 120px;
+}
+
+.grocery-add-submit {
+  flex-shrink: 0;
+  align-self: flex-end;
+  padding-bottom: 0.125rem;
+}
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .grocery-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .grocery-item {
+    flex-wrap: wrap;
+  }
+
+  .grocery-add-manual {
+    margin-top: 0.75rem;
+    padding-top: 0.5rem;
+  }
+
+  .grocery-add-manual-label {
+    margin-bottom: 0.375rem;
+  }
+
+  .grocery-add-form {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .grocery-add-row {
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .grocery-add-row .form-group {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .grocery-add-form .form-label {
+    margin-bottom: 0.05rem;
+  }
+
+  .grocery-add-form .form-input,
+  .grocery-add-form .form-select {
+    padding: 0.3rem 0.5rem;
+    font-size: var(--font-size-sm);
+  }
+
+  .grocery-add-submit {
+    width: 100%;
+    align-self: stretch;
+  }
+
+  .grocery-add-submit .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

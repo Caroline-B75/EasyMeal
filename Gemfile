@@ -65,6 +65,8 @@ group :development do
   gem "rubycritic", "~> 4.9", require: false
   # Bonnes pratiques spécifiques Rails
   gem "rails_best_practices", "~> 1.23", require: false
+  # Détection N+1 et requêtes manquantes en développement
+  gem "bullet", "~> 8.0"
 end
 
 gem "tzinfo-data", platforms: %i[windows jruby]

@@ -1,27 +1,24 @@
 # frozen_string_literal: true
 
 module Groceries
-  # Service pour construire une liste de courses agrégée à partir d'un menu
-  # Combine les quantités de tous les ingrédients identiques de toutes les recettes du menu
+  # Génère et persiste les GroceryItem(source: :generated) d'un menu.
   #
-  # Fonctionnalités :
-  # - Agrège les quantités d'un même ingrédient utilisé dans plusieurs recettes
-  # - Adapte les quantités au nombre de personnes de chaque recette
-  # - Groupe par catégorie d'ingrédient pour faciliter les courses
-  # - Retourne des quantités humanisées (g→kg, ml→L, etc.)
+  # Appelé automatiquement par Menu#activate! et depuis MenusController#regenerate_grocery
+  # (lorsque l'utilisateur enregistre des modifications sur un menu actif — UC2).
   #
-  # Exemple d'usage :
-  #   menu = Menu.find(1)
-  #   grocery_list = Groceries::BuildForMenuService.call(menu: menu)
-  #   # => [
-  #   #   { ingredient: <Ingredient:pâtes>, quantity_base: 600, quantity_display: "600 g", category: "féculents" },
-  #   #   { ingredient: <Ingredient:oeufs>, quantity_base: 9, quantity_display: "9", category: "produits_frais" }
-  #   # ]
+  # Algorithme :
+  # 1. Supprimer les GroceryItems existants source: :generated (idempotent).
+  # 2. Pour chaque MenuRecipe, calculer le facteur de portion et agréger
+  #    les quantités par ingrédient (en unité de base).
+  # 3. Créer un GroceryItem par ingrédient agrégé.
   #
+  # Les GroceryItems source: :manual ne sont JAMAIS touchés.
+  #
+  # @example
+  #   Groceries::BuildForMenuService.call(menu: menu)
   class BuildForMenuService
-    # === Point d'entrée ===
-    # @param menu [Menu] Le menu pour lequel générer la liste de courses
-    # @return [Array<Hash>] Liste d'ingrédients agrégés avec quantités
+    # @param menu [Menu]
+    # @return [void]
     def self.call(menu:)
       new(menu: menu).call
     end
@@ -31,87 +28,59 @@ module Groceries
     end
 
     def call
-      return [] if @menu.menu_recipes.empty?
+      ActiveRecord::Base.transaction do
+        # Supprime uniquement les lignes générées (les lignes manuelles sont conservées)
+        @menu.grocery_items.generated.destroy_all
 
-      aggregate_ingredients
-        .map { |ingredient_id, data| format_result(data) }
-        .sort_by { |item| [ category_order(item[:category]), item[:ingredient].name ] }
+        aggregate_ingredients.each_value do |data|
+          create_grocery_item(data)
+        end
+      end
     end
 
     private
 
-    # === Agrégation des quantités par ingrédient ===
-    # Parcourt toutes les recettes du menu et accumule les quantités
+    # Agrège les quantités par ingrédient sur tous les repas du menu.
+    # @return [Hash<Integer, Hash>] { ingredient_id => { ingredient:, quantity_base: } }
     def aggregate_ingredients
       aggregated = Hash.new { |h, k| h[k] = { ingredient: nil, quantity_base: 0.0 } }
 
-      # Précharge les données pour éviter les N+1 queries
-      menu_recipes = @menu.menu_recipes.includes(recipe: { preparations: :ingredient })
-
-      menu_recipes.each do |menu_recipe|
-        process_menu_recipe(menu_recipe, aggregated)
+      # Préchargement pour éviter N+1 queries
+      @menu.menu_recipes
+           .includes(recipe: { preparations: :ingredient })
+           .each do |menu_recipe|
+        accumulate_menu_recipe(menu_recipe, aggregated)
       end
 
       aggregated
     end
 
-    # Traite une recette du menu et ajoute ses ingrédients à l'agrégation
-    # @param menu_recipe [MenuRecipe] La recette avec son nombre de personnes
-    # @param aggregated [Hash] Le hash d'agrégation en cours
-    def process_menu_recipe(menu_recipe, aggregated)
+    # Ajoute la contribution d'un repas à l'agrégation.
+    def accumulate_menu_recipe(menu_recipe, aggregated)
       factor = menu_recipe.scale_factor
 
       menu_recipe.recipe.preparations.each do |preparation|
         ingredient = preparation.ingredient
-        scaled_quantity = preparation.quantity_base * factor
-
-        # Agrège les quantités pour le même ingrédient
-        aggregated[ingredient.id][:ingredient] = ingredient
-        aggregated[ingredient.id][:quantity_base] += scaled_quantity
+        aggregated[ingredient.id][:ingredient]    = ingredient
+        aggregated[ingredient.id][:quantity_base] += (preparation.quantity_base * factor)
       end
     end
 
-    # === Formatage du résultat ===
-    # Convertit les données agrégées en format lisible
-    # @param data [Hash] { ingredient:, quantity_base: }
-    # @return [Hash] Résultat formaté avec humanisation
-    def format_result(data)
-      ingredient = data[:ingredient]
-      quantity = data[:quantity_base].round(3)
+    # Crée un GroceryItem persisté à partir des données agrégées d'un ingrédient.
+    def create_grocery_item(data)
+      ingredient    = data[:ingredient]
+      quantity_base = data[:quantity_base].round(3)
 
-      humanized = Quantities::HumanizeService.call(
-        quantity: quantity,
-        unit_group: ingredient.unit_group
+      @menu.grocery_items.create!(
+        ingredient:    ingredient,
+        name:          ingredient.name,
+        quantity_base: quantity_base,
+        unit_group:    ingredient.unit_group,
+        base_unit:     ingredient.base_unit,
+        category:      ingredient.category,
+        source:        :generated,
+        checked:       false
       )
-
-      {
-        ingredient: ingredient,
-        ingredient_name: ingredient.name,
-        quantity_base: quantity,
-        quantity_display: humanized[:display],
-        unit: humanized[:unit],
-        category: ingredient.category
-      }
-    end
-
-    # === Ordre d'affichage des catégories ===
-    # Permet de trier les ingrédients par rayon de courses
-    # @param category [String] Nom de la catégorie
-    # @return [Integer] Ordre de tri
-    def category_order(category)
-      order = {
-        "fruits_legumes" => 0,
-        "produits_frais" => 1,
-        "viandes_poissons" => 2,
-        "cremerie" => 3,
-        "epicerie" => 4,
-        "feculents" => 5,
-        "boissons" => 6,
-        "surgeles" => 7,
-        "condiments" => 8,
-        "autre" => 99
-      }
-      order[category.to_s] || 50
     end
   end
 end

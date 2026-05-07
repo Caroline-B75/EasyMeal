@@ -3,7 +3,7 @@
 class Review < ApplicationRecord
   # === Associations ===
   belongs_to :user
-  belongs_to :recipe
+  belongs_to :recipe, touch: true
 
   # === Validations ===
   validates :rating, presence: true,

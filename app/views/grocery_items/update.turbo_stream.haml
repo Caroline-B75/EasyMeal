@@ -1,0 +1,7 @@
+-# Turbo Stream : re-rend le rayon entier après modification d'un item
+-# (recharge le tri unchecked-en-premier et met à jour la quantité affichée)
+- category    = @grocery_item.category
+- section_id  = "grocery_section_#{(category.presence || 'divers').parameterize}"
+- section_items = @menu.grocery_items.where(category: category).sorted
+= turbo_stream.replace section_id do
+  = render "menus/grocery_section", category: category, items: section_items, menu: @menu

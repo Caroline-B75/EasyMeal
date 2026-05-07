@@ -1,21 +1,34 @@
 # Gestion des recettes (CRUD)
 # Index & show : accessibles à tous (UC4, UC5)
 # Create/Update/Destroy : réservés aux admins (gestion du catalogue)
+# Actions sociales (favoris, brouillon) : extraites dans des concerns
 class RecipesController < ApplicationController
+  include TurboFlashable
+  include Recipes::Favoritable
+  include Recipes::DraftManageable
+
   before_action :authenticate_user!, except: [ :index, :show ]
-  before_action :set_recipe, only: [ :show, :edit, :update, :destroy, :toggle_favorite ]
+  before_action :set_recipe, only: [ :show, :edit, :update, :destroy, :toggle_favorite, :add_to_menu, :toggle_in_draft ]
   before_action :authorize_recipe, only: [ :show, :edit, :update, :destroy ]
 
   # GET /recipes
   # UC5 : Catalogue & Recherche de recettes avec filtres
   def index
     authorize Recipe
-    base_scope = recipes_base_scope
-    recipes = Recipes::FilterService.call(base_scope, params)
-                .includes(:tags, :ingredients, photo_attachment: :blob)
+    recipes = Recipes::FilterService.call(recipes_base_scope, params)
+                .includes(:tags, :reviews, :photo_attachment)
                 .order(params[:sort] || :name)
     @pagy, @recipes = pagy(recipes, items: 20)
-    @tags = Tag.joins(:recipes).distinct.alphabetical
+    @recipes = @recipes.to_a
+    @tags = Rails.cache.fetch("tags/with_recipes", expires_in: 1.hour) do
+      Tag.joins(:recipes).distinct.alphabetical.to_a
+    end
+    @favorited_ids = if current_user
+      Set.new(FavoriteRecipe.where(user: current_user, recipe_id: @recipes.map(&:id)).pluck(:recipe_id))
+    else
+      Set.new
+    end
+    load_draft_data
   end
 
   # GET /recipes/:id
@@ -23,7 +36,7 @@ class RecipesController < ApplicationController
   def show
     @servings = (params[:servings] || recipe.default_servings).to_i
     @preparations_by_category = recipe.preparations.includes(:ingredient)
-                                      .group_by { |p| p.ingredient.category }
+                                      .group_by { |prep| prep.ingredient.category }
     load_user_recipe_data if current_user
     @pagy_reviews, @reviews = pagy(recipe.reviews.recent.includes(:user), items: 10)
   end
@@ -72,19 +85,9 @@ class RecipesController < ApplicationController
     redirect_to recipes_path, notice: "Recette supprimée avec succès."
   end
 
-  # POST /recipes/:id/toggle_favorite
-  # UC4 : Toggle favori (ajoute si absent, supprime si présent)
-  def toggle_favorite
-    added = FavoriteRecipe.toggle_for(user: current_user, recipe: recipe)
-    respond_to do |format|
-      format.html { redirect_with_favorite_notice(added) }
-      format.turbo_stream { render_favorite_turbo_stream(added) }
-    end
-  end
-
   private
 
-  # Accès mémoïsé à la recette courante — évite l'InstanceVariableAssumption dans chaque action
+  # Accès mémoïsé à la recette courante
   def recipe
     @recipe ||= Recipe.find(params[:id])
   end
@@ -112,26 +115,6 @@ class RecipesController < ApplicationController
     @user_review = recipe.reviews.find_by(user: current_user)
   end
 
-  def redirect_with_favorite_notice(added)
-    notice = added ? "Recette ajoutée à vos favoris ⭐" : "Recette retirée de vos favoris"
-    redirect_to recipe, notice: notice
-  end
-
-  def render_favorite_turbo_stream(added)
-    favorite_btn_id = "favorite-btn-#{recipe.id}"
-    render turbo_stream: turbo_stream.replace(
-      favorite_btn_id,
-      partial: "recipes/favorite_button",
-      locals: {
-        recipe: recipe,
-        is_favorited: added,
-        container_id: favorite_btn_id,
-        compact: params[:compact] == "true",
-        show_page: params[:show_page] == "true"
-      }
-    )
-  end
-
   # Paramètres autorisés pour Recipe
   # Accepte les nested attributes pour preparations (ingrédients avec quantités)
   def recipe_params
@@ -140,11 +123,7 @@ class RecipesController < ApplicationController
       :default_servings, :prep_time_minutes, :cook_time_minutes,
       :difficulty, :price, :diet, :appliance, :source_url, :photo,
       tag_ids: [],
-      preparations_attributes: preparation_permitted_fields
+      preparations_attributes: [ :id, :ingredient_id, :quantity_base, :_destroy ]
     )
-  end
-
-  def preparation_permitted_fields
-    [ :id, :ingredient_id, :quantity_base, :_destroy ]
   end
 end

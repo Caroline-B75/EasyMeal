@@ -13,11 +13,32 @@ Rails.application.routes.draw do
   # Gestion des tags (admin only)
   resources :tags, except: [ :show, :new, :create ]
 
+  # Gestion des menus (UC1, UC2, UC3)
+  resources :menus do
+    member do
+      post :activate            # UC1 : Valider le menu brouillon → génère la liste de courses
+      post :reactivate          # Réactiver un menu archivé (remplace le menu actif courant)
+      post :add_random_meal    # UC2 : Ajouter un repas aléatoire au menu
+      post :replace_meal       # UC2 : Remplacer un repas (params: menu_recipe_id)
+      get  :grocery                   # UC3 : Page dédiée de la liste de courses
+      post :regenerate_grocery       # UC3 : Régénérer la liste de courses
+      post :regenerate               # UC2 : Re-générer le menu brouillon avec de nouveaux paramètres
+    end
+    resources :menu_recipes, only: [ :create, :update, :destroy ] do
+      collection do
+        patch :reorder
+      end
+    end
+    resources :grocery_items, only: [ :create, :update, :destroy ]
+  end
+
   # Gestion des recettes (UC4 - Fiche recette, UC5 - Catalogue)
   resources :recipes do
     # Actions sociales (UC4)
     member do
       post :toggle_favorite  # Toggle favori
+      post :add_to_menu      # UC2 : Ajouter la recette au menu brouillon en cours
+      post :toggle_in_draft  # UC2 : Toggle ajout/retrait de la recette dans le menu brouillon
     end
     # Avis (UC4) — gérés par Recipes::ReviewsController
     resources :reviews, only: [ :create, :destroy ], module: :recipes

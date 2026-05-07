@@ -1,0 +1,47 @@
+-# UC3 — Page dédiée de la liste de courses (menu actif)
+-# @menu : Menu(status: :active)
+-# @grocery_items : collection triée GroceryItem
+- content_for :title, "Liste de courses"
+
+
+.mc-page-outer
+  .mc-page-wrap
+
+    -# ── En-tête ──────────────────────────────────────────────
+    .mc-page-header
+      .mc-page-title Liste de courses
+    -# ── Liste groupée par rayon ──────────────────────────────
+    = render "grocery_list", menu: @menu, grocery_items: @grocery_items
+
+    -# ── Ajout manuel ─────────────────────────────────────────
+    .grocery-add-manual
+      .grocery-add-manual-label Ajouter un article
+
+      = form_with url: menu_grocery_items_path(@menu), method: :post, scope: :grocery_item, class: "grocery-add-form",
+                  data: { controller: "form-reset", action: "turbo:submit-end->form-reset#reset" } do |f|
+        .grocery-add-row
+          .form-group
+            = f.label :name, "Article", class: "form-label"
+            = f.text_field :name, placeholder: "Ex: Sel fin", class: "form-input", required: true
+
+          .form-group
+            = f.label :quantity_base, "Quantité", class: "form-label"
+            = f.number_field :quantity_base, placeholder: "250", min: 0.01, step: 0.01, class: "form-input"
+
+          .form-group
+            = f.label :base_unit, "Unité", class: "form-label"
+            = f.select :base_unit,
+                       [["g", "g"], ["kg", "kg"], ["ml", "ml"], ["L", "l"], ["pièce(s)", "piece"], ["càc", "cac"], ["càs", "cas"]],
+                       { prompt: "Unité…" },
+                       class: "form-select"
+
+
+          .form-group
+            = f.label :category, "Rayon", class: "form-label"
+            = f.select :category,
+                       GroceryItem.categories.keys.map { |k| [Ingredient.human_attribute_name("category.#{k}"), k] },
+                       { prompt: "Rayon…" },
+                       class: "form-select"
+
+          .grocery-add-submit
+            = f.submit "Ajouter", class: "btn btn-primary btn-sm"

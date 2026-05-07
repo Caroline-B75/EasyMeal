@@ -1,0 +1,59 @@
+-# Item de la liste de courses (UC3)
+-# item : GroceryItem
+-# menu : Menu
+
+= turbo_frame_tag "grocery_item_#{item.id}" do
+  .grocery-item{ class: ("grocery-item--checked" if item.checked),
+                 data: { controller: "grocery-check" } }
+
+    -# Bouton toggle coché/non coché (feedback optimiste via grocery-check)
+    .grocery-item-check
+      = button_to menu_grocery_item_path(menu, item),
+                  method: :patch,
+                  params: { grocery_item: { checked: !item.checked } },
+                  class: "btn-checkbox #{'btn-checkbox--checked' if item.checked}",
+                  title: item.checked ? "Décocher" : "Cocher",
+                  "aria-label": item.checked ? "Décocher l'article" : "Cocher l'article",
+                  data: { "grocery-check-target": "checkbox",
+                          action: "click->grocery-check#toggle" } do
+        %svg.btn-checkbox-icon{ xmlns: "http://www.w3.org/2000/svg", viewbox: "0 0 14 14", width: "14", height: "14", fill: "none", stroke: "currentColor", "stroke-width": "2.5", "stroke-linecap": "round", "stroke-linejoin": "round" }
+          %polyline{ points: "2,7.5 5.5,11 12,3" }
+
+    -# Nom
+    %span.grocery-item-name{ class: ("grocery-item-name--checked" if item.checked),
+                              data: { "grocery-check-target": "label" } }= item.name
+
+    -# Quantité (droite)
+    - if item.quantity_base.present?
+      .grocery-item-qty-wrapper{ data: { controller: "grocery-edit-qty" } }
+        %span.grocery-item-qty{ data: { action: "click->grocery-edit-qty#edit" },
+                                 title: "Modifier la quantité" }= item.quantity_display
+        = form_with url: menu_grocery_item_path(menu, item),
+                    method: :patch,
+                    scope: :grocery_item,
+                    class: "grocery-qty-form",
+                    data: { action: "keydown->grocery-edit-qty#handleKeydown" } do |f|
+          = f.number_field :quantity_base,
+                           value: item.quantity_base,
+                           step: 0.1, min: 0.1,
+                           class: "grocery-qty-input",
+                           data: { "grocery-edit-qty-target": "input" }
+          %span.grocery-qty-unit= item.base_unit
+          %button.grocery-qty-save-btn{ type: "submit", "aria-label": "Enregistrer la quantité" }
+            %svg{ xmlns: "http://www.w3.org/2000/svg", viewbox: "0 0 12 12", width: "12", height: "12", fill: "none", stroke: "currentColor", "stroke-width": "2.5", "stroke-linecap": "round", "stroke-linejoin": "round" }
+              %polyline{ points: "1.5,6 4.5,9 10.5,3" }
+          %button.grocery-qty-cancel-btn{ type: "button",
+                                           "aria-label": "Annuler",
+                                           data: { action: "click->grocery-edit-qty#cancel" } }
+            %svg{ xmlns: "http://www.w3.org/2000/svg", viewbox: "0 0 12 12", width: "12", height: "12", fill: "none", stroke: "currentColor", "stroke-width": "2.5", "stroke-linecap": "round" }
+              %line{ x1: "2", y1: "2", x2: "10", y2: "10" }
+              %line{ x1: "10", y1: "2", x2: "2", y2: "10" }
+
+    -# Suppression (items manuels uniquement)
+    - if item.source_manual?
+      = button_to "✕", menu_grocery_item_path(menu, item),
+                  method: :delete,
+                  class: "btn-remove",
+                  title: "Supprimer",
+                  "aria-label": "Supprimer l'article #{item.name}",
+                  form: { data: { turbo_confirm: "Supprimer \"#{item.name}\" ?" } }

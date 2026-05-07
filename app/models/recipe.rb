@@ -32,6 +32,16 @@ class Recipe < ApplicationRecord
     pescetarien: 3
   }, prefix: true
 
+  # Hiérarchie d'inclusion des régimes :
+  # vegan ⊂ végétarien ⊂ omnivore ; pescétarien ⊂ omnivore
+  # Utilisé par Recipe.compatible_with(diet) pour les pools de génération de menu
+  DIET_COMPATIBILITY = {
+    "omnivore"    => %w[omnivore vegetarien vegan pescetarien],
+    "pescetarien" => %w[vegetarien vegan pescetarien],
+    "vegetarien"  => %w[vegetarien vegan],
+    "vegan"       => %w[vegan]
+  }.freeze
+
   # Niveaux de difficulté
   enum :difficulty, {
     facile: 0,
@@ -68,7 +78,14 @@ class Recipe < ApplicationRecord
       .distinct
   }
 
-  # Filtrer par régime
+  # Filtre compatible avec la hiérarchie des régimes (UC1/UC2)
+  # Ex : compatible_with(:vegetarien) inclut aussi les recettes vegan
+  # À utiliser TOUJOURS à la place de .where(diet: ...) pour les pools de menu
+  scope :compatible_with, ->(diet) {
+    where(diet: DIET_COMPATIBILITY.fetch(diet.to_s, [diet.to_s]))
+  }
+
+  # Filtrer par régime exact (usage catalogue/filtre UI uniquement)
   scope :for_diet, ->(diet_value) { where(diet: diet_value) if diet_value.present? }
 
   # Filtrer par difficulté
@@ -131,18 +148,26 @@ class Recipe < ApplicationRecord
   end
 
   # Vérifie si la recette est de saison pour un mois donné
+  # Utilise le champ season_months (integer[]) de chaque ingrédient
   def seasonal_for_month?(month)
-    ingredients.any? { |ingredient| ingredient.in_season_for_month?(month) }
+    ingredients.any? { |ingredient| ingredient.season_months&.include?(month.to_i) }
   end
 
   # Note moyenne des avis (arrondi à 1 décimale)
+  # Utilise la collection en mémoire si déjà chargée (includes), sinon SQL AVG.
   def rating_avg
-    reviews.average(:rating)&.round(1) || 0
+    if reviews.loaded?
+      return 0 if reviews.empty?
+      (reviews.sum(&:rating).to_f / reviews.size).round(1)
+    else
+      reviews.average(:rating)&.round(1) || 0
+    end
   end
 
   # Nombre total d'avis
+  # size utilise la collection en mémoire si chargée, COUNT SQL sinon.
   def reviews_count
-    reviews.count
+    reviews.size
   end
 
   # Nombre de fois mise en favori

@@ -14,10 +14,13 @@
  *= require global
  *= require layouts
  *= require components
+ *= require context_bar
  *= require home
  *= require ingredients
  *= require recipes
  *= require tags
  *= require authentication
+ *= require menus
+ *= require grocery_items
  *= require_self
  */

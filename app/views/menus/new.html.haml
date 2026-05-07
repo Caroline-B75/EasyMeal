@@ -1,0 +1,13 @@
+-# UC1 — Génération d'un nouveau menu (design mockup card-based)
+- content_for :title, "Générer un nouveau menu"
+
+= context_bar_back(menus_path, "Retour à mes menus", variant: :narrow)
+
+.mn-page-wrap
+  .mn-page-header
+    .mn-page-kicker
+      %span.mn-page-kicker-sep
+      Planification
+    %h1.mn-page-title Générer un nouveau menu
+
+  = render "form_generate", menu: @menu

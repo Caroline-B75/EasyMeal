@@ -36,6 +36,11 @@ class RecipePolicy < ApplicationPolicy
     user&.admin?
   end
 
+  # Tout utilisateur connecté peut ajouter/retirer une recette de son brouillon
+  def toggle_in_draft?
+    user.present?
+  end
+
   class Scope < ApplicationPolicy::Scope
     def resolve
       # Tout le monde peut voir toutes les recettes

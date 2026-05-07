@@ -1,0 +1,29 @@
+-# Partial unifié pour la barre de navigation contextuelle
+-# 
+-# Variables attendues :
+-# - mode      : :back ou :breadcrumb
+-# - path      : URL (mode back uniquement)
+-# - label     : Texte du lien retour (mode back uniquement)
+-# - crumbs    : Array de hashes [{label:, path:}] (mode breadcrumb uniquement)
+-# - variant   : :default, :narrow, :fluid, :compact, :borderless
+
+%nav{ class: context_bar_classes(variant), aria: { label: "Navigation contextuelle" } }
+  .context-bar__inner
+    - if mode == :back
+      -# Mode lien retour simple
+      = link_to path, class: "context-bar__back" do
+        = svg_icon("chevron-left", size: 14, css_class: "context-bar__back-icon")
+        = label
+
+    - else
+      -# Mode breadcrumb (fil d'Ariane)
+      .context-bar__breadcrumb
+        - crumbs.each_with_index do |crumb, index|
+          - is_last = (index == crumbs.size - 1)
+          - if is_last
+            -# Dernier élément : texte non cliquable (page courante)
+            %span.context-bar__current= crumb[:label]
+          - else
+            -# Éléments cliquables
+            = link_to crumb[:label], crumb[:path], class: "context-bar__crumb"
+            %span.context-bar__sep ›
