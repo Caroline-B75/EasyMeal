@@ -1,15 +1,19 @@
--# Page d'édition d'une recette existante (admin only)
-- content_for :title, "Modifier #{@recipe.name}"
+-# Page d'édition / validation de brouillon IA (admin only)
+- content_for :title, @recipe.draft? ? "Valider #{@recipe.name}" : "Modifier #{@recipe.name}"
 
-= context_bar_back(recipe_path(@recipe), "Retour à la recette", variant: :narrow)
+- if @recipe.draft?
+  = context_bar_back(recipe_drafts_path, "Retour aux brouillons", variant: :narrow)
+- else
+  = context_bar_back(recipe_path(@recipe), "Retour à la recette", variant: :narrow)
 
--# Mini hero sombre
 .rf-hero
   .rf-hero-inner
     .rf-kicker
       %span.rf-kicker-line
-      MODIFICATION
+      = @recipe.draft? ? "VALIDATION" : "MODIFICATION"
     %h1.rf-hero-title= @recipe.name
+    - if @recipe.draft?
+      %span.badge.badge--draft Brouillon
 
 .rf-body
   = render "form", recipe: @recipe

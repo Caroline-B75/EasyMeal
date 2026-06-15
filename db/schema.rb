@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_05_07_100001) do
+ActiveRecord::Schema[7.2].define(version: 2026_05_14_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "plpgsql"
@@ -156,11 +156,15 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_07_100001) do
     t.string "source_url"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "status", default: 1, null: false
+    t.string "source_type"
+    t.jsonb "ai_raw_data"
     t.index "((COALESCE(prep_time_minutes, 0) + COALESCE(cook_time_minutes, 0)))", name: "index_recipes_on_total_time"
     t.index ["diet"], name: "index_recipes_on_diet"
     t.index ["difficulty"], name: "index_recipes_on_difficulty"
     t.index ["name"], name: "index_recipes_on_name"
     t.index ["name"], name: "index_recipes_on_name_trgm", opclass: :gin_trgm_ops, using: :gin
+    t.index ["status"], name: "index_recipes_on_status"
   end
 
   create_table "reviews", force: :cascade do |t|

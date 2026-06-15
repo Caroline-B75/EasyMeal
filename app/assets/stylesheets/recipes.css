@@ -2921,3 +2921,581 @@
     padding: 16px 20px 32px;
   }
 }
+
+/* ============================================
+   IMPORT IA — Panneau de revue des ingrédients
+   ============================================ */
+
+/* === Badge brouillon === */
+
+.badge--draft {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FCD34D;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 20px;
+  vertical-align: middle;
+  margin-left: 10px;
+}
+
+.badge--source {
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border: 1px solid #BFDBFE;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* === Bouton Publier === */
+
+.btn-success {
+  background: var(--color-success);
+  color: #FFFFFF;
+  border: none;
+}
+
+.btn-success:hover {
+  background: #4D7C0F;
+  color: #FFFFFF;
+  text-decoration: none;
+}
+
+/* === Section publication === */
+
+.rf-publish-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 20px 24px;
+  background: var(--color-success-light);
+  border: 1px solid #A3E635;
+  border-radius: var(--radius-input);
+}
+
+.rf-publish-hint {
+  font-size: 13px;
+  color: var(--color-success-text);
+  margin: 0;
+}
+
+/* === Panneau IA === */
+
+.ai-panel {
+  margin-bottom: 24px;
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  overflow: hidden;
+}
+
+.ai-panel__header {
+  padding: 12px 20px;
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ai-panel__title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-2);
+  margin: 0 0 2px 0;
+}
+
+.ai-panel__count {
+  font-weight: 400;
+  color: var(--color-ink-3);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.ai-panel__hint {
+  font-size: 12px;
+  color: var(--color-ink-3);
+  margin: 0;
+}
+
+/* === Lignes d'ingrédients IA === */
+
+/* Correction : display:flex côté CSS auteur écrase l'attribut HTML hidden
+   sur les éléments d'agent utilisateur. On force display:none ici. */
+[data-ai-panel-target="noMatchFallback"][hidden] {
+  display: none !important;
+}
+
+.ai-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 16px;
+  padding: 11px 20px;
+  border-bottom: 1px solid var(--color-border-light);
+  min-height: 50px;
+  transition: background 0.12s;
+}
+
+.ai-row:last-child {
+  border-bottom: none;
+}
+
+.ai-row--done {
+  background: var(--color-success-light);
+  opacity: 0.85;
+}
+
+/* Colonne gauche : nom + quantité */
+
+.ai-row__left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ai-row__name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ai-row__qty {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-ink-3);
+  background: var(--color-bg-secondary);
+  padding: 2px 7px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* Colonne droite : action */
+
+.ai-row__right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* Match exact : "→ Nom" + bouton */
+
+.ai-row__status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ai-row__match {
+  font-size: 13px;
+  color: var(--color-ink-3);
+  white-space: nowrap;
+}
+
+/* Match flou : suggestions empilées verticalement */
+
+.ai-row__fuzzy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+}
+
+.ai-row__fuzzy-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-ink-4);
+}
+
+.ai-row__fuzzy-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Chaque suggestion : nom + "C'est ça" dans une mini-carte */
+
+.ai-row__fuzzy-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  padding: 5px 6px 5px 10px;
+}
+
+.ai-row__fuzzy-name {
+  font-size: 13px;
+  color: var(--color-ink);
+  white-space: nowrap;
+}
+
+/* "Aucun de ces résultats" */
+
+.ai-row__none-btn {
+  background: none;
+  border: none;
+  padding: 1px 0;
+  font-size: 11px;
+  color: var(--color-ink-4);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-align: right;
+}
+
+.ai-row__none-btn:hover {
+  color: var(--color-ink-2);
+}
+
+/* Introuvable + bouton Créer */
+
+.ai-row__no-match-fallback {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-row__no-match {
+  font-size: 12px;
+  color: var(--color-ink-3);
+  font-style: italic;
+}
+
+/* Badge ✓ Ajouté */
+
+.ai-row__done-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-success-text);
+  background: var(--color-success-light);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+/* Mobile */
+
+@media (max-width: 640px) {
+  .ai-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .ai-row__right {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .rf-publish-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* ============================================
+   PAGE BROUILLONS IA — /recipe_drafts
+   ============================================ */
+
+/* Barre du haut : compteur + bouton Importer */
+
+.draft-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.draft-toolbar__count {
+  font-size: 13px;
+  color: var(--color-ink-3);
+  margin: 0;
+}
+
+/* État vide */
+
+.draft-empty {
+  text-align: center;
+  padding: 64px 24px;
+}
+
+.draft-empty__text {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-ink-2);
+  margin: 0 0 6px 0;
+}
+
+.draft-empty__hint {
+  font-size: 13px;
+  color: var(--color-ink-3);
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* Liste de cards */
+
+.draft-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.draft-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 24px;
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.draft-card:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* Partie gauche : nom + méta */
+
+.draft-card__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.draft-card__name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-ink);
+  margin: 0 0 5px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.draft-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.draft-card__sep {
+  color: var(--color-ink-4);
+  font-size: 12px;
+}
+
+.draft-card__date {
+  font-size: 12px;
+  color: var(--color-ink-3);
+}
+
+/* Partie droite : actions */
+
+.draft-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* button_to génère un <form> — on neutralise ses marges */
+.draft-card__actions form {
+  margin: 0;
+}
+
+/* Mobile */
+
+@media (max-width: 640px) {
+  .draft-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .draft-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .draft-card__name {
+    white-space: normal;
+  }
+
+  .draft-card__actions {
+    width: 100%;
+  }
+}
+
+/* ============================================
+   IMPORT IA — Page recipe_imports/new
+   ============================================ */
+
+.import-wrapper {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 0 0 3rem;
+}
+
+/* === Onglets source === */
+
+.import-tabs {
+  display: flex;
+  gap: 0;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-input);
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.import-tab {
+  flex: 1;
+  padding: 10px 16px;
+  background: var(--color-bg-white);
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-ink-3);
+  transition: background 0.15s, color 0.15s;
+  letter-spacing: 0.01em;
+}
+
+.import-tab + .import-tab {
+  border-left: 1.5px solid var(--color-border);
+}
+
+.import-tab:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-ink);
+}
+
+.import-tab--active {
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+.import-tab--active:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+/* === Sections URL / Photo === */
+
+.import-section {
+  margin-bottom: 1.5rem;
+}
+
+.import-hint {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--color-ink-3);
+  line-height: 1.5;
+}
+
+.import-hint strong {
+  color: var(--color-ink-2);
+}
+
+/* === Zone d'upload photo === */
+
+.import-file-zone {
+  position: relative;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-input);
+  background: var(--color-bg-secondary);
+  transition: border-color 0.2s, background 0.2s;
+  cursor: pointer;
+}
+
+.import-file-zone:hover,
+.import-file-zone:focus-within {
+  border-color: var(--color-primary);
+  background: var(--color-bg-white);
+}
+
+.import-file-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.import-file-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 2.5rem 1rem;
+  cursor: pointer;
+}
+
+.import-file-label__icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.import-file-label__text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-ink-2);
+}
+
+/* === Bouton et notice === */
+
+.import-actions {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.import-submit-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.import-notice {
+  font-size: 13px;
+  color: var(--color-ink-3);
+  text-align: center;
+  margin: 0;
+}
+
+/* Mobile */
+
+@media (max-width: 640px) {
+  .import-wrapper {
+    padding: 0 0 2rem;
+  }
+
+  .import-tab {
+    font-size: 13px;
+    padding: 10px 10px;
+  }
+}

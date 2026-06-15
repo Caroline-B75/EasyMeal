@@ -24,6 +24,9 @@ class Recipe < ApplicationRecord
 
   # === Enums ===
 
+  # Statut de publication (draft = importé IA en attente de validation, published = visible)
+  enum :status, { draft: 0, published: 1 }, default: :published
+
   # Régimes alimentaires (aligné avec UC1 et User.default_diet)
   enum :diet, {
     omnivore: 0,
@@ -63,10 +66,14 @@ class Recipe < ApplicationRecord
   validates :prep_time_minutes, numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
   validates :cook_time_minutes, numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
 
-  # Validation custom : une recette doit avoir au moins un ingrédient
-  validate :must_have_at_least_one_ingredient
+  # Validation custom : une recette doit avoir au moins un ingrédient (sauf brouillon IA)
+  validate :must_have_at_least_one_ingredient, unless: :draft?
 
   # === Scopes ===
+
+  # Filtres par statut de publication
+  scope :published, -> { where(status: :published) }
+  scope :draft, -> { where(status: :draft) }
 
   # Recherche par nom, tags ou ingrédients
   scope :search, ->(query) {

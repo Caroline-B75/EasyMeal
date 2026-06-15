@@ -8,6 +8,9 @@ Rails.application.routes.draw do
     collection do
       post :quick_create  # Création rapide depuis le formulaire recette
     end
+    member do
+      patch :add_alias    # Ajoute un alias à un ingrédient (confirmation match IA)
+    end
   end
 
   # Gestion des tags (admin only)
@@ -32,13 +35,20 @@ Rails.application.routes.draw do
     resources :grocery_items, only: [ :create, :update, :destroy ]
   end
 
+  # Recettes brouillons (admin only — import IA en attente de validation)
+  resources :recipe_drafts, only: [ :index, :destroy ]
+
+  # Import IA de recettes (admin only — URL ou photo)
+  resources :recipe_imports, only: [ :new, :create ]
+
   # Gestion des recettes (UC4 - Fiche recette, UC5 - Catalogue)
   resources :recipes do
     # Actions sociales (UC4)
     member do
-      post :toggle_favorite  # Toggle favori
-      post :add_to_menu      # UC2 : Ajouter la recette au menu brouillon en cours
-      post :toggle_in_draft  # UC2 : Toggle ajout/retrait de la recette dans le menu brouillon
+      post  :toggle_favorite  # Toggle favori
+      post  :add_to_menu      # UC2 : Ajouter la recette au menu brouillon en cours
+      post  :toggle_in_draft  # UC2 : Toggle ajout/retrait de la recette dans le menu brouillon
+      patch :publish          # Publie un brouillon IA (admin only)
     end
     # Avis (UC4) — gérés par Recipes::ReviewsController
     resources :reviews, only: [ :create, :destroy ], module: :recipes

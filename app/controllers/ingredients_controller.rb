@@ -2,7 +2,7 @@
 # Index visible par tous (pour l'auto-complétion), CRUD réservé aux admins
 class IngredientsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_ingredient, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_ingredient, only: [ :show, :edit, :update, :destroy, :add_alias ]
   before_action :authorize_ingredient, only: [ :show, :edit, :update, :destroy ]
 
   # GET /ingredients
@@ -36,6 +36,18 @@ class IngredientsController < ApplicationController
     else
       render :new, status: :unprocessable_entity
     end
+  end
+
+  # PATCH /ingredients/:id/add_alias
+  # Ajoute un alias à un ingrédient (appelé quand l'admin confirme un match approximatif IA)
+  def add_alias
+    authorize @ingredient, :update?
+    alias_name = params[:alias].to_s.strip.downcase
+    return render json: { error: "Alias vide" }, status: :bad_request if alias_name.blank?
+
+    existing = Array(@ingredient.aliases)
+    @ingredient.update(aliases: existing + [alias_name]) unless existing.include?(alias_name)
+    render json: { ok: true }
   end
 
   # POST /ingredients/quick_create

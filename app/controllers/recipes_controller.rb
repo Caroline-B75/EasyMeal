@@ -8,8 +8,8 @@ class RecipesController < ApplicationController
   include Recipes::DraftManageable
 
   before_action :authenticate_user!, except: [ :index, :show ]
-  before_action :set_recipe, only: [ :show, :edit, :update, :destroy, :toggle_favorite, :add_to_menu, :toggle_in_draft ]
-  before_action :authorize_recipe, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_recipe, only: [ :show, :edit, :update, :destroy, :toggle_favorite, :add_to_menu, :toggle_in_draft, :publish ]
+  before_action :authorize_recipe, only: [ :show, :edit, :update, :destroy, :publish ]
 
   # GET /recipes
   # UC5 : Catalogue & Recherche de recettes avec filtres
@@ -53,6 +53,18 @@ class RecipesController < ApplicationController
   # Formulaire d'édition (admin only)
   def edit
     recipe.ensure_preparation_form_ready
+    @ai_matches = compute_ai_matches if recipe.draft?
+  end
+
+  # PATCH /recipes/:id/publish
+  # Publie un brouillon (admin only)
+  def publish
+    if recipe.update(status: :published)
+      redirect_to recipe, notice: "Recette publiée et visible dans le catalogue !"
+    else
+      redirect_to edit_recipe_path(recipe),
+        alert: "Impossible de publier : #{recipe.errors.full_messages.to_sentence}"
+    end
   end
 
   # POST /recipes
@@ -69,10 +81,18 @@ class RecipesController < ApplicationController
   end
 
   # PATCH/PUT /recipes/:id
-  # Mise à jour d'une recette (admin only)
+  # Mise à jour d'une recette (admin only).
+  # Si _publish=1 est soumis (bouton "Publier"), sauvegarde ET publie en une seule requête.
   def update
-    if recipe.update(recipe_params)
-      redirect_to recipe, notice: "Recette mise à jour avec succès."
+    attrs = recipe_params
+    attrs = attrs.merge(status: :published) if params[:_publish].present?
+
+    if recipe.update(attrs)
+      if recipe.published? && params[:_publish].present?
+        redirect_to recipe, notice: "Recette publiée et visible dans le catalogue !"
+      else
+        redirect_to edit_recipe_path(recipe), notice: "Brouillon sauvegardé."
+      end
     else
       render :edit, status: :unprocessable_entity
     end
@@ -113,6 +133,30 @@ class RecipesController < ApplicationController
   def load_user_recipe_data
     @is_favorited = recipe.favorited_by?(current_user)
     @user_review = recipe.reviews.find_by(user: current_user)
+  end
+
+  # Calcule les correspondances IA pour chaque ingrédient suggéré (recette brouillon)
+  def compute_ai_matches
+    ingredients_data = recipe.ai_raw_data&.fetch("ingredients", []) || []
+    ingredients_data.map do |ing|
+      name    = ing["name"].to_s
+      qty     = ing["quantity"].to_f
+      unit    = ing["unit"].to_s.presence
+      matches = IngredientMatcherService.match(name)
+      quantity_base = if matches[:exact]
+        UnitConversionService.convert(quantity: qty, from_unit: unit, ingredient: matches[:exact]) || qty
+      else
+        qty
+      end
+      {
+        ai_name:       name,
+        quantity:      qty,
+        unit:          unit,
+        quantity_base: quantity_base.round(2),
+        exact:         matches[:exact],
+        fuzzy:         matches[:fuzzy]
+      }
+    end
   end
 
   # Paramètres autorisés pour Recipe

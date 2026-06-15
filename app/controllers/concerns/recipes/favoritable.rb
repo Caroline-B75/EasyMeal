@@ -6,6 +6,8 @@ module Recipes
     # POST /recipes/:id/toggle_favorite
     # UC4 : Toggle favori (ajoute si absent, supprime si présent)
     def toggle_favorite
+      return redirect_to(recipe, alert: "Cette recette n'est pas encore publiée.") if recipe.draft?
+
       added = FavoriteRecipe.toggle_for(user: current_user, recipe: recipe)
       respond_to do |format|
         format.html { redirect_to recipe, notice: favorite_notice(added) }

@@ -36,15 +36,29 @@ class RecipePolicy < ApplicationPolicy
     user&.admin?
   end
 
-  # Tout utilisateur connecté peut ajouter/retirer une recette de son brouillon
+  # Tout utilisateur connecté peut toggle, uniquement sur les recettes publiées
   def toggle_in_draft?
-    user.present?
+    user.present? && record.published?
+  end
+
+  def toggle_favorite?
+    user.present? && record.published?
+  end
+
+  # Seuls les admins peuvent importer ou publier une recette IA
+  def import?
+    user&.admin?
+  end
+
+  def publish?
+    user&.admin?
   end
 
   class Scope < ApplicationPolicy::Scope
     def resolve
-      # Tout le monde peut voir toutes les recettes
-      scope.all
+      # Le catalogue n'affiche que les recettes publiées pour tout le monde.
+      # Les brouillons sont gérés exclusivement via /recipe_drafts.
+      scope.published
     end
   end
 end

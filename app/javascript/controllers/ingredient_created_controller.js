@@ -7,23 +7,29 @@ export default class extends Controller {
     id: Number,
     name: String,
     displayName: String,
-    baseUnit: String
+    baseUnit: String,
+    unitGroup: String
   }
 
   connect() {
-    // Mettre à jour tous les selects d'ingrédients
     this.updateIngredientSelects()
 
-    // Présélectionner le nouvel ingrédient dans le premier select vide
+    // Notifie les autres controllers (ex: ai-panel) avant de présélectionner,
+    // pour qu'ils puissent ajouter une ligne et être ciblés par preselectIngredient.
+    document.dispatchEvent(new CustomEvent('easymeal:ingredientCreated', {
+      bubbles: true,
+      detail: {
+        id: this.idValue,
+        name: this.nameValue,
+        displayName: this.displayNameValue,
+        baseUnit: this.baseUnitValue,
+        unitGroup: this.unitGroupValue
+      }
+    }))
+
     this.preselectIngredient()
-    
-    // Afficher le flash message dans le container global
     this.showFlashMessage()
-    
-    // Fermer le slideout
     this.closeSlideout()
-    
-    // Supprimer cet élément après exécution
     setTimeout(() => this.element.remove(), 100)
   }
 

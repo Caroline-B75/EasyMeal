@@ -23,6 +23,7 @@
 
     -# Navigation principale responsive
     - if user_signed_in?
+      - admin_draft_count = current_user.admin? ? Recipe.draft.count : 0
       %header.main-header
         %nav.nav-container{ data: { controller: "menu" } }
           .nav-brand
@@ -36,6 +37,11 @@
             - if (active = current_active_menu)
               = link_to "Menu en cours", menu_path(active), class: header_nav_class(:current)
               = link_to "Courses", grocery_menu_path(active), class: header_nav_class(:grocery)
+            - if current_user&.admin?
+              = link_to recipe_drafts_path, class: "nav-link nav-link--admin" do
+                = "Brouillons"
+                - if admin_draft_count > 0
+                  %span.nav-badge= admin_draft_count
 
           -# Menu utilisateur (avatar desktop / hamburger mobile)
           .user-menu
@@ -59,6 +65,11 @@
                 - if (active = current_active_menu)
                   = link_to "Menu en cours", menu_path(active), class: "dropdown-link"
                   = link_to "Courses", grocery_menu_path(active), class: "dropdown-link"
+                - if current_user&.admin?
+                  = link_to recipe_drafts_path, class: "dropdown-link dropdown-link--admin" do
+                    = "Brouillons"
+                    - if admin_draft_count > 0
+                      %span.nav-badge= admin_draft_count
                 .dropdown-divider
 
               .dropdown-links

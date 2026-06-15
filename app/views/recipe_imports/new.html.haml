@@ -1,0 +1,61 @@
+-# Page d'import IA de recette (admin only)
+- content_for :title, "Importer une recette"
+
+= context_bar_back(recipe_drafts_path, "Retour aux brouillons", variant: :narrow)
+
+.rf-hero
+  .rf-hero-inner
+    .rf-kicker
+      %span.rf-kicker-line
+      IMPORT IA
+    %h1.rf-hero-title Importer une recette
+
+.rf-body
+  .import-wrapper
+    = form_with url: recipe_imports_path, method: :post, multipart: true,
+        data: { turbo: false, controller: "import-source", action: "submit->import-source#submit" } do |f|
+
+      = hidden_field_tag :source_type, "url", data: { "import-source-target": "sourceType" }
+
+      -# Onglets de sélection de la source
+      .import-tabs
+        %button.import-tab.import-tab--active{ type: "button",
+            data: { "import-source-target": "urlTab", action: "click->import-source#selectUrl" } }
+          🔗 Lien internet
+        %button.import-tab{ type: "button",
+            data: { "import-source-target": "photoTab", action: "click->import-source#selectPhoto" } }
+          📸 Photo de magazine
+
+      -# Section URL
+      .import-section{ data: { "import-source-target": "urlSection" } }
+        %label.form-label{ for: "source_url" } URL de la recette
+        = url_field_tag :source_url, params[:source_url],
+            id: "source_url",
+            placeholder: "https://www.marmiton.org/recettes/...",
+            class: "form-input",
+            autocomplete: "off"
+        %p.import-hint
+          Fonctionne avec Marmiton, 750g, AllRecipes, et la plupart des sites de recettes.
+
+      -# Section Photo
+      .import-section{ hidden: true, data: { "import-source-target": "photoSection" } }
+        %label.form-label{ for: "photo_file" } Photo de la recette
+        .import-file-zone
+          = file_field_tag :photo_file,
+              id: "photo_file",
+              accept: "image/jpeg,image/png,image/webp",
+              class: "import-file-input"
+          %label.import-file-label{ for: "photo_file" }
+            %span.import-file-label__icon 📷
+            %span.import-file-label__text Cliquer pour choisir une photo
+        %p.import-hint
+          Formats acceptés : JPG, PNG, WebP.
+          %strong Photo nette et bien éclairée recommandée.
+
+      -# Bouton de soumission
+      .import-actions
+        = submit_tag "Extraire la recette avec l'IA",
+            class: "btn btn-primary btn-lg import-submit-btn",
+            data: { "import-source-target": "submitBtn" }
+        %p.import-notice
+          ⏱&nbsp; L'extraction peut prendre 15 à 30 secondes selon la source.

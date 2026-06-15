@@ -1768,9 +1768,9 @@
 }
 
 .mc-page-wrap {
-  width: 50%;
+  width: 80%;
   min-width: 480px;
-  max-width: 760px;
+  max-width: 1050px;
 }
 
 .mc-page-header {
@@ -1796,7 +1796,7 @@
 /* ── Card grid ─────────────────────────────────────────── */
 .mc-card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  grid-template-columns: repeat(7, 1fr);
   gap: 10px;
   margin-bottom: 24px;
 }

@@ -1,0 +1,86 @@
+-# Panneau de revue des ingrédients suggérés par l'IA
+-# Affiché dans _form.html.haml juste au-dessus de la section ingrédients
+
+.ai-panel{ data: { controller: "ai-panel" } }
+  .ai-panel__header
+    %p.ai-panel__title
+      Ingrédients détectés par l'IA
+      %span.ai-panel__count= "(#{ai_matches.size})"
+    %p.ai-panel__hint
+      Cliquez "Ajouter" pour intégrer chaque ingrédient dans le formulaire ci-dessous.
+
+  - ai_matches.each do |match|
+    .ai-row{ data: { "ai-panel-target": "row" } }
+      .ai-row__left
+        %span.ai-row__name= match[:ai_name]
+        - qty = match[:quantity].to_f
+        - if qty > 0 || match[:unit].present?
+          %span.ai-row__qty= "#{qty == qty.to_i ? qty.to_i : qty} #{match[:unit]}"
+
+      .ai-row__right
+        - if match[:exact]
+          -# Match exact : indicateur discret + bouton Ajouter
+          .ai-row__status
+            %span.ai-row__match= match[:exact].name
+            %button.btn.btn-primary.btn-sm{
+              type: "button",
+              data: {
+                action: "click->ai-panel#add",
+                ai_panel_ingredient_id: match[:exact].id,
+                ai_panel_ingredient_name: match[:exact].display_name,
+                ai_panel_base_unit: match[:exact].base_unit,
+                ai_panel_quantity_base: match[:quantity_base]
+              }
+            } Ajouter
+
+        - elsif match[:fuzzy].any?
+          -# Match flou : suggestions en mini-cartes + lien de rejet
+          .ai-row__fuzzy{ data: { "ai-panel-target": "fuzzyOptions" } }
+            %span.ai-row__fuzzy-label Ressemble à :
+            .ai-row__fuzzy-items
+              - match[:fuzzy].first(2).each do |fi|
+                .ai-row__fuzzy-item
+                  %span.ai-row__fuzzy-name= fi.name
+                  %button.btn.btn-primary.btn-sm{
+                    type: "button",
+                    data: {
+                      action: "click->ai-panel#confirmFuzzy",
+                      ai_panel_ingredient_id: fi.id,
+                      ai_panel_ingredient_name: fi.display_name,
+                      ai_panel_base_unit: fi.base_unit,
+                      ai_panel_quantity_base: match[:quantity_base],
+                      ai_panel_alias: match[:ai_name],
+                      ai_panel_add_alias_path: add_alias_ingredient_path(fi)
+                    }
+                  } C'est ça
+              %button.ai-row__none-btn{
+                type: "button",
+                data: { action: "click->ai-panel#rejectFuzzy" }
+              } Aucun de ces résultats
+
+          -# Fallback après rejet : caché par défaut (rendu visible par JS)
+          .ai-row__no-match-fallback{ data: { "ai-panel-target": "noMatchFallback" }, hidden: true }
+            %span.ai-row__no-match Introuvable dans la base
+            %button.btn.btn-secondary.btn-sm{
+              type: "button",
+              data: {
+                action: "click->ai-panel#openCreate",
+                ai_panel_name: match[:ai_name],
+                ai_panel_unit: match[:unit],
+                ai_panel_quantity_base: match[:quantity_base]
+              }
+            } Créer
+
+        - else
+          -# Aucun match : bouton Créer directement
+          .ai-row__status
+            %span.ai-row__no-match Introuvable
+            %button.btn.btn-secondary.btn-sm{
+              type: "button",
+              data: {
+                action: "click->ai-panel#openCreate",
+                ai_panel_name: match[:ai_name],
+                ai_panel_unit: match[:unit],
+                ai_panel_quantity_base: match[:quantity_base]
+              }
+            } Créer

@@ -58,7 +58,7 @@ module Menus
     # en sous-requête pour éviter le conflit PostgreSQL DISTINCT + ORDER BY RANDOM().
     def pick_recipes
       month          = Date.current.month
-      base           = Recipe.compatible_with(@diet)
+      base           = Recipe.published.compatible_with(@diet)
       seasonal_scope = base.seasonal_for_month(month)
 
       seasonal = Recipe.where(id: seasonal_scope.select(:id))

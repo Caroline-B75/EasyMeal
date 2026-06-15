@@ -48,13 +48,13 @@ module Menus
 
     # Recettes compatibles ET de saison pour le mois courant
     def seasonal_pool(month)
-      Recipe.compatible_with(@menu.diet).seasonal_for_month(month)
+      Recipe.published.compatible_with(@menu.diet).seasonal_for_month(month)
     end
 
     # Recettes compatibles ET hors saison (ou sans info de saison)
     def offseason_pool(month)
       seasonal_ids = seasonal_pool(month).select(:id)
-      Recipe.compatible_with(@menu.diet).where.not(id: seasonal_ids)
+      Recipe.published.compatible_with(@menu.diet).where.not(id: seasonal_ids)
     end
 
     # IDs des recettes déjà présentes dans ce menu

@@ -1,0 +1,39 @@
+- content_for :title, "Recettes brouillons"
+
+.rf-hero
+  .rf-hero-inner
+    .rf-kicker
+      %span.rf-kicker-line
+      ADMIN
+    %h1.rf-hero-title Recettes brouillons
+
+.rf-body
+  .draft-toolbar
+    %p.draft-toolbar__count
+      = pluralize(@recipes.size, "recette en attente de validation", "recettes en attente de validation")
+    = link_to new_recipe_import_path, class: "btn btn-primary btn-sm" do
+      ＋ Importer une recette
+
+  - if @recipes.empty?
+    .draft-empty
+      %p.draft-empty__text Aucun brouillon pour l'instant.
+      %p.draft-empty__hint
+        Les recettes importées via IA apparaissent ici avant d'être publiées dans le catalogue.
+  - else
+    .draft-list
+      - @recipes.each do |recipe|
+        .draft-card
+          .draft-card__main
+            %h2.draft-card__name= recipe.name
+            .draft-card__meta
+              - if recipe.source_type
+                %span.badge.badge--source= recipe.source_type.upcase
+              %span.draft-card__sep ·
+              %span.draft-card__date= l(recipe.created_at.to_date, format: :long)
+          .draft-card__actions
+            = link_to "Compléter / Valider", edit_recipe_path(recipe), class: "btn btn-primary btn-sm"
+            = button_to "Supprimer",
+                recipe_draft_path(recipe),
+                method: :delete,
+                data: { turbo_confirm: "Supprimer définitivement ce brouillon ?" },
+                class: "btn btn-danger btn-sm"

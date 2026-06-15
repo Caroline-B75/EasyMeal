@@ -6,6 +6,8 @@ module Recipes
     # POST /recipes/:id/add_to_menu
     # UC2 : Ajoute la recette au menu brouillon en cours de l'utilisateur
     def add_to_menu
+      return redirect_to(recipe, alert: "Cette recette n'est pas encore publiée.") if recipe.draft?
+
       draft = current_draft
       return redirect_to(recipe, alert: "Aucun menu brouillon en cours. Générez d'abord un menu.") unless draft
 

@@ -33,7 +33,7 @@ module Menus
     def pick_recipes
       month          = Date.current.month
       diet           = @menu.diet.to_s
-      base           = Recipe.compatible_with(diet)
+      base           = Recipe.published.compatible_with(diet)
       seasonal_scope = base.seasonal_for_month(month)
 
       seasonal = Recipe.where(id: seasonal_scope.select(:id))
