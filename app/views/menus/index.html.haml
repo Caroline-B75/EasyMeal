@@ -16,10 +16,10 @@
           .modal-container
             .modal-content
               .modal-header.mn-modal-header
-                %h3 Brouillon en cours
+                %h3 Mon prochain menu
                 %button.mn-modal-close{ type: "button", data: { action: "click->modal#close" }, "aria-label": "Fermer" } ×
               .modal-body
-                %p Tu avais déjà un brouillon en attente :
+                %p Tu avais déjà un menu à valider :
                 .mn-draft-guard-preview
                   %span.mn-draft-guard-name= @draft.name.presence || "Menu sans nom"
                   %span.mn-draft-guard-meta= "#{@draft.menu_recipes.size} repas · #{@draft.default_people} pers. · #{menu_diet_label(@draft.diet)}"
@@ -28,7 +28,7 @@
                 = link_to new_menu_path, class: "btn btn-secondary" do
                   Nouveau menu
                 = link_to menu_path(@draft), class: "btn btn-primary" do
-                  Reprendre le brouillon
+                  Continuer →
     - else
       = link_to new_menu_path, class: "mi-btn-new" do
         = svg_icon("plus", size: 14)
@@ -37,12 +37,12 @@
   -# ── Brouillon en cours ────────────────────────────────────
   - if @draft
     .mi-section
-      .mi-section-label Brouillon en cours
+      .mi-section-label Mon prochain menu
       .mi-draft-card{ id: "menu_#{@draft.id}" }
         .mi-draft-card-header{ data: { action: "click->menus-index#toggleDraft" } }
           .mi-draft-card-left
             .mi-draft-card-top
-              %span.mi-draft-badge Brouillon
+              %span.mi-draft-badge À valider
               %span.mi-draft-card-name= @draft.name.presence || "Menu sans nom"
             .mi-draft-card-meta
               %span= menu_diet_label(@draft.diet)
@@ -73,10 +73,10 @@
           .mi-draft-card-actions
             = link_to menu_path(@draft), class: "mi-btn-sm" do
               = svg_icon("edit", size: 11)
-              Personnaliser
+              Continuer
             = link_to "Modifier les paramètres", edit_menu_path(@draft), class: "mi-btn-sm"
             = button_to menu_path(@draft), method: :delete, class: "mi-btn-sm-danger",
-                        form: { data: { turbo_confirm: "Supprimer ce brouillon ?" } } do
+                        form: { data: { turbo_confirm: "Supprimer ce menu ?" } } do
               = svg_icon("trash", size: 11)
               Supprimer
 

@@ -10,6 +10,6 @@
   = button_to toggle_in_draft_recipe_path(recipe),
               method: :post,
               class: "draft-btn draft-btn-compact #{in_draft ? 'in-draft' : ''}",
-              title: in_draft ? "Retirer du menu brouillon" : "Ajouter au menu brouillon",
+              title: in_draft ? "Retirer du prochain menu" : "Ajouter au prochain menu",
               form: { data: { turbo_frame: "_top", turbo_stream: true } } do
     = in_draft ? "✓" : "+"

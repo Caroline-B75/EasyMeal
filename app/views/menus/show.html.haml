@@ -11,7 +11,7 @@
       = link_to "Mes menus", menus_path, class: "mc-bc-link"
       %span.mc-bc-sep ›
       %span.mc-bc-current= @menu.name.presence || "Menu sans nom"
-      %span.mc-chip.mc-chip-draft Brouillon
+      %span.mc-chip.mc-chip-draft À valider
       %span.mc-chip= menu_diet_label(@menu.diet)
       %span.mc-chip= "#{@menu.default_people} pers. par défaut"
       %span.mc-chip{ data: { menu_customize_target: "countChip" } }

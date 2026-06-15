@@ -1,11 +1,11 @@
-- content_for :title, "Recettes brouillons"
+- content_for :title, "Recettes importées"
 
 .rf-hero
   .rf-hero-inner
     .rf-kicker
       %span.rf-kicker-line
       ADMIN
-    %h1.rf-hero-title Recettes brouillons
+    %h1.rf-hero-title Recettes importées
 
 .rf-body
   .draft-toolbar
@@ -16,7 +16,7 @@
 
   - if @recipes.empty?
     .draft-empty
-      %p.draft-empty__text Aucun brouillon pour l'instant.
+      %p.draft-empty__text Aucune recette importée pour l'instant.
       %p.draft-empty__hint
         Les recettes importées via IA apparaissent ici avant d'être publiées dans le catalogue.
   - else
@@ -35,5 +35,5 @@
             = button_to "Supprimer",
                 recipe_draft_path(recipe),
                 method: :delete,
-                data: { turbo_confirm: "Supprimer définitivement ce brouillon ?" },
+                data: { turbo_confirm: "Supprimer définitivement cette recette ?" },
                 class: "btn btn-danger btn-sm"

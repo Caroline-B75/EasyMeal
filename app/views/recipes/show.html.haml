@@ -49,7 +49,7 @@
           = button_to "Ajouter à mon menu", add_to_menu_recipe_path(@recipe),
                       method: :post,
                       class: "rs-btn-accent",
-                      title: "Ajouter cette recette à mon menu brouillon"
+                      title: "Ajouter cette recette à mon prochain menu"
         - else
           = link_to "Ajouter à mon menu", new_user_session_path, class: "rs-btn-accent"
 

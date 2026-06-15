@@ -134,7 +134,7 @@
         -# Brouillon IA : publier = sauvegarder + changer le statut en un seul clic
         %button.btn.btn-success.btn-lg{ type: "submit", name: "_publish", value: "1" }
           ✓ Publier la recette
-        = f.submit "Sauvegarder le brouillon", class: "btn btn-secondary"
+        = f.submit "Sauvegarder", class: "btn btn-secondary"
       - else
         = f.submit recipe.new_record? ? "Créer la recette" : "Mettre à jour", class: "btn btn-primary"
         = link_to "Annuler", recipes_path, class: "rf-cancel-link"

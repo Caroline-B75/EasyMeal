@@ -39,7 +39,7 @@
               = link_to "Courses", grocery_menu_path(active), class: header_nav_class(:grocery)
             - if current_user&.admin?
               = link_to recipe_drafts_path, class: "nav-link nav-link--admin" do
-                = "Brouillons"
+                = "Recettes importées"
                 - if admin_draft_count > 0
                   %span.nav-badge= admin_draft_count
 
@@ -67,7 +67,7 @@
                   = link_to "Courses", grocery_menu_path(active), class: "dropdown-link"
                 - if current_user&.admin?
                   = link_to recipe_drafts_path, class: "dropdown-link dropdown-link--admin" do
-                    = "Brouillons"
+                    = "Recettes importées"
                     - if admin_draft_count > 0
                       %span.nav-badge= admin_draft_count
                 .dropdown-divider

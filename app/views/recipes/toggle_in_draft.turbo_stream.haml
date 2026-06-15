@@ -14,7 +14,7 @@
   = render "recipes/draft_status_bar", draft: @draft
 
 -# 3. Affiche le flash de confirmation (wrapper #flash préservé pour les remplacements suivants)
-- notice_msg = @added ? "\"#{@recipe.name}\" ajoutée au menu brouillon (#{draft_count} recette#{'s' if draft_count != 1})" : "\"#{@recipe.name}\" retirée du menu brouillon (#{draft_count} recette#{'s' if draft_count != 1})"
+- notice_msg = @added ? "\"#{@recipe.name}\" ajoutée au prochain menu (#{draft_count} recette#{'s' if draft_count != 1})" : "\"#{@recipe.name}\" retirée du prochain menu (#{draft_count} recette#{'s' if draft_count != 1})"
 = turbo_stream.update "flash" do
   .flash-message.notice{ data: { controller: "flash" } }
     = notice_msg

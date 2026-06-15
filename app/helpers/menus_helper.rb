@@ -37,7 +37,7 @@ module MenusHelper
   # Retourne le label du statut du menu
   def menu_status_label(menu)
     case
-    when menu.status_draft?    then "Brouillon"
+    when menu.status_draft?    then "À valider"
     when menu.status_active?   then "Actif"
     when menu.status_archived? then "Archivé"
     else menu.status.to_s.humanize
