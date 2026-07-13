@@ -67,31 +67,47 @@ self.addEventListener("fetch", (event) => {
   // On ne gère que les GET : jamais de cache pour POST/PATCH/DELETE, etc.
   if (request.method !== "GET") return;
 
-  // Navigations HTML → network-first, repli sur la page offline si le réseau échoue.
-  if (request.mode === "navigate") {
+  // On ignore les autres origines (CDN, analytics…) : on laisse le navigateur gérer.
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+
+  // Requêtes de document (navigations) → network-first, repli sur la page offline.
+  // On teste aussi `destination === "document"` : selon le navigateur et Turbo,
+  // le rechargement d'une page n'arrive pas toujours avec `mode === "navigate"`.
+  if (request.mode === "navigate" || request.destination === "document") {
     event.respondWith(
-      fetch(request).catch(() => caches.match(OFFLINE_URL))
+      fetch(request).catch(async () => {
+        // ignoreVary/ignoreSearch : la page offline est cachée avec ses en-têtes
+        // d'origine (dont Vary: Accept-Encoding) ; sans ces options, la
+        // correspondance échouerait et on retomberait sur l'erreur réseau.
+        const offline = await caches.match(OFFLINE_URL, {
+          ignoreVary: true,
+          ignoreSearch: true
+        });
+        return offline || Response.error();
+      })
     );
     return;
   }
 
   // Assets statiques même-origine → cache-first, avec mise en cache paresseuse.
-  const url = new URL(request.url);
-  if (url.origin !== self.location.origin) return;
-
   event.respondWith(
-    caches.match(request).then((cached) => {
+    caches.match(request, { ignoreVary: true }).then((cached) => {
       if (cached) return cached;
 
-      return fetch(request).then((response) => {
-        // Ne jamais mettre en cache les réponses d'erreur ni les réponses opaques :
-        // uniquement les réponses OK basiques (même-origine).
-        if (response.ok && response.type === "basic") {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-        }
-        return response;
-      });
+      // Absent du cache : on tente le réseau. Le .catch évite une "uncaught
+      // promise" quand on est hors-ligne et que l'asset n'a pas été pré-caché.
+      return fetch(request)
+        .then((response) => {
+          // Ne jamais mettre en cache les réponses d'erreur ni les réponses opaques :
+          // uniquement les réponses OK basiques (même-origine).
+          if (response.ok && response.type === "basic") {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          }
+          return response;
+        })
+        .catch(() => Response.error());
     })
   );
 });
