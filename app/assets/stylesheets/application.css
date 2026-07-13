@@ -22,5 +22,6 @@
  *= require authentication
  *= require menus
  *= require grocery_items
+ *= require pwa
  *= require_self
  */

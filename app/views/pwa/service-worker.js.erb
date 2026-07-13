@@ -23,14 +23,31 @@
     pwa_offline_path
   ]
 
-  # Nom de cache versionné par le digest de l'app shell : dès qu'un asset
-  # change (nouveau fingerprint), le nom change → l'ancien cache est purgé
-  # à l'activate, évitant de servir du CSS/JS périmé.
-  cache_version = Digest::SHA1.hexdigest(precache_urls.join)[0, 12]
+  # Révision manuelle de la LOGIQUE du service worker. À incrémenter quand la
+  # stratégie de cache change (et non les assets) pour forcer la rotation du
+  # cache : l'ancien cache est alors purgé à l'activate.
+  #   r2 : cache des navigations limité à la liste de courses.
+  #   r3 : les requêtes HTML (dont visites Turbo) passent en network-first,
+  #        pour ne plus être mises en cache par la branche "assets".
+  #   r4 : classification par URL (et non par en-tête Accept/mode, trop
+  #        fragile) — corrige la page d'accueil qui atterrissait dans le
+  #        cache "assets" et masquait la page de secours.
+  sw_revision = "r4"
+
+  # Nom de cache versionné par le digest de l'app shell + la révision de logique :
+  # dès qu'un asset change (nouveau fingerprint) OU que la stratégie évolue, le
+  # nom change → l'ancien cache est purgé à l'activate, évitant de servir du
+  # contenu périmé.
+  cache_version = Digest::SHA1.hexdigest(precache_urls.join + sw_revision)[0, 12]
 %>
 const CACHE_NAME = "easymeal-<%= cache_version %>";
 const OFFLINE_URL = "<%= pwa_offline_path %>";
 const PRECACHE_URLS = <%= precache_urls.to_json.html_safe %>;
+
+// Seule la liste de courses (/menus/:id/grocery) est volontairement mise en
+// cache pour un usage hors-ligne (R0.3). Toutes les autres navigations
+// conservent le repli sur la page offline quand le réseau est absent.
+const GROCERY_PATH = /^\/menus\/\d+\/grocery\/?$/;
 
 // INSTALL — pré-cache de l'app shell puis activation immédiate (skipWaiting)
 // pour ne pas laisser les utilisateurs bloqués sur une ancienne version.
@@ -71,24 +88,59 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  // Requêtes de document (navigations) → network-first, repli sur la page offline.
-  // On teste aussi `destination === "document"` : selon le navigateur et Turbo,
-  // le rechargement d'une page n'arrive pas toujours avec `mode === "navigate"`.
-  if (request.mode === "navigate" || request.destination === "document") {
+  // Classification par URL (déterministe), et NON par en-tête Accept / mode /
+  // destination : selon le navigateur et Turbo, une même page peut être
+  // demandée avec des en-têtes variables, ce qui faisait basculer certaines
+  // pages HTML (dont l'accueil) dans la branche "assets" (cache-first) — elles
+  // y étaient mises en cache puis resservies hors-ligne, masquant la page de
+  // secours.
+  //
+  // Est considéré comme asset statique (→ cache-first) : tout ce qui est sous
+  // /assets/, le manifest, et les fichiers à extension (icônes, images…).
+  // Tout le reste est une page HTML (→ network-first + repli offline).
+  const isStaticAsset =
+    url.pathname.startsWith("/assets/") ||
+    url.pathname === "/manifest" ||
+    /\.[^/]+$/.test(url.pathname);
+
+  if (!isStaticAsset) {
     event.respondWith(
       // cache: "no-store" force un vrai appel réseau. Sans ça, le cache HTTP du
       // navigateur peut resservir la page hors-ligne, le fetch "réussit" et le
       // repli sur la page offline ne se déclenche jamais.
-      fetch(request, { cache: "no-store" }).catch(async () => {
-        // ignoreVary/ignoreSearch : la page offline est cachée avec ses en-têtes
-        // d'origine (dont Vary: Accept-Encoding) ; sans ces options, la
-        // correspondance échouerait et on retomberait sur l'erreur réseau.
-        const offline = await caches.match(OFFLINE_URL, {
-          ignoreVary: true,
-          ignoreSearch: true
-        });
-        return offline || Response.error();
-      })
+      fetch(request, { cache: "no-store" })
+        .then((response) => {
+          // En ligne : on renvoie TOUJOURS la réponse réseau fraîche (comportement
+          // inchangé). Seule la liste de courses est mise en cache, pour un usage
+          // hors-ligne ultérieur en magasin après une première visite en ligne.
+          if (
+            GROCERY_PATH.test(url.pathname) &&
+            response.ok &&
+            response.type === "basic"
+          ) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          }
+          return response;
+        })
+        .catch(async () => {
+          // Hors-ligne : pour la liste de courses uniquement, on sert sa version
+          // cachée (usage en magasin). Pour toutes les autres pages, on garde le
+          // repli sur la page offline (comportement R0.2).
+          // ignoreVary : la page est cachée avec ses en-têtes d'origine
+          // (dont Vary: Accept-Encoding) ; sans cette option la correspondance
+          // échouerait et on retomberait sur l'erreur réseau.
+          if (GROCERY_PATH.test(url.pathname)) {
+            const cachedPage = await caches.match(request, { ignoreVary: true });
+            if (cachedPage) return cachedPage;
+          }
+
+          const offline = await caches.match(OFFLINE_URL, {
+            ignoreVary: true,
+            ignoreSearch: true
+          });
+          return offline || Response.error();
+        })
     );
     return;
   }

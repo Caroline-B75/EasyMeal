@@ -16,6 +16,12 @@
     = javascript_importmap_tags
 
   %body{ class: ("home-page" if home_page?) }
+    -# Indicateur global d'état réseau (PWA) — bandeau discret « Hors ligne » /
+    -# « Synchronisation… ». Masqué par défaut, affiché via le controller Stimulus.
+    .network-status{ data: { controller: "network-status" }, role: "status", "aria-live": "polite" }
+      %span.network-status__dot
+      %span.network-status__text{ data: { "network-status-target": "text" } }
+
     -# Flash messages — turbo_stream cible l'id "flash" pour les mises à jour dynamiques
     #flash
       = render "shared/flash"
