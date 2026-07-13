@@ -1,6 +1,7 @@
 {
   "name": "My EasyMeal",
   "short_name": "EasyMeal",
+  "id": "/",
   "lang": "fr",
   "dir": "ltr",
   "description": "Planifie tes menus de la semaine et génère automatiquement ta liste de courses.",
@@ -22,6 +23,12 @@
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any"
+    },
+    {
+      "src": "/icon-512-maskable.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
     }
   ],
   "shortcuts": [
@@ -29,13 +36,27 @@
       "name": "Menu en cours",
       "short_name": "Mon menu",
       "description": "Accéder au menu actif",
-      "url": "/menu-en-cours"
+      "url": "/menu-en-cours",
+      "icons": [
+        {
+          "src": "/icon-96.png",
+          "type": "image/png",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
       "name": "Liste de courses",
       "short_name": "Courses",
       "description": "Accéder à la liste de courses du menu actif",
-      "url": "/liste-de-courses"
+      "url": "/liste-de-courses",
+      "icons": [
+        {
+          "src": "/icon-96.png",
+          "type": "image/png",
+          "sizes": "96x96"
+        }
+      ]
     }
   ]
 }
