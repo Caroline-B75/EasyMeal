@@ -7,7 +7,8 @@
 .network-status {
   position: fixed;
   left: 50%;
-  bottom: 1rem;
+  /* Au-dessus de l'indicateur d'accueil iOS (zone sûre) */
+  bottom: calc(1rem + env(safe-area-inset-bottom));
   z-index: 1000;
   display: inline-flex;
   align-items: center;

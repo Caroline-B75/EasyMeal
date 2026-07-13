@@ -8,7 +8,16 @@
 .main-header {
   background: var(--color-bg-white);
   border-bottom: 1px solid var(--color-border-light);
-  padding: 0.5rem 2rem;
+  /* Padding « design » via variables pour rester DRY entre breakpoints ;
+     env(safe-area-inset-*) ajouté ici → le fond du header borde l'écran (encoche/barre d'état)
+     tandis que son contenu reste dans la zone sûre. */
+  --header-pad-y: 0.5rem;
+  --header-pad-x: 2rem;
+  padding:
+    calc(var(--header-pad-y) + env(safe-area-inset-top))
+    calc(var(--header-pad-x) + env(safe-area-inset-right))
+    var(--header-pad-y)
+    calc(var(--header-pad-x) + env(safe-area-inset-left));
   box-shadow: var(--shadow-sm);
   flex-shrink: 0;
 }
@@ -263,6 +272,11 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+  /* Zone sûre : le contenu (et le formulaire d'ajout de course qui y vit) reste
+     hors de l'encoche latérale (paysage) et de l'indicateur d'accueil (bas). */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* Sur la home, le contenu peut s'étendre au-delà du viewport */
@@ -303,7 +317,7 @@
 /* === Responsive navigation === */
 @media (max-width: 767px) {
   .main-header {
-    padding: 0.5rem 1rem;
+    --header-pad-x: 1rem;
   }
 
   .nav-container {
@@ -369,7 +383,8 @@
 
 @media (min-width: 768px) and (max-width: 1024px) {
   .main-header {
-    padding: 1rem 1.5rem;
+    --header-pad-y: 1rem;
+    --header-pad-x: 1.5rem;
   }
 
   .nav-brand .logo {

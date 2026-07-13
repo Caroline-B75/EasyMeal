@@ -1,9 +1,32 @@
 !!!
 %html
   %head
-    %title= content_for(:title) || "EasyMeal"
-    %meta{name: "viewport", content: "width=device-width,initial-scale=1"}
+    - page_title = content_for(:title) || "EasyMeal"
+    -# Description par défaut, surchargeable par page via content_for(:description)
+    - page_description = content_for?(:description) ? content_for(:description) : "Planifie tes menus de la semaine et génère automatiquement ta liste de courses."
+    %title= page_title
+    -# viewport-fit=cover : le contenu s'étend sous l'encoche / la barre d'état (voir env(safe-area-inset-*) en CSS)
+    %meta{name: "viewport", content: "width=device-width,initial-scale=1,viewport-fit=cover"}
+    %meta{name: "description", content: page_description}
+
+    -# PWA / iOS — rendu « app-like »
+    -# theme-color : cohérent avec le manifest ; colore l'UI du navigateur hors app installée
+    %meta{name: "theme-color", content: "#1C1917"}
+    -# mobile-web-app-capable est la meta standard ; apple-mobile-web-app-capable (dépréciée) conservée pour iOS ancien
+    %meta{name: "mobile-web-app-capable", content: "yes"}
     %meta{name: "apple-mobile-web-app-capable", content: "yes"}
+    %meta{name: "apple-mobile-web-app-title", content: "EasyMeal"}
+    -# Charte claire → barre d'état « default » (texte sombre sur fond clair, lisible sur le header)
+    %meta{name: "apple-mobile-web-app-status-bar-style", content: "default"}
+
+    -# Open Graph — aperçu de partage (catalogue public)
+    %meta{property: "og:site_name", content: "EasyMeal"}
+    %meta{property: "og:title", content: page_title}
+    %meta{property: "og:description", content: page_description}
+    %meta{property: "og:type", content: "website"}
+    %meta{property: "og:url", content: request.original_url}
+    %meta{property: "og:image", content: "#{request.base_url}/icon-512.png"}
+
     = csrf_meta_tags
     = csp_meta_tag
 
@@ -11,7 +34,8 @@
 
     %link{rel: "manifest", href: pwa_manifest_path}
     %link{rel: "icon", href: "/icon-192.png", type: "image/png"}
-    %link{rel: "apple-touch-icon", href: "/icon-192.png"}
+    -# apple-touch-icon : PNG 180x180 opaque (fond #F8F7F4), à fournir dans public/apple-touch-icon.png
+    %link{rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png"}
     = stylesheet_link_tag "application", "data-turbo-track": "reload"
     = javascript_importmap_tags
 
