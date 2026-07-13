@@ -64,6 +64,9 @@ Rails.application.routes.draw do
   get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
   get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
 
+  # Page de secours hors-ligne pré-cachée par le service worker.
+  get "offline" => "pwa#offline", as: :pwa_offline
+
   # Raccourcis PWA — cibles stables pour les "shortcuts" du manifest.
   # Le manifest est partagé et mis en cache : ses URLs ne peuvent pas dépendre
   # de l'utilisateur. Ces actions résolvent le menu actif côté serveur puis redirigent.

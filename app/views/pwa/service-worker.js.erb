@@ -1,0 +1,97 @@
+<%#
+  Service worker EasyMeal (PWA).
+
+  Vue Rails rendue par Rails::PwaController (route /service-worker).
+  Le suffixe .erb permet d'injecter les URLs d'assets FINGERPRINTÉES par
+  l'asset pipeline : la liste de pré-cache ne peut pas être codée en dur.
+
+  Stratégie :
+    - install  : pré-cache de l'app shell (CSS compilé, logo, icônes, page offline).
+    - activate : suppression des anciens caches versionnés.
+    - fetch    : network-first pour les navigations (repli page offline),
+                 cache-first pour les assets statiques même-origine.
+%>
+<%
+  # App shell à pré-cacher. asset_path renvoie les URLs digestées (fingerprint),
+  # ce qui rend le cache automatiquement invalide à chaque déploiement.
+  precache_urls = [
+    asset_path("application.css"),
+    asset_path("logos/logo_EasyMeal.svg"),
+    "/icon-96.png",
+    "/icon-192.png",
+    "/icon-512.png",
+    pwa_offline_path
+  ]
+
+  # Nom de cache versionné par le digest de l'app shell : dès qu'un asset
+  # change (nouveau fingerprint), le nom change → l'ancien cache est purgé
+  # à l'activate, évitant de servir du CSS/JS périmé.
+  cache_version = Digest::SHA1.hexdigest(precache_urls.join)[0, 12]
+%>
+const CACHE_NAME = "easymeal-<%= cache_version %>";
+const OFFLINE_URL = "<%= pwa_offline_path %>";
+const PRECACHE_URLS = <%= precache_urls.to_json.html_safe %>;
+
+// INSTALL — pré-cache de l'app shell puis activation immédiate (skipWaiting)
+// pour ne pas laisser les utilisateurs bloqués sur une ancienne version.
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => cache.addAll(PRECACHE_URLS))
+      .then(() => self.skipWaiting())
+  );
+});
+
+// ACTIVATE — suppression des anciens caches EasyMeal, puis prise de contrôle
+// immédiate des clients ouverts (clients.claim).
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(
+          keys
+            .filter((key) => key.startsWith("easymeal-") && key !== CACHE_NAME)
+            .map((key) => caches.delete(key))
+        )
+      )
+      .then(() => self.clients.claim())
+  );
+});
+
+// FETCH
+self.addEventListener("fetch", (event) => {
+  const request = event.request;
+
+  // On ne gère que les GET : jamais de cache pour POST/PATCH/DELETE, etc.
+  if (request.method !== "GET") return;
+
+  // Navigations HTML → network-first, repli sur la page offline si le réseau échoue.
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request).catch(() => caches.match(OFFLINE_URL))
+    );
+    return;
+  }
+
+  // Assets statiques même-origine → cache-first, avec mise en cache paresseuse.
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+
+  event.respondWith(
+    caches.match(request).then((cached) => {
+      if (cached) return cached;
+
+      return fetch(request).then((response) => {
+        // Ne jamais mettre en cache les réponses d'erreur ni les réponses opaques :
+        // uniquement les réponses OK basiques (même-origine).
+        if (response.ok && response.type === "basic") {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+        }
+        return response;
+      });
+    })
+  );
+});
