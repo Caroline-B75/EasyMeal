@@ -151,7 +151,10 @@ a {
   transition: var(--transition-normal);
 }
 
-a:hover {
+/* Survol des liens TEXTE uniquement. On exclut les <a> stylés en boutons
+   (toute classe contenant « btn ») : sinon la couleur ink + le soulignement
+   rendaient le libellé illisible sur les boutons foncés/colorés au survol. */
+a:not([class*="btn"]):hover {
   color: var(--color-ink);
   text-decoration: underline;
 }
@@ -159,4 +162,72 @@ a:hover {
 /* Simple reset for better consistency */
 *, *::before, *::after {
   box-sizing: border-box;
+}
+
+/* ============================================
+   ACCESSIBILITÉ GLOBALE (R1.3)
+   ============================================ */
+
+/* --- Skip-link « Aller au contenu » ---
+   Hors écran par défaut, ramené dans le flux visuel uniquement au focus clavier. */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 10000;
+  padding: 0.75rem 1.25rem;
+  background: var(--color-primary);
+  color: #FFFFFF;
+  font-weight: 600;
+  border-radius: 0 0 var(--radius-button) 0;
+  text-decoration: none;
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  left: 0;
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Forcer le texte blanc au survol/focus : la règle globale a:hover le
+   repasserait en anthracite (invisible sur ce fond foncé). */
+.skip-link:hover,
+.skip-link:focus {
+  color: #FFFFFF;
+  text-decoration: none;
+}
+
+/* --- Focus visible cohérent sur tous les éléments interactifs ---
+   Uniquement au focus clavier (:focus-visible), pour ne pas gêner la souris. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+.active-filter-badge:focus-visible,
+.filter-tag-check-label:focus-visible,
+.recipe-card-link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Le conteneur principal reçoit le focus via le skip-link (tabindex=-1) mais
+   ne doit pas afficher de contour visible (ce n'est pas un contrôle interactif). */
+#main-content:focus {
+  outline: none;
+}
+
+/* --- Réduction des animations (préférence système) ---
+   Neutralise animations et transitions décoratives sur tout le site. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -34,9 +34,12 @@
                     scope: :grocery_item,
                     class: "grocery-qty-form",
                     data: { action: "keydown->grocery-edit-qty#handleKeydown" } do |f|
+          -# id unique par item : le partial est rendu N fois sur la même page,
+          -# les id HTML doivent rester uniques (audit Lighthouse R0.5).
           = f.number_field :quantity_base,
                            value: item.quantity_base,
                            step: 0.1, min: 0.1,
+                           id: "grocery_item_quantity_base_#{item.id}",
                            class: "grocery-qty-input",
                            data: { "grocery-edit-qty-target": "input" }
           %span.grocery-qty-unit= item.base_unit

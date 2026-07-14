@@ -89,7 +89,7 @@
 }
 
 .text-muted {
-  color: var(--color-ink-4);
+  color: var(--color-ink-3);
   font-style: italic;
   font-size: var(--font-size-sm);
 }

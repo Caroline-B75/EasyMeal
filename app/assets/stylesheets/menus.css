@@ -38,7 +38,7 @@
   border: none;
   border-radius: var(--radius-button);
   padding: 9px 18px;
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   cursor: pointer;
   display: inline-flex;
@@ -80,13 +80,13 @@
 }
 
 .mn-draft-guard-name {
-  font-size: 14px;
+  font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--color-ink);
 }
 
 .mn-draft-guard-meta {
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   color: var(--color-ink-3);
 }
 
@@ -139,11 +139,11 @@
 }
 
 .mi-section-label {
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--color-ink-4);
+  color: var(--color-ink-3);
   margin-bottom: 10px;
   display: flex;
   align-items: center;
@@ -158,8 +158,8 @@
 }
 
 .mi-section-count {
-  font-size: 10px;
-  color: var(--color-ink-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
   font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
@@ -206,7 +206,7 @@
 .mi-draft-badge {
   background: var(--color-accent-light);
   color: var(--color-accent-text);
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   padding: 2px 7px;
   border-radius: var(--radius-badge);
@@ -214,14 +214,14 @@
 }
 
 .mi-draft-card-name {
-  font-size: 13px;
+  font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--color-ink);
 }
 
 .mi-draft-card-meta {
-  font-size: 11px;
-  color: var(--color-ink-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
   display: flex;
   gap: 8px;
 }
@@ -248,7 +248,7 @@
 /* ── Boutons compacts (brouillon + historique) ──────────── */
 
 .mi-btn-sm {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   padding: 5px 10px;
   border-radius: var(--radius-button);
   border: 0.5px solid var(--color-border);
@@ -271,7 +271,7 @@
 .mi-btn-sm svg { width: 11px; height: 11px; }
 
 .mi-btn-sm-danger {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   padding: 5px 10px;
   border-radius: var(--radius-button);
   border: 0.5px solid #FECACA;
@@ -338,7 +338,7 @@
 .mi-badge-active {
   background: var(--color-accent-light);
   color: var(--color-accent-text);
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   padding: 3px 8px;
   border-radius: var(--radius-badge);
@@ -346,7 +346,7 @@
 }
 
 .mi-hero-date {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: var(--color-ink-4);
 }
 
@@ -360,7 +360,7 @@
 }
 
 .mi-hero-meta {
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   color: var(--color-ink-4);
   display: flex;
   gap: 10px;
@@ -391,14 +391,14 @@
 .mi-hero-stat:last-child { border-right: none; }
 
 .mi-hero-stat-val {
-  font-size: 16px;
+  font-size: var(--font-size-base);
   font-weight: 500;
   color: #fff;
   line-height: 1;
 }
 
 .mi-hero-stat-lbl {
-  font-size: 9px;
+  font-size: var(--font-size-xs);
   color: var(--color-ink-4);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -413,7 +413,7 @@
 }
 
 .mi-recipe-cards-label {
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-ink-4);
@@ -467,7 +467,7 @@
 }
 
 .mi-recipe-card-mini-name {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   color: #D6D3D1;
   line-height: 1.3;
@@ -478,7 +478,7 @@
 }
 
 .mi-recipe-card-mini-meta {
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   color: var(--color-ink-4);
 }
 
@@ -496,7 +496,7 @@
 .mi-btn-hero-primary {
   background: var(--color-accent);
   color: var(--color-accent-text);
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   padding: 8px 16px;
   border-radius: var(--radius-button);
@@ -520,7 +520,7 @@
 .mi-btn-hero-ghost {
   background: transparent;
   color: #A8A29E;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   padding: 8px 12px;
   border-radius: var(--radius-button);
   border: 0.5px solid #44403C;
@@ -543,7 +543,7 @@
 .mi-btn-hero-danger {
   background: transparent;
   color: #F87171;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   padding: 8px 12px;
   border-radius: var(--radius-button);
   border: 0.5px solid #3C1515;
@@ -600,7 +600,7 @@
 }
 
 .mi-history-card-name {
-  font-size: 13px;
+  font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--color-ink);
   margin-bottom: 3px;
@@ -610,8 +610,8 @@
 }
 
 .mi-history-card-meta {
-  font-size: 11px;
-  color: var(--color-ink-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
@@ -627,7 +627,7 @@
 .mi-badge-done {
   background: var(--color-success-light);
   color: var(--color-success-text);
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   padding: 2px 7px;
   border-radius: var(--radius-badge);
   font-weight: 500;
@@ -697,7 +697,7 @@
 }
 
 .mi-hist-recipe-name {
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   color: var(--color-ink);
   line-height: 1.3;
@@ -707,8 +707,8 @@
 }
 
 .mi-hist-recipe-time {
-  font-size: 9px;
-  color: var(--color-ink-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
   margin-top: 1px;
 }
 
@@ -738,7 +738,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: var(--color-ink-3);
   cursor: pointer;
   padding: 8px 0;
@@ -850,7 +850,7 @@
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 0.75rem;
-  font-size: 0.6875rem;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -890,11 +890,11 @@
 }
 
 .mn-section-label {
-  font-size: 0.6875rem;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--color-ink-4);
+  color: var(--color-ink-3);
   margin-bottom: 1.25rem;
   padding-bottom: 0.5rem;
   border-bottom: 0.5px solid var(--color-border);
@@ -969,7 +969,7 @@
 }
 
 .mc-card-meta-people {
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   color: var(--color-ink-3);
   font-weight: 500;
 }
@@ -1227,7 +1227,7 @@
 }
 
 .mn-page-kicker {
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   letter-spacing: 0.12em;
   color: var(--color-accent-hover);
   text-transform: uppercase;
@@ -1254,7 +1254,7 @@
 }
 
 .mn-page-sub {
-  font-size: 13px;
+  font-size: var(--font-size-base);
   color: var(--color-ink-3);
   line-height: 1.5;
   margin: 0;
@@ -1283,7 +1283,7 @@
   border-radius: var(--radius-button);
   background: var(--color-primary);
   color: #fff;
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   display: flex;
   align-items: center;
@@ -1292,7 +1292,7 @@
 }
 
 .mn-form-card-title {
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--color-ink);
   letter-spacing: 0.01em;
@@ -1307,15 +1307,15 @@
 }
 
 .mn-field-hint {
-  font-size: 11px;
-  color: var(--color-ink-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
   margin-top: 8px;
   line-height: 1.4;
 }
 
 .mn-field-optional {
-  font-size: 10px;
-  color: var(--color-ink-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
   font-style: italic;
   margin-left: 5px;
 }
@@ -1399,14 +1399,14 @@
 }
 
 .mn-diet-name {
-  font-size: 13px;
+  font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--color-ink);
   margin-bottom: 2px;
 }
 
 .mn-diet-desc {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: var(--color-ink-3);
   line-height: 1.4;
 }
@@ -1450,7 +1450,7 @@
 }
 
 .mn-slider-label {
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   color: var(--color-ink-3);
 }
 
@@ -1492,7 +1492,7 @@
   border: 0.5px solid var(--color-border);
   border-radius: var(--radius-button);
   padding: 9px 12px;
-  font-size: 13px;
+  font-size: var(--font-size-base);
   color: var(--color-ink);
   background: var(--color-bg-white);
   font-family: inherit;
@@ -1523,13 +1523,13 @@
 }
 
 .mn-summary-label {
-  font-size: 11px;
-  color: var(--color-ink-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
   margin-right: 4px;
 }
 
 .mn-summary-chip {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   padding: 3px 9px;
   background: var(--color-bg-white);
   border: 0.5px solid var(--color-border);
@@ -1545,7 +1545,7 @@
 
 .mn-summary-sep {
   color: var(--color-border-strong);
-  font-size: 10px;
+  font-size: var(--font-size-xs);
 }
 
 /* ── Submit zone ─────────────────────────────────────────── */
@@ -1562,7 +1562,7 @@
   border: none;
   border-radius: var(--radius-button);
   padding: 13px 24px;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   cursor: pointer;
   width: 100%;
@@ -1591,8 +1591,8 @@
 }
 
 .mn-submit-note {
-  font-size: 11px;
-  color: var(--color-ink-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
   text-align: center;
   line-height: 1.5;
   margin: 0;
@@ -1645,8 +1645,8 @@
 }
 
 .mn-slider-mark {
-  font-size: 10px;
-  color: var(--color-ink-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
 }
 
 /* ── Responsive formulaire de génération ──────────────── */
@@ -1686,7 +1686,7 @@
 }
 
 .mc-bc-link {
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   color: var(--color-ink-3);
   text-decoration: none;
   cursor: pointer;
@@ -1694,18 +1694,18 @@
 .mc-bc-link:hover { color: var(--color-ink); }
 
 .mc-bc-sep {
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   color: var(--color-border);
 }
 
 .mc-bc-current {
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--color-ink);
 }
 
 .mc-chip {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   padding: 2px 8px;
   background: var(--color-bg-secondary);
   border: 0.5px solid var(--color-border);
@@ -1732,7 +1732,7 @@
 }
 
 .mc-btn-outline-sm {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   padding: 5px 10px;
   border-radius: var(--radius-button);
   border: 0.5px solid var(--color-border);
@@ -1749,7 +1749,7 @@
 .mc-btn-outline-sm svg { width: 11px; height: 11px; flex-shrink: 0; }
 
 .mc-btn-danger-sm {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   padding: 5px 10px;
   border-radius: var(--radius-button);
   border: 0.5px solid #FECACA;
@@ -1789,8 +1789,8 @@
 }
 
 .mc-page-hint {
-  font-size: 11px;
-  color: var(--color-ink-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
 }
 
 /* ── Card grid ─────────────────────────────────────────── */
@@ -1877,7 +1877,7 @@
 .mc-card-name-wrap { padding: 7px 8px 0; }
 
 .mc-card-name {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   color: var(--color-ink);
   line-height: 1.35;
@@ -1933,7 +1933,7 @@
   border-radius: var(--radius-button);
   background: var(--color-bg-white);
   color: var(--color-ink);
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   padding: 0 18px 0 6px;
   cursor: pointer;
@@ -1977,7 +1977,7 @@
 }
 .mc-add-btn svg { width: 15px; height: 15px; color: var(--color-ink-4); flex-shrink: 0; }
 .mc-add-btn span {
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   color: var(--color-ink-3);
   text-align: center;
   line-height: 1.3;
@@ -2023,7 +2023,7 @@
   border: none;
   border-radius: var(--radius-button);
   padding: 13px 32px;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   cursor: pointer;
   display: inline-flex;

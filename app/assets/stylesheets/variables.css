@@ -42,7 +42,10 @@
   /* === NEUTRALS / TEXTE === */
   --color-ink: #1C1917;
   --color-ink-2: #44403C;
-  --color-ink-3: #78716C;
+  /* ink-3 assombri (#78716C → #6B645E) pour atteindre WCAG AA (≥ 4.5:1) sur les
+     fonds clairs de l'app (#F8F7F4 / #F1F0EC) : l'ancienne valeur plafonnait à
+     ~4.47:1 et échouait sur le texte secondaire (audit Lighthouse R1.3). */
+  --color-ink-3: #6B645E;
   --color-ink-4: #A8A29E;
 
   /* === FONDS === */
@@ -88,14 +91,18 @@
      précacher). Source unique de vérité — référencée par body dans global.css. */
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 
-  --font-size-xs: 0.875rem;
-  --font-size-sm: 1rem;
-  --font-size-base: 1rem;
-  --font-size-lg: 1.125rem;
-  --font-size-xl: 1.25rem;
-  --font-size-2xl: 1.5rem;
-  --font-size-3xl: 2rem;
-  --font-size-4xl: 2.5rem;
+  /* Échelle typographique cohérente et non redondante.
+     Source unique de vérité — un pas net entre chaque token, aucun doublon.
+     Plancher de lisibilité : le texte de contenu vise « base » (16px),
+     jamais en dessous de « xs » (12px). */
+  --font-size-xs: 0.75rem;    /* 12px — labels secondaires, badges, méta */
+  --font-size-sm: 0.875rem;   /* 14px — sous-titres, texte de bouton */
+  --font-size-base: 1rem;     /* 16px — texte de contenu (défaut) */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.25rem;    /* 20px */
+  --font-size-2xl: 1.5rem;    /* 24px */
+  --font-size-3xl: 1.875rem;  /* 30px */
+  --font-size-4xl: 2.25rem;   /* 36px */
 
   /* === BREAKPOINTS (inchangés) === */
   --breakpoint-mobile: 768px;

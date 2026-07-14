@@ -1,7 +1,8 @@
-<% content_for :head do %>
-  <%= stylesheet_link_tag "authentication", "data-turbo-track": "reload" %>
-<% end %>
-
+<%# authentication.css est déjà inclus dans le bundle global application.css
+    (voir app/assets/stylesheets/application.css). Le recharger ici en
+    data-turbo-track="reload" créait un asset suivi absent de l'accueil : Turbo
+    forçait alors un rechargement complet qui restait bloqué (spinner infini).
+    On s'appuie sur le bundle global — les styles sont déjà présents. %>
 <div class="auth-container">
   <div class="auth-card">
     <div class="auth-header user-form-header">

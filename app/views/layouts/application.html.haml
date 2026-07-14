@@ -1,5 +1,5 @@
 !!!
-%html
+%html{ lang: "fr" }
   %head
     - page_title = content_for(:title) || "EasyMeal"
     -# Description par défaut, surchargeable par page via content_for(:description)
@@ -40,14 +40,20 @@
     = javascript_importmap_tags
 
   %body{ class: ("home-page" if home_page?) }
+    -# Skip-link accessibilité : premier élément focusable, visible au focus uniquement.
+    -# Permet aux utilisateurs clavier / lecteurs d'écran d'aller directement au contenu.
+    = link_to "Aller au contenu", "#main-content", class: "skip-link"
+
     -# Indicateur global d'état réseau (PWA) — bandeau discret « Hors ligne » /
     -# « Synchronisation… ». Masqué par défaut, affiché via le controller Stimulus.
     .network-status{ data: { controller: "network-status" }, role: "status", "aria-live": "polite" }
       %span.network-status__dot
       %span.network-status__text{ data: { "network-status-target": "text" } }
 
-    -# Flash messages — turbo_stream cible l'id "flash" pour les mises à jour dynamiques
-    #flash
+    -# Flash messages — turbo_stream cible l'id "flash" pour les mises à jour dynamiques.
+    -# aria-live="polite" : les messages injectés dynamiquement (Turbo Streams) sont
+    -# annoncés par les lecteurs d'écran. role="status" renforce le support.
+    #flash{ role: "status", "aria-live": "polite" }
       = render "shared/flash"
 
     -# Navigation principale responsive
@@ -74,7 +80,12 @@
 
           -# Menu utilisateur (avatar desktop / hamburger mobile)
           .user-menu
-            %button.user-menu-button{ type: "button", data: { action: "click->menu#toggle", menu_target: "button" } }
+            %button.user-menu-button{ type: "button",
+                                      "aria-haspopup": "true",
+                                      "aria-expanded": "false",
+                                      "aria-controls": "user-menu-dropdown",
+                                      "aria-label": "Menu utilisateur",
+                                      data: { action: "click->menu#toggle", menu_target: "button" } }
               .user-avatar
                 = current_user.first_name[0].upcase + current_user.last_name[0].upcase
               %span.user-name= current_user.first_name
@@ -86,7 +97,7 @@
                 %line{ x1: "3", y1: "12", x2: "21", y2: "12" }
                 %line{ x1: "3", y1: "18", x2: "21", y2: "18" }
 
-            .user-dropdown{ data: { menu_target: "dropdown" } }
+            .user-dropdown#user-menu-dropdown{ data: { menu_target: "dropdown" } }
               -# Liens de navigation dans le dropdown (mobile uniquement via CSS)
               .dropdown-nav-links
                 = link_to "Recettes", recipes_path, class: "dropdown-link"
@@ -118,5 +129,7 @@
             = link_to "Se connecter", new_user_session_path, class: "nav-link"
             = link_to "S'inscrire", new_user_registration_path, class: "nav-link btn-signup"
 
-    %main.main-content
+    -# tabindex="-1" : la cible du skip-link doit pouvoir recevoir le focus
+    -# programmatiquement (sinon certains navigateurs ne font que scroller).
+    %main#main-content.main-content{ tabindex: "-1" }
       = yield

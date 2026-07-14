@@ -102,7 +102,7 @@
 
 /* Message "Aucun résultat" */
 .select2-container--default .select2-results__option--no-results {
-  color: var(--color-ink-4);
+  color: var(--color-ink-3);
   font-style: italic;
   padding: 1rem;
   text-align: center;

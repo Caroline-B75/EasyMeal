@@ -18,6 +18,8 @@
   -# ── Bouton flottant mobile (pill fixe en bas, invisible sur desktop) ──
   %button.filters-mobile-btn{ type: "button",
                               "aria-label": "Ouvrir les filtres",
+                              "aria-expanded": "false",
+                              "aria-controls": "filters-sidebar",
                               data: { action: "click->recipe-filter#openSidebar",
                                       recipe_filter_target: "mobileTrigger" } }
     Filtres
@@ -32,7 +34,7 @@
   .recipes-body
 
     -# ── Sidebar gauche : tous les filtres ──────────────────
-    .recipes-sidebar{ data: { recipe_filter_target: "sidebar" } }
+    .recipes-sidebar#filters-sidebar{ data: { recipe_filter_target: "sidebar" } }
       .sidebar-header
         %h2.sidebar-title Filtres
         = link_to "Effacer", recipes_path, class: "reset-filters-btn"
@@ -214,7 +216,7 @@
                             = image_tag "photo_par_defaut_recette.png", alt: recipe.name, class: "recipe-card-image", loading: "lazy"
 
                         .recipe-card-body
-                          %h3.recipe-card-title= recipe.name
+                          %h2.recipe-card-title= recipe.name
 
                           .recipe-card-meta
                             %span.meta-item

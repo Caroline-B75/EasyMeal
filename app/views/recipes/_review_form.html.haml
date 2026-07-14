@@ -1,6 +1,9 @@
 -# Partial pour le formulaire de nouvel avis
 .rs-review-form
-  %h4.rs-review-form-title Laisser un avis
+  -# h2 (et non h4) : après le h1 du titre de recette, c'est le seul vrai titre
+  -# de la page (les libellés de section sont des div décoratifs). Évite le saut
+  -# de niveau h1→h4 (audit Lighthouse R1.3). Le style reste porté par la classe.
+  %h2.rs-review-form-title Laisser un avis
   = form_with url: recipe_reviews_path(recipe), method: :post, class: "rs-form" do |f|
     .rs-rating-input{ data: { controller: "rating" } }
       - (1..5).each do |star|

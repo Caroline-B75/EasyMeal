@@ -1,7 +1,6 @@
-<% content_for :head do %>
-  <%= stylesheet_link_tag "authentication", "data-turbo-track": "reload" %>
-<% end %>
-
+<%# authentication.css est déjà inclus dans le bundle global application.css :
+    pas de stylesheet_link_tag séparé ici (évite un asset data-turbo-track qui
+    force un rechargement complet lors des visites Turbo). %>
 <div class="auth-container">
   <div class="auth-card">
     <div class="auth-header user-form-header">

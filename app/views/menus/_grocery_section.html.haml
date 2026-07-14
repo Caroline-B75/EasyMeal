@@ -10,12 +10,16 @@
                              "grocery-accordion-open-value": "true",
                              category: category.presence || "autre" } }
     %button.grocery-section-header{ type: "button",
-                                     data: { action: "click->grocery-accordion#toggle" } }
+                                     "aria-expanded": "true",
+                                     "aria-controls": "#{section_id}_body",
+                                     data: { action: "click->grocery-accordion#toggle",
+                                             "grocery-accordion-target": "header" } }
       %span.grocery-section-title= category_name
       %span.grocery-section-count= items.size
       .grocery-section-chevron{ data: { "grocery-accordion-target": "chevron" } }
 
-    .grocery-section-body{ data: { "grocery-accordion-target": "body" } }
+    .grocery-section-body{ id: "#{section_id}_body",
+                           data: { "grocery-accordion-target": "body" } }
       .grocery-items-list
         - items.each do |item|
           = render "menus/grocery_item", item: item, menu: menu

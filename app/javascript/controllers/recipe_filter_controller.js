@@ -7,20 +7,17 @@ import { Controller } from "@hotwired/stimulus"
 // - Loader pendant le rechargement du Turbo Frame
 // - Mobile : drawer latéral ouvert par bouton flottant
 export default class extends Controller {
-  static targets = ["form", "loader", "results", "panel", "toggleBtn", "sidebar", "backdrop", "mobileTrigger"]
+  static targets = ["form", "loader", "results", "sidebar", "backdrop", "mobileTrigger"]
 
   connect() {
     this.hideLoader()
-    if (this.hasPanelTarget && this.hasToggleBtnTarget) {
-      const isOpen = !this.panelTarget.classList.contains("hidden")
-      this.toggleBtnTarget.setAttribute("aria-expanded", String(isOpen))
-    }
   }
 
   // ── Sidebar mobile : ouvrir ──
   openSidebar() {
     if (this.hasSidebarTarget) this.sidebarTarget.classList.add("is-open")
     if (this.hasBackdropTarget) this.backdropTarget.classList.add("is-open")
+    if (this.hasMobileTriggerTarget) this.mobileTriggerTarget.setAttribute("aria-expanded", "true")
     document.body.style.overflow = "hidden"
   }
 
@@ -28,19 +25,8 @@ export default class extends Controller {
   closeSidebar() {
     if (this.hasSidebarTarget) this.sidebarTarget.classList.remove("is-open")
     if (this.hasBackdropTarget) this.backdropTarget.classList.remove("is-open")
+    if (this.hasMobileTriggerTarget) this.mobileTriggerTarget.setAttribute("aria-expanded", "false")
     document.body.style.overflow = ""
-  }
-
-  // Ouvrir / fermer le panneau tags
-  togglePanel(event) {
-    if (event) event.preventDefault()
-    if (!this.hasPanelTarget) return
-
-    const isOpen = this.panelTarget.classList.toggle("hidden") === false
-
-    if (this.hasToggleBtnTarget) {
-      this.toggleBtnTarget.setAttribute("aria-expanded", String(isOpen))
-    }
   }
 
   // Supprimer un filtre individuel via son badge ×
