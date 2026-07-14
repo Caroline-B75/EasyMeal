@@ -26,7 +26,13 @@ class MenusController < ApplicationController
 
   # GET /menus/:id
   def show
-    @menu_recipes = @menu.menu_recipes.includes(recipe: [:photo_attachment, :ingredients]).by_position
+    # Les ingrédients (et leur table pivot preparations) ne servent qu'au badge
+    # « De saison » de la vue archivée (Recipe#seasonal_for_month?). On ne les
+    # charge donc que dans ce cas, pour éviter un eager loading inutile
+    # (signalé par Bullet) sur les menus brouillon et actif.
+    recipe_includes = [ :photo_attachment ]
+    recipe_includes << :ingredients if @menu.status_archived?
+    @menu_recipes = @menu.menu_recipes.includes(recipe: recipe_includes).by_position
   end
 
   # GET /menus/new
