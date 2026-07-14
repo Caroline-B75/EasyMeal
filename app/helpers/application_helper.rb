@@ -128,15 +128,30 @@ module ApplicationHelper
     "search"        => '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
     "arrow-right"   => '<line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>',
     "grip-vertical" => '<circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/>',
-    "book-open"     => '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>'
+    "book-open"     => '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+    "x"             => '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+    "check"         => '<polyline points="20 6 9 17 4 12"/>',
+    "leaf"          => '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/>',
+    "clock"         => '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+    "link"          => '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+    "image"         => '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>',
+    "camera"        => '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+    "clipboard"     => '<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>',
+    "utensils"      => '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>'
   }.freeze
 
   def svg_icon(name, size: nil, css_class: nil, fill: "none")
     body = FEATHER_ICONS[name.to_s] || ""
+    # Classe .svg-icon commune (alignement vertical + flex-shrink) pour un rendu
+    # cohérent aussi bien dans du texte que dans un conteneur flex.
+    classes = ["svg-icon", css_class].compact.join(" ")
     attrs = %w[xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"]
     attrs << %(width="#{size}" height="#{size}") if size
-    attrs << %(class="#{ERB::Util.html_escape(css_class)}") if css_class
+    attrs << %(class="#{ERB::Util.html_escape(classes)}")
     attrs << %(fill="#{ERB::Util.html_escape(fill)}")
+    # Icônes décoratives : le nom accessible est porté par le bouton/lien parent
+    # (title / aria-label). Évite une double lecture par les lecteurs d'écran.
+    attrs << 'aria-hidden="true"'
     "<svg #{attrs.join(' ')}>#{body}</svg>".html_safe
   end
 

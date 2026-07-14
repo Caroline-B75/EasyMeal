@@ -35,28 +35,18 @@ module RecipesHelper
     ("☆" * empty_stars)
   end
 
-  # Badge de régime avec icône et couleur
+  # Badge de régime — pastille colorée + libellé (sans emoji : rendu premium et
+  # cohérent quel que soit l'OS ; la couleur porte l'identité du régime).
   def diet_badge(diet)
-    icons = {
-      "omnivore" => "🍖",
-      "vegetarien" => "🥕",
-      "vegan" => "🌱",
-      "pescetarien" => "🐟"
-    }
-
     colors = {
       "omnivore" => "badge-beige",
       "vegetarien" => "badge-green",
       "vegan" => "badge-green",
       "pescetarien" => "badge-blue"
     }
-
-    icon = icons[diet] || inline_svg("cook-book", css_class: "icon-sm", color: "currentColor")
     color_class = colors[diet] || "badge-orange"
 
-    content_tag :span, class: "badge #{color_class}" do
-      safe_join([icon, " #{diet.humanize}"])
-    end
+    content_tag :span, diet.humanize, class: "badge #{color_class}"
   end
 
   # Badge de difficulté avec couleur

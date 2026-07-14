@@ -133,7 +133,8 @@
       - if recipe.persisted? && recipe.draft?
         -# Brouillon IA : publier = sauvegarder + changer le statut en un seul clic
         %button.btn.btn-primary.btn-lg{ type: "submit", name: "_publish", value: "1" }
-          ✓ Publier la recette
+          = svg_icon(:check, size: 16)
+          Publier la recette
         = f.submit "Sauvegarder", class: "btn btn-secondary"
       - else
         = f.submit recipe.new_record? ? "Créer la recette" : "Mettre à jour", class: "btn btn-primary"
@@ -145,6 +146,6 @@
     .slideout-header
       %h3 Créer un nouvel ingrédient
       %button.slideout-close{ type: "button", data: { action: "click->slideout#close" } }
-        ✕
+        = svg_icon(:x, size: 18)
     .slideout-content#quick-ingredient-form
       = render "ingredients/quick_form", ingredient: Ingredient.new

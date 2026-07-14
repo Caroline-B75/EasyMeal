@@ -40,7 +40,8 @@
         = link_to "Effacer", recipes_path, class: "reset-filters-btn"
         %button.sidebar-close-btn{ type: "button",
                                    "aria-label": "Fermer les filtres",
-                                   data: { action: "click->recipe-filter#closeSidebar" } } ✕
+                                   data: { action: "click->recipe-filter#closeSidebar" } }
+          = svg_icon(:x, size: 18)
 
       = form_with url: recipes_path, method: :get,
                   class: "filters-form",
@@ -53,7 +54,8 @@
                              value: params[:query],
                              placeholder: "Rechercher...",
                              class: "search-input"
-            = f.submit "🔍", class: "search-inline-btn", title: "Rechercher"
+            %button.search-inline-btn{ type: "submit", title: "Rechercher", "aria-label": "Rechercher" }
+              = svg_icon(:search, size: 16)
 
         -# ── Filtres empilés verticalement ──
         .filters-quick-column
@@ -64,7 +66,9 @@
               = check_box_tag :favorites, "true", fav_active,
                               id: "filter-favorites",
                               data: { action: "change->recipe-filter#submit" }
-              = label_tag "filter-favorites", "♥ Mes favoris", class: "filter-label-inline"
+              = label_tag "filter-favorites", class: "filter-label-inline" do
+                = svg_icon(:heart, size: 14)
+                Mes favoris
 
           .filter-group
             = f.label :diet, "Régime", class: "filter-label"
@@ -95,7 +99,9 @@
                           { checked: has_seasonal,
                             data: { action: "change->recipe-filter#submit" } },
                           "true", nil
-            = f.label :seasonal, "🌿 De saison", class: "filter-label-inline"
+            = f.label :seasonal, class: "filter-label-inline" do
+              = svg_icon(:leaf, size: 14)
+              De saison
 
         -# ── Filtres actifs (badges supprimables) ──
         - if has_any_filter
@@ -105,39 +111,42 @@
               %button.active-filter-badge{ type: "button",
                                            data: { action: "click->recipe-filter#clearFilter",
                                                    recipe_filter_field: "query" } }
-                🔍 #{params[:query]}
-                %span.badge-remove ×
+                = svg_icon(:search, size: 12)
+                = params[:query]
+                %span.badge-remove= svg_icon(:x, size: 12)
             - if has_diet
               %button.active-filter-badge{ type: "button",
                                            data: { action: "click->recipe-filter#clearFilter",
                                                    recipe_filter_field: "diet" } }
                 = params[:diet].humanize
-                %span.badge-remove ×
+                %span.badge-remove= svg_icon(:x, size: 12)
             - if has_diff
               %button.active-filter-badge{ type: "button",
                                            data: { action: "click->recipe-filter#clearFilter",
                                                    recipe_filter_field: "difficulty" } }
                 = params[:difficulty].humanize
-                %span.badge-remove ×
+                %span.badge-remove= svg_icon(:x, size: 12)
             - if has_time
               - time_labels = { "15" => "≤ 15 min", "30" => "≤ 30 min", "45" => "≤ 45 min", "60" => "≤ 1h", "90" => "≤ 1h30" }
               %button.active-filter-badge{ type: "button",
                                            data: { action: "click->recipe-filter#clearFilter",
                                                    recipe_filter_field: "max_time" } }
                 = time_labels[params[:max_time].to_s] || "≤ #{params[:max_time]} min"
-                %span.badge-remove ×
+                %span.badge-remove= svg_icon(:x, size: 12)
             - if has_seasonal
               %button.active-filter-badge{ type: "button",
                                            data: { action: "click->recipe-filter#clearFilter",
                                                    recipe_filter_field: "seasonal" } }
-                🌿 De saison
-                %span.badge-remove ×
+                = svg_icon(:leaf, size: 12)
+                De saison
+                %span.badge-remove= svg_icon(:x, size: 12)
             - if has_favs
               %button.active-filter-badge{ type: "button",
                                            data: { action: "click->recipe-filter#clearFilter",
                                                    recipe_filter_field: "favorites" } }
-                ♥ Mes favoris
-                %span.badge-remove ×
+                = svg_icon(:heart, size: 12)
+                Mes favoris
+                %span.badge-remove= svg_icon(:x, size: 12)
             - if tags_count > 0
               - @tags&.select { |t| selected_tag_ids.include?(t.id.to_s) }.each do |tag|
                 %button.active-filter-badge{ type: "button",
@@ -145,7 +154,7 @@
                                                      recipe_filter_field: "tag_ids[]",
                                                      recipe_filter_value: tag.id } }
                   #{tag.name}
-                  %span.badge-remove ×
+                  %span.badge-remove= svg_icon(:x, size: 12)
 
         -# ── Tags par catégorie (cases à cocher verticales) ──
         - if @tags&.any?
@@ -181,7 +190,7 @@
           Catalogue de recettes
         - if policy(Recipe).create?
           = link_to new_recipe_path, class: "btn btn-primary" do
-            %span.btn-icon ✚
+            = svg_icon(:plus, size: 16)
             Ajouter une recette
 
       -# ── Barre contextuelle menu brouillon ──
@@ -220,7 +229,7 @@
 
                           .recipe-card-meta
                             %span.meta-item
-                              %span.meta-icon ⏱️
+                              %span.meta-icon= svg_icon(:clock, size: 14)
                               = format_total_time(recipe)
                             %span.meta-item
                               = diet_badge(recipe.diet)
@@ -253,7 +262,8 @@
 
           - else
             .empty-state
-              .empty-state-icon 🍳
+              .empty-state-icon
+                = svg_icon(:utensils, size: 56)
               %h2 Aucune recette trouvée
               %p Essaye de modifier tes critères de recherche ou ajoute une nouvelle recette.
               - if policy(Recipe).create?

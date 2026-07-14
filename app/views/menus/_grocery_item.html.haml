@@ -55,9 +55,10 @@
 
     -# Suppression (items manuels uniquement)
     - if item.source_manual?
-      = button_to "✕", menu_grocery_item_path(menu, item),
+      = button_to menu_grocery_item_path(menu, item),
                   method: :delete,
                   class: "btn-remove",
                   title: "Supprimer",
                   "aria-label": "Supprimer l'article #{item.name}",
-                  form: { data: { turbo_confirm: "Supprimer \"#{item.name}\" ?" } }
+                  form: { data: { turbo_confirm: "Supprimer \"#{item.name}\" ?" } } do
+        = svg_icon(:x, size: 14)

@@ -24,6 +24,9 @@
   font-weight: 600;
   color: var(--color-ink);
   margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 /* === Table des tags === */
@@ -236,7 +239,7 @@
 
   .tags-header h1 {
     font-size: var(--font-size-xl);
-    text-align: center;
+    justify-content: center;
   }
 
   /* Table en mode cartes sur mobile */

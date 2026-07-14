@@ -8,7 +8,7 @@
   - if draft
     .draft-bar-content
       .draft-bar-info
-        %span.draft-bar-icon 📋
+        %span.draft-bar-icon= svg_icon(:clipboard, size: 16)
         %span.draft-bar-text
           Mon prochain menu :
           %strong= draft.name.presence || "Menu sans nom"
@@ -19,7 +19,7 @@
   - else
     .draft-bar-content
       .draft-bar-info
-        %span.draft-bar-icon 📋
+        %span.draft-bar-icon= svg_icon(:clipboard, size: 16)
         %span.draft-bar-text Aucun menu à valider.
       = link_to new_menu_path, class: "draft-bar-link" do
         Créer un menu →

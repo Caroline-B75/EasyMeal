@@ -306,6 +306,9 @@
   font-weight: 500;
   cursor: pointer;
   margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 /* Pill "Mes favoris" */
@@ -1226,8 +1229,8 @@
 }
 
 .empty-state-icon {
-  font-size: 3.5rem;
   margin-bottom: 1rem;
+  color: var(--color-ink-4);
 }
 
 .empty-state h2 {
@@ -3299,6 +3302,10 @@
 
 .import-tab {
   flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   padding: 10px 16px;
   background: var(--color-bg-white);
   border: none;
@@ -3412,7 +3419,10 @@
 .import-notice {
   font-size: 13px;
   color: var(--color-ink-3);
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   margin: 0;
 }
 

@@ -16,10 +16,11 @@
               data: { turbo: true } do
     - if compact
       = hidden_field_tag :compact, "true"
-      = is_favorited ? "♥" : "♡"
+      = svg_icon(:heart, size: 18, fill: is_favorited ? "currentColor" : "none")
     - elsif show_page
       = hidden_field_tag :show_page, "true"
       = svg_icon(:heart, size: 14, fill: is_favorited ? "currentColor" : "none")
       = is_favorited ? "Retirer des favoris" : "Ajouter aux favoris"
     - else
-      = is_favorited ? "♥ Retirer des favoris" : "♡ Ajouter aux favoris"
+      = svg_icon(:heart, size: 14, fill: is_favorited ? "currentColor" : "none")
+      = is_favorited ? "Retirer des favoris" : "Ajouter aux favoris"

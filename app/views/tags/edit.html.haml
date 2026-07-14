@@ -5,7 +5,9 @@
 
 .tags-container
   .tags-header
-    %h1 ✏️ Modifier le tag
+    %h1
+      = svg_icon(:edit, size: 22)
+      Modifier le tag
 
   .tag-form-container
     = form_with model: @tag, class: "tag-form", data: { controller: "form-errors" } do |f|

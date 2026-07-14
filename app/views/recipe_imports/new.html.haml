@@ -21,10 +21,12 @@
       .import-tabs
         %button.import-tab.import-tab--active{ type: "button",
             data: { "import-source-target": "urlTab", action: "click->import-source#selectUrl" } }
-          🔗 Lien internet
+          = svg_icon(:link, size: 16)
+          Lien internet
         %button.import-tab{ type: "button",
             data: { "import-source-target": "photoTab", action: "click->import-source#selectPhoto" } }
-          📸 Photo de magazine
+          = svg_icon(:image, size: 16)
+          Photo de magazine
 
       -# Section URL
       .import-section{ data: { "import-source-target": "urlSection" } }
@@ -46,7 +48,7 @@
               accept: "image/jpeg,image/png,image/webp",
               class: "import-file-input"
           %label.import-file-label{ for: "photo_file" }
-            %span.import-file-label__icon 📷
+            %span.import-file-label__icon= svg_icon(:camera, size: 32)
             %span.import-file-label__text Cliquer pour choisir une photo
         %p.import-hint
           Formats acceptés : JPG, PNG, WebP.
@@ -58,4 +60,5 @@
             class: "btn btn-primary btn-lg import-submit-btn",
             data: { "import-source-target": "submitBtn" }
         %p.import-notice
-          ⏱&nbsp; L'extraction peut prendre 15 à 30 secondes selon la source.
+          = svg_icon(:clock, size: 14)
+          L'extraction peut prendre 15 à 30 secondes selon la source.

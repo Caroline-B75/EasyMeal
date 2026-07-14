@@ -777,8 +777,8 @@
 }
 
 .mi-empty-icon {
-  font-size: 3rem;
   margin-bottom: 1rem;
+  color: var(--color-ink-4);
 }
 
 .mi-empty-title {

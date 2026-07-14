@@ -154,7 +154,8 @@
   -# ── État vide ────────────────────────────────────────────
   - if @draft.nil? && @active.nil? && @archived.empty?
     .mi-empty
-      .mi-empty-icon 🍽
+      .mi-empty-icon
+        = svg_icon(:utensils, size: 48)
       %h2.mi-empty-title Aucun menu pour l'instant
       %p.mi-empty-text Génère ton premier menu personnalisé en quelques secondes.
       = link_to new_menu_path, class: "btn btn-primary" do

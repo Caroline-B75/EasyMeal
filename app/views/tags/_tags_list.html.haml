@@ -24,11 +24,11 @@
                              data: { tag_inline_target: "input" },
                              required: true
               %button.btn-icon-save{ type: "submit", title: "Enregistrer" }
-                ✓
+                = svg_icon(:check, size: 18)
               %button.btn-icon-cancel{ type: "button", 
                                       title: "Annuler",
                                       data: { action: "click->tag-inline#cancel" } }
-                ×
+                = svg_icon(:x, size: 18)
 
         %td{ data: { label: "Utilisation" } }
           - recipes_count = tag.recipes_count
