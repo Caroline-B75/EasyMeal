@@ -23,10 +23,13 @@
       .mc-card-name= menu_recipe.recipe.name
 
     -# ── Barre d'actions : remplacer | personnes | supprimer
+    -# aria-label : nom accessible annoncé au focus clavier (pas seulement au hover)
     .mc-card-actions
       = form_with url: replace_meal_menu_path(menu), method: :post, class: "mc-act-form" do |f|
         = f.hidden_field :menu_recipe_id, value: menu_recipe.id
-        %button.mc-act-btn{ type: "submit", title: "Remplacer aléatoirement" }
+        %button.mc-act-btn{ type: "submit",
+                            "aria-label": "Remplacer #{menu_recipe.recipe.name} par un autre repas",
+                            title: "Remplacer aléatoirement" }
           = svg_icon("shuffle", size: 12)
 
       = form_with model: [menu, menu_recipe], method: :patch, class: "mc-act-form",
@@ -35,10 +38,13 @@
                    people_select_options,
                    { selected: menu_recipe.number_of_people },
                    class: "mc-ppl-select", title: "Nombre de personnes",
+                   "aria-label": "Nombre de personnes pour #{menu_recipe.recipe.name}",
                    data: { action: "change->auto-submit#submit" }
 
       = form_with url: menu_menu_recipe_path(menu, menu_recipe), method: :delete,
                   class: "mc-act-form",
                   data: { turbo_confirm: "Retirer ce repas du menu ?" } do
-        %button.mc-act-btn.mc-del{ type: "submit", title: "Retirer du menu" }
+        %button.mc-act-btn.mc-del{ type: "submit",
+                                   "aria-label": "Retirer #{menu_recipe.recipe.name} du menu",
+                                   title: "Retirer du menu" }
           = svg_icon("trash", size: 12)

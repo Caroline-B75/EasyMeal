@@ -1917,6 +1917,13 @@
 .mc-act-btn svg { width: 12px; height: 12px; color: var(--color-ink-3); flex-shrink: 0; }
 .mc-act-btn:hover { background: var(--color-bg-white); border-color: var(--color-border-strong); box-shadow: var(--shadow-sm); }
 .mc-act-btn:hover svg { color: var(--color-ink); }
+/* Focus clavier explicite (les libellés aria sont annoncés en parallèle) */
+.mc-act-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+  border-color: var(--color-primary);
+}
+.mc-act-btn:focus-visible svg { color: var(--color-ink); }
 
 /* Variante danger (supprimer) */
 .mc-del:hover { background: var(--color-danger-light); border-color: var(--color-danger-border); }
@@ -1944,6 +1951,11 @@
 }
 .mc-ppl-select:hover { border-color: var(--color-border-strong); }
 .mc-ppl-select:focus { outline: none; border-color: var(--color-ink); }
+.mc-ppl-select:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+  border-color: var(--color-primary);
+}
 
 /* ── Add slot (2 boutons empilés) ──────────────────────── */
 .mc-add-slot {
@@ -2006,6 +2018,19 @@
 
 /* ── Bouton de validation ──────────────────────────────── */
 .mc-validate-zone { text-align: center; }
+
+/* Sticky en bas quand le menu contient au moins un repas : le CTA reste
+   visible pendant le défilement de la grille. Bande de fond + bordure
+   haute pour détacher la zone du contenu qui défile dessous. */
+.mc-validate-zone--sticky {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  padding: 14px 0;
+  margin-top: 4px;
+  background: var(--color-bg-main);
+  border-top: var(--border-thin);
+}
 
 /* Le form de button_to doit rester inline */
 .mc-validate-zone form.button_to,

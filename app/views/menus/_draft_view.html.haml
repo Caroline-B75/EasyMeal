@@ -29,7 +29,9 @@
           %span Repas aléatoire
 
     -# ── Bouton de validation ───────────────────────────────
-    .mc-validate-zone
+    -# Sticky en bas dès qu'au moins un repas est présent : la validation
+    -# reste visible pendant qu'on fait défiler la grille de repas.
+    .mc-validate-zone{ class: ("mc-validate-zone--sticky" if menu_recipes.any?) }
       = button_to activate_menu_path(menu), method: :post, class: "mc-btn-validate",
                   disabled: menu_recipes.empty?,
                   form: { data: { turbo_confirm: "Valider le menu ? La liste de courses sera générée." } } do
