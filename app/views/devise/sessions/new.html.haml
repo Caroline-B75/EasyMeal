@@ -1,0 +1,33 @@
+-# authentication.css est déjà inclus dans le bundle global application.css
+-# (voir app/assets/stylesheets/application.css). Le recharger ici en
+-# data-turbo-track="reload" créait un asset suivi absent de l'accueil : Turbo
+-# forçait alors un rechargement complet qui restait bloqué (spinner infini).
+-# On s'appuie sur le bundle global — les styles sont déjà présents.
+.auth-container
+  .auth-card
+    .auth-header.user-form-header
+      %h1.auth-title Connexion
+      %p.auth-subtitle Content(e) de te revoir !
+
+    = simple_form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: 'auth-form' }) do |f|
+      .form-fields
+        / Email
+        .form-group
+          = f.input :email, required: false, autofocus: true, input_html: { class: 'form-input', autocomplete: "email", placeholder: "votre.email@exemple.com" }, label_html: { class: 'form-label' }, wrapper_html: { class: 'input-wrapper' }
+
+        / Password
+        .form-group
+          = f.input :password, required: false, input_html: { class: 'form-input', autocomplete: "current-password", placeholder: "••••••••" }, label_html: { class: 'form-label' }, wrapper_html: { class: 'input-wrapper' }
+
+        / Remember Me
+        - if devise_mapping.rememberable?
+          .form-group
+            = f.input :remember_me, as: :boolean, label: "Se souvenir de moi", wrapper_html: { class: 'input-wrapper' }
+
+      / Submit Button
+      .form-actions
+        = f.button :submit, "Se connecter", class: "btn btn-primary btn-large"
+
+    / Footer Links
+    .auth-footer
+      = render "devise/shared/links"
