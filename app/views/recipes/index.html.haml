@@ -37,7 +37,11 @@
     .recipes-sidebar#filters-sidebar{ data: { recipe_filter_target: "sidebar" } }
       .sidebar-header
         %h2.sidebar-title Filtres
-        = link_to "Effacer", recipes_path, class: "reset-filters-btn"
+        -# Réinitialisation globale : toujours visible pour effacer tous les
+        -# filtres d'un coup (grisé/inactif visuellement si aucun filtre actif).
+        = link_to recipes_path, class: "reset-filters-btn#{' reset-filters-btn--idle' unless has_any_filter}" do
+          = svg_icon(:x, size: 13)
+          Réinitialiser
         %button.sidebar-close-btn{ type: "button",
                                    "aria-label": "Fermer les filtres",
                                    data: { action: "click->recipe-filter#closeSidebar" } }
@@ -163,11 +167,19 @@
                                 "saison" => "Saison", "autre" => "Autre" }
           - tags_by_type = @tags.group_by { |t| t.tag_type || "autre" }
           .filters-tags-section
+            %span.filters-section-title Tags
             - tag_type_labels.each do |type, label|
               - group = tags_by_type[type]
               - next unless group&.any?
-              .filters-tags-group
-                %span.filters-tags-sublabel= label
+              -# Chaque type de tag est un accordéon, ouvert d'office si un de ses
+              -# tags est sélectionné (pour garder les filtres actifs visibles).
+              - active_in_group = group.count { |t| selected_tag_ids.include?(t.id.to_s) }
+              %details.filters-tags-accordion{ open: active_in_group.positive? }
+                %summary.filters-tags-summary
+                  %span.filters-tags-summary-label= label
+                  - if active_in_group.positive?
+                    %span.filters-tags-summary-count= active_in_group
+                  %span.filters-tags-chevron= svg_icon("chevron-down", size: 16)
                 .filters-tags-list
                   - group.each do |tag|
                     - tag_active = selected_tag_ids.include?(tag.id.to_s)
@@ -213,7 +225,9 @@
               - @recipes.each do |recipe|
                 .recipe-card-wrapper
                   = link_to recipe_path(recipe), class: "recipe-card-link", data: { turbo_frame: "_top", turbo_prefetch: "false" } do
-                    - cache recipe do
+                    -# Clé de cache incluant le mois : le badge « De saison » dépend
+                    -# du mois courant, il doit donc s'invalider chaque mois.
+                    - cache [recipe, "season-m#{@current_month}"] do
                       .recipe-card
                         .recipe-card-image-wrapper
                           - if recipe.photo.attached?
@@ -227,12 +241,17 @@
                         .recipe-card-body
                           %h2.recipe-card-title= recipe.name
 
+                          -# Méta hiérarchisée : temps total d'abord (info clé), puis
+                          -# régime en badge, puis badge saison si pertinent.
                           .recipe-card-meta
-                            %span.meta-item
-                              %span.meta-icon= svg_icon(:clock, size: 14)
+                            %span.recipe-card-time
+                              = svg_icon(:clock, size: 15)
                               = format_total_time(recipe)
-                            %span.meta-item
-                              = diet_badge(recipe.diet)
+                            = diet_badge(recipe.diet)
+                            - if @seasonal_ids.include?(recipe.id)
+                              %span.badge.badge-season
+                                = svg_icon(:leaf, size: 12)
+                                De saison
 
                           - if recipe.tags.any?
                             .recipe-card-tags
@@ -240,9 +259,13 @@
                                 %span.badge.badge-beige= tag.name
 
                           .recipe-card-footer
-                            .recipe-rating
-                              %span.recipe-rating-stars= rating_stars(recipe.rating_avg)
-                              %span.recipe-rating-count (#{recipe.reviews_count})
+                            - if recipe.reviews_count.positive?
+                              .recipe-rating
+                                %span.recipe-rating-stars= rating_stars(recipe.rating_avg)
+                                %span.recipe-rating-value= number_with_precision(recipe.rating_avg, precision: 1, strip_insignificant_zeros: true)
+                                %span.recipe-rating-count= "(#{recipe.reviews_count})"
+                            - else
+                              %span.recipe-rating-empty Pas encore d'avis
 
                   -# Coeur favori en overlay (user-specific, hors cache)
                   - if current_user

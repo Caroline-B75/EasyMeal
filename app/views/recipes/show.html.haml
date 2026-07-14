@@ -43,10 +43,8 @@
       -# Boutons d'action
       .rs-actions
         - if current_user
-          = button_to "Ajouter à mon menu", add_to_menu_recipe_path(@recipe),
-                      method: :post,
-                      class: "btn-accent rs-btn-accent",
-                      title: "Ajouter cette recette à mon prochain menu"
+          = render "recipes/draft_cta", recipe: @recipe, in_draft: @in_draft, has_draft: @draft.present?,
+                                        variant: "hero", container_id: "draft-cta-hero-#{@recipe.id}"
         - else
           = link_to "Ajouter à mon menu", new_user_session_path, class: "btn-accent rs-btn-accent"
 
@@ -173,9 +171,7 @@
 -# CTA persistant (mobile) — barre sticky en bas, l'ajout au menu reste toujours accessible
 .rs-mobile-cta
   - if current_user
-    = button_to "Ajouter à mon menu", add_to_menu_recipe_path(@recipe),
-                method: :post,
-                class: "btn-accent rs-mobile-cta-btn",
-                title: "Ajouter cette recette à mon prochain menu"
+    = render "recipes/draft_cta", recipe: @recipe, in_draft: @in_draft, has_draft: @draft.present?,
+                                  variant: "mobile", container_id: "draft-cta-mobile-#{@recipe.id}"
   - else
     = link_to "Ajouter à mon menu", new_user_session_path, class: "btn-accent rs-mobile-cta-btn"

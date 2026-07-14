@@ -1,0 +1,26 @@
+-# CTA « Démarrer / Ajouter / Retirer » du menu brouillon — fiche recette (UC4/UC2).
+-# Bascule l'état via toggle_in_draft (Turbo Stream), sans quitter la page :
+-#   - déjà dans le menu   → « Retirer de mon menu » (état confirmé, retrait au clic)
+-#   - brouillon existant  → « Ajouter à mon menu »
+-#   - aucun brouillon     → « Démarrer un menu » (crée un brouillon avec cette recette)
+-#
+-# Locals :
+-#   recipe       : Recipe (required)
+-#   in_draft     : Boolean — recette déjà dans le brouillon (required)
+-#   has_draft    : Boolean — l'utilisateur a déjà un menu brouillon (default: true)
+-#   variant      : "hero" (défaut) | "mobile" — gabarit du bouton
+-#   container_id : String — id du wrapper DOM (cible Turbo Stream)
+- variant = local_assigns.fetch(:variant, "hero")
+- has_draft = local_assigns.fetch(:has_draft, true)
+- template_class = variant == "mobile" ? "rs-mobile-cta-btn" : "rs-btn-accent"
+- state_class = in_draft ? "is-in-draft" : "btn-accent"
+- label = in_draft ? "Retirer de mon menu" : (has_draft ? "Ajouter à mon menu" : "Démarrer un menu")
+- tooltip = in_draft ? "Retirer cette recette de mon prochain menu" : (has_draft ? "Ajouter cette recette à mon prochain menu" : "Démarrer un nouveau menu avec cette recette")
+%div{ id: container_id }
+  = button_to toggle_in_draft_recipe_path(recipe),
+              method: :post,
+              class: "#{template_class} #{state_class}",
+              title: tooltip,
+              form: { data: { turbo_stream: true } } do
+    = svg_icon(in_draft ? :check : :plus, size: 15)
+    = label

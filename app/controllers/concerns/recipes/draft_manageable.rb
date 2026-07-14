@@ -3,28 +3,15 @@ module Recipes
   module DraftManageable
     extend ActiveSupport::Concern
 
-    # POST /recipes/:id/add_to_menu
-    # UC2 : Ajoute la recette au menu brouillon en cours de l'utilisateur
-    def add_to_menu
-      return redirect_to(recipe, alert: "Cette recette n'est pas encore publiée.") if recipe.draft?
-
-      draft = current_draft
-      return redirect_to(recipe, alert: "Aucun menu brouillon en cours. Générez d'abord un menu.") unless draft
-
-      menu_recipe = draft.menu_recipes.new(recipe: recipe, number_of_people: draft.default_people)
-      if menu_recipe.save
-        redirect_to draft, notice: "\"#{recipe.name}\" ajoutée au menu."
-      else
-        redirect_to recipe, alert: menu_recipe.errors.full_messages.to_sentence
-      end
-    end
-
     # POST /recipes/:id/toggle_in_draft
-    # UC2 : Toggle ajout/retrait de la recette dans le menu brouillon (Turbo Stream)
+    # UC2 : Toggle ajout/retrait de la recette dans le menu brouillon (Turbo Stream).
+    # Si l'utilisateur n'a aucun brouillon, on en démarre un à la volée avec cette
+    # recette (« Démarrer un menu ») — hors flux de génération classique.
     def toggle_in_draft
       authorize recipe
-      @draft = current_draft
-      return respond_no_draft unless @draft
+      existing_draft = current_draft
+      @draft = existing_draft || build_draft_menu
+      @draft_created = existing_draft.nil?
 
       result = Menus::ToggleDraftRecipeService.call(draft: @draft, recipe: recipe)
       @added = result.added
@@ -40,19 +27,23 @@ module Recipes
       current_user&.menus&.status_draft&.recent&.first
     end
 
+    # Brouillon vierge aux préférences de l'utilisateur, créé quand aucun menu
+    # brouillon n'existe encore. Même convention de nom que Menus::GenerateService.
+    def build_draft_menu
+      current_user.menus.create!(
+        name:           "Menu du #{Date.current.strftime('%d/%m/%Y')}",
+        diet:           current_user.default_diet,
+        default_people: current_user.default_people,
+        status:         :draft
+      )
+    end
+
     # Charge le brouillon et les IDs de ses recettes pour l'index (évite N+1)
     def load_draft_data
       return unless current_user
 
       @draft = current_draft
       @draft_recipe_ids = @draft ? Set.new(@draft.menu_recipes.pluck(:recipe_id)) : Set.new
-    end
-
-    def respond_no_draft
-      respond_to do |format|
-        format.turbo_stream { render_flash_stream(alert: "Aucun menu brouillon en cours.") }
-        format.html { redirect_to recipe, alert: "Aucun menu brouillon en cours." }
-      end
     end
   end
 end

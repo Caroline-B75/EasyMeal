@@ -46,7 +46,6 @@ Rails.application.routes.draw do
     # Actions sociales (UC4)
     member do
       post  :toggle_favorite  # Toggle favori
-      post  :add_to_menu      # UC2 : Ajouter la recette au menu brouillon en cours
       post  :toggle_in_draft  # UC2 : Toggle ajout/retrait de la recette dans le menu brouillon
       patch :publish          # Publie un brouillon IA (admin only)
     end

@@ -8,7 +8,7 @@ class RecipesController < ApplicationController
   include Recipes::DraftManageable
 
   before_action :authenticate_user!, except: [ :index, :show ]
-  before_action :set_recipe, only: [ :show, :edit, :update, :destroy, :toggle_favorite, :add_to_menu, :toggle_in_draft, :publish ]
+  before_action :set_recipe, only: [ :show, :edit, :update, :destroy, :toggle_favorite, :toggle_in_draft, :publish ]
   before_action :authorize_recipe, only: [ :show, :edit, :update, :destroy, :publish ]
 
   # GET /recipes
@@ -28,6 +28,15 @@ class RecipesController < ApplicationController
     else
       Set.new
     end
+    # Badge « De saison » sur les cartes : on précalcule en UNE requête les IDs
+    # de recettes de saison ce mois-ci, plutôt que d'appeler seasonal_for_month?
+    # par carte (les ingrédients ne sont pas eager-loaded → éviterait un N+1).
+    @current_month = Date.current.month
+    @seasonal_ids = if @recipes.any?
+      Set.new(Recipe.seasonal_for_month(@current_month).where(id: @recipes.map(&:id)).pluck(:id))
+    else
+      Set.new
+    end
     load_draft_data
   end
 
@@ -38,6 +47,9 @@ class RecipesController < ApplicationController
     @preparations_by_category = recipe.preparations.includes(:ingredient)
                                       .group_by { |prep| prep.ingredient.category }
     load_user_recipe_data if current_user
+    # État « déjà dans le menu brouillon » : pilote le CTA (Ajouter / Retirer).
+    load_draft_data
+    @in_draft = @draft.present? && @draft_recipe_ids.include?(recipe.id)
     @pagy_reviews, @reviews = pagy(recipe.reviews.recent.includes(:user), items: 10)
   end
 
