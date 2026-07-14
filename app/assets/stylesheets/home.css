@@ -191,8 +191,16 @@
   text-decoration: none;
 }
 
+/* Survol : bordure plus marquée. L'élévation (montée + ombre) vient de la règle
+   .btn-hero:hover. On garde le fond blanc. */
+.btn-hero--secondary:hover {
+  border-color: var(--color-border-strong);
+}
+
+/* Pas de remplissage gris qui glisse (trop proche du fond) : on neutralise le
+   pseudo-élément hérité de .btn-hero pour la variante claire. */
 .btn-hero--secondary::before {
-  background: var(--color-bg-secondary);
+  display: none;
 }
 
 /* ======================================

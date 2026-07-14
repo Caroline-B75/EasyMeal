@@ -28,7 +28,7 @@
                 = image_tag mr.recipe.photo.variant(resize_to_fill: [96, 48]),
                            class: "mi-hist-recipe-photo"
               - else
-                = svg_icon("heart", size: 16, css_class: "mi-hist-recipe-placeholder")
+                = image_tag "photo_par_defaut_recette.png", alt: mr.recipe.name, class: "mi-hist-recipe-photo"
             .mi-hist-recipe-body
               .mi-hist-recipe-name= mr.recipe.name
               - total_time = mr.recipe.total_time_minutes

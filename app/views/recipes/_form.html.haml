@@ -132,7 +132,7 @@
     .rf-actions
       - if recipe.persisted? && recipe.draft?
         -# Brouillon IA : publier = sauvegarder + changer le statut en un seul clic
-        %button.btn.btn-success.btn-lg{ type: "submit", name: "_publish", value: "1" }
+        %button.btn.btn-primary.btn-lg{ type: "submit", name: "_publish", value: "1" }
           ✓ Publier la recette
         = f.submit "Sauvegarder", class: "btn btn-secondary"
       - else

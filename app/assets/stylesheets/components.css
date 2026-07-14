@@ -6,7 +6,17 @@
    pour une gestion centralisée des couleurs.
    ============================================ */
 
-/* === BOUTONS === */
+/* === BOUTONS ===
+   Système de boutons unique — source de vérité.
+   Base       : .btn
+   Variantes  : .btn-primary   → action principale (anthracite)
+                .btn-secondary → action neutre
+                .btn-accent    → unique CTA accent (ambre) — cf. « Ajouter à mon menu »
+                .btn-danger    → action destructive (rouge)
+                .btn-link      → variante « ghost » / tertiaire (transparent, sans bordure)
+   Tailles    : .btn-sm / .btn-lg (+ .btn-icon pour un padding icône compact)
+   Sémantique couleur : une action principale = anthracite partout ; l'ambre est
+   réservé au seul CTA accent et aux accents décoratifs (étoiles/saison, badges). */
 
 .btn {
   padding: 0.75rem 1.5rem;
@@ -19,7 +29,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition: background var(--transition-fast), color var(--transition-fast),
+              border-color var(--transition-fast), box-shadow var(--transition-fast),
+              transform var(--transition-fast);
   border: none;
   cursor: pointer;
   font-size: var(--font-size-base);
@@ -44,9 +56,30 @@
   border: var(--border-thin);
 }
 
+/* Survol des boutons clairs : on garde le fond (le virer en gris le rapprochait
+   trop du fond de page). Feedback discret et moderne par légère élévation
+   (ombre + montée d'1px), bordure plus marquée et texte assombri. */
 .btn-secondary:hover {
-  background: var(--color-secondary-hover);
-  color: var(--color-secondary-text);
+  background: var(--color-secondary);
+  color: var(--color-ink);
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+/* Unique CTA accent de l'app (ambre). Texte en --color-ink : accent-text
+   (#92400E) ne passe que 4,24:1 sur l'ambre et échoue sur accent-hover ;
+   ink passe AA sur les deux fonds (cf. audit R1.3). */
+.btn-accent {
+  background: var(--color-accent);
+  color: var(--color-ink);
+  border: none;
+}
+
+.btn-accent:hover {
+  background: var(--color-accent-hover);
+  color: var(--color-ink);
   text-decoration: none;
 }
 
@@ -72,6 +105,23 @@
 .btn-danger:hover {
   background: var(--color-danger-hover);
   color: #FFFFFF;
+}
+
+/* Tailles partagées du système (utilisées avec .btn) */
+.btn-sm {
+  padding: 0.375rem 0.875rem;
+  font-size: var(--font-size-xs);
+  min-height: unset;
+}
+
+.btn-lg {
+  padding: 0.875rem 2rem;
+  font-size: var(--font-size-lg);
+}
+
+.btn-icon {
+  padding: 0.375rem 0.625rem;
+  font-size: var(--font-size-xs);
 }
 
 /* Boutons icône */
@@ -587,43 +637,14 @@
   margin-bottom: 1rem;
 }
 
-.btn-create-ingredient {
-  background: none;
-  border: 1px dashed var(--color-border-strong);
-  color: var(--color-ink-3);
-  padding: 0.75rem 1.5rem;
-  border-radius: var(--radius-button);
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  cursor: pointer;
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.btn-create-ingredient:hover {
-  background: var(--color-primary);
-  color: #FFFFFF;
-  border-style: solid;
-  border-color: var(--color-primary);
-}
-
 /* Responsive slideout */
 @media (max-width: 767px) {
   .slideout-panel {
     max-width: 100%;
   }
-  
+
   .preparations-actions {
     flex-direction: column;
-  }
-  
-  .btn-create-ingredient {
-    width: 100%;
-    text-align: center;
   }
 }
 

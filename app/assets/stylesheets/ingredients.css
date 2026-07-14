@@ -176,6 +176,8 @@
 
 .actions-cell {
   text-align: center;
+  /* Boutons icône (modifier/supprimer) maintenus sur une seule ligne — cf. tags.css. */
+  white-space: nowrap;
 }
 
 /* === Pagination === */

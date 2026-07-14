@@ -152,11 +152,13 @@ a {
 }
 
 /* Survol des liens TEXTE uniquement. On exclut les <a> stylés en boutons
-   (toute classe contenant « btn ») : sinon la couleur ink + le soulignement
-   rendaient le libellé illisible sur les boutons foncés/colorés au survol. */
+   (toute classe contenant « btn ») : sinon la couleur ink rendait le libellé
+   illisible sur les boutons foncés/colorés au survol.
+   Pas de soulignement au survol : sur la nav, les cartes de recette et les
+   liens divers il alourdissait inutilement le rendu ; l'affordance passe par
+   le changement de couleur (et les composants gèrent leur propre survol). */
 a:not([class*="btn"]):hover {
   color: var(--color-ink);
-  text-decoration: underline;
 }
 
 /* Simple reset for better consistency */

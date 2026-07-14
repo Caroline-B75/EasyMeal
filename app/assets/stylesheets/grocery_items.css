@@ -392,12 +392,24 @@
 .grocery-add-row .form-group {
   flex: 1;
   min-width: 120px;
+  /* Annule le margin-bottom global de .form-group (hérité d'authentication.css) :
+     dans cette rangée flex alignée en bas, ce margin décalait les champs vers le
+     haut par rapport au bouton (l'alignement flex se fait sur la boîte de marge). */
+  margin-bottom: 0;
 }
 
 .grocery-add-submit {
   flex-shrink: 0;
   align-self: flex-end;
-  padding-bottom: 0.125rem;
+}
+
+/* Le bouton doit avoir exactement la hauteur des champs pour s'aligner sur eux
+   (rangée alignée en bas). Mêmes marges internes verticales que .form-input ;
+   on ajoute une bordure transparente pour compenser celle des champs (1px) et
+   on lève le plancher min-height de .btn. La hauteur reste > 44px (cible tactile). */
+.grocery-add-submit .btn {
+  min-height: 0;
+  border: var(--border-width) solid transparent;
 }
 
 /* ── Responsive ─────────────────────────────────────────── */
