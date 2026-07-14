@@ -76,7 +76,7 @@
 
 /* Phrase de salutation — serif, couleur accent fort */
 .hero-greeting-text {
-  font-size: 3.5rem;
+  font-size: 2.4rem;
   font-weight: 700;
   color: var(--color-primary);
   line-height: 1.2;
@@ -86,7 +86,7 @@
 /* Sous-texte contextuel — voix douce, sans-serif système */
 .hero-greeting-subtext {
   font-family: system-ui, -apple-system, sans-serif;
-  font-size: 18px;
+  font-size: 1.3rem;
   font-weight: 400;
   color: var(--color-ink-3);
   line-height: 1.6;
