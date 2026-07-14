@@ -2098,6 +2098,72 @@
   padding: 16px 0;
 }
 
+/* === CTA persistant (mobile) === */
+/* Masqué par défaut : n'apparaît qu'en mobile (voir media query max-width: 767px).
+   Le hero porte déjà le CTA sur desktop. */
+
+.rs-mobile-cta {
+  display: none;
+}
+
+.rs-mobile-cta form {
+  margin: 0;
+}
+
+.rs-mobile-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--min-touch-target);
+  padding: 12px 18px;
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  border-radius: var(--radius-button);
+  text-decoration: none;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+/* === Toast de confirmation de partage (« Lien copié ») === */
+/* Créé à la volée par share_controller lors du repli presse-papier. */
+
+.share-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(1.5rem + env(safe-area-inset-bottom));
+  transform: translate(-50%, 1rem);
+  z-index: 300;
+  padding: 10px 18px;
+  background: var(--color-ink);
+  color: #fff;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  border-radius: var(--radius-button);
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+  pointer-events: none;
+}
+
+.share-toast.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* === Desktop : colonne INGRÉDIENTS sticky === */
+/* La sidebar reste visible pendant la lecture des étapes. align-self: start
+   empêche l'étirement de la cellule de grille (condition d'un sticky effectif). */
+@media (min-width: 768px) {
+  .rs-sidebar {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    max-height: 100vh;
+    overflow-y: auto;
+  }
+}
+
 /* ============================================
    FICHE RECETTE — RESPONSIVE
    ============================================ */
@@ -2148,6 +2214,14 @@
     box-sizing: border-box;
   }
 
+  /* Le CTA « Ajouter à mon menu » du hero est repris par la barre persistante
+     (.rs-mobile-cta) : on le masque ici pour éviter le doublon. Favori + partage
+     restent dans le hero. */
+  .rs-actions .rs-btn-accent,
+  .rs-actions form:has(.rs-btn-accent) {
+    display: none;
+  }
+
   .rs-btn-icon {
     width: var(--min-touch-target);
     height: var(--min-touch-target);
@@ -2157,6 +2231,22 @@
   .rs-body {
     grid-template-columns: 1fr;
     min-width: 100%;
+    /* Réserve la place du CTA fixe pour ne masquer aucun contenu (pagination, avis). */
+    padding-bottom: 6rem;
+  }
+
+  /* CTA « Ajouter à mon menu » persistant, ancré en bas de l'écran */
+  .rs-mobile-cta {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 150;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    background: var(--color-bg-white);
+    border-top: var(--border-thin);
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.08);
   }
 
   .rs-sidebar {

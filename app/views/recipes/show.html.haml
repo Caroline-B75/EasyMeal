@@ -11,12 +11,10 @@
   .rs-hero-inner
     -# Colonne gauche
     .rs-hero-content
-      -# Kicker
+      -# Kicker — régime (classification éditoriale ; les tags sont dans les badges)
       .rs-kicker
         %span.rs-kicker-line
-        - kicker_parts = [@recipe.diet_human]
-        - kicker_parts += @recipe.tags.first(2).map(&:name)
-        = kicker_parts.join(" · ").upcase
+        = @recipe.diet_human.to_s.upcase
 
       -# Titre
       %h1.rs-title= @recipe.name
@@ -33,9 +31,8 @@
           %span.rs-meta-value= @servings
           %span.rs-meta-label PERSONNES
 
-      -# Badges
+      -# Badges — attributs pratiques + tags (le régime est porté par le kicker)
       .rs-badges
-        = show_hero_badge(@recipe.diet_human, badge_variant_for_diet(@recipe.diet))
         - if @recipe.difficulty.present?
           = show_hero_badge(@recipe.difficulty_human, :default)
         - if @recipe.price.present?
@@ -56,7 +53,11 @@
         - if current_user
           = render "recipes/favorite_button", recipe: @recipe, is_favorited: @is_favorited, container_id: "favorite-btn-#{@recipe.id}", show_page: true
 
-        %button.rs-btn-icon{ type: "button", title: "Partager" }
+        %button.rs-btn-icon{ type: "button", title: "Partager",
+                             data: { controller: "share",
+                                     action: "share#share",
+                                     share_url_value: recipe_url(@recipe),
+                                     share_title_value: @recipe.name } }
           = svg_icon(:share, size: 14)
 
     -# Colonne droite — Photo
@@ -168,3 +169,13 @@
                 = preparation.humanized_quantity(servings: @servings)
     - else
       %p.rs-empty Aucun ingrédient renseigné.
+
+-# CTA persistant (mobile) — barre sticky en bas, l'ajout au menu reste toujours accessible
+.rs-mobile-cta
+  - if current_user
+    = button_to "Ajouter à mon menu", add_to_menu_recipe_path(@recipe),
+                method: :post,
+                class: "btn-accent rs-mobile-cta-btn",
+                title: "Ajouter cette recette à mon prochain menu"
+  - else
+    = link_to "Ajouter à mon menu", new_user_session_path, class: "btn-accent rs-mobile-cta-btn"

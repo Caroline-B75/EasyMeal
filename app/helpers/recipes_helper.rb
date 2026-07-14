@@ -87,14 +87,6 @@ module RecipesHelper
     content_tag :span, text, class: css
   end
 
-  # Détermine la variante de badge pour un régime alimentaire
-  def badge_variant_for_diet(diet)
-    case diet
-    when "vegetarien", "vegan" then :green
-    else :default
-    end
-  end
-
   # Détermine la variante de badge pour un prix
   def price_badge_variant(price)
     price == "economique" ? :amber : :default
