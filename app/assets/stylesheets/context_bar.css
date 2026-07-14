@@ -16,7 +16,7 @@
 /* === Base Container === */
 .context-bar {
   background: var(--color-bg-white);
-  border-bottom: 0.5px solid var(--color-border);
+  border-bottom: var(--border-thin);
   padding: 10px 28px;
 }
 

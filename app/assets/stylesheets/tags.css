@@ -57,7 +57,7 @@
   font-size: var(--font-size-sm);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 0.5px solid var(--color-border);
+  border-bottom: var(--border-thin);
 }
 
 .tags-table td {
@@ -119,7 +119,7 @@
 .tag-inline-input {
   flex: 1;
   padding: 0.625rem 0.875rem;
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   border-radius: var(--radius-input);
   font-size: var(--font-size-base);
   font-weight: 600;

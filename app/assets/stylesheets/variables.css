@@ -30,6 +30,8 @@
   --color-danger-hover: #B91C1C;
   --color-danger-light: #FEF2F2;
   --color-danger-text: #991B1B;
+  --color-danger-border: #FECACA;      /* bordure fine rouge sur fond clair */
+  --color-danger-bg-hover: #FEE2E2;    /* survol d'un fond danger clair */
 
   --color-warning: #F59E0B;
   --color-warning-light: #FEF3C7;
@@ -54,10 +56,40 @@
   --color-bg-tertiary: #E7E5E4;
   --color-bg-white: #FFFFFF;
 
+  /* === SURFACES SOMBRES ===
+     Carte « menu actif » rendue sur fond anthracite (--color-primary).
+     Tons neutres chauds et variantes danger dédiés au fond sombre,
+     absents de la palette claire principale. */
+  --color-surface-dark: #292524;               /* sous-carte / séparateur le plus foncé */
+  --color-surface-dark-border: #3C3836;        /* bordure sur fond sombre */
+  --color-surface-dark-border-hover: #57534E;  /* bordure au survol sur fond sombre */
+  --color-ink-on-dark: #D6D3D1;                /* texte clair sur fond sombre */
+  --color-danger-on-dark: #F87171;             /* texte/bordure danger sur fond sombre */
+  --color-danger-border-dark: #3C1515;         /* bordure danger discrète sur fond sombre */
+
+  /* === ACCENTS DÉCORATIFS (formulaire de menu) ===
+     Pastilles thématiques (icônes régime, compteurs) et état sélectionné
+     des options de régime — tons propres à ce composant. */
+  --color-icon-violet: #7C3AED;
+  --color-icon-violet-bg: #EDE9FE;
+  --color-icon-amber: #D97706;
+  --color-diet-selected: #D73A49;
+  --color-diet-selected-bg: #FFF8F8;
+  --color-diet-omni-bg: #FFF0EE;
+  --color-diet-vege-bg: #EDF7E6;
+  --color-diet-vegan-bg: #E6F5EE;
+  --color-diet-pesc-bg: #E6F1FB;
+
   /* === BORDURES === */
   --color-border: #E7E5E4;
   --color-border-light: #F1F0EC;
   --color-border-strong: #D6D3D1;
+
+  /* Épaisseur de bordure canonique : 1px (rendu fiable partout, contrairement à
+     0.5px qui s'arrondit à 0 ou 1px selon le device non-retina). L'aspect « fin »
+     est porté par la couleur claire de la bordure, pas par une épaisseur inférieure. */
+  --border-width: 1px;
+  --border-thin: var(--border-width) solid var(--color-border);
 
   /* === BORDER RADIUS === */
   --radius-button: 4px;

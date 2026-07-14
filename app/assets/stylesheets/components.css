@@ -41,7 +41,7 @@
 .btn-secondary {
   background: var(--color-secondary);
   color: var(--color-secondary-text);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
 }
 
 .btn-secondary:hover {
@@ -82,7 +82,7 @@
   border-radius: var(--radius-icon-btn);
   color: var(--color-ink-4);
   background: transparent;
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   width: var(--min-touch-target);
   height: var(--min-touch-target);
   cursor: pointer;
@@ -147,7 +147,7 @@
 
 .card {
   background: var(--color-bg-white);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   border-radius: var(--radius-card);
   box-shadow: none;
   padding: 2rem;
@@ -158,7 +158,7 @@
   border-radius: var(--radius-card-compact);
   padding: 1rem;
   box-shadow: none;
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
 }
 
 .card-header {
@@ -206,14 +206,14 @@
 .badge-orange {
   background: var(--color-bg-secondary);
   color: var(--color-ink-3);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
 }
 
 /* Badge de catégorie (rayon) - Charte graphique EasyMeal */
 .category-badge {
   background: var(--color-bg-secondary);
   color: var(--color-ink-3);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   padding: 0.375rem 0.875rem;
   border-radius: var(--radius-badge);
   font-size: var(--font-size-sm);
@@ -225,14 +225,14 @@
 .badge-beige {
   background: var(--color-bg-secondary);
   color: var(--color-ink-3);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
 }
 
 /* Badges de régime alimentaire */
 .badge-omnivore {
   background: var(--color-bg-secondary);
   color: var(--color-ink-3);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   border-radius: var(--radius-badge);
   font-size: 0.75rem;
   font-weight: 500;
@@ -283,7 +283,7 @@
   text-transform: uppercase;
   color: var(--color-ink-3);
   padding-bottom: 6px;
-  border-bottom: 0.5px solid var(--color-border);
+  border-bottom: var(--border-thin);
   margin-bottom: 1rem;
 }
 
@@ -677,10 +677,22 @@
   margin-bottom: 1rem;
 }
 
+/* Label de formulaire — définition canonique unique, utilisée par toutes les
+   vues. Les formulaires recette la surchargent via .rf-form (voir recipes.css)
+   et l'espacement propre à l'auth via .auth-form (voir authentication.css). */
 .form-label {
+  display: block;
   font-weight: 600;
   color: var(--color-ink);
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-sm);
+  margin-bottom: 0.5rem;
+}
+
+/* Astérisque « champ requis » (simple_form) */
+.form-label abbr[title] {
+  color: var(--color-danger);
+  text-decoration: none;
+  margin-left: 0.125rem;
 }
 
 .form-hint {
@@ -693,7 +705,7 @@
 .form-select,
 .form-textarea {
   padding: 0.75rem 1rem;
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   border-radius: var(--radius-input);
   font-size: var(--font-size-base);
   background: var(--color-bg-white);
@@ -900,10 +912,6 @@ input[type="radio"] {
 
   .form-row {
     grid-template-columns: 1fr;
-  }
-
-  .form-label {
-    font-size: var(--font-size-sm);
   }
 
   .form-input,
