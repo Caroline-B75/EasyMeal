@@ -10,4 +10,6 @@
       Planification
     %h1.mn-page-title Générer un nouveau menu
 
-  = render "form_generate", menu: @menu
+  = render "params_form", menu: @menu, url: menus_path,
+                          submit_label: "Générer mon menu",
+                          submit_note: "La génération prend quelques secondes. Les recettes sont sélectionnées en priorité parmi celles de saison."

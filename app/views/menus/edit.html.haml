@@ -14,7 +14,10 @@
       %h1.mn-page-title Régénérer le menu
       %p.mn-page-sub Modifie les paramètres ci-dessous. Le menu sera re-généré avec de nouvelles recettes.
 
-    = render "form_regenerate", menu: @menu
+    = render "params_form", menu: @menu, url: regenerate_menu_path(@menu),
+                            submit_label: "Re-générer mon menu",
+                            submit_note: "Les recettes actuelles seront remplacées. De nouvelles recettes seront sélectionnées en priorité parmi celles de saison.",
+                            confirm: "Le menu actuel sera remplacé par un nouveau menu. Continuer ?"
 
 - else
   .mn-hero

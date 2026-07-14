@@ -1624,6 +1624,7 @@
 .mn-diet-icon--vege  { background: var(--color-diet-vege-bg); }
 .mn-diet-icon--vegan { background: var(--color-diet-vegan-bg); }
 .mn-diet-icon--pesc  { background: var(--color-diet-pesc-bg); }
+.mn-diet-icon--default { background: var(--color-bg-tertiary); color: var(--color-ink-3); }
 
 /* ── Slider marks (graduation) ───────────────────────────── */
 

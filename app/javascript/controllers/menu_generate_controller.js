@@ -1,18 +1,26 @@
 import { Controller } from "@hotwired/stimulus"
 
 /**
- * Gère l'interactivité du formulaire de génération de menu :
- * - Sélection de régime alimentaire (radio cards visuels avec ARIA)
- * - Sliders pour le nombre de personnes et le nombre de repas
+ * Interactivité du formulaire de paramètres de menu (génération / régénération) :
+ * - Sélection du régime alimentaire (cartes radio accessibles ARIA)
+ * - Sliders "personnes" et "repas" avec piste colorée
+ * - Barre résumé synchronisée en temps réel
  * - État de chargement au submit
+ *
+ * Les accès aux cibles de résumé sont gardés par `has…Target` pour rester
+ * robuste si la barre résumé venait à être retirée d'un parcours.
  */
 export default class extends Controller {
   static targets = [
     "dietOption", "dietInput",
     "peopleSlider", "peopleDisplay", "peopleUnit",
     "mealsSlider", "mealsDisplay",
+    "nameInput",
+    "sumDiet", "sumPeople", "sumMeals", "sumName",
     "submitBtn"
   ]
+
+  static values = { defaultName: String }
 
   connect() {
     this.updateAllSliderTracks()
@@ -34,15 +42,23 @@ export default class extends Controller {
     // Cocher le radio button correspondant
     const radio = option.querySelector("input[type='radio']")
     if (radio) radio.checked = true
+
+    // Résumé : libellé lisible lu depuis la carte sélectionnée
+    if (this.hasSumDietTarget) {
+      const name = option.querySelector(".mn-diet-name")
+      if (name) this.sumDietTarget.textContent = name.textContent
+    }
   }
 
   // ── Nombre de personnes (slider) ────────────────────────
 
   updatePeople() {
     const val = parseInt(this.peopleSliderTarget.value)
+    const unit = val === 1 ? "personne" : "personnes"
     this.peopleDisplayTarget.textContent = val
-    this.peopleUnitTarget.textContent = val === 1 ? "personne" : "personnes"
+    this.peopleUnitTarget.textContent = unit
     this.updateSliderTrack(this.peopleSliderTarget)
+    if (this.hasSumPeopleTarget) this.sumPeopleTarget.textContent = `${val} ${unit}`
   }
 
   // ── Nombre de repas (slider) ────────────────────────────
@@ -51,6 +67,14 @@ export default class extends Controller {
     const val = parseInt(this.mealsSliderTarget.value)
     this.mealsDisplayTarget.textContent = val
     this.updateSliderTrack(this.mealsSliderTarget)
+    if (this.hasSumMealsTarget) this.sumMealsTarget.textContent = `${val} repas`
+  }
+
+  // ── Nom du menu ─────────────────────────────────────────
+
+  updateName() {
+    if (!this.hasSumNameTarget) return
+    this.sumNameTarget.textContent = this.nameInputTarget.value.trim() || this.defaultNameValue
   }
 
   // ── Slider track visual update ──────────────────────────
