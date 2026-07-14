@@ -97,6 +97,25 @@ class Menu < ApplicationRecord
     menu_recipes.sum(:number_of_people)
   end
 
+  # Progression de la liste de courses : articles cochés sur total.
+  # `checked` est une colonne booléenne et `count` renvoie un Integer,
+  # donc percent est calculé sans risque de division sur nil.
+  # @return [Hash] { checked: Integer, total: Integer, percent: Integer }
+  #                percent vaut 0 si la liste est vide (aucun article).
+  def grocery_progress
+    total = grocery_items.count
+    checked = grocery_items.checked.count
+    percent = total.zero? ? 0 : (checked.to_f / total * 100).round
+    { checked: checked, total: total, percent: percent }
+  end
+
+  # Prochain repas planifié à venir (date >= aujourd'hui).
+  # Renvoie nil si aucun repas n'a de date planifiée (scheduled_date nullable).
+  # @return [MenuRecipe, nil]
+  def next_scheduled_meal
+    menu_recipes.where(scheduled_date: Date.current..).order(:scheduled_date).first
+  end
+
   private
 
   # Archive le menu actif actuel de l'utilisateur (s'il existe)

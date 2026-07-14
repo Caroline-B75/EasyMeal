@@ -1,5 +1,34 @@
--# Partial menu actif — 3 boutons d'accès rapide
-.hero-dashboard-actions
-  = link_to "Mon menu en cours", menu_path(active_menu), class: "btn-hero"
-  = link_to "Ma liste de courses", grocery_menu_path(active_menu), class: "btn-hero btn-hero--secondary"
-  = link_to "Créer un nouveau menu", new_menu_path, class: "btn-hero btn-hero--secondary"
+-# Partial menu actif — carte de synthèse opérationnelle
+-# Résume le menu en cours et l'avancement de la liste de courses.
+-# active_menu : Menu(status: :active)
+- progress = active_menu.grocery_progress
+- next_meal = active_menu.next_scheduled_meal
+
+.hero-card
+  .hero-card-head
+    %h2.hero-card-title= active_menu.name
+    %span.hero-card-status.hero-card-status--active Actif
+
+  .hero-card-meta
+    %span.hero-card-meta-item
+      = svg_icon("utensils", size: 15)
+      = "#{active_menu.recipes_count} repas"
+    - if next_meal
+      %span.hero-card-meta-item
+        = svg_icon("clock", size: 15)
+        = "Prochain : #{next_meal.recipe_name}"
+
+  -# Progression de la liste de courses (masquée si la liste est vide)
+  - if progress[:total].positive?
+    .hero-card-progress
+      .hero-card-progress-head
+        %span.hero-card-progress-label Liste de courses
+        %span.hero-card-progress-count= "#{progress[:checked]}/#{progress[:total]} articles"
+      .hero-progress-bar
+        .hero-progress-bar-fill{ style: "width: #{progress[:percent]}%" }
+
+  .hero-card-actions
+    = link_to "Ma liste de courses", grocery_menu_path(active_menu), class: "btn-hero"
+    .hero-card-links
+      = link_to "Voir mon menu", menu_path(active_menu), class: "hero-card-link"
+      = link_to "Nouveau menu", new_menu_path, class: "hero-card-link"
