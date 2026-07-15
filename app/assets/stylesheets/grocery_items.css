@@ -222,8 +222,16 @@
   100% { transform: scale(1); }
 }
 
-.grocery-item-name {
+/* Colonne nom + badge : occupe l'espace flexible de la ligne, le badge passe dessous. */
+.grocery-item-main {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.grocery-item-name {
   min-width: 0;
   font-size: var(--font-size-base);
   color: var(--color-ink);
@@ -232,6 +240,15 @@
   overflow: hidden;
   text-overflow: ellipsis;
   transition: color var(--transition-fast), text-decoration var(--transition-fast);
+}
+
+/* Badge « Était X — déjà acheté ? » : réutilise le palette ambre de .badge-amber,
+   ajoute juste le positionnement dans la colonne (calé à gauche, texte pouvant passer à la ligne). */
+.grocery-item-badge {
+  align-self: flex-start;
+  white-space: normal;
+  font-size: 0.7rem;
+  padding: 0.1em 0.5em;
 }
 
 .grocery-item-name--checked {

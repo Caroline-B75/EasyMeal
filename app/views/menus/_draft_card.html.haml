@@ -1,0 +1,44 @@
+-# Carte d'un menu brouillon dans la section « Mon prochain menu » (index).
+-# draft : Menu(status: :draft)
+-# Plusieurs brouillons peuvent coexister depuis R3.2bis (retour d'un menu actif en brouillon).
+.mi-draft-card{ id: "menu_#{draft.id}" }
+  .mi-draft-card-header{ data: { action: "click->menus-index#toggleDraft" } }
+    .mi-draft-card-left
+      .mi-draft-card-top
+        %span.mi-draft-badge À valider
+        %span.mi-draft-card-name= draft.name.presence || "Menu sans nom"
+      .mi-draft-card-meta
+        %span= menu_diet_label(draft.diet)
+        %span ·
+        %span= "#{draft.default_people} pers."
+        %span ·
+        %span= "#{draft.menu_recipes.size} repas"
+    .mi-draft-card-right
+      = svg_icon("chevron-down", size: 16, css_class: "mi-expand-icon")
+
+  .mi-draft-expanded
+    - if draft.menu_recipes.any?
+      .mi-history-recipes
+        - draft.menu_recipes.each do |mr|
+          .mi-hist-recipe-card
+            .mi-hist-recipe-img
+              - if mr.recipe.photo.attached?
+                = image_tag mr.recipe.photo.variant(resize_to_fill: [192, 96]),
+                           class: "mi-hist-recipe-photo"
+              - else
+                = image_tag "photo_par_defaut_recette.png", alt: mr.recipe.name, class: "mi-hist-recipe-photo"
+            .mi-hist-recipe-body
+              .mi-hist-recipe-name= mr.recipe.name
+              - total_time = mr.recipe.total_time_minutes
+              - if total_time > 0
+                .mi-hist-recipe-time= "#{total_time} min"
+
+    .mi-draft-card-actions
+      = link_to menu_path(draft), class: "mi-btn-sm" do
+        = svg_icon("edit", size: 11)
+        Continuer
+      = link_to "Modifier les paramètres", edit_menu_path(draft), class: "mi-btn-sm"
+      = button_to menu_path(draft), method: :delete, class: "mi-btn-sm-danger",
+                  form: { data: { turbo_confirm: "Supprimer ce menu ?" } } do
+        = svg_icon("trash", size: 11)
+        Supprimer

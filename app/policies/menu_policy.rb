@@ -77,6 +77,11 @@ class MenuPolicy < ApplicationPolicy
     owner?
   end
 
+  # Retour d'un menu actif en brouillon pour le modifier (R3.2bis)
+  def revert_to_draft?
+    owner?
+  end
+
   # Scope : un utilisateur ne voit que ses propres menus
   class Scope < ApplicationPolicy::Scope
     def resolve

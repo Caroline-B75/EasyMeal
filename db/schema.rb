@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_07_14_194539) do
+ActiveRecord::Schema[7.2].define(version: 2026_07_15_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "plpgsql"
@@ -66,6 +66,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_14_194539) do
     t.integer "position"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "previous_quantity_base", precision: 10, scale: 3
     t.index ["ingredient_id"], name: "index_grocery_items_on_ingredient_id"
     t.index ["menu_id", "category"], name: "index_grocery_items_on_menu_id_and_category"
     t.index ["menu_id", "ingredient_id"], name: "index_grocery_items_on_menu_id_and_ingredient_id"

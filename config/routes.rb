@@ -21,6 +21,7 @@ Rails.application.routes.draw do
     member do
       post :activate            # UC1 : Valider le menu brouillon → génère la liste de courses
       post :reactivate          # Réactiver un menu archivé (remplace le menu actif courant)
+      post :revert_to_draft    # R3.2bis : Repasser un menu actif en brouillon pour le modifier
       post :add_random_meal    # UC2 : Ajouter un repas aléatoire au menu
       post :replace_meal       # UC2 : Remplacer un repas (params: menu_recipe_id)
       get  :grocery                   # UC3 : Page dédiée de la liste de courses

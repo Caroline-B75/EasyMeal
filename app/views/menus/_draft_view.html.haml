@@ -34,6 +34,6 @@
     .mc-validate-zone{ class: ("mc-validate-zone--sticky" if menu_recipes.any?) }
       = button_to activate_menu_path(menu), method: :post, class: "mc-btn-validate",
                   disabled: menu_recipes.empty?,
-                  form: { data: { turbo_confirm: "Valider le menu ? La liste de courses sera générée." } } do
+                  form: { data: { turbo_confirm: menu_validation_confirm(menu) } } do
         Valider et générer la liste de courses
         = svg_icon("arrow-right", size: 15)

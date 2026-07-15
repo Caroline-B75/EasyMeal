@@ -977,7 +977,7 @@
   font-weight: 500;
 }
 
-/* Chip "En cours" (barre contextuelle menu actif) */
+/* Chip "Actif" (barre contextuelle menu actif) */
 .mc-chip-active {
   background: var(--color-success-light);
   color: var(--color-success-text);
@@ -1135,7 +1135,8 @@
   margin-bottom: 0.25rem;
 }
 
-/* ── Badge ambre de saison (meal-card uniquement) ──────── */
+/* ── Badge ambre d'information (badge « de saison » meal-card + badge
+      « quantité augmentée » de la liste de courses) ──────── */
 .badge-amber {
   background: var(--color-accent-light);
   color: var(--color-accent-text);

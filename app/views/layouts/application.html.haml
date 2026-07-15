@@ -70,7 +70,7 @@
             = link_to "Recettes", recipes_path, class: header_nav_class(:recipes)
             = link_to "Mes menus", menus_path, class: header_nav_class(:menus)
             - if (active = current_active_menu)
-              = link_to "Menu en cours", menu_path(active), class: header_nav_class(:current)
+              = link_to "Menu actif", menu_path(active), class: header_nav_class(:current)
               = link_to "Courses", grocery_menu_path(active), class: header_nav_class(:grocery)
             - if current_user&.admin?
               = link_to recipe_drafts_path, class: "nav-link nav-link--admin" do
@@ -103,7 +103,7 @@
                 = link_to "Recettes", recipes_path, class: "dropdown-link"
                 = link_to "Mes menus", menus_path, class: "dropdown-link"
                 - if (active = current_active_menu)
-                  = link_to "Menu en cours", menu_path(active), class: "dropdown-link"
+                  = link_to "Menu actif", menu_path(active), class: "dropdown-link"
                   = link_to "Courses", grocery_menu_path(active), class: "dropdown-link"
                 - if current_user&.admin?
                   = link_to recipe_drafts_path, class: "dropdown-link dropdown-link--admin" do

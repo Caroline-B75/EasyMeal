@@ -20,9 +20,14 @@
         %svg.btn-checkbox-icon{ xmlns: "http://www.w3.org/2000/svg", viewbox: "0 0 14 14", width: "14", height: "14", fill: "none", stroke: "currentColor", "stroke-width": "2.5", "stroke-linecap": "round", "stroke-linejoin": "round" }
           %polyline{ points: "2,7.5 5.5,11 12,3" }
 
-    -# Nom
-    %span.grocery-item-name{ class: ("grocery-item-name--checked" if item.checked),
-                              data: { "grocery-check-target": "label" } }= item.name
+    -# Nom (+ badge « quantité augmentée » éventuel)
+    .grocery-item-main
+      %span.grocery-item-name{ class: ("grocery-item-name--checked" if item.checked),
+                                data: { "grocery-check-target": "label" } }= item.name
+      -# Badge d'attention : la réconciliation a augmenté la quantité d'un article
+      -# précédemment coché → il a été décoché. Disparaît au re-cochage (previous_quantity_base := nil).
+      - if item.previous_quantity_base.present? && !item.checked
+        %span.grocery-item-badge.badge-amber= "Tu en as peut-être déjà acheté #{item.previous_quantity_display} avant ta modification du menu."
 
     -# Quantité (droite)
     - if item.quantity_base.present?

@@ -97,8 +97,10 @@ module Quantities
     # === NOMBRE (pièces) ===
     def humanize_count
       rounded = @quantity.round
-      # Arrondir à l'entier si très proche, sinon 1 décimale
-      if (@quantity - rounded).abs < 0.1
+      # Arrondir à l'entier si très proche ET non nul, sinon décimales.
+      # Le garde `rounded.positive?` évite d'afficher « 0 » pour une petite
+      # quantité positive (ex: 0,03 pièce) — on bascule alors sur format_number.
+      if rounded.positive? && (@quantity - rounded).abs < 0.1
         { value: format_integer(rounded), unit: "" }
       else
         { value: format_number(@quantity, max_decimals: 1), unit: "" }
@@ -118,8 +120,14 @@ module Quantities
     def format_number(number, max_decimals: 2)
       return "0" if number.zero?
 
-      # Arrondir selon le nombre de décimales demandé
-      rounded = number.round(max_decimals)
+      # Une quantité positive mais minuscule ne doit jamais s'afficher « 0 » :
+      # on augmente la précision jusqu'à obtenir un chiffre significatif (plafond à 6
+      # décimales pour éviter une boucle sur des valeurs infinitésimales).
+      decimals = max_decimals
+      decimals += 1 while number.round(decimals).zero? && decimals < 6
+
+      # Arrondir selon le nombre de décimales retenu
+      rounded = number.round(decimals)
 
       # Convertir en string et remplacer le point par une virgule
       # Supprimer les zéros inutiles après la virgule

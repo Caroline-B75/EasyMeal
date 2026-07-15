@@ -79,7 +79,24 @@ class Menu < ApplicationRecord
   def reactivate!
     raise "Seul un menu archivé peut être réactivé" unless status_archived?
 
+    # Les coches de ce vieux menu sont obsolètes (courses d'il y a des semaines) :
+    # on repart d'une liste fraîche, entièrement décochée et sans badge résiduel.
+    # update_all est sûr ici : on ne fait que décocher (le callback d'effacement de
+    # previous_quantity_base ne concerne que le passage à coché) et on remet
+    # explicitement previous_quantity_base à nil dans la même opération.
+    grocery_items.update_all(checked: false, previous_quantity_base: nil)
     activate!
+  end
+
+  # Repasse un menu actif en brouillon pour le rendre à nouveau modifiable (R3.2bis).
+  # Les grocery_items sont CONSERVÉS tels quels (coches comprises) : c'est la
+  # réconciliation de Groceries::BuildForMenuService, à la revalidation, qui les
+  # mettra à jour sans perdre le travail de courses déjà fait.
+  # Lève une erreur si le menu n'est pas actif.
+  def revert_to_draft!
+    raise "Seul un menu actif peut repasser en brouillon" unless status_active?
+
+    update!(status: :draft)
   end
 
   # Passe le menu en statut :archived (historique)

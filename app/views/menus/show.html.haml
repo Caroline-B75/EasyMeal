@@ -35,7 +35,7 @@
       = link_to "Mes menus", menus_path, class: "mc-bc-link"
       %span.mc-bc-sep ›
       %span.mc-bc-current= @menu.name.presence || "Menu sans nom"
-      %span.mc-chip.mc-chip-active En cours
+      %span.mc-chip.mc-chip-active Actif
       %span.mc-chip= menu_diet_label(@menu.diet)
       %span.mc-chip= "#{@menu.default_people} pers. par défaut"
       %span.mc-chip= "#{@menu_recipes.size} repas"
@@ -43,6 +43,10 @@
         = link_to grocery_menu_path(@menu), class: "mc-btn-outline-sm" do
           = svg_icon("list", size: 11)
           Liste de courses
+        = button_to revert_to_draft_menu_path(@menu), method: :post, class: "mc-btn-outline-sm",
+                    form: { data: { turbo_confirm: "Repasser ce menu en brouillon pour le modifier ? À la revalidation, ta liste de courses sera mise à jour : les articles déjà cochés le restent, sauf si leur quantité augmente." } } do
+          = svg_icon("edit", size: 11)
+          Modifier ce menu
         = button_to menu_path(@menu), method: :delete, class: "mc-btn-danger-sm",
                     form: { data: { turbo_confirm: "Supprimer ce menu définitivement ?" } } do
           Supprimer ce menu

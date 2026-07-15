@@ -51,6 +51,7 @@ class GroceryItem < ApplicationRecord
 
   # === Callbacks ===
   before_validation :derive_unit_group_from_base_unit
+  before_save :clear_previous_quantity_on_check
 
   # === Validations ===
   validates :name, presence: { message: "ne peut pas être vide" }
@@ -102,6 +103,22 @@ class GroceryItem < ApplicationRecord
     self.unit_group = UNIT_GROUP_MAP[base_unit] if base_unit.present?
   end
 
+  # Efface la trace de l'ancienne quantité (badge « Était X ») dès que l'utilisateur
+  # RE-COCHE l'article : cocher = « j'ai bien racheté la nouvelle quantité ».
+  # Placé dans le modèle pour couvrir tous les chemins (toggle ET édition de quantité
+  # passent par GroceryItemsController#update).
+  def clear_previous_quantity_on_check
+    self.previous_quantity_base = nil if checked? && will_save_change_to_checked?
+  end
+
+  # Formate une quantité en unité de base pour un affichage humain (virgule FR, unités).
+  # Partagé par quantity_display et previous_quantity_display (DRY).
+  # @param value [Numeric, nil] quantité en unité de base
+  # @return [String] Ex: "3 kg", "1 càs 2 càc", "6"
+  def format_quantity(value)
+    Quantities::HumanizeService.call(quantity: value, unit_group: unit_group)[:display]
+  end
+
   public
 
   # === Méthodes d'instance ===
@@ -109,9 +126,13 @@ class GroceryItem < ApplicationRecord
   # Quantité humanisée pour l'affichage (ne pas stocker, toujours calculé)
   # @return [String] Ex: "3 kg", "1 càs 2 càc", "6"
   def quantity_display
-    Quantities::HumanizeService.call(
-      quantity: quantity_base,
-      unit_group: unit_group
-    )[:display]
+    format_quantity(quantity_base)
+  end
+
+  # Ancienne quantité humanisée, pour le badge « Était X — déjà acheté ? »
+  # Renseignée uniquement quand une réconciliation a augmenté la quantité d'un item coché.
+  # @return [String]
+  def previous_quantity_display
+    format_quantity(previous_quantity_base)
   end
 end

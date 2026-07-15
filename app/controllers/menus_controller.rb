@@ -10,7 +10,7 @@ class MenusController < ApplicationController
   include Menus::Customizable
   include Menus::GroceryManageable
 
-  MEMBER_ACTIONS = %i[show edit update destroy activate reactivate
+  MEMBER_ACTIONS = %i[show edit update destroy activate reactivate revert_to_draft
                       add_random_meal replace_meal grocery regenerate_grocery regenerate].freeze
 
   before_action :authenticate_user!
@@ -90,6 +90,14 @@ class MenusController < ApplicationController
                                   "Impossible de réactiver le menu")
   end
 
+  # POST /menus/:id/revert_to_draft
+  # R3.2bis : Repasse un menu actif en brouillon pour le rendre modifiable.
+  # La liste de courses est conservée et sera réconciliée à la revalidation.
+  def revert_to_draft
+    transition_menu(:revert_to_draft!, "Menu repassé en brouillon. Modifie-le puis revalide.",
+                                       "Impossible de repasser le menu en brouillon")
+  end
+
   private
 
   def set_menu
@@ -100,9 +108,11 @@ class MenusController < ApplicationController
     authorize @menu
   end
 
-  # Répartit les menus chargés en catégories pour la vue index
+  # Répartit les menus chargés en catégories pour la vue index.
+  # Depuis R3.2bis un menu actif peut repasser en brouillon : plusieurs brouillons
+  # peuvent donc coexister → on les liste tous (plus de brouillon orphelin invisible).
   def classify_menus
-    @draft    = @menus.find(&:status_draft?)
+    @drafts   = @menus.select(&:status_draft?)
     @active   = @menus.find(&:status_active?)
     @archived = @menus.select(&:status_archived?)
   end

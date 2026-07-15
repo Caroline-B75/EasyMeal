@@ -54,6 +54,25 @@ module MenusHelper
     end
   end
 
+  # Construit le message de confirmation de validation d'un menu (R3.2bis).
+  # Honnête sur les conséquences : génération de liste, réconciliation d'une liste
+  # existante (REvalidation), et archivage de l'éventuel menu actif courant.
+  # @param menu [Menu] le brouillon en cours de validation
+  # @return [String] message destiné au turbo_confirm
+  def menu_validation_confirm(menu)
+    parts = [ "Valider ce menu ? La liste de courses sera générée." ]
+
+    if menu.grocery_items.exists?
+      parts << "Ta liste existante sera mise à jour en conservant tes articles cochés (sauf quantités augmentées)."
+    end
+
+    if menu.user.menus.active_menus.where.not(id: menu.id).exists?
+      parts << "Ton menu actif actuel sera archivé."
+    end
+
+    parts.join(" ")
+  end
+
   # Options pour le select du nombre de personnes (mockup card grid)
   PEOPLE_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12].freeze
 
