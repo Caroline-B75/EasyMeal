@@ -13,7 +13,8 @@ class Tag < ApplicationRecord
     methode_cuisson: 2,   # Méthode de cuisson (four, thermomix, BBQ, etc.)
     saison: 3,            # Saison (été, hiver, etc.)
     rapidite: 4,          # Rapidité (rapide, express, etc.)
-    autre: 5              # Autre
+    autre: 5,             # Autre
+    cuisine_monde: 6      # Cuisine du monde (italienne, thaïlandaise, etc.)
   }, prefix: true
 
   # Libellés lisibles des types, dans l'ordre d'affichage souhaité pour l'admin.
@@ -21,6 +22,7 @@ class Tag < ApplicationRecord
   TAG_TYPE_LABELS = {
     "rapidite"           => "Rapidité",
     "regime_alimentaire" => "Régime alimentaire",
+    "cuisine_monde"      => "Cuisine du monde",
     "occasion"           => "Occasion",
     "methode_cuisson"    => "Méthode de cuisson",
     "saison"             => "Saison",

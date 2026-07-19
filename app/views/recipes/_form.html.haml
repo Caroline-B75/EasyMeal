@@ -55,14 +55,12 @@
       .rf-section-label TAGS
 
       .form-group
-        - tag_category_labels = { "rapidite" => "Rapidité", "regime_alimentaire" => "Régime alimentaire",
-                                   "occasion" => "Occasion", "methode_cuisson" => "Méthode de cuisson",
-                                   "saison" => "Saison", "autre" => "Autre" }
-        - %w[rapidite regime_alimentaire occasion methode_cuisson saison autre].each do |category|
+        -# N'affiche que les catégories qui ont des tags (Tag.grouped_by_type ignore les groupes vides)
+        - Tag.grouped_by_type(Tag.alphabetical).each do |_type_key, type_label, group_tags|
           .rf-tags-group
-            .rf-tags-category= tag_category_labels[category]
+            .rf-tags-category= type_label
             .tags-grid
-              - Tag.where(tag_type: category).alphabetical.each do |tag|
+              - group_tags.each do |tag|
                 %label.tag-checkbox
                   = f.check_box :tag_ids, { multiple: true, checked: recipe.tags.include?(tag) }, tag.id, nil
                   %span.tag-name= tag.name

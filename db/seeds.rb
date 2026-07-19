@@ -1,31 +1,46 @@
-# Seed for the first admin user
-puts "Creating admin user..."
+# Seed principal : utilisateur admin + données de référence (ingrédients, tags,
+# recettes de démonstration). Idempotent et exécuté dans une transaction unique
+# (tout ou rien) pour éviter un état partiel en cas d'erreur.
 
-admin_email = "caroline.belmas@gmail.com"
-admin_password = "5750dena"
+ActiveRecord::Base.transaction do
+  puts "👤 Utilisateur admin..."
 
-admin = User.find_or_initialize_by(email: admin_email)
-admin.update!(
-  username: "Caro",
-  first_name: "Caroline",
-  last_name: "Belmas",
-  password: admin_password,
-  password_confirmation: admin_password,
-  admin: true
-)
+  # Identifiants configurables par l'environnement : jamais de secret réel dans le dépôt.
+  # En développement/test, mot de passe par défaut évident ; en production, ENV obligatoire.
+  admin_email    = ENV.fetch("SEED_ADMIN_EMAIL", "caroline.belmas@gmail.com")
+  admin_password = ENV.fetch("SEED_ADMIN_PASSWORD") do
+    raise "SEED_ADMIN_PASSWORD est requis en production" if Rails.env.production?
 
-puts "Admin user created: #{admin.email}"
+    "password" # valeur de développement uniquement
+  end
 
-# Charger les ingrédients
-puts "\n🌱 Chargement des ingrédients..."
-load Rails.root.join('db', 'seeds', 'ingredients.rb')
+  admin = User.find_or_initialize_by(email: admin_email)
+  if admin.new_record?
+    admin.assign_attributes(
+      username: "Caro",
+      first_name: "Caroline",
+      last_name: "Belmas",
+      password: admin_password,
+      password_confirmation: admin_password,
+      admin: true
+    )
+    admin.save!
+    puts "  ✅ Admin créé : #{admin.email}"
+  else
+    # Ne jamais réécrire le mot de passe d'un admin existant au re-seed ;
+    # on garantit seulement le rôle admin.
+    admin.update!(admin: true) unless admin.admin?
+    puts "  ✅ Admin existant conservé : #{admin.email}"
+  end
 
-# Charger les tags
-puts "\n🏷️ Chargement des tags..."
-load Rails.root.join('db', 'seeds', 'tags.rb')
+  puts "\n🌱 Ingrédients..."
+  load Rails.root.join("db/seeds/ingredients.rb").to_s
 
-# Charger les recettes de test
-puts "\n📖 Chargement des recettes..."
-load Rails.root.join('db', 'seeds', 'recipes.rb')
+  puts "\n🏷️  Tags..."
+  load Rails.root.join("db/seeds/tags.rb").to_s
 
-puts "\n✅ Seed terminée!"
+  puts "\n📖 Recettes..."
+  load Rails.root.join("db/seeds/recipes.rb").to_s
+end
+
+puts "\n✅ Seed terminée !"

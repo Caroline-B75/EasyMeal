@@ -281,7 +281,7 @@ module Recipes
         diet: "omnivore",
         appliance: "four",
         instructions: "1. Étape une.\n2. Étape deux.",
-        suggested_tags: [ "entrée", "rapide" ],
+        suggested_tags: [ "entrée", "plat" ],
         ingredients: [
           { name: "farine", quantity: 200, unit: "g" },
           { name: "oeufs", quantity: 3, unit: nil }

@@ -335,7 +335,7 @@ produits_aperitifs_surgeles:
 # ─────────────────────────────────────────────────────────────────────────────
 epicerie_salee:
   # --- Féculents et céréales ---
-  - { name: "Pâtes", unit: mass, aliases: ["pâte"] }
+  - { name: "Pâtes", unit: mass, aliases: ["pâtes alimentaires"] }
   - { name: "Spaghetti", unit: mass, aliases: ["spaghettis"] }
   - { name: "Penne", unit: mass, aliases: ["pennes"] }
   - { name: "Tagliatelles", unit: mass, aliases: ["tagliatelle"] }

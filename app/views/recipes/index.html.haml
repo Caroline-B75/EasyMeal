@@ -162,15 +162,10 @@
 
         -# ── Tags par catégorie (cases à cocher verticales) ──
         - if @tags&.any?
-          - tag_type_labels = { "rapidite" => "Rapidité", "regime_alimentaire" => "Régime alimentaire",
-                                "occasion" => "Occasion", "methode_cuisson" => "Méthode de cuisson",
-                                "saison" => "Saison", "autre" => "Autre" }
-          - tags_by_type = @tags.group_by { |t| t.tag_type || "autre" }
           .filters-tags-section
             %span.filters-section-title Tags
-            - tag_type_labels.each do |type, label|
-              - group = tags_by_type[type]
-              - next unless group&.any?
+            -# Groupes ordonnés via Tag.grouped_by_type (source unique, ignore les vides).
+            - Tag.grouped_by_type(@tags).each do |_type, label, group|
               -# Chaque type de tag est un accordéon, ouvert d'office si un de ses
               -# tags est sélectionné (pour garder les filtres actifs visibles).
               - active_in_group = group.count { |t| selected_tag_ids.include?(t.id.to_s) }
