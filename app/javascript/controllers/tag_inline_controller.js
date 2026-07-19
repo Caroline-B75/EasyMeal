@@ -7,7 +7,7 @@ export default class extends Controller {
   // Activer le mode édition
   edit(event) {
     event.preventDefault()
-    const row = event.currentTarget.closest("tr")
+    const row = event.currentTarget.closest(".tag-row")
     row.classList.add("editing")
     
     const displayElement = row.querySelector("[data-tag-inline-target='display']")
@@ -25,7 +25,7 @@ export default class extends Controller {
   // Annuler l'édition
   cancel(event) {
     event.preventDefault()
-    const row = event.currentTarget.closest("tr")
+    const row = event.currentTarget.closest(".tag-row")
     this.resetRow(row)
   }
 

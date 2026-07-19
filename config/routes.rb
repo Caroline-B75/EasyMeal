@@ -14,7 +14,7 @@ Rails.application.routes.draw do
   end
 
   # Gestion des tags (admin only)
-  resources :tags, except: [ :show, :new, :create ]
+  resources :tags, except: [ :show, :new ]
 
   # Gestion des menus (UC1, UC2, UC3)
   resources :menus do

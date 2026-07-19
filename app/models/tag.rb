@@ -16,6 +16,17 @@ class Tag < ApplicationRecord
     autre: 5              # Autre
   }, prefix: true
 
+  # Libellés lisibles des types, dans l'ordre d'affichage souhaité pour l'admin.
+  # L'ordre de ce hash pilote l'ordre des groupes affichés.
+  TAG_TYPE_LABELS = {
+    "rapidite"           => "Rapidité",
+    "regime_alimentaire" => "Régime alimentaire",
+    "occasion"           => "Occasion",
+    "methode_cuisson"    => "Méthode de cuisson",
+    "saison"             => "Saison",
+    "autre"              => "Autre"
+  }.freeze
+
   # === Validations ===
   validates :name, presence: true,
                    uniqueness: { case_sensitive: false },
@@ -30,11 +41,17 @@ class Tag < ApplicationRecord
   # Normalise le nom du tag (minuscules, trim)
   before_validation :normalize_name
 
-  # === Méthodes d'instance ===
+  # === Méthodes de classe ===
 
-  # Nombre de recettes utilisant ce tag
-  def recipes_count
-    recipes.count
+  # Regroupe une collection de tags par type, dans l'ordre de TAG_TYPE_LABELS.
+  # Un tag sans type est rattaché au groupe "autre" pour ne jamais être masqué.
+  # Retourne un tableau de [clé_type, libellé, tags] en ignorant les groupes vides.
+  def self.grouped_by_type(tags)
+    by_type = tags.group_by { |tag| tag.tag_type || "autre" }
+    TAG_TYPE_LABELS.filter_map do |key, label|
+      group = by_type[key]
+      [ key, label, group ] if group.present?
+    end
   end
 
   private
