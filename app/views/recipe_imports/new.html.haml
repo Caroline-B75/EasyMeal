@@ -17,48 +17,73 @@
 
       = hidden_field_tag :source_type, "url", data: { "import-source-target": "sourceType" }
 
-      -# Onglets de sélection de la source
-      .import-tabs
-        %button.import-tab.import-tab--active{ type: "button",
+      -# Onglets de sélection de la source (pattern ARIA tablist)
+      .import-tabs{ role: "tablist", "aria-label": "Type de source à importer" }
+        %button.import-tab.import-tab--active{ type: "button", role: "tab", id: "import-tab-url",
+            "aria-selected": "true", "aria-controls": "import-panel-url",
             data: { "import-source-target": "urlTab", action: "click->import-source#selectUrl" } }
           = svg_icon(:link, size: 16)
           Lien internet
-        %button.import-tab{ type: "button",
+        %button.import-tab{ type: "button", role: "tab", id: "import-tab-photo",
+            "aria-selected": "false", "aria-controls": "import-panel-photo",
             data: { "import-source-target": "photoTab", action: "click->import-source#selectPhoto" } }
           = svg_icon(:image, size: 16)
           Photo de magazine
 
       -# Section URL
-      .import-section{ data: { "import-source-target": "urlSection" } }
+      .import-section{ id: "import-panel-url", role: "tabpanel", "aria-labelledby": "import-tab-url",
+          data: { "import-source-target": "urlSection" } }
         %label.form-label{ for: "source_url" } URL de la recette
         = url_field_tag :source_url, params[:source_url],
             id: "source_url",
             placeholder: "https://www.marmiton.org/recettes/...",
             class: "form-input",
-            autocomplete: "off"
+            autocomplete: "off",
+            data: { "import-source-target": "urlInput", action: "input->import-source#clearError" }
         %p.import-hint
           Fonctionne avec Marmiton, 750g, AllRecipes, et la plupart des sites de recettes.
 
       -# Section Photo
-      .import-section{ hidden: true, data: { "import-source-target": "photoSection" } }
+      .import-section{ id: "import-panel-photo", role: "tabpanel", "aria-labelledby": "import-tab-photo",
+          hidden: true, data: { "import-source-target": "photoSection" } }
         %label.form-label{ for: "photo_file" } Photo de la recette
-        .import-file-zone
+        .import-file-zone{ data: { "import-source-target": "fileZone" } }
           = file_field_tag :photo_file,
               id: "photo_file",
               accept: "image/jpeg,image/png,image/webp",
-              class: "import-file-input"
+              class: "import-file-input",
+              data: { "import-source-target": "fileInput", action: "change->import-source#previewPhoto" }
           %label.import-file-label{ for: "photo_file" }
             %span.import-file-label__icon= svg_icon(:camera, size: 32)
             %span.import-file-label__text Cliquer pour choisir une photo
+
+        -# Aperçu de la photo sélectionnée
+        .import-file-preview{ hidden: true, data: { "import-source-target": "preview" } }
+          %img.import-file-preview__img{ alt: "Aperçu de la photo sélectionnée",
+              data: { "import-source-target": "previewImg" } }
+          .import-file-preview__info
+            %span.import-file-preview__name{ data: { "import-source-target": "previewName" } }
+            %button.import-file-preview__change{ type: "button",
+                data: { action: "click->import-source#clearPhoto" } } Changer de photo
+
         %p.import-hint
           Formats acceptés : JPG, PNG, WebP.
           %strong Photo nette et bien éclairée recommandée.
 
-      -# Bouton de soumission
+      -# Réassurance + soumission
       .import-actions
-        = submit_tag "Extraire la recette avec l'IA",
-            class: "btn btn-primary btn-lg import-submit-btn",
-            data: { "import-source-target": "submitBtn" }
+        %p.import-reassure
+          = svg_icon(:check, size: 15)
+          Pas d'inquiétude : tu pourras vérifier et compléter la recette avant de la publier.
+
+        %p.import-error{ role: "alert", hidden: true, data: { "import-source-target": "error" } }
+
+        %button.btn.btn-primary.btn-lg.import-submit-btn{ type: "submit",
+            data: { "import-source-target": "submitBtn" } }
+          %span.import-submit-spinner{ "aria-hidden": "true", hidden: true,
+              data: { "import-source-target": "spinner" } }
+          %span.import-submit-label{ data: { "import-source-target": "submitLabel" } } Extraire la recette avec l'IA
+
         %p.import-notice
           = svg_icon(:clock, size: 14)
           L'extraction peut prendre 15 à 30 secondes selon la source.

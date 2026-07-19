@@ -3,7 +3,11 @@ class RecipeDraftsController < ApplicationController
 
   def index
     authorize :recipe_draft
-    @recipes = Recipe.draft.includes(:photo_attachment).order(created_at: :desc)
+    # Précharge les préparations (calcul de complétude) et le blob photo (mini-photo Cloudinary)
+    # pour éviter les requêtes N+1 sur la liste.
+    @recipes = Recipe.draft
+                     .includes(:preparations, photo_attachment: :blob)
+                     .order(created_at: :desc)
   end
 
   def destroy

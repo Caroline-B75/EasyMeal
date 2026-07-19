@@ -3093,6 +3093,9 @@
 }
 
 .badge--source {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   background: #EFF6FF;
   color: #1D4ED8;
   border: 1px solid #BFDBFE;
@@ -3460,6 +3463,96 @@
   margin: 0;
 }
 
+/* Mini-photo (ou placeholder si aucune photo importée) */
+
+.draft-card__thumb {
+  flex-shrink: 0;
+}
+
+.draft-card__thumb-img {
+  display: block;
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: var(--radius-card-compact);
+  border: 1px solid var(--color-border);
+}
+
+.draft-card__thumb-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-card-compact);
+  border: 1px dashed var(--color-border-strong);
+  background: var(--color-bg-secondary);
+  color: var(--color-ink-4);
+}
+
+/* Priorisation visuelle : liseré ambre à compléter, vert prêt à valider.
+   box-shadow inset ⇒ pas de décalage de mise en page et respect du border-radius. */
+
+.draft-card--todo {
+  box-shadow: inset 3px 0 0 var(--color-warning);
+}
+
+.draft-card--ready {
+  box-shadow: inset 3px 0 0 var(--color-success);
+}
+
+.draft-card--todo:hover {
+  box-shadow: inset 3px 0 0 var(--color-warning), 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.draft-card--ready:hover {
+  box-shadow: inset 3px 0 0 var(--color-success), 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* Statut de complétude */
+
+.draft-status {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 0 0;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.draft-status--ready {
+  color: var(--color-success-text);
+}
+
+.draft-status__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--color-warning-text);
+}
+
+/* Liste des champs manquants (chips) */
+
+.draft-missing {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.draft-missing__item {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: var(--color-warning-light);
+  color: var(--color-warning-text);
+  border: 1px solid #FCD34D;
+}
+
 /* Mobile */
 
 @media (max-width: 640px) {
@@ -3629,6 +3722,112 @@
   justify-content: center;
   gap: 6px;
   margin: 0;
+}
+
+/* === Aperçu de la photo sélectionnée === */
+
+.import-file-preview {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-input);
+  background: var(--color-bg-white);
+}
+
+.import-file-preview__img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: var(--radius-card-compact);
+  flex-shrink: 0;
+}
+
+.import-file-preview__info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+}
+
+.import-file-preview__name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-ink-2);
+  word-break: break-word;
+}
+
+.import-file-preview__change {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.import-file-preview__change:hover {
+  color: var(--color-primary-hover);
+}
+
+/* === Réassurance et erreur === */
+
+.import-reassure {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--color-success-text);
+  background: var(--color-success-light);
+  border-radius: var(--radius-input);
+}
+
+.import-reassure .svg-icon {
+  flex-shrink: 0;
+}
+
+.import-error {
+  margin: 0;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-danger-text);
+  background: var(--color-danger-light);
+  border: 1px solid var(--color-danger-border);
+  border-radius: var(--radius-input);
+}
+
+/* === État de chargement du bouton === */
+
+.import-submit-btn {
+  gap: 8px;
+}
+
+.import-submit-btn:disabled {
+  opacity: 0.85;
+  cursor: progress;
+}
+
+.import-submit-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: import-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes import-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Mobile */

@@ -52,7 +52,7 @@ class RecipeImportsController < ApplicationController
       source_type:       params[:source_type],
       source_url:        params[:source_url].presence,
       ai_raw_data:       data,
-      name:              data["name"].presence || "Recette sans titre",
+      name:              data["name"].presence || Recipe::PLACEHOLDER_NAME,
       description:       data["description"],
       default_servings:  [ data["default_servings"].to_i, 1 ].max,
       prep_time_minutes: data["prep_time_minutes"],

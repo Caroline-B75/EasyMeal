@@ -1,5 +1,18 @@
 # Helper pour les recettes
 module RecipesHelper
+  # Libellés lisibles des sources d'import d'un brouillon (source_type en base).
+  DRAFT_SOURCE_LABELS = { "url" => "Lien", "photo" => "Photo" }.freeze
+
+  # Libellé lisible de la source d'un brouillon importé (badge de la liste).
+  def draft_source_label(source_type)
+    DRAFT_SOURCE_LABELS[source_type] || source_type.to_s.upcase
+  end
+
+  # Icône associée à la source d'import (lien internet vs photo).
+  def draft_source_icon(source_type)
+    source_type == "photo" ? :image : :link
+  end
+
   # Retourne le texte formaté du temps de préparation
   def format_prep_time(minutes)
     return "Non renseigné" if minutes.blank? || minutes.zero?

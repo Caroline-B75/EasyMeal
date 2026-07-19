@@ -17,6 +17,10 @@ class Recipe < ApplicationRecord
   # Photo de la recette via ActiveStorage
   has_one_attached :photo
 
+  # Nom de remplacement attribué à un brouillon dont l'IA n'a pas extrait de titre.
+  # Sert aussi de sentinelle pour détecter un titre encore à compléter (cf. draft_missing_fields).
+  PLACEHOLDER_NAME = "Recette sans titre".freeze
+
   # Nested attributes pour créer/modifier les ingrédients via le formulaire
   accepts_nested_attributes_for :preparations,
                                 allow_destroy: true,
@@ -152,6 +156,22 @@ class Recipe < ApplicationRecord
   # Temps total de préparation + cuisson (en minutes)
   def total_time_minutes
     (prep_time_minutes || 0) + (cook_time_minutes || 0)
+  end
+
+  # Champs essentiels encore manquants sur un brouillon importé, à compléter
+  # avant validation. Retourne la liste des libellés (vide ⇒ prêt à valider).
+  # Utilisé par la liste des brouillons pour prioriser ce qui reste à faire.
+  def draft_missing_fields
+    missing = []
+    missing << "Titre"        if name.blank? || name == PLACEHOLDER_NAME
+    missing << "Ingrédients"  if preparations.empty?
+    missing << "Instructions" if instructions.blank?
+    missing
+  end
+
+  # Un brouillon est prêt à valider lorsqu'il ne manque aucun champ essentiel.
+  def draft_ready?
+    draft_missing_fields.empty?
   end
 
   # Vérifie si la recette est de saison pour un mois donné

@@ -22,14 +22,41 @@
   - else
     .draft-list
       - @recipes.each do |recipe|
-        .draft-card
+        - missing = recipe.draft_missing_fields
+        .draft-card{ class: missing.empty? ? "draft-card--ready" : "draft-card--todo" }
+          -# Mini-photo (ou placeholder si aucune photo importée)
+          .draft-card__thumb
+            - if recipe.photo.attached?
+              = image_tag cloudinary_photo_url(recipe.photo, width: 120, height: 120, crop: :fill),
+                  class: "draft-card__thumb-img", alt: recipe.name, loading: "lazy"
+            - else
+              %span.draft-card__thumb-empty{ title: "Aucune photo" }
+                = svg_icon(:image, size: 20)
+
           .draft-card__main
             %h2.draft-card__name= recipe.name
             .draft-card__meta
               - if recipe.source_type
-                %span.badge.badge--source= recipe.source_type.upcase
+                %span.badge.badge--source
+                  = svg_icon(draft_source_icon(recipe.source_type), size: 11)
+                  = draft_source_label(recipe.source_type)
               %span.draft-card__sep ·
               %span.draft-card__date= l(recipe.created_at.to_date, format: :long)
+
+            -# Statut de complétude : prêt à valider, ou champs restant à compléter
+            - if missing.empty?
+              %p.draft-status.draft-status--ready
+                = svg_icon(:check, size: 13)
+                Prêt à valider
+            - else
+              .draft-status.draft-status--todo
+                %span.draft-status__label
+                  = svg_icon(:edit, size: 13)
+                  À compléter
+                %ul.draft-missing
+                  - missing.each do |field|
+                    %li.draft-missing__item= field
+
           .draft-card__actions
             = link_to "Compléter / Valider", edit_recipe_path(recipe), class: "btn btn-primary btn-sm"
             = button_to "Supprimer",
