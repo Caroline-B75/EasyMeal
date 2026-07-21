@@ -214,6 +214,49 @@
   transform: translateY(0);
 }
 
+/* En-tête d'identité du dropdown (mobile uniquement) — voir media query.
+   Masqué en desktop où l'avatar + nom sont déjà visibles dans le header. */
+.dropdown-identity {
+  display: none;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem;
+}
+
+.dropdown-identity-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.dropdown-identity-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.dropdown-identity-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.dropdown-identity-email {
+  font-size: 12px;
+  color: var(--color-ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Liens de navigation dans le dropdown (mobile uniquement) */
 .dropdown-nav-links {
   display: none;
@@ -349,6 +392,11 @@
 
   .user-menu-button {
     padding: 0.5rem;
+  }
+
+  /* Afficher l'en-tête d'identité (profil) en haut du dropdown mobile */
+  .dropdown-identity {
+    display: flex;
   }
 
   /* Afficher les liens de navigation dans le dropdown mobile */

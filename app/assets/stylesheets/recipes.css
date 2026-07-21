@@ -311,51 +311,6 @@
   gap: 0.4rem;
 }
 
-/* Pill "Mes favoris" */
-.filter-quick-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.5rem 1rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-button);
-  background: var(--color-bg-white);
-  color: var(--color-ink);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-normal);
-  white-space: nowrap;
-  user-select: none;
-  align-self: flex-end;
-  margin-bottom: 0;
-}
-
-.filter-quick-pill:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-
-/* État actif : class serveur (chargement initial) OU checkbox réellement coché
-   Le sélecteur :checked + ciblage CSS est indépendant du Turbo Frame */
-#filter-favorites:checked + .filter-quick-pill,
-.filter-quick-pill.active {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: #fff;
-}
-
-/* Coeur du pill "Mes favoris" : 2x plus grand */
-.filter-quick-pill .pill-heart {
-  font-size: 1.5rem;
-  line-height: 1;
-}
-
-#filter-favorites:checked + .filter-quick-pill .pill-heart,
-.filter-quick-pill.active .pill-heart {
-  color: #fff;
-}
-
 /* Badge compteur (nb filtres ou nb tags) */
 .filter-count-badge {
   display: inline-flex;

@@ -155,6 +155,12 @@ module ApplicationHelper
     "<svg #{attrs.join(' ')}>#{body}</svg>".html_safe
   end
 
+  # Initiales de l'utilisateur (avatar) — ex. "Caroline Belmas" → "CB".
+  # Mutualisé entre l'avatar du header et l'en-tête du menu déroulant.
+  def user_initials(user)
+    "#{user.first_name[0]}#{user.last_name[0]}".upcase
+  end
+
   private
 
   # Nettoie le message d'erreur pour ne garder que l'essentiel

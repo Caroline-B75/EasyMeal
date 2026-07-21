@@ -16,7 +16,10 @@
 
   - else
     .empty-state
-      %p Aucun tag trouvé.
+      .empty-state-icon
+        = svg_icon(:list, size: 56)
+      %h2 Aucun tag trouvé
+      %p Crée ton premier tag avec le formulaire ci-dessus pour catégoriser tes recettes.
 
   -# Modal de confirmation de suppression (réutilisation du composant existant)
   = render "shared/delete_confirmation_modal", resource_name: "tag"

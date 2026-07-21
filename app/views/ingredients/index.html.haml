@@ -78,9 +78,12 @@
 
     - else
       .empty-state
-        %p Aucun ingrédient trouvé.
+        .empty-state-icon
+          = svg_icon(:leaf, size: 56)
+        %h2 Aucun ingrédient trouvé
+        %p Ajuste ta recherche ou ajoute un premier ingrédient à ton catalogue.
         - if policy(Ingredient).create?
-          = link_to "Créer le premier ingrédient", new_ingredient_path, class: "btn btn-primary"
+          = link_to "Ajouter un ingrédient", new_ingredient_path, class: "btn btn-primary"
 
   -# Modal de confirmation de suppression
   = render "shared/delete_confirmation_modal"
