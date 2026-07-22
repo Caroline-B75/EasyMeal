@@ -17,9 +17,12 @@
   precache_urls = [
     asset_path("application.css"),
     asset_path("logos/logo_EasyMeal.svg"),
-    "/icon-96.png",
-    "/icon-192.png",
-    "/icon-512.png",
+    # Icônes versionnées manuellement (suffixe -vN) : comme ce sont des fichiers
+    # statiques NON fingerprintés, on change leur NOM à chaque refonte pour forcer
+    # navigateurs et OS à retélécharger (les caches d'icônes de raccourci sont tenaces).
+    "/icon-96-v4.png",
+    "/icon-192-v4.png",
+    "/icon-512-v4.png",
     pwa_offline_path
   ]
 
@@ -32,7 +35,13 @@
   #   r4 : classification par URL (et non par en-tête Accept/mode, trop
   #        fragile) — corrige la page d'accueil qui atterrissait dans le
   #        cache "assets" et masquait la page de secours.
-  sw_revision = "r4"
+  #   r5 : nouvelles icônes d'app (wok paprika). Les icônes sont des fichiers
+  #        statiques NON fingerprintés (/icon-*.png) : remplacer leur contenu
+  #        ne change pas le nom de cache, d'où la rotation manuelle ici.
+  #   r6 : icônes régénérées depuis une source haute résolution (rendu net en
+  #        petites tailles) + variante maskable recentrée dans la zone de sécurité.
+  #   r7 : nouvelle version de la source (wok plein + éclats), icônes régénérées.
+  sw_revision = "r7"
 
   # Nom de cache versionné par le digest de l'app shell + la révision de logique :
   # dès qu'un asset change (nouveau fingerprint) OU que la stratégie évolue, le

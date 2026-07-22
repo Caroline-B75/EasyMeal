@@ -2,7 +2,8 @@
 %section.hero-section
   -# Image de fond avec overlay gradient
   .hero-background
-    = image_tag "backgrounds/kitchen_2.jpg", alt: "Cuisine moderne EasyMeal"
+    -# Image LCP de l'accueil : servie en WebP, priorité de chargement haute, PAS de lazy.
+    = image_tag "backgrounds/kitchen_2.webp", alt: "Cuisine moderne EasyMeal", width: 1600, height: 1600, fetchpriority: "high"
 
   -# Contenu principal
   .hero-content

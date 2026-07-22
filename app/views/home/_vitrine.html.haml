@@ -14,43 +14,6 @@
   = link_to "Commencer gratuitement", new_user_registration_path, class: "btn-hero"
   = link_to "Découvrir les recettes", recipes_path, class: "btn-hero btn-hero--secondary"
 
--# Aperçu concret : un menu produit sa liste de courses.
--# Maquette statique (données d'exemple) pour montrer la valeur, pas la vendre.
-- sample_meals = [["Lundi soir", "Curry de lentilles corail"], ["Mardi midi", "Buddha bowl de saison"], ["Mercredi soir", "Gratin de courge et noisettes"]]
-- sample_grocery = [[:group, "Fruits & légumes"], [:done, "Courge butternut · 1"], [:done, "Épinards frais · 200 g"], [:todo, "Oignons · 3"], [:group, "Épicerie"], [:todo, "Lentilles corail · 250 g"], [:done, "Lait de coco · 1 boîte"]]
-.vitrine-preview
-  %h2.vitrine-preview-title Ton menu, et sa liste de courses déjà prête
-  .vitrine-preview-grid
-    -# Carte 1 : aperçu du menu de la semaine
-    .vitrine-mock.vitrine-mock--menu
-      .vitrine-mock-head
-        %span.vitrine-mock-label Ton menu de la semaine
-        %span.vitrine-mock-badge Actif
-      %ul.vitrine-menu-list
-        - sample_meals.each do |day, name|
-          %li.vitrine-menu-item
-            = image_tag "photo_par_defaut_recette.png", alt: "", class: "vitrine-menu-thumb", loading: "lazy"
-            .vitrine-menu-item-body
-              %span.vitrine-menu-day= day
-              %span.vitrine-menu-name= name
-
-    -# Flèche « génère » : le menu produit la liste (décorative)
-    .vitrine-preview-arrow{ "aria-hidden": "true" }
-      = svg_icon(:arrow-right, size: 28)
-
-    -# Carte 2 : extrait de la liste de courses générée automatiquement
-    .vitrine-mock.vitrine-mock--grocery
-      .vitrine-mock-head
-        %span.vitrine-mock-label Liste générée automatiquement
-      %ul.vitrine-grocery-list
-        - sample_grocery.each do |kind, label|
-          - if kind == :group
-            %li.vitrine-grocery-group= label
-          - else
-            %li.vitrine-grocery-item{ class: ("is-checked" if kind == :done) }
-              %span.vitrine-grocery-check
-              = label
-
 -# Section « Comment ça marche » en 3 étapes
 .hero-steps
   .hero-step

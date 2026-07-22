@@ -227,11 +227,13 @@
                         .recipe-card-image-wrapper
                           - if recipe.photo.attached?
                             = image_tag cloudinary_photo_url(recipe.photo, width: 400, height: 250, crop: :fill),
+                                        srcset: cloudinary_photo_srcset(recipe.photo, width: 400, height: 250, crop: :fill),
                                         alt: recipe.name,
                                         class: "recipe-card-image",
+                                        width: 400, height: 250,
                                         loading: "lazy"
                           - else
-                            = image_tag "photo_par_defaut_recette.png", alt: recipe.name, class: "recipe-card-image", loading: "lazy"
+                            = image_tag "photo_par_defaut_recette.webp", alt: recipe.name, class: "recipe-card-image", width: 400, height: 250, loading: "lazy"
 
                         .recipe-card-body
                           %h2.recipe-card-title= recipe.name

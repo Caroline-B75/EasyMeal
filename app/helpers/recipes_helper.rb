@@ -128,4 +128,15 @@ module RecipesHelper
       quality: :auto
     )
   end
+
+  # Srcset Cloudinary 1x/2x : sert la résolution adaptée à la densité de l'écran
+  # (nette sur les écrans retina sans surcharger les écrans classiques).
+  # width/height = taille d'affichage 1x (la variante 2x est calculée automatiquement).
+  def cloudinary_photo_srcset(photo, width:, height:, crop: :fill)
+    return nil unless photo.attached?
+
+    url_1x = cloudinary_photo_url(photo, width: width, height: height, crop: crop)
+    url_2x = cloudinary_photo_url(photo, width: width * 2, height: height * 2, crop: crop)
+    "#{url_1x} 1x, #{url_2x} 2x"
+  end
 end

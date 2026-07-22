@@ -62,9 +62,9 @@
     .rs-hero-photo
       - if @recipe.photo.attached?
         = image_tag cloudinary_photo_url(@recipe.photo, width: 680, height: 560, crop: :fill),
-                    alt: @recipe.name, class: "rs-photo-img"
+                    alt: @recipe.name, class: "rs-photo-img", width: 680, height: 560, fetchpriority: "high"
       - else
-        = image_tag "photo_par_defaut_recette.png", alt: @recipe.name, class: "rs-photo-img"
+        = image_tag "photo_par_defaut_recette.webp", alt: @recipe.name, class: "rs-photo-img", width: 680, height: 560
       .rs-photo-overlay
         %span.rs-photo-stars= rating_stars(rating_avg)
         %span.rs-photo-score

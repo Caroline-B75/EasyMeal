@@ -72,7 +72,7 @@
       .form-group{ data: { controller: "image-preview" } }
         - if recipe.persisted? && recipe.photo.attached?
           .current-photo
-            = image_tag cloudinary_photo_url(recipe.photo, width: 200, height: 150), class: "photo-preview"
+            = image_tag cloudinary_photo_url(recipe.photo, width: 200, height: 150), class: "photo-preview", width: 200, height: 150, loading: "lazy"
           %button.rf-btn-outline{ type: "button", data: { image_preview_target: "changeButton", action: "click->image-preview#showUploadField" } } Changer de photo
 
           .photo-upload-area{ data: { image_preview_target: "uploadArea" }, hidden: true }

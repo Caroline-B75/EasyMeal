@@ -78,9 +78,9 @@
                   .mi-recipe-card-mini-img
                     - if mr.recipe.photo.attached?
                       = image_tag mr.recipe.photo.variant(resize_to_fill: [280, 140]),
-                                 class: "mi-recipe-card-mini-photo"
+                                 alt: mr.recipe.name, class: "mi-recipe-card-mini-photo", width: 280, height: 140, loading: "lazy"
                     - else
-                      = image_tag "photo_par_defaut_recette.png", alt: mr.recipe.name, class: "mi-recipe-card-mini-photo"
+                      = image_tag "photo_par_defaut_recette.webp", alt: mr.recipe.name, class: "mi-recipe-card-mini-photo", width: 280, height: 140, loading: "lazy"
                   .mi-recipe-card-mini-body
                     .mi-recipe-card-mini-name= mr.recipe.name
                     .mi-recipe-card-mini-meta

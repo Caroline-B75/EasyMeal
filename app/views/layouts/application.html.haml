@@ -25,7 +25,7 @@
     %meta{property: "og:description", content: page_description}
     %meta{property: "og:type", content: "website"}
     %meta{property: "og:url", content: request.original_url}
-    %meta{property: "og:image", content: "#{request.base_url}/icon-512.png"}
+    %meta{property: "og:image", content: "#{request.base_url}/icon-512-v4.png"}
 
     = csrf_meta_tags
     = csp_meta_tag
@@ -33,9 +33,9 @@
     = yield :head
 
     %link{rel: "manifest", href: pwa_manifest_path}
-    %link{rel: "icon", href: "/icon-192.png", type: "image/png"}
-    -# apple-touch-icon : PNG 180x180 opaque (fond #F8F7F4), à fournir dans public/apple-touch-icon.png
-    %link{rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png"}
+    %link{rel: "icon", href: "/icon-192-v4.png", type: "image/png"}
+    -# apple-touch-icon : PNG 180x180 opaque plein cadre (fond paprika #C0392B), sans alpha ni coins arrondis (iOS applique son propre masque)
+    %link{rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon-v4.png"}
     = stylesheet_link_tag "application", "data-turbo-track": "reload"
     = javascript_importmap_tags
 

@@ -12,9 +12,9 @@
     .mc-card-photo
       - if menu_recipe.recipe.photo.attached?
         = image_tag menu_recipe.recipe.photo.variant(resize_to_fill: [260, 260]),
-                    alt: menu_recipe.recipe.name
+                    alt: menu_recipe.recipe.name, width: 260, height: 260, loading: "lazy"
       - else
-        = image_tag "photo_par_defaut_recette.png", alt: menu_recipe.recipe.name, class: "mc-card-photo-default"
+        = image_tag "photo_par_defaut_recette.webp", alt: menu_recipe.recipe.name, class: "mc-card-photo-default", width: 260, height: 260, loading: "lazy"
       .mc-drag-hint
         = svg_icon("grip-vertical", size: 10)
 
