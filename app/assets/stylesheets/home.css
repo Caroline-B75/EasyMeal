@@ -210,7 +210,6 @@
 /* Carte opérationnelle posée sur le hero (surface claire translucide,
    même langage visuel que .hero-step). */
 .hero-card {
-  max-width: 460px;
   margin: 0 auto;
   padding: var(--spacing-lg);
   text-align: left;
@@ -231,11 +230,27 @@
   margin-bottom: var(--spacing-sm);
 }
 
+.hero-card-title-group {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  min-width: 0;
+}
+
 .hero-card-title {
   font-size: var(--font-size-xl);
   font-weight: 700;
   color: var(--color-ink);
-  line-height: 1.3;
+  line-height: 0.3;
+}
+
+.hero-card-meal-count {
+  font-size: var(--font-size-base);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--color-ink-4);
+  white-space: nowrap;
 }
 
 /* Pastille de statut — variantes sémantiques */
@@ -319,6 +334,32 @@
   transition: width var(--transition-slow) ease;
 }
 
+/* Vignettes recettes cliquables dans la carte Home */
+.hero-card-recipes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.hero-card-recipes .mc-recipe-card {
+  min-width: 0;
+  background: var(--color-bg-white);
+}
+
+.hero-card-recipes .mc-card-photo {
+  aspect-ratio: 4 / 3;
+}
+
+.hero-card-recipes .mc-card-name {
+  font-size: var(--font-size-sm);
+  line-height: 1.3;
+}
+
+.hero-card-recipes .mc-card-meta {
+  padding-bottom: 8px;
+}
+
 /* Zone d'actions : bouton principal + liens secondaires discrets */
 .hero-card-actions {
   display: flex;
@@ -333,10 +374,25 @@
   text-align: center;
 }
 
+.hero-card-actions .btn-hero--secondary {
+  margin-left: 0;
+}
+
+/* Boutons côte à côte (menu actif) */
+.hero-card-actions--inline {
+  flex-direction: row;
+}
+
+.hero-card-actions--inline .btn-hero {
+  flex: 1;
+  width: auto;
+}
+
 .hero-card-links {
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
 }
 
 .hero-card-link {
@@ -351,6 +407,24 @@
 .hero-card-link:hover,
 .hero-card-link:focus {
   color: var(--color-ink);
+}
+
+/* Variante bouton (button_to) stylisé comme un lien discret */
+.hero-card-link--btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* Sur mobile, ces liens sont de vraies actions de navigation (dont « Valider le
+   menu ») : on leur donne une hauteur de cible tactile de 44px. */
+@media (max-width: 767px) {
+  .hero-card-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--min-touch-target);
+  }
 }
 
 /* ======================================
@@ -368,7 +442,7 @@
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(6px);
   border-radius: var(--radius-card);
-  padding: var(--spacing-lg);
+  padding: var(--spacing-md);
   max-width: 220px;
   text-align: center;
 }
@@ -383,7 +457,7 @@
   background: var(--color-primary);
   color: var(--color-bg-white);
   font-weight: 700;
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-lg);
   margin-bottom: var(--spacing-sm);
 }
 
@@ -395,7 +469,7 @@
 }
 
 .hero-step-text {
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-s);
   color: var(--color-ink-3);
   line-height: 1.5;
 }
@@ -482,7 +556,6 @@
     padding: 1rem 2rem;
     font-size: 1.1rem;
     width: 100%;
-    max-width: 320px;
   }
 
   .btn-hero--secondary {

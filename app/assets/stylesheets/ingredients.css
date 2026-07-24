@@ -446,3 +446,87 @@
     font-size: 0.9375rem;
   }
 }
+
+/* ============================================
+   Nom cliquable dans l'index (→ fiche ingrédient)
+   ============================================ */
+.ingredient-name-link {
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.ingredient-name-link:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+/* ============================================
+   Fiche ingrédient (show)
+   ============================================ */
+.show-container {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.show-header {
+  margin-bottom: 1.5rem;
+}
+
+.show-header h1 {
+  font-size: var(--font-size-2xl);
+  font-weight: 600;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+.show-card {
+  background: var(--color-bg-white);
+  border: var(--border-thin);
+  border-radius: var(--radius-card);
+  padding: 1.5rem;
+}
+
+.detail-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.detail-label {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+
+.detail-value {
+  font-size: var(--font-size-base);
+  color: var(--color-ink);
+}
+
+.show-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: var(--border-thin);
+}
+
+/* Sur mobile, les actions (Modifier / Supprimer) s'empilent en pleine largeur. */
+@media (max-width: 767px) {
+  .show-actions {
+    flex-direction: column;
+  }
+
+  .show-actions .btn {
+    width: 100%;
+  }
+}

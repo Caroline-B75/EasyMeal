@@ -11,7 +11,7 @@
       .detail-item
         %span.detail-label Rayon
         %span.detail-value
-          %span{ class: "ingredient-category-badge category-#{@ingredient.category}" }
+          %span{ class: "category-badge category-#{@ingredient.category}" }
             = Ingredient.human_attribute_name("category.#{@ingredient.category}")
 
       .detail-item
@@ -30,9 +30,9 @@
         .detail-item
           %span.detail-label Mois de saison
           .detail-value
-            .months-display
+            .season-months
               - @ingredient.season_months.sort.each do |month|
-                %span.month-badge= Date::ABBR_MONTHNAMES[month]
+                %span.month-tag= Date::ABBR_MONTHNAMES[month]
 
     .show-actions
       - if policy(@ingredient).edit?

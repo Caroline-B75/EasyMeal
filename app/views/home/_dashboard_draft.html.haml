@@ -1,22 +1,23 @@
 -# Partial brouillon en cours — carte de reprise
 -# Rappelle qu'un menu reste à valider et propose de le reprendre.
 -# draft : Menu(status: :draft)
+- menu_recipes = draft.menu_recipes.by_position
 
 .hero-card
   .hero-card-head
-    %h2.hero-card-title= draft.name
+    .hero-card-title-group
+      %h2.hero-card-title= draft.name
+      %span.hero-card-meal-count= "(#{draft.recipes_count} repas)"
     %span.hero-card-status.hero-card-status--draft À valider
-
-  .hero-card-meta
-    %span.hero-card-meta-item
-      = svg_icon("utensils", size: 15)
-      = "#{draft.recipes_count} repas"
 
   %p.hero-card-note
     Ce menu n'est pas encore validé : reprends-le pour l'ajuster, puis valide-le pour générer ta liste de courses.
 
-  .hero-card-actions
+  - if menu_recipes.any?
+    .hero-card-recipes
+      - menu_recipes.each do |menu_recipe|
+        = render "menus/menu_recipe_card_readonly", menu_recipe: menu_recipe
+
+  .hero-card-actions.hero-card-actions--inline
     = link_to "Reprendre mon menu", menu_path(draft), class: "btn-hero"
-    .hero-card-links
-      = link_to "Valider le menu", activate_menu_path(draft), class: "hero-card-link", data: { turbo_method: :post }
-      = link_to "Nouveau menu", new_menu_path, class: "hero-card-link"
+    = link_to "Voir les recettes", recipes_path, class: "btn-hero btn-hero--secondary"

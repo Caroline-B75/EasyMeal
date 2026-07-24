@@ -36,7 +36,9 @@ body.home-page {
 .flash-messages,
 #flash {
   position: fixed;
-  top: 1.5rem;
+  /* env(safe-area-inset-top) : en PWA installée sur écran à encoche, le toast ne
+     passe pas sous la barre d'état / dynamic island. */
+  top: calc(1.5rem + env(safe-area-inset-top));
   right: 1.5rem;
   z-index: 9999;
   max-width: 420px;
@@ -127,7 +129,7 @@ p.alert:empty,
 @media (max-width: 640px) {
   .flash-messages,
   #flash {
-    top: 1rem;
+    top: calc(1rem + env(safe-area-inset-top));
     right: 1rem;
     left: 1rem;
     max-width: none;

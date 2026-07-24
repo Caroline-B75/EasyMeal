@@ -401,7 +401,8 @@
 
   .form-input {
     padding: 0.625rem 0.875rem;
-    font-size: 0.9375rem;
+    /* 16px minimum : en-dessous, iOS zoome automatiquement au focus du champ. */
+    font-size: 1rem;
   }
 
   .btn-large {

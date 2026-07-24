@@ -41,5 +41,6 @@
         = svg_icon("upload", size: 11)
         Réutiliser ce menu
       = button_to menu_path(menu), method: :delete, class: "mi-btn-sm-danger",
+                  title: "Supprimer le menu", "aria-label": "Supprimer le menu",
                   form: { data: { turbo_confirm: "Supprimer ce menu ?" } } do
-        Supprimer
+        = svg_icon("trash-fill", size: 22, fill: "currentColor", stroke: "none")

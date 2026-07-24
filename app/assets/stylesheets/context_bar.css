@@ -55,6 +55,14 @@
   text-decoration: none;
 }
 
+/* Sur mobile, le lien « retour » est une commande de navigation principale :
+   hauteur de cible tactile de 44px (l'inline-flex centre le contenu). */
+@media (max-width: 767px) {
+  .context-bar__back {
+    min-height: var(--min-touch-target);
+  }
+}
+
 .context-bar__back-icon {
   width: 14px;
   height: 14px;

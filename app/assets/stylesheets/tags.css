@@ -374,6 +374,29 @@
     font-size: 16px;
   }
 
+  /* Barre de création : padding horizontal réduit sur mobile */
+  .tag-create {
+    padding: 1rem;
+  }
+
+  /* En-tête d'accordéon : hauteur d'ouverture/fermeture confortable au pouce */
+  .tag-group-header {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  /* Boutons Valider/Annuler de l'édition inline : cible 44px */
+  .btn-icon-save,
+  .btn-icon-cancel {
+    width: var(--min-touch-target);
+    height: var(--min-touch-target);
+  }
+
+  /* Select de création à hauteur tactile */
+  .tag-create-select {
+    min-height: var(--min-touch-target);
+  }
+
   .tag-form-container {
     padding: 1rem;
   }

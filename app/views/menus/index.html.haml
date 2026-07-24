@@ -64,9 +64,9 @@
                   = svg_icon("list", size: 13)
                   Voir la liste de courses
                 = button_to menu_path(@active), method: :delete, class: "mi-btn-hero-danger",
+                            title: "Supprimer le menu", "aria-label": "Supprimer le menu",
                             form: { data: { turbo_confirm: "Supprimer ce menu ?" } } do
-                  = svg_icon("trash", size: 13)
-                  Supprimer
+                  = svg_icon("trash-fill", size: 24, fill: "currentColor", stroke: "none")
             %h2.mi-hero-menu-name= @active.name.presence || "Menu sans nom"
         -# Mini-cartes des recettes du menu
         - if @active.menu_recipes.any?

@@ -39,6 +39,6 @@
         Continuer
       = link_to "Modifier les paramètres", edit_menu_path(draft), class: "mi-btn-sm"
       = button_to menu_path(draft), method: :delete, class: "mi-btn-sm-danger",
+                  title: "Supprimer le menu", "aria-label": "Supprimer le menu",
                   form: { data: { turbo_confirm: "Supprimer ce menu ?" } } do
-        = svg_icon("trash", size: 11)
-        Supprimer
+        = svg_icon("trash-fill", size: 22, fill: "currentColor", stroke: "none")

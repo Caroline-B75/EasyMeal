@@ -275,6 +275,15 @@
   background-color: var(--color-bg-secondary);
 }
 
+/* Selects de filtres : 16px sur mobile pour éviter le zoom iOS au focus.
+   Ils n'ont pas la classe .form-select, donc le correctif global ne les couvre pas. */
+@media (max-width: 767px) {
+  .filter-group select,
+  .filter-select {
+    font-size: 16px;
+  }
+}
+
 /* Filtre checkbox (De saison) */
 .filter-checkbox {
   flex-direction: row;
@@ -471,6 +480,23 @@
 
 .filter-tag-check:hover {
   background: var(--color-bg-secondary);
+}
+
+/* Tiroir de filtres sur mobile : cases plus grandes et mieux espacées pour
+   éviter les erreurs de tap (l'espacement de 0.1rem était bien trop serré). */
+@media (max-width: 767px) {
+  .filters-tags-list {
+    gap: 0.35rem;
+  }
+
+  .filter-tag-check {
+    padding: 0.6rem 0.4rem;
+  }
+
+  .filter-tag-input {
+    width: 18px;
+    height: 18px;
+  }
 }
 
 .filter-tag-input {
@@ -1888,6 +1914,25 @@
   color: var(--color-accent);
 }
 
+/* Notation par étoiles : cibles plus grandes et mieux espacées au doigt. */
+@media (max-width: 767px) {
+  .rs-rating-input {
+    gap: 8px;
+  }
+
+  .rs-star-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--min-touch-target);
+    min-height: var(--min-touch-target);
+  }
+
+  .rs-star {
+    font-size: 28px;
+  }
+}
+
 .rs-form-textarea {
   width: 100%;
   padding: 10px 12px;
@@ -2110,6 +2155,14 @@
   color: var(--color-ink);
   min-width: 18px;
   text-align: center;
+}
+
+/* Steppers de portions : cible tactile agrandie sur mobile (recalcul des quantités). */
+@media (max-width: 767px) {
+  .rs-servings-btn {
+    width: 40px;
+    height: 40px;
+  }
 }
 
 /* -- Groupes ingrédients par catégorie -- */
@@ -2701,6 +2754,16 @@
   border-color: var(--color-primary);
   background: var(--color-bg-white);
   box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+/* Champs du formulaire recette : 16px sur mobile pour éviter le zoom iOS au focus.
+   Bat le 13px de base (.rf-form …, spécificité 0,2,0) via une media query placée après. */
+@media (max-width: 767px) {
+  .rf-form .form-input,
+  .rf-form .form-select,
+  .rf-form .form-textarea {
+    font-size: 16px;
+  }
 }
 
 /* === Tags — sous-groupes style éditorial === */

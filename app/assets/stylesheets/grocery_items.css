@@ -247,7 +247,7 @@
 .grocery-item-badge {
   align-self: flex-start;
   white-space: normal;
-  font-size: 0.7rem;
+  font-size: var(--font-size-xs);
   padding: 0.1em 0.5em;
 }
 
@@ -274,6 +274,14 @@
 .grocery-item-qty:hover {
   color: var(--color-primary);
   border-bottom-color: var(--color-primary);
+}
+
+/* Sur écran tactile (pas de survol), rendre l'affordance « quantité éditable »
+   permanente : sinon rien n'indique qu'on peut la modifier au doigt. */
+@media (hover: none) {
+  .grocery-item-qty {
+    border-bottom-color: var(--color-border-strong);
+  }
 }
 
 /* Masqué par défaut — affiché via .is-editing (aucun flash avant Stimulus) */
@@ -384,7 +392,7 @@
 }
 
 .grocery-add-manual-label {
-  font-size: 0.6875rem;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -441,6 +449,46 @@
     flex-wrap: wrap;
   }
 
+  /* Cibles tactiles cœur du parcours « je coche au supermarché », une main :
+     la coche et la suppression doivent faire au moins 44px au doigt. */
+  .btn-checkbox {
+    width: var(--min-touch-target);
+    height: var(--min-touch-target);
+    min-width: var(--min-touch-target);
+    min-height: var(--min-touch-target);
+  }
+
+  .btn-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--min-touch-target);
+    min-height: var(--min-touch-target);
+  }
+
+  /* Boutons enregistrer/annuler de la quantité : cible tactile confortable. */
+  .grocery-qty-save-btn,
+  .grocery-qty-cancel-btn {
+    width: var(--min-touch-target);
+    height: var(--min-touch-target);
+  }
+
+  /* En-tête de rayon (accordéon) : hauteur suffisante pour ouvrir/fermer au pouce. */
+  .grocery-section-header {
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+  }
+
+  /* Zone tactile un peu plus haute autour de la quantité éditable. */
+  .grocery-item-qty {
+    padding: 0.35rem 0.25rem;
+  }
+
+  /* « Tout fermer / ouvrir » : un peu plus de surface tappable. */
+  .btn-text-sm {
+    padding: 0.5rem 0.25rem;
+  }
+
   .grocery-add-manual {
     margin-top: 0.75rem;
     padding-top: 0.5rem;
@@ -471,7 +519,13 @@
   .grocery-add-form .form-input,
   .grocery-add-form .form-select {
     padding: 0.3rem 0.5rem;
-    font-size: var(--font-size-sm);
+    /* 16px : évite le zoom iOS au focus lors de l'ajout d'un article en rayon. */
+    font-size: 16px;
+  }
+
+  /* Édition inline de la quantité : même protection anti-zoom iOS sur mobile. */
+  .grocery-qty-input {
+    font-size: 16px;
   }
 
   .grocery-add-submit {

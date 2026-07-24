@@ -274,27 +274,40 @@
 
 .mi-btn-sm svg { width: 11px; height: 11px; }
 
+/* Bouton suppression (cartes « à valider » & historique) : poubelle pleine noire
+   (sans contour), dans un bouton blanc aligné sur les boutons voisins .mi-btn-sm.
+   padding: 2px → seuls 2px entourent l'icône, qui est agrandie en conséquence. */
 .mi-btn-sm-danger {
-  font-size: var(--font-size-xs);
-  padding: 5px 10px;
+  padding: 2px;
   border-radius: var(--radius-button);
-  border: var(--border-width) solid var(--color-danger-border);
-  background: var(--color-danger-light);
-  color: var(--color-danger-text);
+  border: var(--border-thin);
+  background: var(--color-bg-white);
+  color: var(--color-ink);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
   margin-left: auto;
   text-decoration: none;
-  transition: background var(--transition-fast);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .mi-btn-sm-danger:hover {
-  background: var(--color-danger-bg-hover);
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-sm);
 }
 
-.mi-btn-sm-danger svg { width: 11px; height: 11px; }
+.mi-btn-sm-danger svg { width: 22px; height: 22px; }
+
+/* button_to enveloppe le bouton dans un <form>, seul enfant flex de la rangée
+   d'actions (étiré en hauteur par align-items: stretch). On centre le bouton
+   compact dans cette hauteur pour l'aligner sur les boutons voisins. */
+.mi-draft-card-actions form.button_to,
+.mi-history-card-actions form.button_to {
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
 
 /* ── Hero card (menu actif) ────────────────────────────── */
 
@@ -547,27 +560,40 @@
 
 .mi-btn-hero-ghost svg { width: 13px; height: 13px; }
 
+/* Suppression du menu actif : icône poubelle pleine seule (blanche), sans cadre.
+   button_to enveloppe le bouton dans un <form> : c'est ce form qui est l'enfant
+   flex de la barre. On l'étire (align-self: stretch) sur la hauteur des boutons
+   voisins (« Voir le menu »…) et le bouton, seul enfant flex du form, la remplit.
+   Survol en rouge danger pour signaler l'action destructive. */
+.mi-hero-card-badges-right form.button_to {
+  display: flex;
+  align-self: stretch;
+  margin: 0;
+}
+
 .mi-btn-hero-danger {
   background: transparent;
-  color: var(--color-danger-on-dark);
-  font-size: var(--font-size-sm);
-  padding: 8px 12px;
+  color: var(--color-bg-white);
+  padding: 2px 10px;
   border-radius: var(--radius-button);
-  border: var(--border-width) solid var(--color-danger-border-dark);
+  border: none;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
   text-decoration: none;
-  transition: border-color var(--transition-fast), color var(--transition-fast);
+  transition: color var(--transition-fast);
 }
 
 .mi-btn-hero-danger:hover {
-  border-color: var(--color-danger-on-dark);
+  color: var(--color-danger-on-dark);
   text-decoration: none;
 }
 
-.mi-btn-hero-danger svg { width: 13px; height: 13px; }
+/* height: 100% → l'icône épouse la hauteur du bouton (donc des boutons voisins) ;
+   width: auto conserve le ratio 1:1 du viewBox. La taille passée à svg_icon ne
+   sert que de repli si le pourcentage ne se résout pas. */
+.mi-btn-hero-danger svg { height: 100%; width: auto; }
 
 /* ── History list + cards ──────────────────────────────── */
 
@@ -1047,6 +1073,69 @@
   display: flex;
   gap: 0.4rem;
   flex-wrap: wrap;
+}
+
+/* ── Vue menu archivé (_archived_view) ─────────────────── */
+.menu-archived-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  background: var(--color-bg-secondary);
+  border: var(--border-thin);
+  border-radius: var(--radius-card);
+}
+
+.menu-archived-banner-text {
+  margin: 0;
+  color: var(--color-ink-2);
+  font-size: var(--font-size-sm);
+}
+
+.menu-archived-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-ink);
+  margin: 0 0 1rem;
+}
+
+.menu-archived-empty {
+  padding: 2rem;
+  text-align: center;
+  color: var(--color-ink-3);
+  background: var(--color-bg-secondary);
+  border: var(--border-width) dashed var(--color-border-strong);
+  border-radius: var(--radius-card);
+}
+
+.menu-archived-empty p {
+  margin: 0;
+}
+
+/* Bloc « X pers. » à droite d'une meal-card (lecture seule) */
+.meal-card-people {
+  flex-shrink: 0;
+}
+
+.people-display {
+  display: inline-block;
+  background: var(--color-bg-secondary);
+  border: var(--border-thin);
+  border-radius: var(--radius-badge);
+  padding: 0.2em 0.65em;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-ink-2);
+}
+
+/* Sur mobile, le bouton de réactivation prend toute la largeur du bandeau. */
+@media (max-width: 767px) {
+  .menu-archived-banner .btn {
+    width: 100%;
+  }
 }
 
 /* ── People form ───────────────────────────────────────── */
@@ -1915,7 +2004,7 @@
   transition: all 0.12s;
   padding: 0;
 }
-.mc-act-btn svg { width: 12px; height: 12px; color: var(--color-ink-3); flex-shrink: 0; }
+.mc-act-btn svg { width: 17px; height: 17px; color: var(--color-ink-3); flex-shrink: 0; }
 .mc-act-btn:hover { background: var(--color-bg-white); border-color: var(--color-border-strong); box-shadow: var(--shadow-sm); }
 .mc-act-btn:hover svg { color: var(--color-ink); }
 /* Focus clavier explicite (les libellés aria sont annoncés en parallèle) */
@@ -1939,7 +2028,7 @@
   color: var(--color-ink);
   font-size: var(--font-size-xs);
   font-weight: 500;
-  padding: 0 18px 0 6px;
+  padding: 0 10px 0 4px;
   cursor: pointer;
   min-width: 52px;
   flex: 1;
@@ -2063,7 +2152,23 @@
 
 /* ── Responsive (mc-*) ─────────────────────────────────── */
 @media (max-width: 767px) {
-  .mc-ctx-btns { display: none; }
+  /* Barre contextuelle : plutôt que de masquer les actions, on les affiche en
+     pleine largeur sous le fil d'Ariane. « Modifier ce menu » (revert_to_draft)
+     n'existe QUE là → la masquer rendait impossible de repasser un menu actif en
+     brouillon sur mobile. Concerne aussi « Modifier les paramètres »/« Supprimer ». */
+  .mc-ctx-btns {
+    width: 100%;
+    margin-left: 0;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .mc-btn-outline-sm,
+  .mc-btn-danger-sm {
+    min-height: var(--min-touch-target);
+    padding: 8px 14px;
+    font-size: var(--font-size-sm);
+  }
 
   .mc-page-outer { padding: 16px 16px 48px; }
 
@@ -2072,9 +2177,33 @@
     min-width: 0;
   }
 
+  /* Le glisser-déposer pour réordonner n'est pas disponible au doigt : on masque
+     l'indice « Glisse pour réordonner » qui induirait l'utilisatrice en erreur. */
+  .mc-page-hint { display: none; }
+
+  /* Cartes assez larges (≥160px) pour que la barre d'actions tienne sans être
+     coupée : le 110px précédent générait 3 colonnes sur les téléphones 390–430px
+     et tronquait le bouton Supprimer (clippé par overflow:hidden de la carte). */
   .mc-card-grid {
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 8px;
+  }
+
+  /* Barre d'actions au doigt : cibles 44px + retour à la ligne de sécurité, pour
+     ne jamais tronquer un bouton même sur les écrans très étroits (≤360px). */
+  .mc-card-actions {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .mc-act-btn {
+    width: var(--min-touch-target);
+    height: var(--min-touch-target);
+  }
+
+  .mc-ppl-select {
+    height: var(--min-touch-target);
+    font-size: 12px; /* évite aussi le zoom iOS au focus */
   }
 
   .mc-context-bar {
@@ -2084,5 +2213,79 @@
   .mc-btn-validate {
     width: 100%;
     justify-content: center;
+  }
+}
+
+/* ============================================
+   Polish mobile — cibles tactiles résiduelles (lot 4)
+   ============================================ */
+@media (max-width: 767px) {
+  /* Index : CTA de création + croix de fermeture de la modale */
+  .mi-btn-new {
+    min-height: var(--min-touch-target);
+    padding: 11px 18px;
+  }
+
+  .mn-modal-close {
+    min-width: var(--min-touch-target);
+    min-height: var(--min-touch-target);
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Boutons des cartes brouillon & historique : cible + espacement au doigt */
+  .mi-btn-sm,
+  .mi-btn-sm-danger {
+    min-height: var(--min-touch-target);
+    padding: 8px 12px;
+    font-size: var(--font-size-sm);
+  }
+
+  /* Suppression : icône seule → cible tactile carrée en conservant les 2px autour. */
+  .mi-btn-sm-danger {
+    padding: 2px;
+    min-width: var(--min-touch-target);
+  }
+
+  .mi-draft-card-actions,
+  .mi-history-card-actions {
+    gap: 8px;
+  }
+
+  /* Actions du hero « menu actif » */
+  .mi-btn-hero-primary,
+  .mi-btn-hero-ghost,
+  .mi-btn-hero-danger {
+    min-height: var(--min-touch-target);
+  }
+
+  /* Icône seule : garantir aussi une cible tactile assez large. */
+  .mi-btn-hero-danger { min-width: var(--min-touch-target); }
+
+  /* Boutons d'ajout de repas (brouillon) */
+  .mc-add-btn {
+    min-height: var(--min-touch-target);
+  }
+
+  /* Sliders (nb personnes / nb repas) : préhension plus large au doigt */
+  .mn-slider {
+    height: 6px;
+  }
+
+  .mn-slider::-webkit-slider-thumb {
+    width: 26px;
+    height: 26px;
+  }
+
+  .mn-slider::-moz-range-thumb {
+    width: 26px;
+    height: 26px;
+  }
+
+  /* CTA « Valider » collant : ne pas friser le home-indicator iOS */
+  .mc-validate-zone--sticky {
+    padding-bottom: calc(14px + env(safe-area-inset-bottom));
   }
 }

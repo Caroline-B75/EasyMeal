@@ -42,7 +42,7 @@
               %tr
                 %td.ingredient-name-cell{ data: { label: "Nom" } }
                   %strong
-                    = ingredient.name
+                    = link_to ingredient.name, ingredient_path(ingredient), class: "ingredient-name-link", data: { turbo_frame: "_top" }
                     %span.unit-inline= "(#{ingredient.base_unit})"
                   - if ingredient.aliases.present?
                     %small.aliases= ingredient.aliases.is_a?(Array) ? ingredient.aliases.join(', ') : ingredient.aliases.values.join(', ')
