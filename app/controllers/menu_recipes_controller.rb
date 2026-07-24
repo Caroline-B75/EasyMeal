@@ -11,7 +11,7 @@ class MenuRecipesController < ApplicationController
   before_action :authorize_reorder, only: [ :reorder ]
 
   # POST /menus/:menu_id/menu_recipes
-  # Ajout manuel d'une recette au menu (via fiche recette → "Ajouter à mon menu")
+  # Ajout manuel d'une recette au menu à valider.
   def create
     @menu_recipe = @menu.menu_recipes.new(menu_recipe_create_params)
     @menu_recipe.position = next_position

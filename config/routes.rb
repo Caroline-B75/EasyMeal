@@ -3,6 +3,12 @@ Rails.application.routes.draw do
   get "home/index"
   devise_for :users, controllers: { registrations: "users/registrations" }
 
+  # Préférences du profil utilisateur
+  resource :profile, only: [], controller: :profiles do
+    get  :preferences
+    patch :preferences, action: :update_preferences
+  end
+
   # Gestion des ingrédients
   resources :ingredients do
     collection do

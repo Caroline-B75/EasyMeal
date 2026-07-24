@@ -7,8 +7,8 @@
   .mc-page-wrap
 
     .mc-page-header
-      .mc-page-title Compose ton menu
-      .mc-page-hint Glisse pour réordonner
+      .mc-page-title= menu.pending_revalidation? ? "Modifie ton menu" : "Compose ton prochain menu"
+      .mc-page-hint= menu.pending_revalidation? ? "Revalide pour mettre à jour la liste" : "Glisse pour réordonner"
 
     .mc-card-grid{ data: { menu_customize_target: "grid" } }
 
@@ -35,5 +35,5 @@
       = button_to activate_menu_path(menu), method: :post, class: "mc-btn-validate",
                   disabled: menu_recipes.empty?,
                   form: { data: { turbo_confirm: menu_validation_confirm(menu) } } do
-        Valider et générer la liste de courses
+        = menu_validation_button_label(menu)
         = svg_icon("arrow-right", size: 15)

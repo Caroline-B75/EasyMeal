@@ -1,0 +1,71 @@
+-# Barre de paramètres inline du menu brouillon.
+-# Remplace la barre contextuelle statique : le nom, le régime et le nombre de personnes
+-# sont tous éditables directement sans quitter la page.
+-#
+-# Locals :
+-#   menu          : Menu (status: :draft)
+-#   menu_recipes  : Collection ordonnée des MenuRecipe
+
+.mc-context-bar{ id: "menu_params_bar_#{menu.id}",
+                  data: { controller: "menu-params" } }
+
+  -# ── Chips de paramètres interactifs ─────────────────────────
+  .mc-ctx-chips
+    %span.mc-chip.mc-chip-draft À valider
+
+    -# Sélecteur de régime — changer le régime est destructif (remplace toutes les recettes)
+    .mc-diet-picker{ data: { menu_params_target: "dietPicker" } }
+      %button.mc-chip.mc-chip-clickable{ type: "button",
+                                          "aria-expanded": "false",
+                                          "aria-haspopup": "listbox",
+                                          data: { action: "click->menu-params#toggleDietPicker",
+                                                  menu_params_target: "dietToggle" } }
+        = menu_diet_label(menu.diet)
+        = svg_icon("chevron-down", size: 9, css_class: "mc-diet-chevron")
+      .mc-diet-options{ data: { menu_params_target: "dietOptions" }, hidden: true, role: "listbox" }
+        - Menu.diets.keys.each do |diet_key|
+          - if diet_key == menu.diet
+            %span.mc-diet-opt.mc-diet-opt--current{ role: "option", "aria-selected": "true" }
+              = svg_icon("check", size: 10)
+              = menu_diet_label(diet_key)
+          - else
+            = form_with url: regenerate_menu_path(menu), method: :post, class: "mc-diet-opt-form" do
+              = hidden_field_tag "menu[diet]", diet_key
+              = hidden_field_tag "menu[number_of_meals]", menu_recipes.size
+              %button.mc-diet-opt{ type: "submit",
+                                    role: "option",
+                                    "aria-selected": "false",
+                                    data: { turbo_confirm: "Passer en « #{menu_diet_label(diet_key)} » remplacera toutes les recettes du menu. Continuer ?" } }
+                = menu_diet_label(diet_key)
+
+    -# Stepper "nombre de personnes" — mise à jour instantanée via Turbo Stream
+    = form_with model: menu, url: menu_path(menu), method: :patch,
+                class: "mc-stepper-form",
+                data: { menu_params_target: "peopleForm" } do |f|
+      .mc-stepper
+        %button.mc-stepper-btn{ type: "button",
+                                 "aria-label": "Réduire le nombre de personnes",
+                                 disabled: (menu.default_people <= 1),
+                                 data: { action: "click->menu-params#decrementPeople" } } −
+        %span.mc-stepper-val{ data: { menu_params_target: "peopleDisplay" } }
+          = menu.default_people
+        %span.mc-stepper-label pers.
+        %button.mc-stepper-btn{ type: "button",
+                                 "aria-label": "Augmenter le nombre de personnes",
+                                 disabled: (menu.default_people >= 12),
+                                 data: { action: "click->menu-params#incrementPeople" } } +
+        = f.hidden_field :default_people, value: menu.default_people,
+                         data: { menu_params_target: "peopleInput" }
+
+    -# Compteur de repas — mis à jour dynamiquement par menu-customize-controller
+    %span.mc-chip{ data: { menu_customize_target: "countChip" } }
+      = "#{menu_recipes.size} repas"
+
+  -# ── Actions ──────────────────────────────────────────────────
+  .mc-ctx-actions
+    = button_to menu_path(menu), method: :delete, class: "mc-btn-danger-sm",
+                title: "Supprimer ce menu",
+                "aria-label": "Supprimer ce menu",
+                form: { data: { turbo_confirm: "Supprimer ce menu définitivement ?" } } do
+      = svg_icon("trash", size: 12)
+      %span.mc-btn-label-desktop Supprimer

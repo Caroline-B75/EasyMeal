@@ -8,8 +8,7 @@
   .mi-page-top
     %h1.mi-page-title Mes menus
     - if @drafts.any?
-      -# Un ou plusieurs brouillons existent : on prévient avant d'en créer un nouveau.
-      -# Le plus récent (tri recent desc) sert d'aperçu dans le guard.
+      -# Un brouillon existe : on prévient avant de le remplacer.
       - next_draft = @drafts.first
       .mi-draft-guard{ data: { controller: "modal" } }
         %a.mi-btn-new{ href: "#", data: { action: "click->modal#open" } }
@@ -19,29 +18,39 @@
           .modal-container
             .modal-content
               .modal-header.mn-modal-header
-                %h3 Mon prochain menu
+                %h3 Préparer un nouveau menu
                 %button.mn-modal-close{ type: "button", data: { action: "click->modal#close" }, "aria-label": "Fermer" } ×
               .modal-body
-                %p= @drafts.size > 1 ? "Tu as déjà des menus à valider, dont :" : "Tu avais déjà un menu à valider :"
+                %p Tu as déjà un menu à valider. Créer un nouveau menu le remplacera définitivement.
                 .mn-draft-guard-preview
                   %span.mn-draft-guard-name= next_draft.name.presence || "Menu sans nom"
                   %span.mn-draft-guard-meta= "#{next_draft.menu_recipes.size} repas · #{next_draft.default_people} pers. · #{menu_diet_label(next_draft.diet)}"
-                %p Souhaites-tu le reprendre ou créer un nouveau menu ?
+                %p Tu peux continuer celui-ci ou repartir sur une nouvelle génération.
               .mn-draft-guard-actions
-                = link_to new_menu_path, class: "btn btn-secondary" do
-                  Nouveau menu
+                - if current_user.preferences_configured?
+                  = button_to menus_path, method: :post, class: "btn btn-secondary",
+                              form: { style: "display: inline" } do
+                    Remplacer
+                - else
+                  = link_to new_menu_path, class: "btn btn-secondary" do
+                    Remplacer
                 = link_to menu_path(next_draft), class: "btn btn-primary" do
-                  Continuer →
+                  Continuer
     - else
-      = link_to new_menu_path, class: "mi-btn-new" do
-        = svg_icon("plus", size: 14)
-        Créer un menu
+      - if current_user.preferences_configured?
+        = button_to menus_path, method: :post, class: "mi-btn-new",
+                    form: { style: "display: inline-flex" } do
+          = svg_icon("plus", size: 14)
+          Créer un menu
+      - else
+        = link_to new_menu_path, class: "mi-btn-new" do
+          = svg_icon("plus", size: 14)
+          Créer mon premier menu
 
-  -# ── Brouillons (« Mon prochain menu ») ───────────────────
-  -# Plusieurs brouillons peuvent coexister (retour d'un menu actif en brouillon).
+  -# ── Brouillon à valider ──────────────────────────────────
   - if @drafts.any?
     .mi-section
-      .mi-section-label Mon prochain menu
+      .mi-section-label= menu_draft_section_label(@drafts.first)
       - @drafts.each do |draft|
         = render "draft_card", draft: draft
 

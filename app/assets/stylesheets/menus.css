@@ -132,6 +132,24 @@
   }
 }
 
+.mn-replace-warning {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  background: var(--color-bg-white);
+  border: var(--border-thin);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius-card);
+  color: var(--color-ink-2);
+  font-size: var(--font-size-sm);
+}
+
+.mn-replace-warning strong {
+  color: var(--color-ink);
+  font-weight: 500;
+}
+
 /* ── Section labels ────────────────────────────────────── */
 
 .mi-section {
@@ -1498,7 +1516,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 4px;
 }
 
 .mn-slider-icon {
@@ -1721,7 +1739,6 @@
 .mn-slider-marks {
   display: flex;
   justify-content: space-between;
-  margin-top: 6px;
 }
 
 .mn-slider-mark {
@@ -1968,6 +1985,7 @@
   color: var(--color-ink);
   line-height: 1.35;
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
@@ -2287,5 +2305,477 @@
   /* CTA « Valider » collant : ne pas friser le home-indicator iOS */
   .mc-validate-zone--sticky {
     padding-bottom: calc(14px + env(safe-area-inset-bottom));
+  }
+}
+
+/* ============================================
+   BARRE DE PARAMÈTRES INLINE (mc-ctx-*, mc-diet-*, mc-stepper-*, mc-name-*)
+   Barre interactive en haut de la vue brouillon : édition inline du nom,
+   sélecteur de régime, stepper personnes. Design Slate Craft Premium.
+   ============================================ */
+
+/* Groupes internes de la context-bar interactive */
+.mc-ctx-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.mc-ctx-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.mc-ctx-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Les forms générés par button_to dans les actions doivent rester inline */
+.mc-ctx-actions form.button_to,
+.mc-ctx-actions form {
+  display: inline-flex;
+}
+
+/* Nom du menu — champ texte inline transparent */
+.mc-name-form {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.mc-name-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px solid transparent;
+  border-radius: 0;
+  padding: 1px 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-ink);
+  min-width: 140px;
+  max-width: 240px;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.mc-name-input:hover {
+  border-bottom-color: var(--color-border);
+}
+
+.mc-name-input:focus {
+  border-bottom-color: var(--color-primary);
+}
+
+.mc-name-input::placeholder {
+  color: var(--color-ink-4);
+  font-weight: 400;
+}
+
+/* Chip cliquable (ex: sélecteur de régime) */
+.mc-chip-clickable {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: background var(--transition-fast);
+}
+
+.mc-chip-clickable:hover {
+  background: var(--color-bg-tertiary);
+}
+
+.mc-diet-chevron {
+  opacity: 0.55;
+  transition: transform 0.15s;
+  flex-shrink: 0;
+}
+
+.mc-chip-clickable[aria-expanded="true"] .mc-diet-chevron {
+  transform: rotate(180deg);
+}
+
+/* Dropdown du sélecteur de régime */
+.mc-diet-picker {
+  position: relative;
+}
+
+.mc-diet-options {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background: var(--color-bg-white);
+  border: 0.5px solid var(--color-border);
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  min-width: 160px;
+  z-index: 200;
+  padding: 4px 0;
+}
+
+.mc-diet-opt,
+.mc-diet-opt--current {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  font-size: 12.5px;
+  color: var(--color-ink-2);
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  white-space: nowrap;
+}
+
+.mc-diet-opt:hover {
+  background: var(--color-bg-secondary);
+}
+
+.mc-diet-opt--current {
+  font-weight: 600;
+  color: var(--color-ink);
+  cursor: default;
+}
+
+.mc-diet-opt-form {
+  display: block;
+}
+
+/* Stepper nombre de personnes */
+.mc-stepper-form {
+  display: inline-flex;
+  align-items: center;
+}
+
+.mc-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: var(--color-bg-secondary);
+  border: 0.5px solid var(--color-border);
+  border-radius: 2px;
+  padding: 2px 6px;
+}
+
+.mc-stepper-btn {
+  background: none;
+  border: none;
+  color: var(--color-ink-2);
+  font-size: 15px;
+  line-height: 1;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 2px;
+  padding: 0;
+  transition: background var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.mc-stepper-btn:hover:not(:disabled) {
+  background: var(--color-bg-tertiary);
+}
+
+.mc-stepper-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.mc-stepper-val {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-ink);
+  min-width: 16px;
+  text-align: center;
+}
+
+.mc-stepper-label {
+  font-size: 11px;
+  color: var(--color-ink-3);
+  letter-spacing: 0.02em;
+}
+
+/* Label textuel du bouton "Supprimer" — masqué sur mobile */
+.mc-btn-label-desktop {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .mc-btn-label-desktop {
+    display: inline;
+  }
+}
+
+/* Responsive : sur mobile la nav et les chips passent sur 2 lignes */
+@media (max-width: 767px) {
+  .mc-ctx-nav {
+    width: 100%;
+  }
+
+  .mc-name-input {
+    min-width: 120px;
+    max-width: 180px;
+  }
+
+  .mc-ctx-chips {
+    flex: 1;
+  }
+
+  .mc-ctx-actions {
+    margin-left: 0;
+  }
+}
+
+/* ============================================
+   MÉMORISER LES PRÉFÉRENCES (mn-save-defaults-*)
+   ============================================ */
+
+.mn-save-defaults {
+  padding: 14px 20px;
+  background: var(--color-bg-secondary);
+  border-radius: 4px;
+  margin: 0 0 8px;
+}
+
+.mn-save-defaults-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--color-ink-2);
+}
+
+.mn-save-defaults-checkbox {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.mn-save-defaults-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mn-save-defaults-title {
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+.mn-save-defaults-hint {
+  font-size: 12px;
+  color: var(--color-ink-3);
+  line-height: 1.4;
+}
+
+/* ============================================
+   PRÉFÉRENCES PROFIL (pref-*)
+   ============================================ */
+
+.pref-page-wrap {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+
+/* Encadrement carte sur desktop */
+@media (min-width: 768px) {
+  .pref-page-wrap {
+    margin-top: 25px;
+    padding: 40px 48px 56px;
+    background: var(--color-bg-white);
+    border: 0.5px solid var(--color-border);
+    border-radius: 6px;
+  }
+}
+
+.pref-header {
+  margin-bottom: 27px;
+}
+
+.pref-title {
+  font-family: Georgia, serif;
+  font-size: 26px;
+  font-weight: 400;
+  color: var(--color-ink);
+  margin: 0 0 8px;
+}
+
+.pref-subtitle {
+  font-size: 14px;
+  color: var(--color-ink-3);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.pref-form {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.pref-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pref-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+  margin: 0;
+  padding-bottom: 10px;
+  border-bottom: 0.5px solid var(--color-border);
+}
+
+/* Grille régime : 2 colonnes desktop, 1 sur mobile */
+.pref-diet-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 480px) {
+  .pref-diet-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pref-diet-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 0.5px solid var(--color-border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+  background: var(--color-bg-white);
+  position: relative;
+}
+
+.pref-diet-option:hover {
+  border-color: var(--color-ink-4);
+  background: var(--color-bg-secondary);
+}
+
+.pref-diet-option.selected {
+  border-color: var(--color-primary);
+  background: var(--color-bg-secondary);
+}
+
+.pref-diet-radio {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.pref-diet-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.pref-diet-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+.pref-diet-desc {
+  font-size: 11.5px;
+  color: var(--color-ink-3);
+}
+
+.pref-diet-check {
+  color: var(--color-ink);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.pref-diet-option.selected .pref-diet-check {
+  opacity: 1;
+}
+
+/* Sélection du régime via le clic sur le label */
+.pref-diet-option:has(.pref-diet-radio:checked) {
+  border-color: var(--color-primary);
+  background: var(--color-bg-secondary);
+}
+
+.pref-diet-option:has(.pref-diet-radio:checked) .pref-diet-check {
+  opacity: 1;
+}
+
+/* Champ numérique (personnes / repas) */
+.pref-number-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pref-number-input {
+  width: 80px;
+  padding: 8px 12px;
+  border: 0.5px solid var(--color-border);
+  border-radius: 4px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-ink);
+  background: var(--color-bg-white);
+  text-align: center;
+}
+
+.pref-number-input:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+.pref-number-label {
+  font-size: 13px;
+  color: var(--color-ink-3);
+}
+
+.pref-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding-top: 8px;
+}
+
+@media (max-width: 480px) {
+  .pref-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pref-actions .btn {
+    text-align: center;
+    justify-content: center;
   }
 }

@@ -31,4 +31,10 @@ class User < ApplicationRecord
     greater_than_or_equal_to: 1,
     message: "doit être au moins 1"
   }
+
+  validates :default_number_of_meals, numericality: {
+    only_integer: true,
+    in: 1..21,
+    message: "doit être compris entre 1 et 21"
+  }
 end

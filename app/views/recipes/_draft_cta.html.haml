@@ -1,7 +1,7 @@
 -# CTA « Démarrer / Ajouter / Retirer » du menu brouillon — fiche recette (UC4/UC2).
 -# Bascule l'état via toggle_in_draft (Turbo Stream), sans quitter la page :
--#   - déjà dans le menu   → « Retirer de mon menu » (état confirmé, retrait au clic)
--#   - brouillon existant  → « Ajouter à mon menu »
+-#   - déjà dans le menu   → « Retirer du menu à valider » (état confirmé, retrait au clic)
+-#   - brouillon existant  → « Ajouter au menu à valider »
 -#   - aucun brouillon     → « Démarrer un menu » (crée un brouillon avec cette recette)
 -#
 -# Locals :
@@ -14,8 +14,8 @@
 - has_draft = local_assigns.fetch(:has_draft, true)
 - template_class = variant == "mobile" ? "rs-mobile-cta-btn" : "rs-btn-accent"
 - state_class = in_draft ? "is-in-draft" : "btn-accent"
-- label = in_draft ? "Retirer de mon menu" : (has_draft ? "Ajouter à mon menu" : "Démarrer un menu")
-- tooltip = in_draft ? "Retirer cette recette de mon prochain menu" : (has_draft ? "Ajouter cette recette à mon prochain menu" : "Démarrer un nouveau menu avec cette recette")
+- label = in_draft ? "Retirer du menu à valider" : (has_draft ? "Ajouter au menu à valider" : "Démarrer un menu")
+- tooltip = in_draft ? "Retirer cette recette du menu à valider" : (has_draft ? "Ajouter cette recette au menu à valider" : "Démarrer un nouveau menu avec cette recette")
 %div{ id: container_id }
   = button_to toggle_in_draft_recipe_path(recipe),
               method: :post,

@@ -11,7 +11,7 @@
    Base       : .btn
    Variantes  : .btn-primary   → action principale (anthracite)
                 .btn-secondary → action neutre
-                .btn-accent    → unique CTA accent (ambre) — cf. « Ajouter à mon menu »
+                .btn-accent    → unique CTA accent (ambre) — cf. « Démarrer un menu »
                 .btn-danger    → action destructive (rouge)
                 .btn-link      → variante « ghost » / tertiaire (transparent, sans bordure)
    Tailles    : .btn-sm / .btn-lg (+ .btn-icon pour un padding icône compact)

@@ -25,7 +25,7 @@
 
 -# 3. Affiche le flash de confirmation (wrapper #flash préservé pour les remplacements suivants)
 - suffix = "(#{draft_count} recette#{'s' if draft_count != 1})"
-- notice_msg = @added ? (@draft_created ? "Menu démarré avec \"#{@recipe.name}\" #{suffix}" : "\"#{@recipe.name}\" ajoutée au prochain menu #{suffix}") : "\"#{@recipe.name}\" retirée du prochain menu #{suffix}"
+- notice_msg = @added ? (@draft_created ? "Menu à valider démarré avec \"#{@recipe.name}\" #{suffix}" : "\"#{@recipe.name}\" ajoutée au menu à valider #{suffix}") : "\"#{@recipe.name}\" retirée du menu à valider #{suffix}"
 = turbo_stream.update "flash" do
   .flash-message.notice{ data: { controller: "flash" } }
     = notice_msg

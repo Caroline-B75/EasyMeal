@@ -271,7 +271,7 @@
 }
 
 /* Action principale (enregistrer) = anthracite, cohérent avec .btn-primary.
-   L'ambre est réservé au seul CTA accent de l'app (« Ajouter à mon menu »). */
+  L'ambre est réservé au seul CTA accent de l'app. */
 .btn-icon-save {
   background: var(--color-primary);
   color: white;

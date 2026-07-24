@@ -2,8 +2,8 @@
 
 require "rails_helper"
 
-# Vérifie que les vues touchées par R3.2bis se rendent sans erreur et affichent
-# les nouveaux éléments (multi-brouillons, bouton « Modifier ce menu », badge).
+# Vérifie que les vues touchées par la clarification actif / menu à valider se
+# rendent sans erreur et affichent les nouveaux éléments.
 RSpec.describe "Vues menus R3.2bis", type: :request do
   let(:user) { create(:user) }
 
@@ -16,15 +16,14 @@ RSpec.describe "Vues menus R3.2bis", type: :request do
     recipe
   end
 
-  describe "GET /menus avec plusieurs brouillons" do
-    it "liste tous les brouillons" do
-      draft_a = create(:menu, user: user, status: :draft, name: "Brouillon A")
-      draft_b = create(:menu, user: user, status: :draft, name: "Brouillon B")
+  describe "GET /menus avec un brouillon existant" do
+    it "signale qu'un nouveau menu remplacera le menu à valider" do
+      draft = create(:menu, user: user, status: :draft, name: "Menu à continuer")
 
       get menus_path
 
       expect(response).to have_http_status(:success)
-      expect(response.body).to include("Brouillon A", "Brouillon B", "À valider")
+      expect(response.body).to include(draft.name, "Créer un nouveau menu le remplacera", "Menu à valider")
     end
   end
 
@@ -52,6 +51,7 @@ RSpec.describe "Vues menus R3.2bis", type: :request do
       expect(response).to have_http_status(:success)
       expect(response.body).to include("Ta liste existante sera mise à jour")
       expect(response.body).to include("Ton menu actif actuel sera archivé")
+      expect(response.body).to include("Revalider les modifications")
     end
   end
 

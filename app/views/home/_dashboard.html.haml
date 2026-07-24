@@ -4,10 +4,10 @@
 - if @active_menu
   = render "home/dashboard_active", active_menu: @active_menu
 
-- elsif @draft
-  = render "home/dashboard_draft", draft: @draft
+- if @draft
+  = render "home/dashboard_draft", draft: @draft, active_menu: @active_menu
 
-- else
+- if @active_menu.nil? && @draft.nil?
   -# === Aucun menu : incitation à en créer un ===
   .hero-card.hero-card--empty
     %h2.hero-card-title Prêt à composer ton premier menu ?

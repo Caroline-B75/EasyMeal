@@ -210,7 +210,7 @@
 /* Carte opérationnelle posée sur le hero (surface claire translucide,
    même langage visuel que .hero-step). */
 .hero-card {
-  margin: 0 auto;
+  margin: 0 auto 3rem;
   padding: var(--spacing-lg);
   text-align: left;
   background: rgba(255, 255, 255, 0.92);
@@ -256,9 +256,9 @@
 /* Pastille de statut — variantes sémantiques */
 .hero-card-status {
   flex-shrink: 0;
-  padding: 2px 8px;
+  padding: 5px 12px;
   border-radius: var(--radius-badge);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-base);
   font-weight: 500;
   white-space: nowrap;
 }

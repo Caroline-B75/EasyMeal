@@ -86,6 +86,8 @@ module Menus
     # Crée le Menu et ses MenuRecipes dans une transaction atomique
     def build_menu(selection)
       ActiveRecord::Base.transaction do
+        @user.menus.status_draft.find_each(&:destroy!)
+
         menu = Menu.create!(
           user:           @user,
           name:           @name,

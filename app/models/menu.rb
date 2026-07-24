@@ -44,6 +44,11 @@ class Menu < ApplicationRecord
     message: "doit être au moins 1"
   }
 
+  validates :user_id, uniqueness: {
+    conditions: -> { where(status: statuses[:draft]) },
+    message: "a déjà un menu à valider"
+  }, if: :status_draft?
+
   # === Scopes ===
 
   # Brouillons de l'utilisateur (en cours de composition)
@@ -92,11 +97,16 @@ class Menu < ApplicationRecord
   # Les grocery_items sont CONSERVÉS tels quels (coches comprises) : c'est la
   # réconciliation de Groceries::BuildForMenuService, à la revalidation, qui les
   # mettra à jour sans perdre le travail de courses déjà fait.
+  # Remplace l'éventuel brouillon existant : un utilisateur ne garde qu'un seul
+  # menu à valider pour éviter toute ambiguïté entre menu actif et prochain menu.
   # Lève une erreur si le menu n'est pas actif.
   def revert_to_draft!
     raise "Seul un menu actif peut repasser en brouillon" unless status_active?
 
-    update!(status: :draft)
+    transaction do
+      destroy_other_drafts!
+      update!(status: :draft)
+    end
   end
 
   # Passe le menu en statut :archived (historique)
@@ -133,10 +143,21 @@ class Menu < ApplicationRecord
     menu_recipes.where(scheduled_date: Date.current..).order(:scheduled_date).first
   end
 
+  # Un brouillon avec une liste existante provient d'un menu actif repassé en
+  # modification : sa validation mettra à jour la liste plutôt que d'en créer une
+  # première version.
+  def pending_revalidation?
+    status_draft? && grocery_items.exists?
+  end
+
   private
 
   # Archive le menu actif actuel de l'utilisateur (s'il existe)
   def archive_current_active!
     user.menus.active_menus.where.not(id: id).find_each(&:archive!)
+  end
+
+  def destroy_other_drafts!
+    user.menus.status_draft.where.not(id: id).find_each(&:destroy!)
   end
 end

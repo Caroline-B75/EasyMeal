@@ -46,7 +46,7 @@
           = render "recipes/draft_cta", recipe: @recipe, in_draft: @in_draft, has_draft: @draft.present?,
                                         variant: "hero", container_id: "draft-cta-hero-#{@recipe.id}"
         - else
-          = link_to "Ajouter à mon menu", new_user_session_path, class: "btn-accent rs-btn-accent"
+          = link_to "Démarrer un menu", new_user_session_path, class: "btn-accent rs-btn-accent"
 
         - if current_user
           = render "recipes/favorite_button", recipe: @recipe, is_favorited: @is_favorited, container_id: "favorite-btn-#{@recipe.id}", show_page: true
@@ -174,4 +174,4 @@
     = render "recipes/draft_cta", recipe: @recipe, in_draft: @in_draft, has_draft: @draft.present?,
                                   variant: "mobile", container_id: "draft-cta-mobile-#{@recipe.id}"
   - else
-    = link_to "Ajouter à mon menu", new_user_session_path, class: "btn-accent rs-mobile-cta-btn"
+    = link_to "Démarrer un menu", new_user_session_path, class: "btn-accent rs-mobile-cta-btn"

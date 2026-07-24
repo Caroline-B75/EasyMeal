@@ -1,11 +1,11 @@
 -# Carte d'un menu brouillon dans la section « Mon prochain menu » (index).
 -# draft : Menu(status: :draft)
--# Plusieurs brouillons peuvent coexister depuis R3.2bis (retour d'un menu actif en brouillon).
+-# Un seul brouillon peut exister : créer un autre menu le remplace.
 .mi-draft-card{ id: "menu_#{draft.id}" }
   .mi-draft-card-header{ data: { action: "click->menus-index#toggleDraft" } }
     .mi-draft-card-left
       .mi-draft-card-top
-        %span.mi-draft-badge À valider
+        %span.mi-draft-badge= menu_status_label(draft)
         %span.mi-draft-card-name= draft.name.presence || "Menu sans nom"
       .mi-draft-card-meta
         %span= menu_diet_label(draft.diet)
@@ -36,7 +36,7 @@
     .mi-draft-card-actions
       = link_to menu_path(draft), class: "mi-btn-sm" do
         = svg_icon("edit", size: 11)
-        Continuer
+        Reprendre
       = link_to "Modifier les paramètres", edit_menu_path(draft), class: "mi-btn-sm"
       = button_to menu_path(draft), method: :delete, class: "mi-btn-sm-danger",
                   title: "Supprimer le menu", "aria-label": "Supprimer le menu",

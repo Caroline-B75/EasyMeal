@@ -37,7 +37,7 @@ module MenusHelper
   # Retourne le label du statut du menu
   def menu_status_label(menu)
     case
-    when menu.status_draft?    then "À valider"
+    when menu.status_draft?    then menu_draft_status_label(menu)
     when menu.status_active?   then "Actif"
     when menu.status_archived? then "Archivé"
     else menu.status.to_s.humanize
@@ -54,13 +54,29 @@ module MenusHelper
     end
   end
 
+  def menu_draft_status_label(menu)
+    menu.pending_revalidation? ? "À revalider" : "À valider"
+  end
+
+  def menu_draft_section_label(menu)
+    menu.pending_revalidation? ? "Modification à revalider" : "Menu à valider"
+  end
+
+  def menu_validation_button_label(menu)
+    menu.pending_revalidation? ? "Revalider les modifications" : "Valider et générer la liste de courses"
+  end
+
   # Construit le message de confirmation de validation d'un menu (R3.2bis).
   # Honnête sur les conséquences : génération de liste, réconciliation d'une liste
   # existante (REvalidation), et archivage de l'éventuel menu actif courant.
   # @param menu [Menu] le brouillon en cours de validation
   # @return [String] message destiné au turbo_confirm
   def menu_validation_confirm(menu)
-    parts = [ "Valider ce menu ? La liste de courses sera générée." ]
+    parts = if menu.pending_revalidation?
+      [ "Revalider ces modifications ? Ta liste de courses sera mise à jour." ]
+    else
+      [ "Valider ce menu ? La liste de courses sera générée." ]
+    end
 
     if menu.grocery_items.exists?
       parts << "Ta liste existante sera mise à jour en conservant tes articles cochés (sauf quantités augmentées)."

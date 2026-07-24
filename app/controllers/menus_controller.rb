@@ -33,6 +33,7 @@ class MenusController < ApplicationController
     recipe_includes = [ :photo_attachment ]
     recipe_includes << :ingredients if @menu.status_archived?
     @menu_recipes = @menu.menu_recipes.includes(recipe: recipe_includes).by_position
+    @existing_draft = current_user.menus.status_draft.where.not(id: @menu.id).recent.first if @menu.status_active?
   end
 
   # GET /menus/new
@@ -41,18 +42,25 @@ class MenusController < ApplicationController
       diet:           current_user.default_diet,
       default_people: current_user.default_people
     )
+    @existing_draft = current_user.menus.status_draft.recent.first
     authorize @menu
   end
 
   # POST /menus
-  # UC1 : Génère un menu brouillon et le persiste immédiatement
+  # UC1 : Génère un menu brouillon et le persiste immédiatement.
+  # Deux cas selon l'origine de l'appel :
+  #   - Formulaire soumis (params[:menu] présent) : onboarding ou personnalisation ponctuelle.
+  #   - POST direct depuis l'index (pas de params menu) : utilisateur configuré, utilise ses préférences.
   def create
     authorize Menu
+    save_user_defaults! if form_params_present? && params.dig(:menu, :save_as_defaults) == "1"
+    replacing_draft = current_user.menus.status_draft.exists?
     @menu = Menus::GenerateService.call(**generation_params)
-    redirect_to @menu, notice: "Votre menu a été généré ! Personnalisez-le avant de valider.", status: :see_other
+    redirect_to @menu, notice: create_notice(replacing_draft), status: :see_other
   rescue Menus::NoCandidatesError => error
     flash.now[:alert] = error.message
-    @menu = Menu.new(menu_params.except(:number_of_meals))
+    @menu = Menu.new
+    @existing_draft = current_user.menus.status_draft.recent.first
     render :new, status: :unprocessable_entity
   end
 
@@ -60,11 +68,26 @@ class MenusController < ApplicationController
   def edit; end
 
   # PATCH /menus/:id
+  # Répond en Turbo Stream pour les mises à jour inline (nom, personnes) depuis le brouillon.
+  # Propage default_people à tous les repas si cette valeur a changé.
   def update
+    new_people = menu_update_params[:default_people]
+    @people_changed = new_people.present? && @menu.default_people.to_i != new_people.to_i
+
     if @menu.update(menu_update_params)
-      redirect_to @menu, notice: "Menu mis à jour.", status: :see_other
+      @menu.menu_recipes.update_all(number_of_people: @menu.default_people) if @people_changed
+      @menu_recipes = @menu.menu_recipes.includes(recipe: :photo_attachment).by_position
+
+      respond_to do |format|
+        format.turbo_stream
+        format.html { redirect_to @menu, notice: "Menu mis à jour.", status: :see_other }
+      end
     else
-      render :edit, status: :unprocessable_entity
+      @menu_recipes = @menu.menu_recipes.includes(recipe: :photo_attachment).by_position
+      respond_to do |format|
+        format.turbo_stream { render_flash_stream(alert: @menu.errors.full_messages.first) }
+        format.html { render :edit, status: :unprocessable_entity }
+      end
     end
   end
 
@@ -109,8 +132,8 @@ class MenusController < ApplicationController
   end
 
   # Répartit les menus chargés en catégories pour la vue index.
-  # Depuis R3.2bis un menu actif peut repasser en brouillon : plusieurs brouillons
-  # peuvent donc coexister → on les liste tous (plus de brouillon orphelin invisible).
+  # Un seul brouillon peut exister par utilisateur : l'array garde la vue simple
+  # et évite une branche spéciale dans les partials existants.
   def classify_menus
     @drafts   = @menus.select(&:status_draft?)
     @active   = @menus.find(&:status_active?)
@@ -118,14 +141,52 @@ class MenusController < ApplicationController
   end
 
   # Paramètres utilisés par Menus::GenerateService
+  # Deux sources possibles : formulaire soumis (onboarding / personnalisation) ou préférences utilisateur.
   def generation_params
-    {
-      user:            current_user,
-      diet:            menu_params[:diet],
-      default_people:  menu_params[:default_people].to_i,
-      number_of_meals: menu_params[:number_of_meals].to_i,
-      name:            menu_params[:name].presence
-    }
+    if form_params_present?
+      {
+        user:            current_user,
+        diet:            menu_params[:diet],
+        default_people:  menu_params[:default_people].to_i,
+        number_of_meals: menu_params[:number_of_meals].to_i,
+        name:            menu_params[:name].presence
+      }
+    else
+      {
+        user:            current_user,
+        diet:            current_user.default_diet,
+        default_people:  current_user.default_people,
+        number_of_meals: current_user.default_number_of_meals,
+        name:            nil
+      }
+    end
+  end
+
+  # Vrai si le formulaire de génération a été soumis (onboarding / personnalisation ponctuelle).
+  # Faux si le POST vient du bouton direct "Créer un menu" pour les utilisateurs configurés.
+  def form_params_present?
+    params[:menu].present?
+  end
+
+  # Mémorise les paramètres du formulaire comme préférences par défaut de l'utilisateur.
+  def save_user_defaults!
+    current_user.update(
+      default_diet:            menu_params[:diet],
+      default_people:          menu_params[:default_people].to_i,
+      default_number_of_meals: menu_params[:number_of_meals].to_i,
+      preferences_configured:  true
+    )
+  end
+
+  # Message flash après génération, adapté selon le parcours.
+  def create_notice(replacing_draft)
+    if replacing_draft
+      "Nouveau menu généré. L'ancien menu à valider a été remplacé."
+    elsif form_params_present?
+      "Menu généré ! Personnalisez-le avant de valider."
+    else
+      "Menu généré avec vos paramètres habituels. Personnalisez-le si besoin."
+    end
   end
 
   # Transition d'état du menu (activate/reactivate) avec gestion d'erreur unifiée

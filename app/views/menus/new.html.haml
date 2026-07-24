@@ -1,5 +1,5 @@
 -# UC1 — Génération d'un nouveau menu (design mockup card-based)
-- content_for :title, "Générer un nouveau menu"
+- content_for :title, current_user.preferences_configured? ? "Personnaliser ce menu" : "Configurer mon foyer"
 
 = context_bar_back(menus_path, "Retour à mes menus", variant: :narrow)
 
@@ -8,7 +8,20 @@
     .mn-page-kicker
       %span.mn-page-kicker-sep
       Planification
-    %h1.mn-page-title Générer un nouveau menu
+    - if current_user.preferences_configured?
+      %h1.mn-page-title Personnaliser ce menu
+      %p.mn-page-sub Vos paramètres habituels sont pré-remplis. Modifiez-les si besoin pour ce menu uniquement.
+    - else
+      %h1.mn-page-title Configurez votre foyer
+      %p.mn-page-sub
+        Ces paramètres seront utilisés par défaut pour tous vos menus.
+        %br
+        Vous pourrez les modifier à tout moment depuis vos préférences.
+
+  - if @existing_draft
+    .mn-replace-warning
+      %strong= "#{@existing_draft.name.presence || 'Menu sans nom'} sera remplacé."
+      %span Un seul menu peut attendre validation à la fois. La génération d'un nouveau menu supprimera le brouillon actuel.
 
   = render "params_form", menu: @menu, url: menus_path,
                           submit_label: "Générer mon menu",

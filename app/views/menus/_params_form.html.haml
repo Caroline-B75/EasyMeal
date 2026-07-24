@@ -13,7 +13,7 @@
 - confirm = local_assigns.fetch(:confirm, nil)
 - default_diet = menu.diet || current_user.default_diet || "omnivore"
 - default_people = menu.default_people || current_user.default_people || 4
-- default_meals = menu.menu_recipes.size.positive? ? menu.menu_recipes.size : 7
+- default_meals = menu.menu_recipes.size.positive? ? menu.menu_recipes.size : (current_user.default_number_of_meals || 7)
 - default_name_placeholder = "Menu du #{french_date(Date.today)}"
 
 = form_with model: menu, url: url, method: :post, class: "mn-generate-form",
@@ -124,6 +124,16 @@
     %span.mn-summary-sep ·
     %span.mn-summary-chip{ data: { menu_generate_target: "sumName" } }
       = menu.name.presence || default_name_placeholder
+
+  -# ── Mémoriser comme paramètres par défaut ─────────────────
+  .mn-save-defaults
+    %label.mn-save-defaults-label
+      = check_box_tag "menu[save_as_defaults]", "1", !current_user.preferences_configured?,
+                      class: "mn-save-defaults-checkbox"
+      .mn-save-defaults-text
+        %span.mn-save-defaults-title Mémoriser ces paramètres
+        %span.mn-save-defaults-hint
+          Régime, personnes et nombre de repas seront utilisés par défaut pour vos prochains menus.
 
   -# ── Bouton de soumission ───────────────────────────────
   .mn-submit-zone

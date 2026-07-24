@@ -1,0 +1,11 @@
+-# Réponse Turbo Stream à la mise à jour inline du nom ou du nombre de personnes.
+-# Remplace la barre de paramètres complète (re-render avec les nouvelles valeurs).
+-# Si le nombre de personnes a changé, met à jour également toutes les cartes recettes.
+
+= turbo_stream.replace "menu_params_bar_#{@menu.id}" do
+  = render "menus/params_bar", menu: @menu, menu_recipes: @menu_recipes
+
+- if @people_changed
+  - @menu_recipes.each do |mr|
+    = turbo_stream.replace "menu_recipe_#{mr.id}" do
+      = render "menus/menu_recipe_card", menu_recipe: mr, menu: @menu

@@ -5,6 +5,17 @@ require "rails_helper"
 RSpec.describe Menu, type: :model do
   let(:user) { create(:user) }
 
+  describe "validations" do
+    it "n'autorise qu'un seul brouillon par utilisateur" do
+      create(:menu, user: user, status: :draft)
+
+      duplicate = build(:menu, user: user, status: :draft)
+
+      expect(duplicate).not_to be_valid
+      expect(duplicate.errors[:user_id]).to include("a déjà un menu à valider")
+    end
+  end
+
   describe "#revert_to_draft!" do
     it "repasse un menu actif en brouillon" do
       menu = create(:menu, user: user, status: :active)
@@ -12,6 +23,17 @@ RSpec.describe Menu, type: :model do
       menu.revert_to_draft!
 
       expect(menu.reload).to be_status_draft
+    end
+
+    it "remplace le brouillon existant" do
+      existing_draft = create(:menu, user: user, status: :draft)
+      menu = create(:menu, user: user, status: :active)
+
+      menu.revert_to_draft!
+
+      expect(menu.reload).to be_status_draft
+      expect(Menu.exists?(existing_draft.id)).to be false
+      expect(user.menus.status_draft.count).to eq(1)
     end
 
     it "conserve les grocery_items tels quels (coches comprises)" do

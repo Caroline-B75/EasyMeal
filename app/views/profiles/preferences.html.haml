@@ -1,0 +1,77 @@
+-# Vue des préférences du profil utilisateur
+-# Permet de configurer les paramètres par défaut pour la génération de menus.
+- content_for :title, "Mes préférences"
+
+.pref-page-wrap
+  .pref-header
+    %h1.pref-title Réglages de mon foyer
+    %p.pref-subtitle
+      Ces paramètres sont utilisés par défaut à chaque génération de menu.
+      %br
+      Vous pouvez les modifier à tout moment.
+
+  = form_with model: @user, url: preferences_profile_path, method: :patch, class: "pref-form",
+              data: { controller: "profile-prefs" } do |f|
+    - default_people = @user.default_people || 4
+    - default_meals  = @user.default_number_of_meals || 7
+
+    -# ── Régime alimentaire ────────────────────────────────────
+    .pref-section
+      %h2.pref-section-title Régime alimentaire
+      .pref-diet-grid{ role: "radiogroup", "aria-label": "Régime alimentaire par défaut" }
+        - User.default_diets.keys.each do |diet_key|
+          - selected = diet_key == @user.default_diet
+          %label.pref-diet-option{ class: ("selected" if selected) }
+            = f.radio_button :default_diet, diet_key, checked: selected, class: "pref-diet-radio"
+            = render "menus/diet_icon", diet: diet_key
+            .pref-diet-body
+              %span.pref-diet-name= menu_diet_label(diet_key)
+              %span.pref-diet-desc= menu_diet_description(diet_key)
+            %span.pref-diet-check= svg_icon("check", size: 12)
+
+    -# ── Nombre de personnes par repas (slider) ──────────────
+    .pref-section
+      %h2.pref-section-title Personnes par repas
+      .mn-slider-display
+        .mn-slider-icon.mn-slider-icon--people{ "aria-hidden": "true" }
+          %svg{ width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round" }
+            %path{ d: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" }
+            %circle{ cx: 12, cy: 7, r: 4 }
+        %span.mn-slider-big{ data: { profile_prefs_target: "peopleDisplay" } }= default_people
+        %span.mn-slider-label{ data: { profile_prefs_target: "peopleUnit" } }
+          = default_people == 1 ? "personne" : "personnes"
+      = f.range_field :default_people, min: 1, max: 20, value: default_people,
+                      class: "mn-slider",
+                      "aria-label": "Nombre de personnes par repas",
+                      data: { action: "input->profile-prefs#updatePeople",
+                              profile_prefs_target: "peopleSlider" }
+      .mn-slider-marks
+        %span.mn-slider-mark 1
+        %span.mn-slider-mark 10
+        %span.mn-slider-mark 20
+
+    -# ── Nombre de repas par menu (slider) ───────────────────
+    .pref-section
+      %h2.pref-section-title Repas par menu
+      .mn-slider-display
+        .mn-slider-icon.mn-slider-icon--meals{ "aria-hidden": "true" }
+          %svg{ width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round" }
+            %path{ d: "M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" }
+            %path{ d: "M7 2v20" }
+            %path{ d: "M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" }
+        %span.mn-slider-big{ data: { profile_prefs_target: "mealsDisplay" } }= default_meals
+        %span.mn-slider-label repas
+      = f.range_field :default_number_of_meals, min: 1, max: 15, value: default_meals,
+                      class: "mn-slider",
+                      "aria-label": "Nombre de repas par menu",
+                      data: { action: "input->profile-prefs#updateMeals",
+                              profile_prefs_target: "mealsSlider" }
+      .mn-slider-marks
+        %span.mn-slider-mark 1
+        %span.mn-slider-mark 7
+        %span.mn-slider-mark 15
+
+    -# ── Actions ──────────────────────────────────────────────
+    .pref-actions
+      = f.submit "Enregistrer mes préférences", class: "btn btn-primary"
+      = link_to "Annuler", menus_path, class: "btn btn-secondary"

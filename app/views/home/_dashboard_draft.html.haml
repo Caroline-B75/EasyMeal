@@ -2,16 +2,22 @@
 -# Rappelle qu'un menu reste à valider et propose de le reprendre.
 -# draft : Menu(status: :draft)
 - menu_recipes = draft.menu_recipes.by_position
+- active_menu = local_assigns[:active_menu]
 
 .hero-card
   .hero-card-head
     .hero-card-title-group
       %h2.hero-card-title= draft.name
       %span.hero-card-meal-count= "(#{draft.recipes_count} repas)"
-    %span.hero-card-status.hero-card-status--draft À valider
+    %span.hero-card-status.hero-card-status--draft= menu_status_label(draft)
 
   %p.hero-card-note
-    Ce menu n'est pas encore validé : reprends-le pour l'ajuster, puis valide-le pour générer ta liste de courses.
+    - if draft.pending_revalidation?
+      Tes modifications ne sont pas encore revalidées : reprends ce menu pour mettre à jour ta liste de courses.
+    - elsif active_menu
+      Ce prochain menu attend validation. Ton menu en cours reste actif tant que tu ne valides pas celui-ci.
+    - else
+      Ce menu n'est pas encore validé : reprends-le pour l'ajuster, puis valide-le pour générer ta liste de courses.
 
   - if menu_recipes.any?
     .hero-card-recipes

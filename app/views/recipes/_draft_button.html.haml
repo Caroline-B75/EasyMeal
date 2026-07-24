@@ -10,6 +10,6 @@
   = button_to toggle_in_draft_recipe_path(recipe),
               method: :post,
               class: "draft-btn draft-btn-compact #{in_draft ? 'in-draft' : ''}",
-              title: in_draft ? "Retirer du prochain menu" : "Ajouter au prochain menu",
+              title: in_draft ? "Retirer du menu à valider" : "Ajouter au menu à valider",
               form: { data: { turbo_frame: "_top", turbo_stream: true } } do
     = svg_icon(in_draft ? :check : :plus, size: 16)
