@@ -59,25 +59,23 @@
     -# Navigation principale responsive
     - if user_signed_in?
       - admin_draft_count = current_user.admin? ? Recipe.draft.count : 0
+      - active_menu = current_active_menu
+      - draft_menu = current_draft_menu
       %header.main-header
         %nav.nav-container{ data: { controller: "menu" } }
           .nav-brand
             = link_to root_path, class: "brand-link" do
               = image_tag "logos/logo_EasyMeal.svg", alt: "EasyMeal", class: "logo"
 
-          -# Liens de navigation principaux (masqués sur mobile)
+          -# Liens de navigation principaux (desktop uniquement)
           .header-nav-links
+            - if active_menu
+              = link_to "Menu actif", menu_path(active_menu), class: header_nav_class(:current, active_menu)
+            - if draft_menu
+              = link_to "Menu brouillon", menu_path(draft_menu), class: header_nav_class(:draft, draft_menu)
             = link_to "Recettes", recipes_path, class: header_nav_class(:recipes)
-            = link_to "Mes menus", menus_path, class: header_nav_class(:menus)
-            - if (active = current_active_menu)
-              = link_to "Menu actif", menu_path(active), class: header_nav_class(:current)
-              = link_to "Courses", grocery_menu_path(active), class: header_nav_class(:grocery)
-            - if current_user&.admin?
-              = link_to recipe_drafts_path, class: "nav-link nav-link--admin" do
-                = "Recettes importées"
-                - if admin_draft_count > 0
-                  %span.nav-badge= admin_draft_count
-              = link_to "Utilisateurs", users_path, class: header_nav_class(:users)
+            - if active_menu
+              = link_to "Courses", grocery_menu_path(active_menu), class: header_nav_class(:grocery, active_menu)
 
           -# Menu utilisateur (avatar desktop / hamburger mobile)
           .user-menu
@@ -107,31 +105,27 @@
                   %span.dropdown-identity-email= current_user.email
               .dropdown-divider
 
-              -# Liens de navigation dans le dropdown (mobile uniquement via CSS)
+              -# Liens de navigation dans le dropdown (tablette/mobile uniquement via CSS)
               .dropdown-nav-links
+                - if active_menu
+                  = link_to "Menu actif", menu_path(active_menu), class: "dropdown-link"
+                - if draft_menu
+                  = link_to "Menu brouillon", menu_path(draft_menu), class: "dropdown-link"
                 = link_to "Recettes", recipes_path, class: "dropdown-link"
+                - if active_menu
+                  = link_to "Courses", grocery_menu_path(active_menu), class: "dropdown-link"
+                .dropdown-divider
+
+              .dropdown-links
                 = link_to "Mes menus", menus_path, class: "dropdown-link"
-                - if (active = current_active_menu)
-                  = link_to "Menu actif", menu_path(active), class: "dropdown-link"
-                  = link_to "Courses", grocery_menu_path(active), class: "dropdown-link"
+                = link_to "Préférences", preferences_profile_path, class: "dropdown-link"
                 - if current_user&.admin?
                   = link_to recipe_drafts_path, class: "dropdown-link dropdown-link--admin" do
                     = "Recettes importées"
                     - if admin_draft_count > 0
                       %span.nav-badge= admin_draft_count
                   = link_to "Utilisateurs", users_path, class: "dropdown-link dropdown-link--admin"
-                .dropdown-divider
-
-              .dropdown-links
-                = link_to preferences_profile_path, class: "dropdown-link" do
-                  = svg_icon("settings", size: 18)
-                  %span Préférences
-                = link_to destroy_user_session_path, data: { turbo_method: :delete }, class: "dropdown-link logout" do
-                  %svg{ width: "18", height: "18", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2" }
-                    %path{ d: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" }
-                    %polyline{ points: "16 17 21 12 16 7" }
-                    %line{ x1: "21", y1: "12", x2: "9", y2: "12" }
-                  %span Me déconnecter
+                = link_to "Me déconnecter", destroy_user_session_path, data: { turbo_method: :delete }, class: "dropdown-link logout"
     - else
       %header.main-header.auth-header
         %nav.nav-container

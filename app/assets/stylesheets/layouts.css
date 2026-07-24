@@ -257,7 +257,7 @@
   white-space: nowrap;
 }
 
-/* Liens de navigation dans le dropdown (mobile uniquement) */
+/* Liens de navigation dans le dropdown (tablette/mobile uniquement) */
 .dropdown-nav-links {
   display: none;
 }
@@ -358,7 +358,7 @@
 }
 
 /* === Responsive navigation === */
-@media (max-width: 767px) {
+@media (max-width: 1024px) {
   .main-header {
     --header-pad-x: 1rem;
   }

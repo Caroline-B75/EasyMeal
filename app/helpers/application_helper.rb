@@ -33,13 +33,20 @@ module ApplicationHelper
     @_current_active_menu ||= current_user.menus.active_menus.first
   end
 
+  # Retourne le menu brouillon de l'utilisateur courant (un seul autorisé par validation)
+  def current_draft_menu
+    return nil unless user_signed_in?
+
+    @_current_draft_menu ||= current_user.menus.status_draft.recent.first
+  end
+
   # Classe CSS pour les liens de navigation du header (avec état actif)
-  def header_nav_class(section)
+  def header_nav_class(section, target_menu = nil)
     is_active = case section
                 when :recipes then controller_name == "recipes"
                 when :menus   then controller_name == "menus" && action_name == "index"
-                when :current then controller_name == "menus" && action_name == "show"
-                when :grocery then controller_name == "menus" && action_name == "grocery"
+                when :current, :draft then target_menu.present? && current_page?(menu_path(target_menu))
+                when :grocery then target_menu.present? && current_page?(grocery_menu_path(target_menu))
                 when :users   then controller_name == "users"
                 else false
                 end
