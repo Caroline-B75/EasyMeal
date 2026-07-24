@@ -19,6 +19,7 @@
  *= require ingredients
  *= require recipes
  *= require tags
+ *= require users
  *= require authentication
  *= require menus
  *= require grocery_items

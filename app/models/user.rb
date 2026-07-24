@@ -17,6 +17,8 @@ class User < ApplicationRecord
 
   # === Associations ===
   has_many :menus, dependent: :destroy
+  has_many :favorite_recipes, dependent: :destroy
+  has_many :reviews, dependent: :destroy
 
   # === Validations ===
   validates :email, presence: true

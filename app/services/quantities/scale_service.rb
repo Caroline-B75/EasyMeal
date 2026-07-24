@@ -24,7 +24,7 @@ module Quantities
     # Retourne un tableau d'ingrédients avec leurs quantités adaptées
     # @return [Array<Hash>] Liste des ingrédients avec quantités calculées
     def call
-      @recipe.preparations.includes(:ingredient).map do |preparation|
+      preparations_with_ingredient.map do |preparation|
         build_scaled_item(preparation)
       end
     end
@@ -36,6 +36,13 @@ module Quantities
     end
 
     private
+
+    def preparations_with_ingredient
+      preparations = @recipe.preparations
+      return preparations.includes(:ingredient) if preparations.respond_to?(:includes)
+
+      preparations
+    end
 
     # Construit un item avec toutes les informations nécessaires
     def build_scaled_item(preparation)

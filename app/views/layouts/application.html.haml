@@ -77,6 +77,7 @@
                 = "Recettes importées"
                 - if admin_draft_count > 0
                   %span.nav-badge= admin_draft_count
+              = link_to "Utilisateurs", users_path, class: header_nav_class(:users)
 
           -# Menu utilisateur (avatar desktop / hamburger mobile)
           .user-menu
@@ -118,6 +119,7 @@
                     = "Recettes importées"
                     - if admin_draft_count > 0
                       %span.nav-badge= admin_draft_count
+                  = link_to "Utilisateurs", users_path, class: "dropdown-link dropdown-link--admin"
                 .dropdown-divider
 
               .dropdown-links

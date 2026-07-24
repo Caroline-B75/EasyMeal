@@ -1,0 +1,267 @@
+/* ============================================
+   USERS - Gestion admin des utilisateurs
+   ============================================ */
+
+.users-container {
+  width: min(1180px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: var(--spacing-2xl) 0;
+}
+
+.users-container--narrow {
+  max-width: 900px;
+}
+
+.users-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+}
+
+.users-kicker {
+  display: inline-block;
+  margin-bottom: var(--spacing-xs);
+  color: var(--color-ink-3);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.users-title,
+.users-form-title h1 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--font-size-3xl);
+  line-height: 1.15;
+}
+
+.users-subtitle,
+.users-form-title p {
+  margin: var(--spacing-sm) 0 0;
+  color: var(--color-ink-3);
+}
+
+.users-count {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 var(--spacing-md);
+  border: var(--border-thin);
+  border-radius: var(--radius-badge);
+  background: var(--color-bg-white);
+  color: var(--color-ink-2);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.users-table-wrap,
+.users-form-card {
+  background: var(--color-bg-white);
+  border: var(--border-thin);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.users-table th,
+.users-table td {
+  padding: var(--spacing-md);
+  border-bottom: var(--border-thin);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.users-table th {
+  color: var(--color-ink-3);
+  background: var(--color-bg-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.users-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.users-identity-cell,
+.users-form-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.users-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border-radius: var(--radius-card-compact);
+  background: var(--color-primary);
+  color: var(--color-bg-white);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+}
+
+.users-avatar--large {
+  width: 56px;
+  height: 56px;
+  flex-basis: 56px;
+  font-size: var(--font-size-lg);
+}
+
+.users-identity,
+.users-preferences {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.users-identity strong {
+  color: var(--color-ink);
+}
+
+.users-identity span,
+.users-identity small,
+.users-preferences small,
+.users-table time {
+  color: var(--color-ink-3);
+  font-size: var(--font-size-sm);
+}
+
+.users-warning {
+  color: var(--color-warning-text);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+.users-menu-count {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.badge-dark {
+  background: var(--color-primary);
+  color: var(--color-bg-white);
+}
+
+.users-actions__inner {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.users-actions__inner form {
+  display: inline-flex;
+}
+
+.icon-btn-disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.users-form-card {
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-xl);
+}
+
+.users-form-header {
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: var(--border-thin);
+}
+
+.users-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.users-form-flags {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-xl);
+}
+
+.users-checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  min-height: var(--min-touch-target);
+  padding: var(--spacing-md);
+  border: var(--border-thin);
+  border-radius: var(--radius-card-compact);
+  color: var(--color-ink-2);
+  background: var(--color-bg-main);
+  cursor: pointer;
+}
+
+.users-checkbox input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary);
+}
+
+.users-form-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-xl);
+}
+
+@media (max-width: 767px) {
+  .users-container {
+    width: min(100% - 1rem, 1180px);
+    padding: var(--spacing-lg) 0;
+  }
+
+  .users-header,
+  .users-form-header,
+  .users-form-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .users-table,
+  .users-table thead,
+  .users-table tbody,
+  .users-table tr,
+  .users-table th,
+  .users-table td {
+    display: block;
+  }
+
+  .users-table thead {
+    display: none;
+  }
+
+  .users-table tr {
+    padding: var(--spacing-md);
+    border-bottom: var(--border-thin);
+  }
+
+  .users-table tr:last-child {
+    border-bottom: 0;
+  }
+
+  .users-table td {
+    padding: var(--spacing-sm) 0;
+    border-bottom: 0;
+  }
+
+  .users-form-card {
+    padding: var(--spacing-lg);
+  }
+
+  .users-form-grid,
+  .users-form-flags {
+    grid-template-columns: 1fr;
+  }
+}

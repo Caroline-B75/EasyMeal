@@ -40,6 +40,7 @@ module ApplicationHelper
                 when :menus   then controller_name == "menus" && action_name == "index"
                 when :current then controller_name == "menus" && action_name == "show"
                 when :grocery then controller_name == "menus" && action_name == "grocery"
+                when :users   then controller_name == "users"
                 else false
                 end
 
@@ -163,7 +164,10 @@ module ApplicationHelper
   # Initiales de l'utilisateur (avatar) — ex. "Caroline Belmas" → "CB".
   # Mutualisé entre l'avatar du header et l'en-tête du menu déroulant.
   def user_initials(user)
-    "#{user.first_name[0]}#{user.last_name[0]}".upcase
+    names = [user.first_name, user.last_name].filter_map { |name| name.presence&.first }
+    return names.join.upcase if names.any?
+
+    user.email.to_s.first(2).upcase.presence || "?"
   end
 
   private
