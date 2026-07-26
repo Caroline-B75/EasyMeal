@@ -1,0 +1,127 @@
+-# En-tête de la page d'un menu (brouillon ou actif), rendu dans .mc-page-wrap.
+-#
+-# Logique reprise de la maquette : statut et actions secondaires sur la première
+-# ligne, nom du menu en titre, ligne de méta, puis — pour un brouillon — le
+-# panneau des réglages qui s'appliquent à tout le menu.
+-#
+-# Le brouillon rend le nom, le régime et le nombre de personnes modifiables sur
+-# place via le controller menu-params. L'en-tête entier est la cible du Turbo
+-# Stream de mise à jour (voir update.turbo_stream.haml) : c'est pourquoi il porte
+-# l'id et le controller, et non ses sous-parties.
+-#
+-# Locals :
+-#   menu         : Menu (brouillon ou actif)
+-#   menu_recipes : collection ordonnée des MenuRecipe
+- draft = menu.status_draft?
+
+.mc-head{ id: "menu_head_#{menu.id}", data: { controller: ("menu-params" if draft) } }
+
+  -# ── Statut + actions secondaires ─────────────────────────────
+  -# Les actions principales (valider, voir la liste) sont le CTA en bas de page :
+  -# on ne garde ici que le secondaire et le destructif.
+  .mc-head-top
+    %span{ class: "mc-kicker mc-kicker--#{menu.status}" }= menu_head_kicker_label(menu)
+
+    .mc-head-actions
+      - unless draft
+        = button_to revert_to_draft_menu_path(menu), method: :post, class: "mc-btn-outline-sm",
+                    form: { data: { turbo_confirm: menu_revert_to_draft_confirm(menu) } } do
+          = svg_icon("edit", size: 12)
+          Modifier ce menu
+      = button_to menu_path(menu), method: :delete,
+                  class: "mc-btn-outline-sm mc-btn-outline-sm--danger",
+                  form: { data: { turbo_confirm: "Supprimer ce menu définitivement ?" } } do
+        = svg_icon("trash", size: 12)
+        Supprimer le menu
+
+  -# ── Nom du menu ──────────────────────────────────────────────
+  -# Brouillon : champ éditable sur place, enregistré au blur (ou à Entrée).
+  - if draft
+    = form_with model: menu, url: menu_path(menu), method: :patch, class: "mc-head-title-row",
+                data: { menu_params_target: "nameForm" } do |f|
+      -# size dimensionne le champ sur la longueur du nom : le crayon reste collé
+      -# au titre au lieu d'être repoussé par un champ pleine largeur.
+      = f.text_field :name, value: menu.name, maxlength: 60, placeholder: "Nom du menu",
+                     size: [menu.name.to_s.length + 3, 14].max,
+                     class: "mc-head-title-input", "aria-label": "Nom du menu",
+                     data: { menu_params_target: "nameInput",
+                             action: "blur->menu-params#saveName keydown.enter->menu-params#blurName" }
+      %button.mc-head-title-edit{ type: "button", title: "Renommer le menu", "aria-label": "Renommer le menu",
+                                  data: { action: "click->menu-params#focusName" } }
+        = svg_icon("edit", size: 13)
+  - else
+    .mc-head-title-row
+      %h1.mc-head-title= menu.name.presence || "Menu sans nom"
+
+  -# ── Méta ─────────────────────────────────────────────────────
+  .mc-head-meta
+    -# Compteur mis à jour en direct par menu-customize (ajout / retrait de repas)
+    %span{ data: { menu_customize_target: ("countChip" if draft) } }= "#{menu_recipes.size} repas"
+    - menu_head_meta_details(menu).each do |detail|
+      %span.mc-head-meta-sep ·
+      %span= detail
+
+  -# ── Réglages du menu (brouillon uniquement) ──────────────────
+  - if draft
+    .mc-settings
+      .mc-setting
+        .mc-setting-icon.mc-setting-icon--people
+          = svg_icon("users", size: 17)
+        .mc-setting-body
+          %span.mc-setting-label Pour combien de personnes
+
+          -# Stepper : mise à jour instantanée du menu et de tous ses repas
+          = form_with model: menu, url: menu_path(menu), method: :patch,
+                      class: "mc-stepper-form",
+                      data: { menu_params_target: "peopleForm" } do |f|
+            .mc-stepper
+              %button.mc-stepper-btn{ type: "button",
+                                       "aria-label": "Réduire le nombre de personnes",
+                                       disabled: (menu.default_people <= 1),
+                                       data: { action: "click->menu-params#decrementPeople" } } −
+              %span.mc-stepper-val{ data: { menu_params_target: "peopleDisplay" } }
+                = menu.default_people
+              %span.mc-stepper-label pers.
+              %button.mc-stepper-btn{ type: "button",
+                                       "aria-label": "Augmenter le nombre de personnes",
+                                       disabled: (menu.default_people >= 12),
+                                       data: { action: "click->menu-params#incrementPeople" } } +
+              = f.hidden_field :default_people, value: menu.default_people,
+                               data: { menu_params_target: "peopleInput" }
+
+      .mc-settings-sep
+
+      .mc-setting
+        .mc-setting-icon.mc-setting-icon--diet
+          = svg_icon("leaf", size: 17)
+        .mc-setting-body
+          %span.mc-setting-label Type de régime
+
+          -# Changer le régime est destructif : toutes les recettes sont remplacées
+          .mc-diet-picker{ data: { menu_params_target: "dietPicker" } }
+            %button.mc-diet-toggle{ type: "button",
+                                     "aria-expanded": "false",
+                                     "aria-haspopup": "listbox",
+                                     data: { action: "click->menu-params#toggleDietPicker",
+                                             menu_params_target: "dietToggle" } }
+              = menu_diet_label(menu.diet)
+              = svg_icon("chevron-down", size: 11, css_class: "mc-diet-chevron")
+            .mc-diet-options{ data: { menu_params_target: "dietOptions" }, hidden: true, role: "listbox" }
+              - Menu.diets.keys.each do |diet_key|
+                - if diet_key == menu.diet
+                  %span.mc-diet-opt.mc-diet-opt--current{ role: "option", "aria-selected": "true" }
+                    = svg_icon("check", size: 10)
+                    = menu_diet_label(diet_key)
+                - else
+                  = form_with url: regenerate_menu_path(menu), method: :post, class: "mc-diet-opt-form" do
+                    = hidden_field_tag "menu[diet]", diet_key
+                    = hidden_field_tag "menu[number_of_meals]", menu_recipes.size
+                    %button.mc-diet-opt{ type: "submit",
+                                          role: "option",
+                                          "aria-selected": "false",
+                                          data: { turbo_confirm: "Passer en « #{menu_diet_label(diet_key)} » remplacera toutes les recettes du menu. Continuer ?" } }
+                      = menu_diet_label(diet_key)
+
+      %span.mc-settings-note
+        = svg_icon("info", size: 12)
+        S'applique à tout le menu

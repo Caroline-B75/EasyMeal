@@ -33,7 +33,6 @@ class MenusController < ApplicationController
     recipe_includes = [ :photo_attachment ]
     recipe_includes << :ingredients if @menu.status_archived?
     @menu_recipes = @menu.menu_recipes.includes(recipe: recipe_includes).by_position
-    @existing_draft = current_user.menus.status_draft.where.not(id: @menu.id).recent.first if @menu.status_active?
   end
 
   # GET /menus/new

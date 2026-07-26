@@ -19,6 +19,9 @@ export default class extends Controller {
     // Ferme le dropdown régime lorsque l'utilisateur clique hors du composant
     this.boundClickOutside = this.clickOutside.bind(this)
     document.addEventListener("click", this.boundClickOutside)
+
+    // Référence pour ne pas déclencher de PATCH si le nom n'a pas changé
+    this.savedName = this.hasNameInputTarget ? this.nameInputTarget.value : null
   }
 
   disconnect() {
@@ -27,8 +30,18 @@ export default class extends Controller {
 
   // ── Nom du menu ─────────────────────────────────────────────
 
-  // Déclenché par l'événement blur sur le champ nom
+  // Le crayon n'est qu'une affordance : il donne le focus au champ du titre
+  focusName() {
+    this.nameInputTarget.focus()
+    this.nameInputTarget.select()
+  }
+
+  // Déclenché par l'événement blur sur le champ nom.
+  // Un blur sans modification (simple clic ailleurs) ne doit pas re-rendre l'en-tête.
   saveName() {
+    if (this.nameInputTarget.value === this.savedName) return
+
+    this.savedName = this.nameInputTarget.value
     this.nameFormTarget.requestSubmit()
   }
 

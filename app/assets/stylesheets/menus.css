@@ -1021,32 +1021,6 @@
   font-weight: 500;
 }
 
-/* Chip "Actif" (barre contextuelle menu actif) */
-.mc-chip-active {
-  background: var(--color-success-light);
-  color: var(--color-success-text);
-}
-
-/* ── Draft view : personnalisation ─────────────────────── */
-.menu-draft-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.menu-draft-title {
-  font-size: var(--font-size-2xl);
-  font-weight: 600;
-  color: var(--color-ink);
-  margin: 0;
-}
-
-.menu-draft-toolbar-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
 /* ── Liste meal-cards ──────────────────────────────────── */
 .meal-cards-list {
   display: flex;
@@ -1156,92 +1130,6 @@
   }
 }
 
-/* ── People form ───────────────────────────────────────── */
-.people-form {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.people-label {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  cursor: pointer;
-}
-
-.people-input {
-  width: 3.5rem;
-  text-align: center;
-  padding: 0.375rem 0.5rem;
-  border: var(--border-thin);
-  border-radius: var(--radius-input);
-  font-size: var(--font-size-xs);
-  color: var(--color-ink);
-  background: var(--color-bg-white);
-}
-
-.people-input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-primary-light);
-}
-
-.people-label-text {
-  font-size: var(--font-size-xs);
-  color: var(--color-ink-3);
-}
-
-/* ── Meal card actions ─────────────────────────────────── */
-.meal-card-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.inline-form {
-  display: inline;
-}
-
-/* ── Draft footer ──────────────────────────────────────── */
-.menu-draft-footer {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: var(--border-thin);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.menu-draft-summary {
-  font-size: var(--font-size-base);
-  color: var(--color-ink-3);
-}
-
-.menu-draft-summary strong { color: var(--color-ink); }
-
-.menu-draft-summary-sep {
-  margin: 0 0.25rem;
-  color: var(--color-ink-4);
-}
-
-.menu-draft-empty {
-  text-align: center;
-  padding: 2rem;
-  color: var(--color-ink-3);
-  background: var(--color-bg-secondary);
-  border-radius: var(--radius-card);
-  border: var(--border-width) dashed var(--color-border-strong);
-}
-
-.menu-draft-empty-text {
-  font-weight: 500;
-  color: var(--color-ink-2);
-  margin-bottom: 0.25rem;
-}
-
 /* ── Badge ambre d'information (badge « de saison » meal-card + badge
       « quantité augmentée » de la liste de courses) ──────── */
 .badge-amber {
@@ -1269,30 +1157,9 @@
     justify-content: flex-start;
   }
 
-  .menu-draft-toolbar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
-  }
-
   .meal-card {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .meal-card-actions {
-    width: 100%;
-    justify-content: flex-end;
-  }
-
-  .menu-draft-footer {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .menu-draft-footer .btn-lg {
-    width: 100%;
-    justify-content: center;
   }
 
   .mn-form-section {
@@ -1771,63 +1638,7 @@
    Maquette : easymeal_menu_customize.html — Slate Craft Premium
    ============================================================ */
 
-/* ── Context bar ───────────────────────────────────────── */
-.mc-context-bar {
-  background: var(--color-bg-white);
-  border-bottom: var(--border-thin);
-  padding: 10px 28px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.mc-bc-link {
-  font-size: var(--font-size-sm);
-  color: var(--color-ink-3);
-  text-decoration: none;
-  cursor: pointer;
-}
-.mc-bc-link:hover { color: var(--color-ink); }
-
-.mc-bc-sep {
-  font-size: var(--font-size-xs);
-  color: var(--color-border);
-}
-
-.mc-bc-current {
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: var(--color-ink);
-}
-
-.mc-chip {
-  font-size: var(--font-size-xs);
-  padding: 2px 8px;
-  background: var(--color-bg-secondary);
-  border: var(--border-thin);
-  border-radius: var(--radius-button);
-  color: var(--color-ink-3);
-}
-
-.mc-chip-draft {
-  background: var(--color-accent-light);
-  border-color: var(--color-accent-hover);
-  color: var(--color-accent-text);
-}
-
-.mc-ctx-btns {
-  margin-left: auto;
-  display: flex;
-  gap: 6px;
-}
-
-/* Les form générés par button_to doivent rester inline */
-.mc-ctx-btns form.button_to,
-.mc-ctx-btns form {
-  display: inline;
-}
-
+/* ── Bouton secondaire compact (actions d'en-tête) ─────── */
 .mc-btn-outline-sm {
   font-size: var(--font-size-xs);
   padding: 5px 10px;
@@ -1849,19 +1660,17 @@
   border-color: var(--color-border-strong);
   box-shadow: var(--shadow-sm);
 }
-.mc-btn-outline-sm svg { width: 11px; height: 11px; flex-shrink: 0; }
+/* Taille des icônes : portée par l'attribut size de svg_icon dans la vue.
+   .svg-icon (components.css) fournit déjà l'alignement et flex-shrink. */
 
-.mc-btn-danger-sm {
-  font-size: var(--font-size-xs);
-  padding: 5px 10px;
-  border-radius: var(--radius-button);
-  border: var(--border-width) solid var(--color-danger-border);
+/* Variante destructive : neutre au repos (le bouton ne crie pas), rouge au
+   survol / focus pour signaler la conséquence avant le clic. */
+.mc-btn-outline-sm--danger:hover,
+.mc-btn-outline-sm--danger:focus-visible {
   background: var(--color-danger-light);
+  border-color: var(--color-danger-border);
   color: var(--color-danger-text);
-  cursor: pointer;
-  transition: background var(--transition-fast);
 }
-.mc-btn-danger-sm:hover { background: var(--color-danger-bg-hover); }
 
 /* ── Page layout ───────────────────────────────────────── */
 .mc-page-outer {
@@ -1895,6 +1704,225 @@
   font-size: var(--font-size-xs);
   color: var(--color-ink-3);
 }
+
+/* ── En-tête de page menu (mc-head-*) ──────────────────────
+   Remplace l'ancienne barre contextuelle : le statut et les actions
+   secondaires vivent maintenant dans la page, au-dessus du titre du menu.
+   Rendu par menus/_page_head — brouillon et menu actif. */
+.mc-head {
+  margin-bottom: 28px;
+}
+
+.mc-head-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+/* Pastille de statut de la page */
+.mc-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: var(--radius-badge);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.mc-kicker::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.mc-kicker--draft {
+  background: var(--color-accent-light);
+  color: var(--color-accent-text);
+}
+
+.mc-kicker--active {
+  background: var(--color-success-light);
+  color: var(--color-success-text);
+}
+
+.mc-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* button_to enveloppe chaque bouton dans un <form> : il ne doit pas rompre
+   l'alignement de la rangée d'actions. */
+.mc-head-actions form.button_to {
+  display: inline-flex;
+  margin: 0;
+}
+
+/* ── Titre : nom du menu ───────────────────────────────── */
+.mc-head-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.mc-head-title,
+.mc-head-title-input {
+  font-family: Georgia, serif;
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+/* Le nom du brouillon s'édite sur place : le champ se fond dans le titre et
+   ne se révèle qu'au survol / focus pour ne pas alourdir l'en-tête. */
+.mc-head-title-input {
+  /* Largeur naturelle donnée par l'attribut size (calé sur la longueur du nom),
+     bornée pour ne jamais déborder ; field-sizing affine au caractère près sur
+     les navigateurs qui le supportent. */
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 560px;
+  field-sizing: content;
+  padding: 1px 2px;
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px solid transparent;
+  border-radius: 0;
+  transition: border-color var(--transition-fast);
+}
+
+.mc-head-title-input:hover { border-bottom-color: var(--color-border-strong); }
+
+.mc-head-title-input:focus {
+  outline: none;
+  border-bottom-color: var(--color-primary);
+}
+
+.mc-head-title-input::placeholder { color: var(--color-ink-4); }
+
+/* Crayon : affordance d'édition du nom (le champ reste éditable au clic direct) */
+.mc-head-title-edit {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-white);
+  border: var(--border-thin);
+  border-radius: var(--radius-icon-btn);
+  color: var(--color-ink-3);
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast),
+              box-shadow var(--transition-fast);
+}
+
+.mc-head-title-edit:hover {
+  color: var(--color-ink);
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Ligne méta ────────────────────────────────────────── */
+.mc-head-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
+}
+
+.mc-head-meta-sep { color: var(--color-border-strong); }
+
+/* ── Réglages du menu (brouillon) ──────────────────────────
+   Panneau des paramètres qui s'appliquent à tout le menu : nombre de
+   personnes et régime alimentaire. */
+.mc-settings {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-top: 18px;
+  padding: 14px 18px;
+  background: var(--color-bg-white);
+  border: var(--border-thin);
+  border-radius: var(--radius-card);
+}
+
+.mc-setting {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Pastille d'icône — même vocabulaire que les cartes du formulaire de génération */
+.mc-setting-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-card);
+}
+
+.mc-setting-icon--people {
+  background: var(--color-icon-violet-bg);
+  color: var(--color-icon-violet);
+}
+
+.mc-setting-icon--diet {
+  background: var(--color-diet-vege-bg);
+  color: var(--color-success);
+}
+
+.mc-setting-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mc-setting-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+
+/* Séparateur vertical entre deux réglages */
+.mc-settings-sep {
+  width: var(--border-width);
+  align-self: stretch;
+  background: var(--color-border);
+}
+
+/* Rappel de la portée des réglages */
+.mc-settings-note {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
+}
+
+.mc-settings-note svg { color: var(--color-ink-4); }
 
 /* ── Card grid ─────────────────────────────────────────── */
 .mc-card-grid {
@@ -2137,7 +2165,6 @@
   padding: 14px 0;
   margin-top: 4px;
   background: var(--color-bg-main);
-  border-top: var(--border-thin);
 }
 
 /* Le form de button_to doit rester inline */
@@ -2170,23 +2197,43 @@
 
 /* ── Responsive (mc-*) ─────────────────────────────────── */
 @media (max-width: 767px) {
-  /* Barre contextuelle : plutôt que de masquer les actions, on les affiche en
-     pleine largeur sous le fil d'Ariane. « Modifier ce menu » (revert_to_draft)
-     n'existe QUE là → la masquer rendait impossible de repasser un menu actif en
-     brouillon sur mobile. Concerne aussi « Modifier les paramètres »/« Supprimer ». */
-  .mc-ctx-btns {
+  /* En-tête : le statut passe au-dessus des actions, qui s'étalent sur toute la
+     largeur. On ne masque jamais une action — « Modifier ce menu »
+     (revert_to_draft) n'existe QUE là, la masquer rendrait impossible de
+     repasser un menu actif en brouillon sur mobile. */
+  .mc-head-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .mc-head-actions {
     width: 100%;
-    margin-left: 0;
     flex-wrap: wrap;
     gap: 8px;
   }
 
-  .mc-btn-outline-sm,
-  .mc-btn-danger-sm {
+  .mc-btn-outline-sm {
     min-height: var(--min-touch-target);
     padding: 8px 14px;
     font-size: var(--font-size-sm);
   }
+
+  .mc-head-title,
+  .mc-head-title-input {
+    font-size: 22px;
+  }
+
+  /* Réglages empilés : chaque ligne garde son icône et son libellé lisibles */
+  .mc-settings {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .mc-settings-sep { display: none; }
+
+  .mc-settings-note { margin-left: 0; }
 
   .mc-page-outer { padding: 16px 16px 48px; }
 
@@ -2224,8 +2271,16 @@
     font-size: 12px; /* évite aussi le zoom iOS au focus */
   }
 
-  .mc-context-bar {
-    padding: 8px 16px;
+  /* Réglages du menu au doigt : stepper et sélecteur de régime à hauteur de cible */
+  .mc-stepper,
+  .mc-diet-toggle {
+    height: var(--min-touch-target);
+  }
+
+  .mc-stepper-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
   }
 
   .mc-btn-validate {
@@ -2309,86 +2364,40 @@
 }
 
 /* ============================================
-   BARRE DE PARAMÈTRES INLINE (mc-ctx-*, mc-diet-*, mc-stepper-*, mc-name-*)
-   Barre interactive en haut de la vue brouillon : édition inline du nom,
-   sélecteur de régime, stepper personnes. Design Slate Craft Premium.
+   CONTRÔLES DES RÉGLAGES DU MENU (mc-diet-*, mc-stepper-*)
+   Sélecteur de régime et stepper « personnes » du panneau .mc-settings
+   (vue brouillon). Design Slate Craft Premium.
    ============================================ */
 
-/* Groupes internes de la context-bar interactive */
-.mc-ctx-nav {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex: 1;
-  min-width: 0;
-}
-
-.mc-ctx-chips {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.mc-ctx-actions {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* Les forms générés par button_to dans les actions doivent rester inline */
-.mc-ctx-actions form.button_to,
-.mc-ctx-actions form {
-  display: inline-flex;
-}
-
-/* Nom du menu — champ texte inline transparent */
-.mc-name-form {
+/* Déclencheur du sélecteur de régime — même vocabulaire visuel que les selects
+   de l'app (fond blanc, bordure fine, chevron à droite). */
+.mc-diet-toggle {
   display: inline-flex;
   align-items: center;
-  min-width: 0;
-}
-
-.mc-name-input {
-  background: transparent;
-  border: none;
-  border-bottom: 1.5px solid transparent;
-  border-radius: 0;
-  padding: 1px 4px;
-  font-size: 13px;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 150px;
+  height: 32px;
+  padding: 0 10px;
+  background: var(--color-bg-white);
+  border: var(--border-thin);
+  border-radius: var(--radius-button);
+  font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--color-ink);
-  min-width: 140px;
-  max-width: 240px;
-  outline: none;
-  transition: border-color var(--transition-fast);
-}
-
-.mc-name-input:hover {
-  border-bottom-color: var(--color-border);
-}
-
-.mc-name-input:focus {
-  border-bottom-color: var(--color-primary);
-}
-
-.mc-name-input::placeholder {
-  color: var(--color-ink-4);
-  font-weight: 400;
-}
-
-/* Chip cliquable (ex: sélecteur de régime) */
-.mc-chip-clickable {
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  transition: background var(--transition-fast);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.mc-chip-clickable:hover {
-  background: var(--color-bg-tertiary);
+.mc-diet-toggle:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.mc-diet-toggle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+  border-color: var(--color-primary);
 }
 
 .mc-diet-chevron {
@@ -2397,7 +2406,7 @@
   flex-shrink: 0;
 }
 
-.mc-chip-clickable[aria-expanded="true"] .mc-diet-chevron {
+.mc-diet-toggle[aria-expanded="true"] .mc-diet-chevron {
   transform: rotate(180deg);
 }
 
@@ -2459,26 +2468,27 @@
 .mc-stepper {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  background: var(--color-bg-secondary);
-  border: 0.5px solid var(--color-border);
-  border-radius: 2px;
-  padding: 2px 6px;
+  gap: 2px;
+  height: 32px;
+  padding: 0 4px;
+  background: var(--color-bg-white);
+  border: var(--border-thin);
+  border-radius: var(--radius-button);
 }
 
 .mc-stepper-btn {
   background: none;
   border: none;
   color: var(--color-ink-2);
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border-radius: 2px;
+  border-radius: var(--radius-badge);
   padding: 0;
   transition: background var(--transition-fast);
   flex-shrink: 0;
@@ -2494,7 +2504,7 @@
 }
 
 .mc-stepper-val {
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--color-ink);
   min-width: 16px;
@@ -2502,40 +2512,10 @@
 }
 
 .mc-stepper-label {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: var(--color-ink-3);
   letter-spacing: 0.02em;
-}
-
-/* Label textuel du bouton "Supprimer" — masqué sur mobile */
-.mc-btn-label-desktop {
-  display: none;
-}
-
-@media (min-width: 768px) {
-  .mc-btn-label-desktop {
-    display: inline;
-  }
-}
-
-/* Responsive : sur mobile la nav et les chips passent sur 2 lignes */
-@media (max-width: 767px) {
-  .mc-ctx-nav {
-    width: 100%;
-  }
-
-  .mc-name-input {
-    min-width: 120px;
-    max-width: 180px;
-  }
-
-  .mc-ctx-chips {
-    flex: 1;
-  }
-
-  .mc-ctx-actions {
-    margin-left: 0;
-  }
+  padding-right: 2px;
 }
 
 /* ============================================

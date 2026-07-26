@@ -52,10 +52,8 @@
         %span.mn-form-card-title Nombre de personnes
       .mn-form-card-body.mn-form-card-body--compact
         .mn-slider-display
-          .mn-slider-icon.mn-slider-icon--people{ "aria-hidden": "true" }
-            %svg{ width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round" }
-              %path{ d: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" }
-              %circle{ cx: 12, cy: 7, r: 4 }
+          .mn-slider-icon.mn-slider-icon--people
+            = svg_icon("users", size: 20)
           %span.mn-slider-big{ data: { menu_generate_target: "peopleDisplay" } }= default_people
           %span.mn-slider-label{ data: { menu_generate_target: "peopleUnit" } }
             = default_people == 1 ? "personne" : "personnes"
@@ -76,11 +74,8 @@
         %span.mn-form-card-title Nombre de repas
       .mn-form-card-body.mn-form-card-body--compact
         .mn-slider-display
-          .mn-slider-icon.mn-slider-icon--meals{ "aria-hidden": "true" }
-            %svg{ width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round" }
-              %path{ d: "M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" }
-              %path{ d: "M7 2v20" }
-              %path{ d: "M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" }
+          .mn-slider-icon.mn-slider-icon--meals
+            = svg_icon("utensils", size: 20)
           %span.mn-slider-big{ data: { menu_generate_target: "mealsDisplay" } }= default_meals
           %span.mn-slider-label repas
         = f.range_field :number_of_meals, min: 1, max: 14, value: default_meals,

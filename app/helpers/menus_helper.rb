@@ -62,6 +62,43 @@ module MenusHelper
     menu.pending_revalidation? ? "Modification à revalider" : "Menu à valider"
   end
 
+  # Libellé du bandeau de statut en haut de la page d'un menu.
+  # Registre différent de menu_status_label (badges compacts des listes) : ce
+  # bandeau annonce l'état de la page que l'utilisatrice est en train de lire.
+  def menu_head_kicker_label(menu)
+    case
+    when menu.status_draft?  then menu.pending_revalidation? ? "Modification à revalider" : "Menu en préparation"
+    when menu.status_active? then "Menu actif"
+    else "Menu archivé"
+    end
+  end
+
+  # Détails de la ligne méta de l'en-tête, affichés après le nombre de repas.
+  # Régime et personnes ne sont listés que hors brouillon : le brouillon les
+  # expose juste en dessous sous forme de réglages modifiables.
+  def menu_head_meta_details(menu)
+    details = []
+    unless menu.status_draft?
+      details << menu_diet_label(menu.diet)
+      details << "#{menu.default_people} pers. par défaut"
+    end
+    details << "Créé le #{french_date(menu.created_at)}"
+    details
+  end
+
+  # Confirmation du retour en brouillon d'un menu actif (R3.2bis).
+  # Un seul brouillon peut exister : si l'utilisatrice en a déjà un, cette
+  # modification le remplacera — on l'annonce avant d'agir.
+  def menu_revert_to_draft_confirm(menu)
+    message = "Repasser ce menu en brouillon pour le modifier ? À la revalidation, ta liste de courses " \
+              "sera mise à jour : les articles déjà cochés le restent, sauf si leur quantité augmente."
+    existing_draft = current_user.menus.status_draft.where.not(id: menu.id).recent.first
+    return message if existing_draft.nil?
+
+    "#{message}\n\nAttention : tu as déjà un menu « #{existing_draft.name} » à valider. " \
+      "Il sera remplacé par cette modification à revalider."
+  end
+
   def menu_validation_button_label(menu)
     menu.pending_revalidation? ? "Revalider les modifications" : "Valider et générer la liste de courses"
   end

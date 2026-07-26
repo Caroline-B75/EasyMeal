@@ -35,7 +35,7 @@ RSpec.describe "Vues menus R3.2bis", type: :request do
 
       expect(response).to have_http_status(:success)
       expect(response.body).to include("Modifier ce menu")
-      expect(response.body).to include("Actif")
+      expect(response.body).to include("Menu actif")
     end
   end
 

@@ -3,8 +3,11 @@
 -# menu : Menu(status: :draft)
 -# menu_recipes : collection ordonnée des MenuRecipe
 
-.mc-page-outer
+.mc-page-outer{ data: { controller: "menu-customize",
+                        menu_customize_reorder_url_value: reorder_menu_menu_recipes_path(menu) } }
   .mc-page-wrap
+
+    = render "menus/page_head", menu: menu, menu_recipes: menu_recipes
 
     .mc-page-header
       .mc-page-title= menu.pending_revalidation? ? "Modifie ton menu" : "Compose ton prochain menu"

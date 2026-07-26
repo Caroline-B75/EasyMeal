@@ -6,9 +6,10 @@
 .mc-page-outer
   .mc-page-wrap
 
+    = render "menus/page_head", menu: menu, menu_recipes: menu_recipes
+
     .mc-page-header
-      .mc-page-title Menu en cours
-      .mc-page-hint= "#{menu_recipes.size} repas"
+      .mc-page-title Repas du menu
 
     .mc-card-grid
       - if menu_recipes.any?
@@ -19,7 +20,9 @@
           %p.mc-empty-text Aucun repas dans ce menu.
 
     -# ── Bouton d'accès à la liste de courses ─────────────
-    .mc-validate-zone
+    -# Sticky comme la validation du brouillon : c'est l'action principale de
+    -# la page, elle doit rester atteignable pendant le défilement.
+    .mc-validate-zone{ class: ("mc-validate-zone--sticky" if menu_recipes.any?) }
       = link_to grocery_menu_path(menu), class: "mc-btn-validate" do
         Voir la liste de courses
         = svg_icon("list", size: 15)
