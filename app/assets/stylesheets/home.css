@@ -5,6 +5,20 @@
 /* Hero Section - Section principale de la page d'accueil */
 .hero-section {
   position: relative;
+  --hero-logo-max-width: 300px;
+  --hero-logo-margin-bottom: 3rem;
+  --hero-content-padding: 2rem;
+  --hero-content-max-width: 900px;
+  --hero-greeting-size: 2.4rem;
+  --hero-greeting-subtext-size: 1.3rem;
+  --hero-greeting-subtext-margin-bottom: 32px;
+  --hero-title-size: 2.8rem;
+  --hero-title-margin-bottom: 1.5rem;
+  --hero-subtitle-size: var(--font-size-2xl);
+  --hero-subtitle-margin-bottom: 3rem;
+  --hero-button-padding: 1.25rem 3rem;
+  --hero-button-font-size: var(--font-size-xl);
+  --hero-cta-direction: row;
   flex: 1;
   width: 100%;
   display: flex;
@@ -47,20 +61,19 @@
   position: relative;
   z-index: 3;
   text-align: center;
-  padding: 2rem;
-  max-width: 900px;
+  padding: var(--hero-content-padding);
+  max-width: var(--hero-content-max-width);
   margin: 0 auto;
-  animation: fadeInUp 0.5s ease-out;
 }
 
 /* Logo EasyMeal */
 .hero-logo {
-  margin-bottom: 3rem;
+  margin-bottom: var(--hero-logo-margin-bottom);
   animation: fadeIn 0.5s ease-out;
 }
 
 .hero-logo img {
-  max-width: 400px;
+  max-width: var(--hero-logo-max-width);
   width: 100%;
   height: auto;
 }
@@ -71,12 +84,11 @@
 
 .hero-greeting {
   text-align: center;
-  animation: fadeInUp 0.5s ease-out;
 }
 
 /* Phrase de salutation — serif, couleur accent fort */
 .hero-greeting-text {
-  font-size: 2.4rem;
+  font-size: var(--hero-greeting-size);
   font-weight: 700;
   color: var(--color-primary);
   line-height: 1.2;
@@ -86,62 +98,69 @@
 /* Sous-texte contextuel — voix douce, sans-serif système */
 .hero-greeting-subtext {
   font-family: system-ui, -apple-system, sans-serif;
-  font-size: 1.3rem;
+  font-size: var(--hero-greeting-subtext-size);
   font-weight: 400;
   color: var(--color-ink-3);
   line-height: 1.6;
   margin-top: 10px;
-  margin-bottom: 32px;
+  margin-bottom: var(--hero-greeting-subtext-margin-bottom);
 }
 
 /* Titre et sous-titre */
 .hero-title {
-  font-size: 3.2rem;
+  --hero-entry-delay: 0.05s;
+  font-size: var(--hero-title-size);
   font-weight: 700;
-  color: #2a2a2a;
-  margin-bottom: 1.5rem;
+  color: var(--color-ink);
+  margin-bottom: var(--hero-title-margin-bottom);
   line-height: 1.2;
-  animation: fadeInUp 0.5s ease-out 0.05s both;
 }
 
 .hero-subtitle {
-  font-size: var(--font-size-2xl);
-  color: #2a2a2a;
-  margin-bottom: 3rem;
+  --hero-entry-delay: 0.12s;
+  font-size: var(--hero-subtitle-size);
+  color: var(--color-ink);
+  margin-bottom: var(--hero-subtitle-margin-bottom);
   line-height: 1.6;
   font-weight: 300;
   max-width: 700px;
   margin-left: auto;
   margin-right: auto;
-  animation: fadeInUp 0.5s ease-out 0.12s both;
 }
 
 /* Call-to-Action Button */
 .hero-cta {
-  animation: fadeInUp 0.5s ease-out 0.2s both;
+  --hero-entry-delay: 0.2s;
+  display: flex;
+  flex-direction: var(--hero-cta-direction);
+  justify-content: center;
+  gap: var(--spacing-md);
 }
 
 .btn-hero {
   display: inline-block;
-  padding: 1.25rem 3rem;
-  font-size: var(--font-size-xl);
+  padding: var(--hero-button-padding, 1.25rem 3rem);
+  font-size: var(--hero-button-font-size, var(--font-size-xl));
   font-weight: 600;
   color: var(--color-bg-white);
   background: var(--color-primary);
   border: none;
   border-radius: var(--radius-button);
   text-decoration: none;
-  transition: all var(--transition-slow) ease;
+  transition:
+    color var(--transition-slow) ease,
+    background-color var(--transition-slow) ease,
+    border-color var(--transition-slow) ease,
+    box-shadow var(--transition-slow) ease,
+    transform var(--transition-slow) ease;
   cursor: pointer;
   box-shadow: var(--shadow-lg);
   position: relative;
   overflow: hidden;
+  isolation: isolate;
 }
 
-.btn-hero:hover,
-.btn-hero:focus,
-.btn-hero:active,
-.btn-hero:visited {
+.btn-hero:is(:hover, :focus, :active, :visited) {
   color: var(--color-bg-white);
   text-decoration: none;
 }
@@ -180,13 +199,9 @@
   color: var(--color-ink-2);
   box-shadow: none;
   border: var(--border-thin);
-  margin-left: var(--spacing-md);
 }
 
-.btn-hero--secondary:hover,
-.btn-hero--secondary:focus,
-.btn-hero--secondary:active,
-.btn-hero--secondary:visited {
+.btn-hero--secondary:is(:hover, :focus, :active, :visited) {
   color: var(--color-ink);
   text-decoration: none;
 }
@@ -210,6 +225,7 @@
 /* Carte opérationnelle posée sur le hero (surface claire translucide,
    même langage visuel que .hero-step). */
 .hero-card {
+  --hero-entry-delay: 0.1s;
   margin: 0 auto 3rem;
   padding: var(--spacing-lg);
   text-align: left;
@@ -218,7 +234,6 @@
   border: var(--border-thin);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-lg);
-  animation: fadeInUp 0.5s ease-out 0.1s both;
 }
 
 /* En-tête : titre du menu + pastille de statut */
@@ -242,7 +257,7 @@
   font-size: var(--font-size-xl);
   font-weight: 700;
   color: var(--color-ink);
-  line-height: 0.3;
+  line-height: 1.2;
 }
 
 .hero-card-meal-count {
@@ -404,8 +419,7 @@
   transition: color var(--transition-fast);
 }
 
-.hero-card-link:hover,
-.hero-card-link:focus {
+.hero-card-link:is(:hover, :focus) {
   color: var(--color-ink);
 }
 
@@ -431,11 +445,21 @@
    SECTION « COMMENT ÇA MARCHE » (vitrine)
    ====================================== */
 .hero-steps {
+  --hero-entry-delay: 0.28s;
   display: flex;
   gap: var(--spacing-xl);
   justify-content: center;
   margin-top: var(--spacing-2xl);
-  animation: fadeInUp 0.5s ease-out 0.28s both;
+}
+
+.hero-content,
+.hero-greeting,
+.hero-title,
+.hero-subtitle,
+.hero-cta,
+.hero-card,
+.hero-steps {
+  animation: fadeInUp 0.5s ease-out var(--hero-entry-delay, 0s) both;
 }
 
 .hero-step {
@@ -517,50 +541,31 @@
 /* Mobile (< 768px) - Base par défaut */
 @media (max-width: 767px) {
   .hero-section {
+    --hero-logo-max-width: 280px;
+    --hero-content-padding: 1rem;
+    --hero-content-max-width: 100%;
+    --hero-greeting-size: 22px;
+    --hero-greeting-subtext-size: 16px;
+    --hero-greeting-subtext-margin-bottom: 24px;
+    --hero-title-size: var(--font-size-3xl);
+    --hero-title-margin-bottom: 1rem;
+    --hero-subtitle-size: 1.1rem;
+    --hero-subtitle-margin-bottom: 2rem;
+    --hero-button-padding: 1rem 2rem;
+    --hero-button-font-size: 1.1rem;
+    --hero-cta-direction: column;
     /* Hauteur ajustée dynamiquement par JavaScript */
     padding: 1rem 0;
     width: 100%;
   }
 
   .hero-content {
-    padding: 1rem;
     width: 100%;
-    max-width: 100%;
     box-sizing: border-box;
   }
 
-  .hero-logo img {
-    max-width: 280px;
-  }
-
-  .hero-greeting-text {
-    font-size: 22px;
-  }
-
-  .hero-greeting-subtext {
-    font-size: 16px;
-    margin-bottom: 24px;
-  }
-
-  .hero-title {
-    font-size: var(--font-size-3xl);
-    margin-bottom: 1rem;
-  }
-
-  .hero-subtitle {
-    font-size: 1.1rem;
-    margin-bottom: 2rem;
-  }
-
-  .btn-hero {
-    padding: 1rem 2rem;
-    font-size: 1.1rem;
+  .hero-cta .btn-hero {
     width: 100%;
-  }
-
-  .btn-hero--secondary {
-    margin-left: 0;
-    margin-top: var(--spacing-sm);
   }
 
   /* Carte dashboard mobile : pleine largeur, actions centrées */
@@ -589,10 +594,7 @@
     width: 100%;
   }
 
-  /* CTA vitrine empilés sur mobile */
   .hero-cta {
-    display: flex;
-    flex-direction: column;
     align-items: center;
     gap: var(--spacing-sm);
   }
@@ -600,25 +602,12 @@
 
 /* Tablette (768px - 1024px) */
 @media (min-width: 768px) and (max-width: 1024px) {
-  .hero-logo img {
-    max-width: 350px;
-  }
-
-  .hero-greeting-text {
-    font-size: 22px;
-  }
-
-  .hero-title {
-    font-size: 2.8rem;
-  }
-
-  .hero-subtitle {
-    font-size: 1.3rem;
-  }
-
-  .btn-hero {
-    padding: 1.15rem 2.5rem;
-    font-size: var(--font-size-xl);
+  .hero-section {
+    --hero-logo-max-width: 350px;
+    --hero-greeting-size: 22px;
+    --hero-title-size: 2.8rem;
+    --hero-subtitle-size: 1.3rem;
+    --hero-button-padding: 1.15rem 2.5rem;
   }
 
   /* Steps sur tablette : 3 colonnes serrées */
@@ -629,99 +618,54 @@
   .hero-step {
     max-width: 200px;
   }
-
-  /* CTA côte à côte sur tablette */
-  .hero-cta {
-    display: flex;
-    justify-content: center;
-    gap: var(--spacing-md);
-  }
 }
 
 /* Desktop (> 1024px) */
 @media (min-width: 1025px) {
   .hero-section {
+    --hero-content-padding: 3rem;
     min-height: 100vh;
     min-height: 90dvh;
   }
+}
 
-  .hero-content {
-    padding: 3rem;
-  }
-
-  .hero-logo img {
-    max-width: 440px;
-  }
-
-  /* CTA côte à côte sur desktop */
-  .hero-cta {
-    display: flex;
-    justify-content: center;
-    gap: var(--spacing-md);
+/* Desktop intermédiaire (1025px - 1440px) */
+@media (min-width: 1025px) and (max-width: 1440px) {
+  .hero-section {
+    --hero-logo-max-width: 440px;
   }
 }
 
 /* Très grands écrans (> 1440px) */
 @media (min-width: 1441px) {
-  .hero-title {
-    font-size: 3.5rem;
-  }
-
-  .hero-subtitle {
-    font-size: 1.5rem;
-  }
-
-  .hero-logo img {
-    max-width: 400px;
+  .hero-section {
+    --hero-title-size: 2.8rem;
+    --hero-subtitle-size: 1.5rem;
   }
 }
 
 /* Adaptation pour petits mobiles (< 375px) */
 @media (max-width: 374px) {
-  .hero-logo img {
-    max-width: 240px;
-  }
-
-  .hero-greeting-text {
-    font-size: 1rem;
-  }
-
-  .hero-title {
-    font-size: 1.75rem;
-  }
-
-  .hero-subtitle {
-    font-size: var(--font-size-base);
-  }
-
-  .btn-hero {
-    padding: 0.9rem 1.75rem;
-    font-size: var(--font-size-base);
+  .hero-section {
+    --hero-logo-max-width: 240px;
+    --hero-greeting-size: 1rem;
+    --hero-title-size: 1.75rem;
+    --hero-subtitle-size: var(--font-size-base);
+    --hero-button-padding: 0.9rem 1.75rem;
+    --hero-button-font-size: var(--font-size-base);
   }
 }
 
 /* Mode paysage sur mobile */
 @media (max-height: 600px) and (orientation: landscape) {
   .hero-section {
+    --hero-logo-max-width: 200px;
+    --hero-logo-margin-bottom: 1.5rem;
+    --hero-title-size: 1.75rem;
+    --hero-title-margin-bottom: 0.75rem;
+    --hero-subtitle-size: var(--font-size-base);
+    --hero-subtitle-margin-bottom: 1.5rem;
     min-height: auto;
     padding: 2rem 1rem;
-  }
-
-  .hero-logo {
-    margin-bottom: 1.5rem;
-  }
-
-  .hero-logo img {
-    max-width: 200px;
-  }
-
-  .hero-title {
-    font-size: 1.75rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .hero-subtitle {
-    font-size: var(--font-size-base);
-    margin-bottom: 1.5rem;
   }
 }

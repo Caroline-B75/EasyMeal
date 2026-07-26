@@ -1,24 +1,33 @@
 module ApplicationHelper
   include Pagy::Frontend
 
-  # Retourne un Greeting(text:, subtext:) personnalisé et aléatoire.
-  # Délègue la logique au GreetingService pour une meilleure séparation des responsabilités.
-  # La paire est stockée en session pour rester cohérente pendant toute la journée.
-  # Une nouvelle paire est générée chaque jour pour garder le charme de la personnalisation.
-  def random_greeting(user)
+  # Retourne un Greeting(text:, subtext:) personnalisé.
+  # Le cache varie aussi selon le contexte pour éviter de garder une phrase obsolète
+  # après validation, revalidation ou repassage d'un menu actif en brouillon.
+  def random_greeting(user, active_menu: nil, draft: nil)
     today = Date.today.to_s
     data = session[:user_greeting]
+    context = greeting_context(active_menu: active_menu, draft: draft).to_s
 
     # Réinitialiser si nouveau jour ou si le format en session est invalide (ex: ancienne session)
-    if session[:greeting_date] != today || !data.is_a?(Hash)
+    if session[:greeting_date] != today || !data.is_a?(Hash) || data["context"] != context
       session[:greeting_date] = today
-      greeting = GreetingService.new(user).random_greeting
+      greeting = GreetingService.new(user, context: context).random_greeting
       # Stocker avec clés string : JSON (cookie store) dépersiste les symboles en strings
-      session[:user_greeting] = { "text" => greeting.text, "subtext" => greeting.subtext }
+      session[:user_greeting] = { "text" => greeting.text, "subtext" => greeting.subtext, "context" => context }
       data = session[:user_greeting]
     end
 
     GreetingService::Greeting.new(data["text"], data["subtext"])
+  end
+
+  def greeting_context(active_menu:, draft:)
+    return :grocery_list_ready if active_menu&.grocery_items&.exists?
+    return :active_menu_ready if active_menu
+    return :pending_revalidation if draft&.pending_revalidation?
+    return :draft_ready if draft
+
+    :planning
   end
 
   # Vérifie si on est sur la page d'accueil

@@ -12,7 +12,7 @@
       = image_tag "logos/logo_EasyMeal.svg", alt: "EasyMeal - Planification de repas simplifiée"
 
     - if user_signed_in?
-      - greeting = random_greeting(current_user)
+      - greeting = random_greeting(current_user, active_menu: @active_menu, draft: @draft)
       .hero-greeting
         %p.hero-greeting-text= greeting.text
         %p.hero-greeting-subtext= greeting.subtext
