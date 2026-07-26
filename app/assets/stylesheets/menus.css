@@ -1680,11 +1680,13 @@
 }
 
 .mc-page-wrap {
-  width: 80%;
+  width: 75%;
   min-width: 480px;
-  max-width: 1050px;
+  max-width: 1400px;
 }
 
+/* Utilisé par grocery.html.haml (titre "Liste de courses") — les vues
+   brouillon/actif portent désormais leur titre dans .mc-head-title. */
 .mc-page-header {
   display: flex;
   align-items: baseline;
@@ -1698,11 +1700,6 @@
   font-size: 20px;
   font-weight: 400;
   color: var(--color-ink);
-}
-
-.mc-page-hint {
-  font-size: var(--font-size-xs);
-  color: var(--color-ink-3);
 }
 
 /* ── En-tête de page menu (mc-head-*) ──────────────────────
@@ -1849,19 +1846,29 @@
 
 .mc-head-meta-sep { color: var(--color-border-strong); }
 
-/* ── Réglages du menu (brouillon) ──────────────────────────
-   Panneau des paramètres qui s'appliquent à tout le menu : nombre de
-   personnes et régime alimentaire. */
-.mc-settings {
+/* ── Panneau de réglages (brouillon) ───────────────────────
+   Carte affichée en colonne latérale à côté de la grille de repas (voir
+   .mc-split ci-dessous) : nombre de personnes et régime alimentaire, les
+   deux réglages qui s'appliquent à tout le menu. Toujours empilée verticalement
+   (desktop et mobile) — pas de bascule flex-direction à gérer en responsive. */
+.mc-settings-panel {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 24px;
-  margin-top: 18px;
-  padding: 14px 18px;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
   background: var(--color-bg-white);
   border: var(--border-thin);
   border-radius: var(--radius-card);
+}
+
+.mc-settings-panel-title {
+  font-family: Georgia, serif;
+  font-size: 17px;
+  font-weight: 400;
+  color: var(--color-ink);
+  margin: 0;
+  padding-bottom: 16px;
+  border-bottom: var(--border-thin);
 }
 
 .mc-setting {
@@ -1895,6 +1902,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
 }
 
 .mc-setting-label {
@@ -1905,29 +1913,71 @@
   color: var(--color-ink-3);
 }
 
-/* Séparateur vertical entre deux réglages */
-.mc-settings-sep {
-  width: var(--border-width);
-  align-self: stretch;
+/* Séparateur horizontal entre les deux réglages */
+.mc-settings-panel-sep {
+  height: var(--border-width);
   background: var(--color-border);
 }
 
-/* Rappel de la portée des réglages */
-.mc-settings-note {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
+/* Rappel de la portée des réglages, en pied de carte */
+.mc-settings-panel-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  padding-top: 16px;
+  border-top: var(--border-thin);
   font-size: var(--font-size-xs);
+  line-height: 1.5;
   color: var(--color-ink-3);
 }
 
-.mc-settings-note svg { color: var(--color-ink-4); }
+/* flex-shrink + margin-top : l'icône reste alignée sur la 1ère ligne du texte
+   (et non centrée sur sa hauteur totale) quand la note tient sur 2 lignes. */
+.mc-settings-panel-note svg { flex-shrink: 0; margin-top: 2px; color: var(--color-ink-4); }
+
+/* ── Disposition brouillon : réglages en colonne latérale ──
+   Libère la largeur au-dessus de la grille de repas — le titre du menu n'est
+   plus repoussé vers le bas par une barre de réglages pleine largeur. */
+.mc-split {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.mc-split-aside {
+  flex: 0 0 260px;
+}
+
+.mc-split-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Sous le --breakpoint-tablet (1024px), la carte de réglages n'a plus la
+   place de cohabiter avec la grille : elle repasse au-dessus, pleine largeur.
+   (valeur dupliquée en dur : les media features n'acceptent pas var()) */
+@media (max-width: 1024px) {
+  .mc-split {
+    flex-direction: column;
+  }
+
+  .mc-split-aside {
+    flex-basis: auto;
+    width: 100%;
+  }
+}
 
 /* ── Card grid ─────────────────────────────────────────── */
+/* auto-fill plutôt qu'un repeat(7) figé : la grille s'adapte à la largeur
+   disponible, que la colonne soit pleine largeur (menu actif) ou réduite par
+   le panneau de réglages latéral (.mc-split-main, brouillon). Le minmax est
+   calé sur la largeur de carte obtenue par l'ancien repeat(7) à la largeur
+   max de page (~141px), pour ne rien changer visuellement en pleine largeur. */
 .mc-card-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
   gap: 10px;
   margin-bottom: 24px;
 }
@@ -2224,27 +2274,12 @@
     font-size: 22px;
   }
 
-  /* Réglages empilés : chaque ligne garde son icône et son libellé lisibles */
-  .mc-settings {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
-  }
-
-  .mc-settings-sep { display: none; }
-
-  .mc-settings-note { margin-left: 0; }
-
   .mc-page-outer { padding: 16px 16px 48px; }
 
   .mc-page-wrap {
     width: 100%;
     min-width: 0;
   }
-
-  /* Le glisser-déposer pour réordonner n'est pas disponible au doigt : on masque
-     l'indice « Glisse pour réordonner » qui induirait l'utilisatrice en erreur. */
-  .mc-page-hint { display: none; }
 
   /* Cartes assez larges (≥160px) pour que la barre d'actions tienne sans être
      coupée : le 110px précédent générait 3 colonnes sur les téléphones 390–430px
@@ -2365,7 +2400,7 @@
 
 /* ============================================
    CONTRÔLES DES RÉGLAGES DU MENU (mc-diet-*, mc-stepper-*)
-   Sélecteur de régime et stepper « personnes » du panneau .mc-settings
+   Sélecteur de régime et stepper « personnes » du panneau .mc-settings-panel
    (vue brouillon). Design Slate Craft Premium.
    ============================================ */
 

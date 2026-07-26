@@ -8,9 +8,6 @@
 
     = render "menus/page_head", menu: menu, menu_recipes: menu_recipes
 
-    .mc-page-header
-      .mc-page-title Repas du menu
-
     .mc-card-grid
       - if menu_recipes.any?
         - menu_recipes.each do |mr|

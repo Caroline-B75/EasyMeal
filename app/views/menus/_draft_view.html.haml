@@ -5,38 +5,43 @@
 
 .mc-page-outer{ data: { controller: "menu-customize",
                         menu_customize_reorder_url_value: reorder_menu_menu_recipes_path(menu) } }
-  .mc-page-wrap
+  -# menu-params : porté par cet ancêtre commun, pas par l'en-tête ou le panneau
+  -# de réglages pris isolément — il pilote le nom éditable (dans l'en-tête,
+  -# .mc-split-main) ET le stepper + le sélecteur de régime (dans le panneau,
+  -# .mc-split-aside), deux sous-arbres distincts.
+  .mc-page-wrap{ data: { controller: "menu-params" } }
 
     = render "menus/page_head", menu: menu, menu_recipes: menu_recipes
 
-    .mc-page-header
-      .mc-page-title= menu.pending_revalidation? ? "Modifie ton menu" : "Compose ton prochain menu"
-      .mc-page-hint= menu.pending_revalidation? ? "Revalide pour mettre à jour la liste" : "Glisse pour réordonner"
+    .mc-split
+      .mc-split-aside
+        = render "menus/settings_panel", menu: menu, menu_recipes: menu_recipes
 
-    .mc-card-grid{ data: { menu_customize_target: "grid" } }
+      .mc-split-main
+        .mc-card-grid{ data: { menu_customize_target: "grid" } }
 
-      - if menu_recipes.any?
-        - menu_recipes.each do |mr|
-          = render "menu_recipe_card", menu_recipe: mr, menu: menu
-      - else
-        .mc-empty-grid
-          %p.mc-empty-text Aucun repas dans ce menu.
+          - if menu_recipes.any?
+            - menu_recipes.each do |mr|
+              = render "menu_recipe_card", menu_recipe: mr, menu: menu
+          - else
+            .mc-empty-grid
+              %p.mc-empty-text Aucun repas dans ce menu.
 
-      -# ── Slot d'ajout (2 boutons empilés) ─────────────────
-      .mc-add-slot{ id: "add_slot", data: { menu_customize_target: "addSlot" } }
-        = link_to recipes_path, class: "mc-add-btn" do
-          = svg_icon("search", size: 15)
-          %span Depuis le catalogue
-        = button_to add_random_meal_menu_path(menu), method: :post, class: "mc-add-btn" do
-          = svg_icon("shuffle", size: 15)
-          %span Repas aléatoire
+          -# ── Slot d'ajout (2 boutons empilés) ─────────────────
+          .mc-add-slot{ id: "add_slot", data: { menu_customize_target: "addSlot" } }
+            = link_to recipes_path, class: "mc-add-btn" do
+              = svg_icon("search", size: 15)
+              %span Depuis le catalogue
+            = button_to add_random_meal_menu_path(menu), method: :post, class: "mc-add-btn" do
+              = svg_icon("shuffle", size: 15)
+              %span Repas aléatoire
 
-    -# ── Bouton de validation ───────────────────────────────
-    -# Sticky en bas dès qu'au moins un repas est présent : la validation
-    -# reste visible pendant qu'on fait défiler la grille de repas.
-    .mc-validate-zone{ class: ("mc-validate-zone--sticky" if menu_recipes.any?) }
-      = button_to activate_menu_path(menu), method: :post, class: "mc-btn-validate",
-                  disabled: menu_recipes.empty?,
-                  form: { data: { turbo_confirm: menu_validation_confirm(menu) } } do
-        = menu_validation_button_label(menu)
-        = svg_icon("arrow-right", size: 15)
+        -# ── Bouton de validation ───────────────────────────────
+        -# Sticky en bas dès qu'au moins un repas est présent : la validation
+        -# reste visible pendant qu'on fait défiler la grille de repas.
+        .mc-validate-zone{ class: ("mc-validate-zone--sticky" if menu_recipes.any?) }
+          = button_to activate_menu_path(menu), method: :post, class: "mc-btn-validate",
+                      disabled: menu_recipes.empty?,
+                      form: { data: { turbo_confirm: menu_validation_confirm(menu) } } do
+            = menu_validation_button_label(menu)
+            = svg_icon("arrow-right", size: 15)

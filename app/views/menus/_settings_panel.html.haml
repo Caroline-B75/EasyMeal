@@ -1,0 +1,77 @@
+-# Carte des réglages qui s'appliquent à tout le menu (brouillon uniquement) :
+-# nombre de personnes et régime alimentaire. Présentée en colonne latérale à
+-# côté de la grille de repas (voir _draft_view, .mc-split) — le titre du menu
+-# n'est ainsi plus repoussé vers le bas par une barre de réglages pleine largeur.
+-#
+-# Cible du Turbo Stream de mise à jour du nombre de personnes (voir
+-# update.turbo_stream.haml) : après un +/- du stepper, l'état disabled des
+-# boutons aux bornes (1 et 12) doit être rafraîchi depuis le serveur.
+-#
+-# Locals :
+-#   menu         : Menu (status: :draft)
+-#   menu_recipes : collection ordonnée des MenuRecipe (nombre de repas, pour la régénération de régime)
+
+.mc-settings-panel{ id: "menu_settings_#{menu.id}" }
+  %h2.mc-settings-panel-title Paramètres du menu
+
+  .mc-setting
+    .mc-setting-icon.mc-setting-icon--people
+      = svg_icon("users", size: 17)
+    .mc-setting-body
+      %span.mc-setting-label Nombre de personnes
+
+      -# Stepper : mise à jour instantanée du menu et de tous ses repas
+      = form_with model: menu, url: menu_path(menu), method: :patch,
+                  class: "mc-stepper-form",
+                  data: { menu_params_target: "peopleForm" } do |f|
+        .mc-stepper
+          %button.mc-stepper-btn{ type: "button",
+                                   "aria-label": "Réduire le nombre de personnes",
+                                   disabled: (menu.default_people <= 1),
+                                   data: { action: "click->menu-params#decrementPeople" } } −
+          %span.mc-stepper-val{ data: { menu_params_target: "peopleDisplay" } }
+            = menu.default_people
+          %span.mc-stepper-label pers.
+          %button.mc-stepper-btn{ type: "button",
+                                   "aria-label": "Augmenter le nombre de personnes",
+                                   disabled: (menu.default_people >= 12),
+                                   data: { action: "click->menu-params#incrementPeople" } } +
+          = f.hidden_field :default_people, value: menu.default_people,
+                           data: { menu_params_target: "peopleInput" }
+
+  .mc-settings-panel-sep
+
+  .mc-setting
+    .mc-setting-icon.mc-setting-icon--diet
+      = svg_icon("leaf", size: 17)
+    .mc-setting-body
+      %span.mc-setting-label Type de régime
+
+      -# Changer le régime est destructif : toutes les recettes sont remplacées
+      .mc-diet-picker{ data: { menu_params_target: "dietPicker" } }
+        %button.mc-diet-toggle{ type: "button",
+                                 "aria-expanded": "false",
+                                 "aria-haspopup": "listbox",
+                                 data: { action: "click->menu-params#toggleDietPicker",
+                                         menu_params_target: "dietToggle" } }
+          = menu_diet_label(menu.diet)
+          = svg_icon("chevron-down", size: 11, css_class: "mc-diet-chevron")
+        .mc-diet-options{ data: { menu_params_target: "dietOptions" }, hidden: true, role: "listbox" }
+          - Menu.diets.keys.each do |diet_key|
+            - if diet_key == menu.diet
+              %span.mc-diet-opt.mc-diet-opt--current{ role: "option", "aria-selected": "true" }
+                = svg_icon("check", size: 10)
+                = menu_diet_label(diet_key)
+            - else
+              = form_with url: regenerate_menu_path(menu), method: :post, class: "mc-diet-opt-form" do
+                = hidden_field_tag "menu[diet]", diet_key
+                = hidden_field_tag "menu[number_of_meals]", menu_recipes.size
+                %button.mc-diet-opt{ type: "submit",
+                                      role: "option",
+                                      "aria-selected": "false",
+                                      data: { turbo_confirm: "Passer en « #{menu_diet_label(diet_key)} » remplacera toutes les recettes du menu. Continuer ?" } }
+                  = menu_diet_label(diet_key)
+
+  %p.mc-settings-panel-note
+    = svg_icon("info", size: 12)
+    %span S'applique à tout le menu. Tu peux ajuster plat par plat ci-contre.
