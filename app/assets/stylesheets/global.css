@@ -5,6 +5,9 @@
 /* === Global Body Styles === */
 html {
   height: 100%;
+  /* Header sticky : une cible d'ancre (skip-link → #main-content) s'arrête sous
+     le header au lieu d'être masquée par lui. */
+  scroll-padding-top: var(--header-height);
 }
 
 body {

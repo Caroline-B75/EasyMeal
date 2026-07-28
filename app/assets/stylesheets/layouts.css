@@ -8,6 +8,15 @@
 .main-header {
   background: var(--color-bg-white);
   border-bottom: 1px solid var(--color-border-light);
+  /* Collé en haut du viewport : la navigation reste atteignable pendant tout
+     le défilement. Sa hauteur réelle est publiée en --header-height par le
+     controller sticky-header, que consomment les blocs sticky des pages. */
+  position: sticky;
+  top: 0;
+  /* Au-dessus du contenu et des éléments fixes de page (rail du menu 160,
+     bouton flottant « Filtres » 150), sous le backdrop (180) et le drawer des
+     filtres (200) qui doivent pouvoir le recouvrir. */
+  z-index: 170;
   /* Padding « design » via variables pour rester DRY entre breakpoints ;
      env(safe-area-inset-*) ajouté ici → le fond du header borde l'écran (encoche/barre d'état)
      tandis que son contenu reste dans la zone sûre. */
@@ -192,6 +201,8 @@
 }
 
 /* Dropdown menu */
+/* z-index local au contexte d'empilement du header sticky : c'est le z-index du
+   header (170) qui décide du rendu face au contenu de la page. */
 .user-dropdown {
   position: absolute;
   top: calc(100% + 0.35rem);

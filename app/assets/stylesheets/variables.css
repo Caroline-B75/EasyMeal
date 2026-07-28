@@ -143,6 +143,13 @@
      donc tout titre de page suit l'échelle sans la redéclarer. */
   --font-size-h1: clamp(1.25rem, 1rem + 1.1vw, var(--font-size-3xl));
 
+  /* === LAYOUT === */
+  /* Hauteur du header sticky. Valeur de repli (desktop) : la hauteur réelle,
+     qui dépend du breakpoint et de la zone sûre iOS, est publiée ici au runtime
+     par le controller sticky-header. Consommée par tout bloc qui doit s'ancrer
+     sous le header (sidebars sticky, scroll-padding des ancres internes). */
+  --header-height: 60px;
+
   /* === BREAKPOINTS (inchangés) === */
   --breakpoint-mobile: 768px;
   --breakpoint-tablet: 1024px;

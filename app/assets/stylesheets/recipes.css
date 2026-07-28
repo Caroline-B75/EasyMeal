@@ -922,14 +922,15 @@
   }
 
   /* Sidebar collée à gauche, pleine hauteur, fond quasi-blanc, fixe au scroll.
+     Ancrée sous le header sticky pour ne pas passer dessous.
      Densité aérée : tailles ≥ --font-size-sm pour rester lisibles sur desktop. */
   .recipes-sidebar {
     position: sticky;
-    top: 0;
+    top: var(--header-height);
     left: auto;
     width: auto;
     max-width: none;
-    height: 100vh;
+    height: calc(100vh - var(--header-height));
     max-height: none;
     background: var(--color-bg-white);
     border-radius: 0;
@@ -2170,9 +2171,10 @@
 @media (min-width: 768px) {
   .rs-sidebar {
     position: sticky;
-    top: 0;
+    /* Ancrée sous le header sticky pour ne pas passer dessous */
+    top: var(--header-height);
     align-self: start;
-    max-height: 100vh;
+    max-height: calc(100vh - var(--header-height));
     overflow-y: auto;
   }
 }
@@ -2509,13 +2511,14 @@ button.draft-rail-count:not(:disabled) {
 @media (min-width: 768px) {
   .draft-rail {
     position: sticky;
-    top: 0;
+    /* Ancré sous le header sticky pour ne pas passer dessous */
+    top: var(--header-height);
     left: auto;
     right: auto;
     bottom: auto;
     z-index: auto;
     width: 120px;
-    height: 100vh;
+    height: calc(100vh - var(--header-height));
     grid-template-columns: 1fr;
     /* Compteur en haut et bouton en bas toujours visibles : seule la liste des
        vignettes défile (piste 1fr bornée à 0 pour autoriser le scroll interne). */

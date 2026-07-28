@@ -541,7 +541,6 @@
     --hero-button-padding: 1rem 2rem;
     --hero-button-font-size: 1.1rem;
     --hero-cta-direction: column;
-    /* Hauteur ajustée dynamiquement par JavaScript */
     padding: 1rem 0;
     width: 100%;
   }

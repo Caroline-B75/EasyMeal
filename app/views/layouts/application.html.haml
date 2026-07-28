@@ -61,7 +61,7 @@
       - admin_draft_count = current_user.admin? ? Recipe.draft.count : 0
       - active_menu = current_active_menu
       - draft_menu = current_draft_menu
-      %header.main-header
+      %header.main-header{ data: { controller: "sticky-header" } }
         %nav.nav-container{ data: { controller: "menu" } }
           .nav-brand
             = link_to root_path, class: "brand-link" do
@@ -127,7 +127,7 @@
                   = link_to "Utilisateurs", users_path, class: "dropdown-link dropdown-link--admin"
                 = link_to "Me déconnecter", destroy_user_session_path, data: { turbo_method: :delete }, class: "dropdown-link logout"
     - else
-      %header.main-header.auth-header
+      %header.main-header.auth-header{ data: { controller: "sticky-header" } }
         %nav.nav-container
           .nav-brand
             = link_to root_path, class: "brand-link" do
