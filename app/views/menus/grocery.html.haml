@@ -8,8 +8,14 @@
   .mc-page-wrap
 
     -# ── En-tête ──────────────────────────────────────────────
+    -# Lien retour : on arrive ici directement après validation du menu (plus
+    -# de détour par sa vue en lecture seule), il faut donc un accès explicite
+    -# vers le menu pour retrouver "Modifier ce menu" / "Supprimer le menu".
     .mc-page-header
       .mc-page-title Liste de courses
+      = link_to menu_path(@menu), class: "mc-head-action" do
+        = svg_icon("chevron-left", size: 12)
+        Voir le menu
     -# ── Liste groupée par rayon ──────────────────────────────
     = render "grocery_list", menu: @menu, grocery_items: @grocery_items
 

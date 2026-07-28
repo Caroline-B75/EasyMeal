@@ -1,9 +1,13 @@
 -# En-tête de la page d'un menu (brouillon ou actif), rendu dans .mc-page-wrap.
 -#
--# Statut et actions secondaires sur la première ligne, puis nom du menu en
--# titre et ligne de méta. Les réglages qui s'appliquent à tout le menu
--# (brouillon) vivent à part, dans menus/_settings_panel — colonne latérale à
--# côté de la grille de repas (voir _draft_view, .mc-split).
+-# Le nom du menu ouvre la page : c'est l'identité de ce qu'on regarde, il ne
+-# doit être précédé de rien. Le statut est une métadonnée du titre — il vit
+-# donc dans la ligne de méta juste en dessous plutôt que sur une ligne à lui,
+-# qui porte aussi les actions secondaires, alignées à droite. Les actions
+-# principales (valider, voir la liste) sont le CTA en bas de page. Les réglages
+-# qui s'appliquent à tout le menu (brouillon) vivent à part, dans
+-# menus/_settings_panel — colonne latérale à côté de la grille de repas
+-# (voir _draft_view, .mc-split).
 -#
 -# Le brouillon rend le nom modifiable sur place via le controller menu-params,
 -# porté par l'ancêtre commun .mc-page-wrap (qui englobe aussi le panneau de
@@ -17,24 +21,6 @@
 - draft = menu.status_draft?
 
 .mc-head{ id: "menu_head_#{menu.id}" }
-
-  -# ── Statut + actions secondaires ─────────────────────────────
-  -# Les actions principales (valider, voir la liste) sont le CTA en bas de page :
-  -# on ne garde ici que le secondaire et le destructif.
-  .mc-head-top
-    %span{ class: "mc-kicker mc-kicker--#{menu.status}" }= menu_head_kicker_label(menu)
-
-    .mc-head-actions
-      - unless draft
-        = button_to revert_to_draft_menu_path(menu), method: :post, class: "mc-btn-outline-sm",
-                    form: { data: { turbo_confirm: menu_revert_to_draft_confirm(menu) } } do
-          = svg_icon("edit", size: 12)
-          Modifier ce menu
-      = button_to menu_path(menu), method: :delete,
-                  class: "mc-btn-outline-sm mc-btn-outline-sm--danger",
-                  form: { data: { turbo_confirm: "Supprimer ce menu définitivement ?" } } do
-        = svg_icon("trash", size: 12)
-        Supprimer le menu
 
   -# ── Nom du menu ──────────────────────────────────────────────
   -# Brouillon : champ éditable sur place, enregistré au blur (ou à Entrée).
@@ -55,10 +41,29 @@
     .mc-head-title-row
       %h1.mc-head-title= menu.name.presence || "Menu sans nom"
 
-  -# ── Méta ─────────────────────────────────────────────────────
+  -# ── Statut + méta + actions secondaires ──────────────────────
   .mc-head-meta
-    -# Compteur mis à jour en direct par menu-customize (ajout / retrait de repas)
-    %span{ data: { menu_customize_target: ("countChip" if draft) } }= "#{menu_recipes.size} repas"
-    - menu_head_meta_details(menu).each do |detail|
-      %span.mc-head-meta-sep ·
-      %span= detail
+    .mc-head-meta-facts
+      %span{ class: "mc-kicker mc-kicker--#{menu.status}" }= menu_head_kicker_label(menu)
+
+      -# Compteur mis à jour en direct par menu-customize (ajout / retrait de repas)
+      %span{ data: { menu_customize_target: ("countChip" if draft) } }= "#{menu_recipes.size} repas"
+      - menu_head_meta_details(menu).each do |detail|
+        %span.mc-head-meta-sep ·
+        %span= detail
+
+    -# Rendues en liens discrets et non en boutons : ce sont des actions rares,
+    -# un bouton encadré appellerait le clic. Pour la suppression, le rouge
+    -# n'apparaît qu'au survol / focus, juste avant le clic.
+    .mc-head-meta-actions
+      -# Repasser en brouillon n'a de sens que sur un menu déjà validé
+      - unless draft
+        = button_to revert_to_draft_menu_path(menu), method: :post, class: "mc-head-action",
+                    form: { data: { turbo_confirm: menu_revert_to_draft_confirm(menu) } } do
+          = svg_icon("edit", size: 12)
+          Modifier ce menu
+      = button_to menu_path(menu), method: :delete,
+                  class: "mc-head-action mc-head-action--danger",
+                  form: { data: { turbo_confirm: "Supprimer ce menu définitivement ?" } } do
+        = svg_icon("trash", size: 12)
+        Supprimer le menu

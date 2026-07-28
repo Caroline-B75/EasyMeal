@@ -1638,40 +1638,6 @@
    Maquette : easymeal_menu_customize.html — Slate Craft Premium
    ============================================================ */
 
-/* ── Bouton secondaire compact (actions d'en-tête) ─────── */
-.mc-btn-outline-sm {
-  font-size: var(--font-size-xs);
-  padding: 5px 10px;
-  border-radius: var(--radius-button);
-  border: var(--border-thin);
-  background: var(--color-bg-white);
-  color: var(--color-ink-2);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  text-decoration: none;
-  transition: background var(--transition-fast), border-color var(--transition-fast),
-              box-shadow var(--transition-fast), color var(--transition-fast);
-}
-.mc-btn-outline-sm:hover {
-  background: var(--color-bg-white);
-  color: var(--color-ink);
-  border-color: var(--color-border-strong);
-  box-shadow: var(--shadow-sm);
-}
-/* Taille des icônes : portée par l'attribut size de svg_icon dans la vue.
-   .svg-icon (components.css) fournit déjà l'alignement et flex-shrink. */
-
-/* Variante destructive : neutre au repos (le bouton ne crie pas), rouge au
-   survol / focus pour signaler la conséquence avant le clic. */
-.mc-btn-outline-sm--danger:hover,
-.mc-btn-outline-sm--danger:focus-visible {
-  background: var(--color-danger-light);
-  border-color: var(--color-danger-border);
-  color: var(--color-danger-text);
-}
-
 /* ── Page layout ───────────────────────────────────────── */
 .mc-page-outer {
   display: flex;
@@ -1703,19 +1669,23 @@
 }
 
 /* ── En-tête de page menu (mc-head-*) ──────────────────────
-   Remplace l'ancienne barre contextuelle : le statut et les actions
-   secondaires vivent maintenant dans la page, au-dessus du titre du menu.
-   Rendu par menus/_page_head — brouillon et menu actif. */
+   Nom du menu en titre, puis une ligne de méta qui porte la pastille de statut
+   et les caractéristiques du menu à gauche, les actions secondaires à droite.
+   Rendu par menus/_page_head — brouillon et menu actif. L'action principale de
+   la page est le CTA de bas de page (.mc-validate-zone). */
 .mc-head {
   margin-bottom: 28px;
 }
 
-.mc-head-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
+/* En desktop, la vue brouillon place sa disposition en deux colonnes juste sous
+   l'en-tête : .mc-split porte déjà son propre écart (margin-top), la marge de
+   l'en-tête s'y ajouterait. Elle reste en place sous le breakpoint, où
+   .mc-split perd ce margin-top, et dans la vue menu actif (grille de repas
+   directement sous l'en-tête, sans marge propre). */
+@media (min-width: 1025px) {
+  .mc-head:has(+ .mc-split) {
+    margin-bottom: 0;
+  }
 }
 
 /* Pastille de statut de la page */
@@ -1750,20 +1720,6 @@
   color: var(--color-success-text);
 }
 
-.mc-head-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-/* button_to enveloppe chaque bouton dans un <form> : il ne doit pas rompre
-   l'alignement de la rangée d'actions. */
-.mc-head-actions form.button_to {
-  display: inline-flex;
-  margin: 0;
-}
-
 /* ── Titre : nom du menu ───────────────────────────────── */
 .mc-head-title-row {
   display: flex;
@@ -1789,8 +1745,8 @@
      bornée pour ne jamais déborder ; field-sizing affine au caractère près sur
      les navigateurs qui le supportent. */
   flex: 0 1 auto;
-  min-width: 0;
-  max-width: 560px;
+  min-width: 275px;
+  max-width: 100%;
   field-sizing: content;
   padding: 1px 2px;
   background: transparent;
@@ -1833,18 +1789,77 @@
   box-shadow: var(--shadow-sm);
 }
 
-/* ── Ligne méta ────────────────────────────────────────── */
+/* ── Ligne méta : statut + caractéristiques, actions à droite ──
+   Deux groupes écartés par space-between. En mobile, le groupe d'actions passe
+   à la ligne (flex-wrap) et se retrouve aligné à gauche, sous les méta. */
 .mc-head-meta {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
+  gap: 8px 12px;
+  margin-top: 10px;
   font-size: var(--font-size-xs);
   color: var(--color-ink-3);
 }
 
+.mc-head-meta-facts {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* La pastille ouvre la ligne : un peu d'air pour la détacher du texte de méta,
+   qui n'a pas de séparateur avant lui. */
+.mc-head-meta-facts .mc-kicker { margin-right: 4px; }
+
 .mc-head-meta-sep { color: var(--color-border-strong); }
+
+.mc-head-meta-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+/* button_to enveloppe chaque bouton dans un <form> : il ne doit pas rompre
+   l'alignement de la rangée d'actions. */
+.mc-head-meta-actions form.button_to {
+  display: inline-flex;
+  margin: 0;
+}
+
+/* Lien et non bouton encadré : ces actions ne doivent pas appeler le clic.
+   Hauteur contenue pour ne pas épaissir la ligne de méta. */
+.mc-head-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  background: none;
+  border: none;
+  border-radius: var(--radius-button);
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.mc-head-action:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-ink);
+}
+
+/* Destructif : neutre au repos, rouge au survol / focus — la conséquence est
+   signalée juste avant le clic. */
+.mc-head-action--danger:hover,
+.mc-head-action--danger:focus-visible {
+  background: var(--color-danger-light);
+  color: var(--color-danger-text);
+}
 
 /* ── Panneau de réglages (brouillon) ───────────────────────
    Carte affichée en colonne latérale à côté de la grille de repas (voir
@@ -1867,8 +1882,41 @@
   font-weight: 400;
   color: var(--color-ink);
   margin: 0;
-  padding-bottom: 16px;
-  border-bottom: var(--border-thin);
+}
+
+/* Le titre est aussi le déclencheur de l'accordéon mobile (controller
+   mobile-accordion). En desktop le JS le passe à disabled : il n'est ni
+   cliquable ni focusable, et rend exactement comme un titre simple. */
+.mc-settings-panel-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+}
+
+/* Le chevron n'a de sens que là où la carte se replie (mobile) */
+.mc-settings-panel-chevron {
+  display: none;
+  color: var(--color-ink-3);
+  transition: transform var(--transition-fast);
+}
+
+.mc-settings-panel-toggle[aria-expanded="false"] .mc-settings-panel-chevron {
+  transform: rotate(-90deg);
+}
+
+/* Corps repliable : reprend l'empilement vertical de la carte */
+.mc-settings-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .mc-setting {
@@ -1913,20 +1961,20 @@
   color: var(--color-ink-3);
 }
 
-/* Séparateur horizontal entre les deux réglages */
+/* Séparateur horizontal entre les blocs du panneau (note de portée, puis chaque
+   réglage) */
 .mc-settings-panel-sep {
   height: var(--border-width);
   background: var(--color-border);
 }
 
-/* Rappel de la portée des réglages, en pied de carte */
+/* Rappel de la portée des réglages, juste sous le titre : la consigne se lit
+   avant les réglages qu'elle qualifie, et non après. */
 .mc-settings-panel-note {
   display: flex;
   align-items: flex-start;
   gap: 6px;
   margin: 0;
-  padding-top: 16px;
-  border-top: var(--border-thin);
   font-size: var(--font-size-xs);
   line-height: 1.5;
   color: var(--color-ink-3);
@@ -1935,6 +1983,24 @@
 /* flex-shrink + margin-top : l'icône reste alignée sur la 1ère ligne du texte
    (et non centrée sur sa hauteur totale) quand la note tient sur 2 lignes. */
 .mc-settings-panel-note svg { flex-shrink: 0; margin-top: 2px; color: var(--color-ink-4); }
+
+/* En desktop, la carte de réglages est côte à côte avec la grille de repas :
+   elle s'aligne sur la hauteur d'une carte de recette (--mc-card-height,
+   mesurée et publiée par menu_customize_controller) pour que les deux colonnes
+   se terminent au même trait. min-height et non height : le contenu du panneau
+   ne peut jamais être rogné si la carte de référence est plus courte. */
+@media (min-width: 1025px) {
+  .mc-settings-panel {
+    min-height: var(--mc-card-height);
+  }
+
+  /* Le supplément de hauteur est réparti entre les blocs de réglages plutôt que
+     laissé en blanc au bas de la carte. */
+  .mc-settings-panel-body {
+    flex: 1;
+    justify-content: space-between;
+  }
+}
 
 /* ── Disposition brouillon : réglages en colonne latérale ──
    Libère la largeur au-dessus de la grille de repas — le titre du menu n'est
@@ -1959,26 +2025,67 @@
    place de cohabiter avec la grille : elle repasse au-dessus, pleine largeur.
    (valeur dupliquée en dur : les media features n'acceptent pas var()) */
 @media (max-width: 1024px) {
+  /* Empilée, la carte de réglages pousse déjà la grille de repas vers le bas :
+     l'écart avec l'en-tête (.mc-head, margin-bottom) suffit. */
   .mc-split {
     flex-direction: column;
+    margin-top: 0;
   }
 
   .mc-split-aside {
     flex-basis: auto;
     width: 100%;
   }
+
+  /* Accordéon : le titre plie / déplie la carte pour que la grille de repas
+     remonte dans la page (voir mobile_accordion_controller.js). */
+  .mc-settings-panel-chevron {
+    display: inline-block;
+  }
+
+  /* Le déclencheur occupe toute la largeur de la carte : cible tactile pleine.
+     L'affordance (curseur) n'est posée qu'ici, là où le titre est cliquable. */
+  .mc-settings-panel-toggle {
+    min-height: var(--min-touch-target);
+    cursor: pointer;
+  }
+
+  .mobile-accordion--collapsed .mc-settings-panel-body {
+    display: none;
+  }
+
+  /* Replié, le titre n'introduit plus rien : son trait de séparation n'a plus
+     d'objet et la carte se réduit à une simple barre. */
+  .mobile-accordion--collapsed .mc-settings-panel-title {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+
+  /* Réduite à sa barre de titre, la carte n'a plus de contenu à espacer
+     verticalement : la hauteur de la barre vient du déclencheur (cible
+     tactile), le padding ne garde que ses marges latérales. */
+  .mobile-accordion--collapsed .mc-settings-panel {
+    padding: 0 1rem;
+  }
+
+  /* Replier la carte sert à faire remonter la grille de repas : l'écart sous
+     l'en-tête y participe. Il est rétabli au dépliage, où la carte redevient un
+     bloc de contenu à part entière (voir .mc-split, margin-top ci-dessus). */
+  .mc-head:has(+ .mc-split .mobile-accordion--collapsed) {
+    margin-bottom: 0;
+  }
 }
 
 /* ── Card grid ─────────────────────────────────────────── */
-/* auto-fill plutôt qu'un repeat(7) figé : la grille s'adapte à la largeur
+/* auto-fill plutôt qu'un repeat figé : la grille s'adapte à la largeur
    disponible, que la colonne soit pleine largeur (menu actif) ou réduite par
-   le panneau de réglages latéral (.mc-split-main, brouillon). Le minmax est
-   calé sur la largeur de carte obtenue par l'ancien repeat(7) à la largeur
-   max de page (~141px), pour ne rien changer visuellement en pleine largeur. */
+   le panneau de réglages latéral (.mc-split-main, brouillon). minmax(190px)
+   agrandit les cartes en desktop par rapport au gabarit mobile (160px,
+   ci-dessous) — le mobile garde son propre minmax et n'est pas affecté. */
 .mc-card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 14px;
   margin-bottom: 24px;
 }
 
@@ -2144,13 +2251,19 @@
 }
 
 /* ── Add slot (2 boutons empilés) ──────────────────────── */
+/* Les 2 boutons empilés remplissent la hauteur d'une carte : --mc-card-height
+   est mesurée et publiée par menu_customize_controller (voir .mc-add-btn). */
 .mc-add-slot {
+  --mc-add-slot-gap: 6px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--mc-add-slot-gap);
 }
 
 .mc-add-btn {
+  /* Sans carte de référence (menu vide) la variable n'est pas publiée : la
+     déclaration est invalide, la hauteur retombe sur le contenu des boutons. */
+  height: calc((var(--mc-card-height) - var(--mc-add-slot-gap)) / 2);
   background: var(--color-bg-white);
   border: var(--border-width) dashed var(--color-border-strong);
   border-radius: var(--radius-button);
@@ -2245,33 +2358,44 @@
 }
 .mc-btn-validate svg { width: 15px; height: 15px; flex-shrink: 0; }
 
+/* ── Agrandissement desktop des cartes de recette (mc-*) ──
+   La grille (minmax 190px ci-dessus) agrandit déjà la photo carrée ; on
+   remonte ici les éléments internes (nom, barre d'actions, méta) dans la
+   même proportion pour que la carte agrandie ne paraisse pas déséquilibrée.
+   Scindé du reste des styles mc-* pour laisser le mobile (2 colonnes,
+   gabarit compact ci-dessous) strictement inchangé. */
+@media (min-width: 768px) {
+  .mc-card-name-wrap { padding: 10px 10px 0; }
+
+  .mc-card-name {
+    font-size: var(--font-size-sm);
+    min-height: 38px;
+  }
+
+  .mc-card-meta { padding: 6px 10px 9px; }
+
+  .mc-card-actions { padding: 8px 10px 10px; gap: 8px; }
+
+  .mc-act-btn { width: 32px; height: 32px; }
+  .mc-act-btn svg { width: 19px; height: 19px; }
+
+  .mc-ppl-select {
+    height: 32px;
+    min-width: 68px;
+    max-width: 92px;
+    font-size: var(--font-size-sm);
+    padding: 0 14px 0 8px;
+    background-position: right 7px center;
+  }
+
+  .mc-card-photo-ph svg { width: 28px; height: 28px; }
+}
+
 /* ── Responsive (mc-*) ─────────────────────────────────── */
 @media (max-width: 767px) {
-  /* En-tête : le statut passe au-dessus des actions, qui s'étalent sur toute la
-     largeur. On ne masque jamais une action — « Modifier ce menu »
-     (revert_to_draft) n'existe QUE là, la masquer rendrait impossible de
-     repasser un menu actif en brouillon sur mobile. */
-  .mc-head-top {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .mc-head-actions {
-    width: 100%;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .mc-btn-outline-sm {
-    min-height: var(--min-touch-target);
-    padding: 8px 14px;
-    font-size: var(--font-size-sm);
-  }
-
   .mc-head-title,
   .mc-head-title-input {
-    font-size: 22px;
+    font-size: 1.1rem;
   }
 
   .mc-page-outer { padding: 16px 16px 48px; }
@@ -2322,6 +2446,19 @@
     width: 100%;
     justify-content: center;
   }
+
+  /* Actions d'en-tête au doigt. On ne masque jamais une action — « Modifier ce
+     menu » (revert_to_draft) n'existe QUE là : la masquer rendrait impossible
+     de repasser un menu actif en brouillon sur mobile. */
+  .mc-head-action {
+    min-height: var(--min-touch-target);
+    padding: 8px 12px;
+    font-size: var(--font-size-sm);
+  }
+
+  /* Le bouton le plus à gauche du groupe s'aligne sur le titre : son padding
+     horizontal est compensé pour que le texte tombe pile au bord. */
+  .mc-head-meta-actions { margin-left: -12px; }
 }
 
 /* ============================================
@@ -2409,7 +2546,7 @@
 .mc-diet-toggle {
   display: inline-flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 8px;
   min-width: 150px;
   height: 32px;
@@ -2503,12 +2640,22 @@
 .mc-stepper {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  justify-content: space-between;
+  min-width: 150px;
   height: 32px;
   padding: 0 4px;
   background: var(--color-bg-white);
   border: var(--border-thin);
   border-radius: var(--radius-button);
+}
+
+/* Les deux boutons ont la même largeur : avec justify-content: space-between,
+   ce groupe (valeur + unité) se retrouve exactement centré dans la largeur
+   étendue du stepper (alignée sur .mc-diet-toggle). */
+.mc-stepper-value {
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
 
 .mc-stepper-btn {

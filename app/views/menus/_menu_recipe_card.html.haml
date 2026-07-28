@@ -42,8 +42,7 @@
                    data: { action: "change->auto-submit#submit" }
 
       = form_with url: menu_menu_recipe_path(menu, menu_recipe), method: :delete,
-                  class: "mc-act-form",
-                  data: { turbo_confirm: "Retirer ce repas du menu ?" } do
+                  class: "mc-act-form" do
         %button.mc-act-btn.mc-del{ type: "submit",
                                    "aria-label": "Retirer #{menu_recipe.recipe.name} du menu",
                                    title: "Retirer du menu" }

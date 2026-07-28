@@ -14,7 +14,10 @@
     = render "menus/page_head", menu: menu, menu_recipes: menu_recipes
 
     .mc-split
-      .mc-split-aside
+      -# mobile-accordion : porté par l'aside et non par le panneau lui-même,
+      -# car celui-ci est remplacé par un Turbo Stream à chaque +/- du stepper —
+      -# l'état plié/déplié survit ainsi au re-render.
+      .mc-split-aside{ data: { controller: "mobile-accordion" } }
         = render "menus/settings_panel", menu: menu, menu_recipes: menu_recipes
 
       .mc-split-main
@@ -28,7 +31,7 @@
               %p.mc-empty-text Aucun repas dans ce menu.
 
           -# ── Slot d'ajout (2 boutons empilés) ─────────────────
-          .mc-add-slot{ id: "add_slot", data: { menu_customize_target: "addSlot" } }
+          .mc-add-slot{ id: "add_slot" }
             = link_to recipes_path, class: "mc-add-btn" do
               = svg_icon("search", size: 15)
               %span Depuis le catalogue

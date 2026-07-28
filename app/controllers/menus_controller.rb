@@ -99,9 +99,12 @@ class MenusController < ApplicationController
   # POST /menus/:id/activate
   # UC1 : Valide le menu brouillon et génère la liste de courses
   # Archive automatiquement l'éventuel menu actif précédent
+  # Redirige directement vers la liste de courses : c'est la seule chose que
+  # cette action produit, inutile de faire passer par la vue du menu.
   def activate
     transition_menu(:activate!, "Menu activé ! Votre liste de courses est prête.",
-                                "Impossible d'activer le menu")
+                                "Impossible d'activer le menu",
+                                success_redirect: grocery_menu_path(@menu))
   end
 
   # POST /menus/:id/reactivate
@@ -109,7 +112,8 @@ class MenusController < ApplicationController
   # celui-ci redevient actif et sa liste de courses est régénérée.
   def reactivate
     transition_menu(:reactivate!, "Menu réactivé ! Votre liste de courses a été mise à jour.",
-                                  "Impossible de réactiver le menu")
+                                  "Impossible de réactiver le menu",
+                                  success_redirect: grocery_menu_path(@menu))
   end
 
   # POST /menus/:id/revert_to_draft
@@ -188,10 +192,12 @@ class MenusController < ApplicationController
     end
   end
 
-  # Transition d'état du menu (activate/reactivate) avec gestion d'erreur unifiée
-  def transition_menu(method, success_notice, failure_prefix)
+  # Transition d'état du menu (activate/reactivate/revert_to_draft) avec gestion
+  # d'erreur unifiée. En cas d'échec on retombe toujours sur la vue du menu :
+  # success_redirect ne s'applique qu'à la transition réussie.
+  def transition_menu(method, success_notice, failure_prefix, success_redirect: @menu)
     @menu.public_send(method)
-    redirect_to @menu, notice: success_notice, status: :see_other
+    redirect_to success_redirect, notice: success_notice, status: :see_other
   rescue StandardError => error
     redirect_to @menu, alert: "#{failure_prefix} : #{error.message}", status: :see_other
   end

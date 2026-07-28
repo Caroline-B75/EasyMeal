@@ -86,12 +86,18 @@ module MenusHelper
     details
   end
 
+  # Formule commune décrivant la réconciliation de la liste de courses existante
+  # (articles cochés conservés, sauf si leur quantité augmente) — partagée entre
+  # la confirmation de retour en brouillon et celle de revalidation.
+  GROCERY_RECONCILE_NOTICE = "sera mise à jour : les articles déjà cochés le restent, " \
+                              "sauf si leur quantité augmente.".freeze
+
   # Confirmation du retour en brouillon d'un menu actif (R3.2bis).
   # Un seul brouillon peut exister : si l'utilisatrice en a déjà un, cette
   # modification le remplacera — on l'annonce avant d'agir.
   def menu_revert_to_draft_confirm(menu)
     message = "Repasser ce menu en brouillon pour le modifier ? À la revalidation, ta liste de courses " \
-              "sera mise à jour : les articles déjà cochés le restent, sauf si leur quantité augmente."
+              "#{GROCERY_RECONCILE_NOTICE}"
     existing_draft = current_user.menus.status_draft.where.not(id: menu.id).recent.first
     return message if existing_draft.nil?
 
@@ -105,18 +111,14 @@ module MenusHelper
 
   # Construit le message de confirmation de validation d'un menu (R3.2bis).
   # Honnête sur les conséquences : génération de liste, réconciliation d'une liste
-  # existante (REvalidation), et archivage de l'éventuel menu actif courant.
+  # existante (revalidation), et archivage de l'éventuel menu actif courant.
   # @param menu [Menu] le brouillon en cours de validation
   # @return [String] message destiné au turbo_confirm
   def menu_validation_confirm(menu)
     parts = if menu.pending_revalidation?
-      [ "Revalider ces modifications ? Ta liste de courses sera mise à jour." ]
+      [ "Revalider ces modifications ? Ta liste de courses #{GROCERY_RECONCILE_NOTICE}" ]
     else
       [ "Valider ce menu ? La liste de courses sera générée." ]
-    end
-
-    if menu.grocery_items.exists?
-      parts << "Ta liste existante sera mise à jour en conservant tes articles cochés (sauf quantités augmentées)."
     end
 
     if menu.user.menus.active_menus.where.not(id: menu.id).exists?
@@ -127,7 +129,7 @@ module MenusHelper
   end
 
   # Options pour le select du nombre de personnes (mockup card grid)
-  PEOPLE_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12].freeze
+  PEOPLE_OPTIONS = (1..20).to_a.freeze
 
   def people_select_options
     PEOPLE_OPTIONS.map { |n| ["#{n} pers.", n] }

@@ -1,17 +1,17 @@
 // Contrôleur Stimulus pour la page de personnalisation du menu (card grid).
-// Gère : drag & drop visuel, compteur de repas, dimensionnement du slot d'ajout.
+// Gère : drag & drop visuel, compteur de repas, publication de la hauteur de carte.
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["grid", "card", "addSlot", "countChip"]
+  static targets = ["grid", "card", "countChip"]
   static values  = { reorderUrl: String }
 
   connect() {
     this.dragSrc = null
-    this.sizeAddBtns()
+    this.syncCardHeight()
     this.updateCount()
     this.observeGrid()
-    window.addEventListener("resize", this.boundResize = () => this.sizeAddBtns())
+    window.addEventListener("resize", this.boundResize = () => this.syncCardHeight())
   }
 
   disconnect() {
@@ -24,7 +24,7 @@ export default class extends Controller {
     if (!this.hasGridTarget) return
     this.gridObserver = new MutationObserver(() => {
       this.updateCount()
-      this.sizeAddBtns()
+      this.syncCardHeight()
     })
     this.gridObserver.observe(this.gridTarget, { childList: true })
   }
@@ -39,19 +39,25 @@ export default class extends Controller {
     }
   }
 
-  // ── Dimensionnement des boutons du slot d'ajout ─────────
-  // Les 2 boutons empilés doivent remplir la hauteur d'une carte
-  sizeAddBtns() {
-    if (!this.hasGridTarget || !this.hasAddSlotTarget) return
+  // ── Hauteur d'une carte de recette ──────────────────────
+  // La hauteur d'une carte dépend de la largeur de colonne du grid (photo
+  // carrée) : elle n'est pas calculable en CSS. On la mesure ici et on la
+  // publie en variable CSS sur l'élément de page, que les blocs qui doivent
+  // s'aligner sur une carte consomment en CSS (slot d'ajout, panneau de
+  // réglages). Pas de style inline : la valeur survit au remplacement de ces
+  // blocs par un Turbo Stream (stepper « nombre de personnes »).
+  syncCardHeight() {
+    if (!this.hasGridTarget) return
     const firstCard = this.gridTarget.querySelector(".mc-recipe-card")
-    if (!firstCard) return
-    const cardH = firstCard.getBoundingClientRect().height
-    if (cardH < 10) return
-    const gap = 6
-    const btnH = (cardH - gap) / 2
-    this.addSlotTarget.querySelectorAll(".mc-add-btn").forEach(b => {
-      b.style.height = `${Math.round(btnH)}px`
-    })
+    const cardH = firstCard ? firstCard.getBoundingClientRect().height : 0
+
+    // Grille vide (ou pas encore mise en page) : pas de référence, on retire la
+    // variable plutôt que de laisser une hauteur périmée.
+    if (cardH < 10) {
+      this.element.style.removeProperty("--mc-card-height")
+      return
+    }
+    this.element.style.setProperty("--mc-card-height", `${Math.round(cardH)}px`)
   }
 
   // ── Drag & Drop (réordonnement visuel) ──────────────────
