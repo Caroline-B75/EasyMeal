@@ -19,8 +19,8 @@
   margin-bottom: 2rem;
 }
 
+/* La taille suit l'échelle fluide de la règle de base h1 (global.css). */
 .ingredients-header h1 {
-  font-size: var(--font-size-3xl);
   font-weight: 600;
   color: var(--color-ink);
   margin: 0;
@@ -261,7 +261,6 @@
   }
 
   .ingredients-header h1 {
-    font-size: var(--font-size-2xl);
     text-align: center;
   }
 
@@ -473,8 +472,8 @@
   margin-bottom: 1.5rem;
 }
 
+/* La taille suit l'échelle fluide de la règle de base h1 (global.css). */
 .show-header h1 {
-  font-size: var(--font-size-2xl);
   font-weight: 600;
   color: var(--color-ink);
   margin: 0;

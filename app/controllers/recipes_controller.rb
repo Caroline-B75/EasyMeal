@@ -38,14 +38,17 @@ class RecipesController < ApplicationController
       Set.new
     end
     load_draft_data
+    # Vignettes du rail « menu à valider » affiché à côté des résultats
+    load_draft_recipes
   end
 
   # GET /recipes/:id
   # UC4 : Fiche recette avec ingrédients, étapes, interactions (favoris, notes)
   def show
     @servings = (params[:servings] || recipe.default_servings).to_i
-    @preparations_by_category = recipe.preparations.includes(:ingredient)
-                                      .group_by { |prep| prep.ingredient.category }
+    # Liste à plat, dans l'ordre de saisie de la recette (les rayons ne servent
+    # qu'à la liste de courses, pas à la fiche recette).
+    @preparations = recipe.preparations.includes(:ingredient).order(:id)
     load_user_recipe_data if current_user
     # État « déjà dans le menu brouillon » : pilote le CTA (Ajouter / Retirer).
     load_draft_data

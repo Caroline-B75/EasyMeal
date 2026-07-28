@@ -65,17 +65,21 @@
               .mi-hero-card-badges-left
                 %span.mi-badge-active Actif
                 %span.mi-hero-date= "Créé le #{french_date(@active.created_at)}"
-              .mi-hero-card-badges-right
+              -# Les deux actions de consultation sont groupées : en mobile elles
+              -# occupent seules une 2e ligne, à parts égales.
+              .mi-hero-card-badges-actions
                 = link_to menu_path(@active), class: "mi-btn-hero-primary" do
                   = svg_icon("book-open", size: 13)
                   Voir le menu
                 = link_to grocery_menu_path(@active), class: "mi-btn-hero-primary" do
                   = svg_icon("list", size: 13)
                   Voir la liste de courses
-                = button_to menu_path(@active), method: :delete, class: "mi-btn-hero-danger",
-                            title: "Supprimer le menu", "aria-label": "Supprimer le menu",
-                            form: { data: { turbo_confirm: "Supprimer ce menu ?" } } do
-                  = svg_icon("trash-fill", size: 24, fill: "currentColor", stroke: "none")
+              -# Suppression hors du groupe d'actions : en mobile elle remonte sur
+              -# la ligne du badge/date (voir menus.css, media 640px).
+              = button_to menu_path(@active), method: :delete, class: "mi-btn-hero-danger",
+                          title: "Supprimer le menu", "aria-label": "Supprimer le menu",
+                          form: { data: { turbo_confirm: "Supprimer ce menu ?" } } do
+                = svg_icon("trash-fill", size: 24, fill: "currentColor", stroke: "none")
             %h2.mi-hero-menu-name= @active.name.presence || "Menu sans nom"
         -# Mini-cartes des recettes du menu
         - if @active.menu_recipes.any?

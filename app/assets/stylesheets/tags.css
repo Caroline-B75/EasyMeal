@@ -19,8 +19,8 @@
   margin-bottom: 1.25rem;
 }
 
+/* La taille suit l'échelle fluide de la règle de base h1 (global.css). */
 .tags-header h1 {
-  font-size: var(--font-size-2xl);
   font-weight: 600;
   color: var(--color-ink);
   margin: 0;
@@ -350,7 +350,6 @@
   }
 
   .tags-header h1 {
-    font-size: var(--font-size-xl);
     justify-content: center;
   }
 

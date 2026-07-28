@@ -136,6 +136,13 @@
   --font-size-3xl: 1.875rem;  /* 30px */
   --font-size-4xl: 2.25rem;   /* 36px */
 
+  /* Titre de page (h1) : taille fluide, sans media query.
+     Interpole linéairement entre le plancher mobile et le plafond desktop —
+     20px à 375px de large, ~24px à 768px, 30px à partir de 1280px.
+     Source unique de vérité : consommée par la règle de base h1 (global.css),
+     donc tout titre de page suit l'échelle sans la redéclarer. */
+  --font-size-h1: clamp(1.25rem, 1rem + 1.1vw, var(--font-size-3xl));
+
   /* === BREAKPOINTS (inchangés) === */
   --breakpoint-mobile: 768px;
   --breakpoint-tablet: 1024px;

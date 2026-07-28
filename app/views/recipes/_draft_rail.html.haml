@@ -1,0 +1,45 @@
+-# Rail « menu à valider » du catalogue de recettes (UC2 / UC5).
+-# Garde le menu en cours de composition sous les yeux pendant la recherche :
+-# colonne sombre à droite en desktop, barre fixe en bas d'écran en mobile.
+-# Chaque ajout/retrait ne remplace que ce fragment, sans recharger les résultats
+-# (voir toggle_in_draft.turbo_stream.haml).
+-#
+-# En mobile le compteur replie/déplie le bandeau de vignettes pour rendre de la
+-# place aux recettes. Le controller mobile-accordion est porté par
+-# .recipes-container, en dehors de ce fragment : l'état plié/déplié survit ainsi
+-# au remplacement Turbo Stream. En desktop le JS désactive le déclencheur.
+-#
+-# Locals :
+-#   draft   : Menu (status: :draft) — le rail n'est rendu que s'il en existe un
+-#   recipes : Array<Recipe> — recettes du brouillon, dans l'ordre du menu
+%aside#draft-rail.draft-rail{ "aria-label": "Menu à valider" }
+  - if recipes.any?
+    %button.draft-rail-count{ type: "button",
+                              "aria-expanded": "true",
+                              "aria-controls": "draft-rail-list",
+                              data: { action: "click->mobile-accordion#toggle",
+                                      mobile_accordion_target: "toggle" } }
+      %span= draft_rail_label(recipes.size)
+      = svg_icon("chevron-down", size: 14, css_class: "draft-rail-chevron")
+
+    -# title : nom complet de la recette au survol. Infobulle native plutôt que
+    -# CSS, qui serait rognée par le défilement du rail (overflow).
+    %ul#draft-rail-list.draft-rail-list{ data: { controller: "draft-rail" } }
+      - recipes.each do |recipe|
+        %li
+          = link_to recipe_path(recipe), class: "draft-rail-thumb", title: recipe.name do
+            - if recipe.photo.attached?
+              = image_tag cloudinary_photo_url(recipe.photo, width: 96, height: 96, crop: :fill),
+                          srcset: cloudinary_photo_srcset(recipe.photo, width: 96, height: 96, crop: :fill),
+                          alt: recipe.name, width: 96, height: 96, loading: "lazy"
+            - else
+              = image_tag "photo_par_defaut_recette.webp", alt: recipe.name,
+                          width: 96, height: 96, loading: "lazy"
+  - else
+    -# Rien à replier : le compteur n'est qu'un libellé, sans déclencheur.
+    %p.draft-rail-count= draft_rail_label(recipes.size)
+
+  -# La colonne est trop étroite pour le nom du menu : il reste accessible en
+  -# infobulle sur l'action, plutôt qu'affiché et tronqué.
+  = link_to "Voir le menu", menu_path(draft), title: draft.name,
+                                              class: "btn btn-secondary btn-sm draft-rail-btn"

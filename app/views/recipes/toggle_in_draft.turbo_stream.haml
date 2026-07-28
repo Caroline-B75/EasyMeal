@@ -2,7 +2,7 @@
 -# Met à jour toutes les cibles présentes selon le contexte ; celles absentes
 -# de la page courante (index vs fiche) sont ignorées côté client (no-op).
 
-- draft_count = @draft.menu_recipes.size
+- draft_count = @draft_recipes.size
 
 -# 1. Bouton draft compact sur la carte de la recette (index)
 = turbo_stream.replace "draft-btn-#{@recipe.id}" do
@@ -10,9 +10,9 @@
                                     in_draft: @added,
                                     container_id: "draft-btn-#{@recipe.id}"
 
--# 2. Barre contextuelle « prochain menu » avec compteur (index)
-= turbo_stream.replace "draft-status-bar" do
-  = render "recipes/draft_status_bar", draft: @draft
+-# 2. Rail « menu à valider » : compteur + vignettes (index)
+= turbo_stream.replace "draft-rail" do
+  = render "recipes/draft_rail", draft: @draft, recipes: @draft_recipes
 
 -# 3. CTAs Ajouter/Retirer de la fiche recette (hero + barre mobile).
 -#    has_draft: true — après un toggle, le brouillon existe forcément.
@@ -23,7 +23,7 @@
   = render "recipes/draft_cta", recipe: @recipe, in_draft: @added, has_draft: true,
                                 variant: "mobile", container_id: "draft-cta-mobile-#{@recipe.id}"
 
--# 3. Affiche le flash de confirmation (wrapper #flash préservé pour les remplacements suivants)
+-# 4. Affiche le flash de confirmation (wrapper #flash préservé pour les remplacements suivants)
 - suffix = "(#{draft_count} recette#{'s' if draft_count != 1})"
 - notice_msg = @added ? (@draft_created ? "Menu à valider démarré avec \"#{@recipe.name}\" #{suffix}" : "\"#{@recipe.name}\" ajoutée au menu à valider #{suffix}") : "\"#{@recipe.name}\" retirée du menu à valider #{suffix}"
 = turbo_stream.update "flash" do

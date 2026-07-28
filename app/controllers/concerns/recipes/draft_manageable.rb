@@ -15,7 +15,7 @@ module Recipes
 
       result = Menus::ToggleDraftRecipeService.call(draft: @draft, recipe: recipe)
       @added = result.added
-      @draft.menu_recipes.reload
+      load_draft_recipes
 
       respond_success(redirect_path: recipes_path)
     end
@@ -44,6 +44,21 @@ module Recipes
 
       @draft = current_draft
       @draft_recipe_ids = @draft ? Set.new(@draft.menu_recipes.pluck(:recipe_id)) : Set.new
+    end
+
+    # Recettes du brouillon dans l'ordre du menu, photo préchargée — alimente le
+    # rail du catalogue. Chargement distinct de load_draft_data : la fiche recette
+    # n'a besoin que des IDs et n'a pas à payer ces jointures.
+    # Toujours requêté (et non lu dans l'association) pour refléter l'état de la
+    # base après un toggle.
+    def load_draft_recipes
+      @draft_recipes = if @draft
+        @draft.menu_recipes.by_position
+              .includes(recipe: { photo_attachment: :blob })
+              .map(&:recipe)
+      else
+        []
+      end
     end
   end
 end

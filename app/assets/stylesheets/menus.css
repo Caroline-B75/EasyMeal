@@ -358,13 +358,17 @@
   flex-wrap: wrap;
 }
 
+/* flex: 1 → absorbe l'espace libre pour pousser les actions et la poubelle
+   contre le bord droit (la barre a 3 enfants : badges, actions, suppression). */
 .mi-hero-card-badges-left {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
-.mi-hero-card-badges-right {
+.mi-hero-card-badges-actions {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -583,7 +587,7 @@
    flex de la barre. On l'étire (align-self: stretch) sur la hauteur des boutons
    voisins (« Voir le menu »…) et le bouton, seul enfant flex du form, la remplit.
    Survol en rouge danger pour signaler l'action destructive. */
-.mi-hero-card-badges-right form.button_to {
+.mi-hero-card-badges > form.button_to {
   display: flex;
   align-self: stretch;
   margin: 0;
@@ -852,6 +856,61 @@
   .mi-hero-card-top {
     flex-direction: column;
   }
+
+  /* Barre d'en-tête du menu actif sur 2 lignes :
+     1. badge « Actif » + date de création, avec la poubelle callée à droite ;
+     2. les 2 actions de consultation, à parts égales.
+     Grille explicite plutôt qu'un simple retour à la ligne flex : le passage
+     à la ligne est ainsi garanti quelle que soit la longueur des libellés. */
+  .mi-hero-card-badges {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .mi-hero-card-badges-left {
+    grid-row: 1;
+    grid-column: 1;
+    /* Sur écran très étroit, badge et date passent l'un sous l'autre plutôt que
+       de déborder sous la poubelle. */
+    flex-wrap: wrap;
+  }
+
+  /* Suppression : remontée sur la ligne 1, collée à droite. La cible tactile
+     reste à 44px (action destructive) mais l'icône est réduite pour rester
+     discrète à côté de la date. */
+  .mi-hero-card-badges > form.button_to {
+    grid-row: 1;
+    grid-column: 2;
+    align-self: center;
+    justify-self: end;
+  }
+
+  .mi-btn-hero-danger svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Ligne 2 pleine largeur, 2 colonnes égales → boutons de largeur identique,
+     et même hauteur même si un libellé passe sur 2 lignes (stretch par défaut). */
+  .mi-hero-card-badges-actions {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  /* Padding latéral réduit : le libellé dispose de toute la demi-largeur. */
+  .mi-btn-hero-primary {
+    padding: 8px 6px;
+    justify-content: center;
+    text-align: center;
+    min-width: 0;
+  }
+
+  .mi-btn-hero-primary svg { flex-shrink: 0; }
 
   .mi-recipe-cards-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2509,7 +2568,7 @@
   .mi-btn-hero-primary,
   .mi-btn-hero-ghost,
   .mi-btn-hero-danger {
-    min-height: var(--min-touch-target);
+    height: var(--min-touch-target);
   }
 
   /* Icône seule : garantir aussi une cible tactile assez large. */

@@ -10,8 +10,11 @@ puts "  Création / mise à jour des tags..."
 # (Recipe.with_total_time_lte, calculé sur prépa + cuisson).
 # Méthode de cuisson : réduite aux critères de recherche utiles (le reste, trop
 # matériel, alourdissait les filtres).
+# Aucun tag ne doit reprendre une valeur des enums Recipe (diet, difficulty, price) :
+# la fiche recette affiche déjà ces attributs (kicker régime + badges), un tag
+# homonyme s'afficherait donc deux fois.
 TAGS_BY_TYPE = {
-  regime_alimentaire: [ "végétarien", "vegan", "healthy" ],
+  regime_alimentaire: [ "végétarien", "healthy" ],
   cuisine_monde:      [ "française", "italienne", "espagnole", "grecque", "marocaine",
                         "libanaise", "indienne", "chinoise", "japonaise", "thaïlandaise",
                         "coréenne", "vietnamienne", "mexicaine", "américaine" ],

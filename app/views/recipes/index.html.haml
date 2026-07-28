@@ -1,7 +1,11 @@
 -# UC5 : Catalogue & Recherche de recettes avec filtres
 - content_for :title, "Recettes"
 
-.recipes-container{ data: { controller: "recipe-filter" } }
+-# mobile-accordion : porté ici et non par le rail « menu à valider » lui-même,
+-# qui est remplacé par Turbo Stream à chaque ajout de recette — l'état plié /
+-# déplié du bandeau de vignettes survit ainsi au re-render (cf. _draft_rail).
+.recipes-container{ data: { controller: "recipe-filter mobile-accordion",
+                            mobile_accordion_query_value: "(max-width: 767px)" } }
 
   -# ── Variables filtres (calculées avant le layout pour le badge mobile) ──
   - selected_tag_ids = Array(params[:tag_ids]).map(&:to_s)
@@ -195,14 +199,18 @@
         %h1
           = inline_svg("cook-book", css_class: "icon-title", color: "var(--color-primary)")
           Catalogue de recettes
-        - if policy(Recipe).create?
-          = link_to new_recipe_path, class: "btn btn-primary" do
-            = svg_icon(:plus, size: 16)
-            Ajouter une recette
-
-      -# ── Barre contextuelle menu brouillon ──
-      - if current_user
-        = render "recipes/draft_status_bar", draft: @draft
+        -# Actions empilées. « Créer un menu » n'apparaît que sans menu à valider :
+        -# c'est alors la seule entrée pour en démarrer un, les cartes n'ayant pas
+        -# de bouton + tant qu'aucun brouillon n'existe (cf. plus bas).
+        .recipes-header-actions
+          - if policy(Recipe).create?
+            = link_to new_recipe_path, class: "btn btn-primary" do
+              = svg_icon(:plus, size: 16)
+              Ajouter une recette
+          - if current_user && @draft.nil?
+            = link_to new_menu_path, class: "btn btn-white" do
+              = svg_icon(:plus, size: 16)
+              Créer un menu
 
       -# Loader de chargement
       .recipes-loader.hidden{ data: { recipe_filter_target: "loader" } }
@@ -288,3 +296,7 @@
               %p Essaye de modifier tes critères de recherche ou ajoute une nouvelle recette.
               - if policy(Recipe).create?
                 = link_to "Ajouter une recette", new_recipe_path, class: "btn btn-primary"
+
+    -# ── Rail droit : menu à valider en cours de composition ──
+    - if @draft
+      = render "recipes/draft_rail", draft: @draft, recipes: @draft_recipes

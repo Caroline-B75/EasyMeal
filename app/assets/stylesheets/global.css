@@ -22,6 +22,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* === Titres === */
+/* Base responsive pour tout h1 : sans cette règle, un titre sans font-size
+   explicite hérite du défaut navigateur (2em, soit 32px) — identique sur mobile.
+   Spécificité 0,0,1 : les classes de titre existantes gardent la main. */
+h1 {
+  font-size: var(--font-size-h1);
+  line-height: 1.2;
+}
+
 /* === Utility Classes === */
 .hidden {
   display: none !important;

@@ -9,6 +9,24 @@
   max-width: 1600px;
   margin: 0 auto;
   padding: 2rem 1.5rem;
+  /* Gabarit du rail « menu à valider » en mobile (barre fixe en bas d'écran) :
+     hauteur de la barre compteur (cible tactile du bouton + respiration), puis
+     du bandeau de vignettes déployé (vignette 56px + padding).
+     Source unique : consommée par .draft-rail et par --draft-rail-space. */
+  --rail-bar-h: 3.5rem;
+  --rail-strip-h: 4.5rem;
+}
+
+/* Place occupée en bas d'écran par le rail, selon qu'il est déployé ou replié
+   (classe posée par mobile-accordion sur .recipes-container). Ce qui flotte
+   au-dessus du contenu s'en décale. Le :has() la laisse indéfinie — donc nulle
+   via la valeur de repli — quand aucun rail n'est rendu (visiteur non connecté). */
+.recipes-container:has(.draft-rail) {
+  --draft-rail-space: calc(var(--rail-bar-h) + var(--rail-strip-h));
+}
+
+.recipes-container:has(.draft-rail).mobile-accordion--collapsed {
+  --draft-rail-space: var(--rail-bar-h);
 }
 
 /* === Layout principal === */
@@ -20,8 +38,9 @@
 
 .recipes-main {
   min-width: 0;
-  /* Espace en bas pour que le bouton flottant ne cache pas la pagination */
-  padding-bottom: 5rem;
+  /* Espace en bas pour que ni le rail du menu ni le bouton flottant ne cachent
+     la pagination */
+  padding-bottom: calc(var(--draft-rail-space, 0px) + 5rem);
 }
 
 /* === Sidebar des filtres === */
@@ -99,8 +118,8 @@
 .filters-mobile-btn {
   display: flex;
   position: fixed;
-  /* Au-dessus de l'indicateur d'accueil iOS (zone sûre) */
-  bottom: calc(1.5rem + env(safe-area-inset-bottom));
+  /* Au-dessus du rail du menu (s'il est rendu) et de l'indicateur d'accueil iOS */
+  bottom: calc(var(--draft-rail-space, 0px) + 1.5rem + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   z-index: 150;
@@ -154,7 +173,6 @@
 }
 
 .recipes-header {
-  margin-bottom: 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -162,9 +180,25 @@
   gap: 1rem;
 }
 
+/* La taille suit l'échelle fluide de la règle de base h1 (global.css).
+   inline-flex : centre verticalement l'icône avec le texte, quelle que soit
+   leur taille — l'espacement vient de la marge de .icon-title. */
 .recipes-header h1 {
+  display: inline-flex;
+  align-items: center;
   color: var(--color-ink); /* Brun caramel */
   margin: 0;
+}
+
+/* Actions empilées : « Créer un menu » se place sous « Ajouter une recette ».
+   align-items: stretch les met à la largeur du plus large, pour un bloc aligné —
+   chacun peut être absent (rôle, présence d'un menu à valider). */
+.recipes-header-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 /* === Filtres & Recherche === */
@@ -873,9 +907,11 @@
     max-width: none;
   }
 
+  /* 3ᵉ colonne : rail « menu à valider » (.draft-rail, plus bas dans ce fichier).
+     Piste auto → largeur nulle quand aucun rail n'est rendu (visiteur non connecté). */
   .recipes-body {
     display: grid;
-    grid-template-columns: 300px 1fr;
+    grid-template-columns: 300px 1fr auto;
     gap: 0;
     align-items: start;
   }
@@ -1449,18 +1485,6 @@
   white-space: nowrap;
 }
 
-.rs-badge--green {
-  background: rgba(236, 252, 203, 0.12);
-  color: #BEF264;
-  border-color: rgba(190, 242, 100, 0.2);
-}
-
-.rs-badge--amber {
-  background: rgba(251, 191, 36, 0.1);
-  color: var(--color-accent);
-  border-color: rgba(251, 191, 36, 0.2);
-}
-
 /* -- Boutons d'action hero -- */
 
 .rs-actions {
@@ -1902,6 +1926,14 @@
   color: var(--color-accent);
 }
 
+/* Date + action de suppression regroupées à droite de l'en-tête */
+.rs-review-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
 .rs-review-date {
   font-size: var(--font-size-xs);
   color: var(--color-ink-3);
@@ -1915,7 +1947,8 @@
 }
 
 .rs-review-delete {
-  margin-top: 6px;
+  display: flex;
+  align-items: center;
 }
 
 .rs-empty-reviews {
@@ -2036,21 +2069,11 @@
   }
 }
 
-/* -- Groupes ingrédients par catégorie -- */
+/* -- Liste des ingrédients -- */
 
-.rs-ing-group {
+.rs-ing-list {
   margin-top: 16px;
-}
-
-.rs-ing-category {
-  font-size: var(--font-size-xs);
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-ink-3);
-  padding-bottom: 6px;
-  border-bottom: var(--border-thin);
-  margin-bottom: 4px;
+  border-top: var(--border-thin);
 }
 
 .rs-ing-row {
@@ -2190,14 +2213,21 @@
     padding: 8px 10px;
   }
 
+  /* Le CTA du hero étant masqué (règle ci-dessous), il ne reste que favori +
+     partage : on conserve la rangée pour les garder sur une seule ligne, sans
+     retour à la ligne. */
   .rs-actions {
-    flex-direction: column;
+    flex-wrap: nowrap;
   }
 
-  .rs-actions > *,
+  /* Le favori occupe toute la largeur restante à gauche du partage */
+  .rs-actions .recipe-favorite-container {
+    flex: 1;
+    min-width: 0;
+  }
+
   .rs-actions .recipe-favorite-container,
-  .rs-actions .rs-btn-fav,
-  .rs-actions .rs-btn-accent {
+  .rs-actions .rs-btn-fav {
     width: 100%;
     justify-content: center;
     min-height: var(--min-touch-target);
@@ -2213,10 +2243,11 @@
     display: none;
   }
 
+  /* Cible tactile carrée : ne se comprime pas à côté du favori extensible */
   .rs-btn-icon {
     width: var(--min-touch-target);
     height: var(--min-touch-target);
-    align-self: flex-start;
+    flex: 0 0 auto;
   }
 
   .rs-body {
@@ -2336,79 +2367,210 @@
 /* NOTE: .rf-back-bar et .rf-back-link supprimés — utilise .context-bar */
 
 /* ============================================
-   DRAFT STATUS BAR — Barre contextuelle menu brouillon
+   DRAFT RAIL — Menu à valider visible pendant la recherche
+   ============================================
+   Base mobile : barre fixe en bas d'écran (compteur repliable, bandeau de
+   vignettes, accès au menu). Desktop : colonne sombre à droite de .recipes-body,
+   pleine hauteur et fixe au scroll (voir le @media en fin de section).
+   La grille interne est décrite par zones : un seul ordre DOM sert les deux
+   gabarits (bouton à droite du compteur en mobile, sous la liste en desktop).
    ============================================ */
 
-.draft-status-bar {
-  display: flex;
+.draft-rail {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* Au-dessus du bouton flottant « Filtres » (150), sous le backdrop des filtres
+     (180) qui doit pouvoir le recouvrir quand le drawer s'ouvre. */
+  z-index: 160;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  /* Bandeau en piste auto : replié (display: none) il ne réserve aucune hauteur. */
+  grid-template-rows: var(--rail-bar-h) auto;
+  grid-template-areas:
+    "count action"
+    "list  list";
   align-items: center;
-  background: var(--color-bg-secondary);
-  border: var(--border-thin);
-  border-radius: var(--radius-card);
-  padding: 0.625rem 1rem;
-  margin-bottom: 1rem;
+  column-gap: 0.75rem;
+  padding: 0 1rem env(safe-area-inset-bottom, 0px);
+  background: var(--color-primary);
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.18);
 }
 
-.draft-bar-content {
+/* Compteur : <button> déclencheur de l'accordéon quand il y a des vignettes à
+   replier, <p> sinon — mêmes styles dans les deux cas (d'où le reset bouton). */
+.draft-rail-count {
+  grid-area: count;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.draft-bar-info {
-  display: flex;
-  align-items: center;
   gap: 0.5rem;
+  width: 100%;
   min-width: 0;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-bg-white);
+  text-align: left;
 }
 
-.draft-bar-icon {
-  font-size: 1.1rem;
-  flex-shrink: 0;
+/* Affordance réservée au cas où le compteur plie réellement le bandeau : en
+   desktop le JS le passe à disabled, et le <p> n'est pas cliquable. */
+button.draft-rail-count:not(:disabled) {
+  cursor: pointer;
 }
 
-.draft-bar-text {
-  font-size: var(--font-size-xs);
-  color: var(--color-ink-2);
-  white-space: nowrap;
+.draft-rail-count > span {
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.draft-bar-text strong {
-  color: var(--color-ink);
-  font-weight: 600;
-}
-
-.draft-bar-count {
-  color: var(--color-ink-3);
-  font-weight: 400;
-}
-
-.draft-bar-link {
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  color: var(--color-ink);
-  text-decoration: none;
   white-space: nowrap;
-  padding: 0.375rem 0.75rem;
-  border: var(--border-thin);
-  border-radius: var(--radius-button);
-  background: var(--color-bg-white);
-  transition: background var(--transition-fast), border-color var(--transition-fast);
 }
 
-/* Sélecteur scopé (.draft-status-bar …) pour dépasser la spécificité de la règle
-   globale a:not([class*="btn"]):hover, qui repasserait le texte en anthracite
-   (illisible sur le fond primary foncé du survol). */
-.draft-status-bar .draft-bar-link:hover {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-bg-white);
-  text-decoration: none;
+.draft-rail-chevron {
+  color: var(--color-ink-4);
+  transition: transform var(--transition-fast);
+}
+
+/* Replié, le chevron pointe vers le haut : le bandeau s'ouvre vers le haut. */
+.draft-rail-count[aria-expanded="false"] .draft-rail-chevron {
+  transform: rotate(180deg);
+}
+
+.draft-rail-list {
+  grid-area: list;
+  display: flex;
+  gap: 0.5rem;
+  /* Hauteur exacte du bandeau : vignette (56px, bordure comprise) + padding. */
+  height: var(--rail-strip-h);
+  margin: 0;
+  padding: 0.5rem 0;
+  list-style: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-surface-dark-border-hover) transparent;
+}
+
+.draft-rail-list li {
+  flex: 0 0 auto;
+}
+
+/* Bandeau replié — classe posée par mobile-accordion sur .recipes-container,
+   donc uniquement sous le point de rupture mobile. */
+.mobile-accordion--collapsed .draft-rail-list {
+  display: none;
+}
+
+.draft-rail-thumb {
+  display: block;
+  width: 56px;
+  height: 56px;
+  border: var(--border-width) solid var(--color-surface-dark-border);
+  border-radius: var(--radius-card-compact);
+  background: var(--color-surface-dark);
+  overflow: hidden;
+  transition: border-color var(--transition-fast);
+}
+
+.draft-rail-thumb:hover {
+  border-color: var(--color-bg-white);
+}
+
+.draft-rail-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.draft-rail-btn {
+  grid-area: action;
+  white-space: nowrap;
+}
+
+/* authentication.css redéfinit .btn et est chargé après ce fichier dans le
+   manifest : à spécificité égale, son padding (0.75rem 1.5rem) et sa police
+   (1rem) écrasent .btn-sm. On rétablit le gabarit .btn-sm en portant la règle
+   sur .draft-rail (deux classes) — sans quoi le libellé se casse sur trois
+   lignes dans la colonne desktop.
+   La cible tactile de 44px, elle, vient déjà du .btn-sm mobile de components.css. */
+.draft-rail .draft-rail-btn {
+  padding: 0.375rem 0.875rem;
+  font-size: var(--font-size-xs);
+}
+
+/* ── Desktop : colonne sombre à droite, pleine hauteur, fixe au scroll ──
+   (la piste de grille qui l'accueille est déclarée avec .recipes-body, plus haut) */
+@media (min-width: 768px) {
+  .draft-rail {
+    position: sticky;
+    top: 0;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    z-index: auto;
+    width: 120px;
+    height: 100vh;
+    grid-template-columns: 1fr;
+    /* Compteur en haut et bouton en bas toujours visibles : seule la liste des
+       vignettes défile (piste 1fr bornée à 0 pour autoriser le scroll interne). */
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "count"
+      "list"
+      "action";
+    align-items: stretch;
+    row-gap: 0.75rem;
+    padding: 1rem 0.75rem;
+    box-shadow: none;
+  }
+
+  /* Colonne étroite : le libellé se déploie sur plusieurs lignes, centré. */
+  .draft-rail-count {
+    display: block;
+    font-size: var(--font-size-xs);
+    line-height: 1.3;
+    text-align: center;
+  }
+
+  .draft-rail-count > span {
+    white-space: normal;
+  }
+
+  /* Rien à replier en desktop : le compteur rend comme un simple libellé. */
+  .draft-rail-chevron {
+    display: none;
+  }
+
+  .draft-rail-list {
+    flex-direction: column;
+    height: auto;
+    min-height: 0;
+    padding: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .draft-rail-thumb {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+  }
+
+  /* Colonne étroite : padding horizontal resserré pour garder « Voir le menu »
+     sur une seule ligne. white-space: normal reste un filet si la police est
+     agrandie par l'utilisateur. */
+  .draft-rail .draft-rail-btn {
+    width: 100%;
+    padding-left: 0.375rem;
+    padding-right: 0.375rem;
+    white-space: normal;
+  }
 }
 
 /* ============================================
@@ -2459,30 +2621,6 @@
 .draft-btn.draft-btn-compact.in-draft:hover {
   background: var(--color-primary-hover);
   border-color: var(--color-primary-hover);
-}
-
-/* ============================================
-   RESPONSIVE — Draft bar + Draft button
-   ============================================ */
-
-@media (max-width: 767px) {
-  .draft-status-bar {
-    padding: 0.5rem 0.75rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .draft-bar-content {
-    gap: 0.5rem;
-  }
-
-  .draft-bar-text {
-    font-size: 0.8rem;
-  }
-
-  .draft-bar-link {
-    font-size: 0.8rem;
-    padding: 0.3rem 0.6rem;
-  }
 }
 
 /* === Mini Hero sombre === */

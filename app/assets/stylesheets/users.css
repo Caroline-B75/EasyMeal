@@ -29,11 +29,11 @@
   letter-spacing: 0.16em;
 }
 
+/* La taille suit l'échelle fluide de la règle de base h1 (global.css). */
 .users-title,
 .users-form-title h1 {
   margin: 0;
   color: var(--color-ink);
-  font-size: var(--font-size-3xl);
   line-height: 1.15;
 }
 

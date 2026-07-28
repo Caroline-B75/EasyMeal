@@ -11,6 +11,7 @@
    Base       : .btn
    Variantes  : .btn-primary   → action principale (anthracite)
                 .btn-secondary → action neutre
+                .btn-white     → action neutre sur fond clair (blanc franc + bordure fine)
                 .btn-accent    → unique CTA accent (ambre) — cf. « Démarrer un menu »
                 .btn-danger    → action destructive (rouge)
                 .btn-link      → variante « ghost » / tertiaire (transparent, sans bordure)
@@ -62,6 +63,30 @@
    (ombre + montée d'1px), bordure plus marquée et texte assombri. */
 .btn-secondary:hover {
   background: var(--color-secondary);
+  color: var(--color-ink);
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+/* Variante claire du bouton neutre : blanc franc et bordure fine — même langage
+   visuel que le bouton secondaire du hero d'accueil (.btn-hero--secondary, qui en
+   est la déclinaison à l'échelle du hero). À préférer à .btn-secondary là où le
+   beige se confondrait avec le fond de la page (--color-bg-main / -secondary).
+   Sélecteur composé avec .btn (deux classes) : authentication.css redéfinit .btn
+   avec border: none et est chargé après ce fichier — à spécificité égale la
+   bordure serait perdue, et un bouton blanc sans bordure disparaîtrait sur les
+   fonds clairs de l'app. */
+.btn.btn-white {
+  background: var(--color-bg-white);
+  color: var(--color-secondary-text);
+  border: var(--border-thin);
+}
+
+/* Même feedback discret que .btn-secondary : le blanc reste, l'affordance passe
+   par l'élévation et une bordure plus marquée. */
+.btn.btn-white:hover {
   color: var(--color-ink);
   border-color: var(--color-border-strong);
   box-shadow: var(--shadow-md);
@@ -198,6 +223,28 @@
   .icon-btn:hover {
     background: var(--color-bg-secondary);
   }
+}
+
+/* Variante discrète : icône seule, sans cadre ni fond, pour une action
+   secondaire glissée dans un en-tête (ex. supprimer son avis). La cible
+   tactile de 44px est conservée, seul le cadre disparaît.
+   Placée après le bloc responsive pour neutraliser le fond appliqué à
+   `.icon-btn` en mobile. */
+.icon-btn--quiet {
+  border-color: transparent;
+  background: transparent;
+  margin: 0;
+}
+
+/* Suppression discrète : rouge dès le repos, atténué tant qu'on ne survole pas. */
+.icon-btn-delete.icon-btn--quiet {
+  color: var(--color-danger);
+  opacity: 0.65;
+}
+
+.icon-btn-delete.icon-btn--quiet:hover {
+  opacity: 1;
+  background: var(--color-danger-light);
 }
 
 /* === CARDS === */
@@ -1049,9 +1096,11 @@ input[type="radio"] {
 .icon-lg   { width: 32px; height: 32px; }
 .icon-xl   { width: 48px; height: 48px; }
 
-/* Icône de titre (h1, h2) — légèrement plus grande */
+/* Icône de titre (h1, h2) — légèrement plus grande que le texte.
+   Dimensionnée en em : elle suit la taille fluide du titre qui la porte,
+   donc elle rétrécit avec lui sur mobile sans media query. */
 .icon-title {
-  width: 50px;
-  height: 50px;
-  margin-right: 0.5rem;
+  width: 1.4em;
+  height: 1.4em;
+  margin-right: 0.4em;
 }

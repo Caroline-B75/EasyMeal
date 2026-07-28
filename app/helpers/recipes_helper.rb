@@ -62,48 +62,19 @@ module RecipesHelper
     content_tag :span, diet.humanize, class: "badge #{color_class}"
   end
 
-  # Badge de difficulté avec couleur
-  def difficulty_badge(difficulty)
-    return content_tag(:span, "Non renseignée", class: "badge badge-beige") if difficulty.nil?
+  # === Rail « menu à valider » du catalogue (UC2) ===
 
-    colors = {
-      "facile" => "badge-green",
-      "moyen" => "badge-orange",
-      "difficile" => "badge-red"
-    }
+  # Compteur du rail : brouillon encore vide, ou nombre de recettes retenues.
+  # Pluriel écrit à la main (comme ailleurs dans le projet) : ActionView#pluralize
+  # s'appuie sur les inflexions de la locale courante, et :fr n'en définit aucune
+  # — il rendrait « 3 recette ».
+  def draft_rail_label(count)
+    return "Aucune recette dans le menu" if count.zero?
 
-    content_tag :span, difficulty.humanize, class: "badge #{colors[difficulty] || 'badge-beige'}"
+    "#{count} recette#{'s' if count > 1} dans le menu"
   end
 
-  # Badge de prix avec symboles €
-  def price_badge(price)
-    return content_tag(:span, "Non renseigné", class: "badge badge-beige") if price.nil?
-
-    symbols = {
-      "economique" => "€",
-      "moyen" => "€€",
-      "cher" => "€€€"
-    }
-
-    content_tag :span, symbols[price] || "€", class: "badge badge-beige"
-  end
-
-  # === Helpers pour le hero sombre de la fiche recette ===
-
-  # Badge sur fond sombre (hero) — variantes : :default, :green, :amber
-  def show_hero_badge(text, variant = :default)
-    css = case variant
-          when :green then "rs-badge rs-badge--green"
-          when :amber then "rs-badge rs-badge--amber"
-          else "rs-badge"
-          end
-    content_tag :span, text, class: css
-  end
-
-  # Détermine la variante de badge pour un prix
-  def price_badge_variant(price)
-    price == "economique" ? :amber : :default
-  end
+  # === Helpers pour la fiche recette ===
 
   # Distribution des notes pour l'histogramme (hash {1=>count, 2=>count, ...})
   def review_distribution(recipe)

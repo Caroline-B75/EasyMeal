@@ -27,18 +27,16 @@
         .rs-meta-cell
           %span.rs-meta-value= @recipe.cook_time_minutes || "–"
           %span.rs-meta-label CUISSON (MIN)
-        .rs-meta-cell
-          %span.rs-meta-value= @servings
-          %span.rs-meta-label PERSONNES
 
-      -# Badges — attributs pratiques + tags (le régime est porté par le kicker)
+      -# Badges — attributs pratiques + tags (le régime est porté par le kicker).
+      -# Tous neutres : aucune valeur n'est mise en avant par une couleur.
       .rs-badges
         - if @recipe.difficulty.present?
-          = show_hero_badge(@recipe.difficulty_human, :default)
+          %span.rs-badge= @recipe.difficulty_human
         - if @recipe.price.present?
-          = show_hero_badge(@recipe.price_human, price_badge_variant(@recipe.price))
+          %span.rs-badge= @recipe.price_human
         - @recipe.tags.each do |tag|
-          = show_hero_badge(tag.name, :default)
+          %span.rs-badge= tag.name
 
       -# Boutons d'action
       .rs-actions
@@ -153,18 +151,16 @@
         %span.rs-servings-val{ data: { servings_target: "value" } }= @servings
         %button.rs-servings-btn{ type: "button", data: { action: "click->servings#increase" } } +
 
-    - if @preparations_by_category.any?
-      - @preparations_by_category.each do |category, preparations|
-        .rs-ing-group
-          .rs-ing-category= Ingredient.human_attribute_name("category.#{category}")
-          - preparations.each do |preparation|
-            .rs-ing-row{ data: { servings_target: "ingredient",
-                                 base_quantity: preparation.quantity_base,
-                                 unit_group: preparation.ingredient.unit_group,
-                                 default_servings: @recipe.default_servings } }
-              %span.rs-ing-name= preparation.ingredient.name
-              %span.rs-ing-qty{ data: { servings_target: "quantity" } }
-                = preparation.humanized_quantity(servings: @servings)
+    - if @preparations.any?
+      .rs-ing-list
+        - @preparations.each do |preparation|
+          .rs-ing-row{ data: { servings_target: "ingredient",
+                               base_quantity: preparation.quantity_base,
+                               unit_group: preparation.ingredient.unit_group,
+                               default_servings: @recipe.default_servings } }
+            %span.rs-ing-name= preparation.ingredient.name
+            %span.rs-ing-qty{ data: { servings_target: "quantity" } }
+              = preparation.humanized_quantity(servings: @servings)
     - else
       %p.rs-empty Aucun ingrédient renseigné.
 
