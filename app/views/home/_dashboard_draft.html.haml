@@ -24,6 +24,6 @@
       - menu_recipes.each do |menu_recipe|
         = render "menus/menu_recipe_card_readonly", menu_recipe: menu_recipe
 
-  .hero-card-actions.hero-card-actions--inline
+  .hero-card-actions
     = link_to "Reprendre mon menu", menu_path(draft), class: "btn-hero"
     = link_to "Voir les recettes", recipes_path, class: "btn-hero btn-hero--secondary"

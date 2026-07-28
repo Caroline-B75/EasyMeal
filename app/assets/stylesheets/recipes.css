@@ -559,7 +559,7 @@
   align-items: center;
   gap: 0.3rem;
   padding: 0.35rem 0.7rem;
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--color-primary);
   background: var(--color-bg-secondary);

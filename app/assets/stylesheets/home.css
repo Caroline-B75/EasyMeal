@@ -375,32 +375,19 @@
   padding-bottom: 8px;
 }
 
-/* Zone d'actions : bouton principal + liens secondaires discrets */
+/* Zone d'actions : bouton principal + bouton secondaire, côte à côte et de
+   largeur égale (empilés en colonne sur mobile, cf. media query dédiée). */
 .hero-card-actions {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: var(--spacing-md);
 }
 
 .hero-card-actions .btn-hero {
-  width: 100%;
+  flex: 1;
   padding: 0.9rem 2rem;
   font-size: var(--font-size-base);
   text-align: center;
-}
-
-.hero-card-actions .btn-hero--secondary {
-  margin-left: 0;
-}
-
-/* Boutons côte à côte (menu actif) */
-.hero-card-actions--inline {
-  flex-direction: row;
-}
-
-.hero-card-actions--inline .btn-hero {
-  flex: 1;
-  width: auto;
 }
 
 .hero-card-links {
@@ -568,14 +555,14 @@
     width: 100%;
   }
 
-  /* Carte dashboard mobile : pleine largeur, actions centrées */
+  /* Carte dashboard mobile : pleine largeur, actions empilées et de largeur égale */
   .hero-card {
     max-width: 100%;
     padding: var(--spacing-md);
   }
 
   .hero-card-actions {
-    align-items: center;
+    flex-direction: column;
   }
 
   .hero-card-links {
