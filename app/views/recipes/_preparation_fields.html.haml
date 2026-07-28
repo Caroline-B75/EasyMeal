@@ -1,6 +1,14 @@
 -# Partial pour un champ ingrédient (nested field dans le formulaire recette)
--# Utilisé par le controller Stimulus nested-form pour ajouter/supprimer dynamiquement
-.nested-fields.preparation-fields{ data: { nested_form_target: "fields", controller: "ingredient-unit" } }
+-# Utilisé par le controller Stimulus nested-form pour ajouter/supprimer dynamiquement.
+-# Carte disposée en grille (cf. .preparation-fields dans recipes.css) :
+-#   mobile  → ingrédient | croix, puis quantité + unité en dessous
+-#   desktop → ingrédient | quantité + unité | croix, sur une seule ligne
+.preparation-fields{ data: { nested_form_target: "fields", controller: "ingredient-unit" } }
+  -# id rendu explicitement ici : sinon Rails l'émet après le bloc, donc en frère
+  -# de la carte, et il survivrait à la suppression de la ligne côté JS.
+  - if f.object.persisted?
+    = f.hidden_field :id, data: { nested_form_target: "recordId" }
+
   .form-group.preparation-ingredient{ class: field_error_class(f.object, :ingredient_id) }
     = f.label :ingredient_id, "Ingrédient", class: "form-label sr-only"
     %select.form-select{ name: f.object_name + "[ingredient_id]",
@@ -16,25 +24,19 @@
 
   .form-group.preparation-quantity{ class: field_error_class(f.object, :quantity_base) }
     = f.label :quantity_base, "Quantité", class: "form-label sr-only"
-    = f.number_field :quantity_base, 
-                     class: "form-input", 
-                     step: "0.01", 
-                     min: "0.01", 
-                     placeholder: "Quantité"
+    -# Quantité et unité de base partagent un seul cadre : l'unité est un simple
+    -# suffixe en lecture seule, elle suit l'ingrédient sélectionné.
+    - base_unit = f.object.ingredient&.base_unit
+    .quantity-field
+      = f.number_field :quantity_base, class: "form-input", step: "0.01", min: "0.01", placeholder: "Qté"
+      %span.quantity-unit{ class: ("text-muted" if base_unit.blank?),
+                           data: { ingredient_unit_target: "display" } }
+        = base_unit.presence || "—"
     = field_errors(f.object, :quantity_base)
 
-  .form-group.preparation-unit
-    -# Affiche l'unité de base de l'ingrédient sélectionné (en lecture seule)
-    %span.unit-display{ data: { ingredient_unit_target: "display" } }
-      - if f.object.ingredient.present?
-        = f.object.ingredient.base_unit
-      - else
-        —
-
-  -# Bouton supprimer
-  .form-group.preparation-remove
+  .preparation-remove
     = f.hidden_field :_destroy, value: false, data: { nested_form_target: "destroy" }
-    %button.remove-preparation{ type: "button", 
-                                data: { action: "click->nested-form#remove" },
-                                title: "Supprimer cet ingrédient" }
-      = svg_icon(:x, size: 14)
+    %button.icon-btn.icon-btn-delete{ type: "button",
+                                      data: { action: "click->nested-form#remove" },
+                                      title: "Supprimer cet ingrédient" }
+      = svg_icon(:x, size: 16)

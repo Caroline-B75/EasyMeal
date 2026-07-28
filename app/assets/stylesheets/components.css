@@ -582,6 +582,13 @@
   gap: 1rem;
 }
 
+/* .form-group porte un margin-bottom global (authentication.css) : ici
+   l'espacement vertical est déjà assuré par le gap des conteneurs flex
+   (.slideout-form-content et .optional-fields-content), le margin s'y ajoutait. */
+.ingredient-form-slideout .form-group {
+  margin-bottom: 0;
+}
+
 .slideout-form-actions {
   display: flex;
   gap: 0.75rem;

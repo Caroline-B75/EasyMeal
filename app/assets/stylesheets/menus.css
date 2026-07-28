@@ -1841,7 +1841,7 @@
   background: none;
   border: none;
   border-radius: var(--radius-button);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   color: var(--color-ink-3);
   cursor: pointer;
   text-decoration: none;
@@ -2399,6 +2399,12 @@
   }
 
   .mc-page-outer { padding: 16px 16px 48px; }
+
+  /* Moins d'espace sous le titre sur mobile : la liste de courses doit
+     démarrer plus haut, l'écran étant plus petit qu'en desktop. */
+  .mc-page-header {
+    margin-bottom: 10px;
+  }
 
   .mc-page-wrap {
     width: 100%;
