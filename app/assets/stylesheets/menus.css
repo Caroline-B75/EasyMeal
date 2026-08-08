@@ -2564,6 +2564,32 @@
     gap: 8px;
   }
 
+  /* Carte « à valider » : les 3 actions restent sur une seule ligne, poubelle
+     comprise. Les 2 boutons libellés se compriment jusqu'à leur mot le plus
+     long (le libellé passe alors sur 2 lignes) — on ne descend pas en dessous,
+     donc aucun texte ne déborde de son bouton. */
+  .mi-draft-card-actions {
+    flex-wrap: nowrap;
+  }
+
+  /* Padding latéral réduit : le libellé récupère la place ainsi gagnée. */
+  .mi-draft-card-actions .mi-btn-sm {
+    padding: 8px 6px;
+    justify-content: center;
+    text-align: center;
+  }
+
+  /* L'icône n'est jamais écrasée par la compression du libellé voisin. */
+  .mi-draft-card-actions .mi-btn-sm svg {
+    flex-shrink: 0;
+  }
+
+  /* button_to enveloppe la poubelle dans un <form> : c'est lui l'enfant flex.
+     Il garde sa largeur pleine (cible tactile de 44px intacte). */
+  .mi-draft-card-actions form.button_to {
+    flex-shrink: 0;
+  }
+
   /* Actions du hero « menu actif » */
   .mi-btn-hero-primary,
   .mi-btn-hero-ghost,

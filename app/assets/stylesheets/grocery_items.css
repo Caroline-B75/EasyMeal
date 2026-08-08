@@ -520,9 +520,13 @@
     font-size: 16px;
   }
 
+  /* La rangée est empilée avec un gap serré (0.15rem) adapté aux paires
+     label/champ. Le bouton n'appartient à aucune paire : on lui rend de l'air
+     pour le détacher du dernier champ (« Rayon ») et éviter le tap accidentel. */
   .grocery-add-submit {
     width: 100%;
     align-self: stretch;
+    margin-top: 0.75rem;
   }
 
   .grocery-add-submit .btn {
