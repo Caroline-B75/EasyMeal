@@ -60,6 +60,28 @@ module MealTypes
     (count == 1 ? label(meal_type) : plural_label(meal_type))&.downcase
   end
 
+  # Noms d'icônes du helper (ApplicationHelper::FEATHER_ICONS). Privé : le seul
+  # chemin d'appel est MealTypes.icon, comme pour les libellés.
+  ICONS = {
+    "breakfast" => "sunrise",
+    "lunch"     => "sun",
+    "snack"     => "coffee",
+    "apero"     => "glass",
+    "dinner"    => "moon"
+  }.freeze
+  private_constant :ICONS
+
+  # Icône d'un moment — le repère visuel qui DOUBLE le libellé là où le moment
+  # n'est pas modifiable (étiquette figée d'un menu validé), jamais qui le
+  # remplace. Elle appartient au vocabulaire du moment au même titre que ses
+  # libellés : elle se nomme ici, et nulle part ailleurs.
+  # @param meal_type [String, Symbol, nil]
+  # @return [String] nom d'icône à passer à svg_icon — une icône générique si le
+  #   moment est inconnu : un libellé décoratif ne doit jamais faire tomber une page
+  def self.icon(meal_type)
+    ICONS.fetch(meal_type.to_s, "utensils")
+  end
+
   # Traduction commune aux trois registres de libellés ci-dessus.
   def self.translate(meal_type, scope, **options)
     return nil if meal_type.blank?

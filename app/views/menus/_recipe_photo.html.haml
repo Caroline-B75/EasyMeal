@@ -1,0 +1,12 @@
+-# Photo carrée d'une recette, ou l'image par défaut du projet quand elle n'en a
+-# pas. Partagé par la carte de repas d'un menu et par sa variante en lecture
+-# seule (dashboards de la home) : à elles deux, elles posent la boîte
+-# (.mc-card-photo et son ratio) — ce partial ne remplit que l'intérieur.
+-#
+-# recipe : Recipe
+
+- if recipe.photo.attached?
+  = image_tag recipe.photo.variant(resize_to_fill: [260, 260]),
+              alt: recipe.name, width: 260, height: 260, loading: "lazy"
+- else
+  = image_tag "photo_par_defaut_recette.webp", alt: recipe.name, width: 260, height: 260, loading: "lazy"

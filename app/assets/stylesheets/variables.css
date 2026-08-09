@@ -79,19 +79,9 @@
   --color-diet-vegan-bg: #E6F5EE;
   --color-diet-pesc-bg: #E6F1FB;
 
-  /* === TEINTES DE JOUR (cartes de repas du brouillon, UC7) ===
-     Indexées comme Date#wday (0 = dimanche … 6 = samedi), l'entier stocké dans
-     MenuRecipe#day_of_week : la carte lit sa teinte via son attribut data-day.
-     Volontairement très désaturées — la charte reste anthracite + ambre, ces
-     tons ne servent qu'à repérer d'un coup d'œil les repas d'un même jour dans
-     une grille qu'on réorganise à la main, jamais à décorer. */
-  --color-day-0: #FBF0F2;  /* dimanche  — rose poudré */
-  --color-day-1: #F0F4F9;  /* lundi     — bleu ardoise */
-  --color-day-2: #F1F6F0;  /* mardi     — vert sauge */
-  --color-day-3: #FDF6E7;  /* mercredi  — ambre pâle */
-  --color-day-4: #FBF1EB;  /* jeudi     — terracotta pâle */
-  --color-day-5: #F4F1FA;  /* vendredi  — lilas */
-  --color-day-6: #EDF5F6;  /* samedi    — bleu-vert pâle */
+  /* Les couleurs de jour (cartes de repas, UC7) ne sont pas des tokens globaux :
+     elles n'ont de sens que posées sur .mc-recipe-card[data-day], et vivent donc
+     avec la carte, dans menus.css. */
 
   /* === BORDURES === */
   --color-border: #E7E5E4;
