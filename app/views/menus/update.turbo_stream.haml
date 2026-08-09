@@ -13,6 +13,8 @@
     = render "menus/settings_panel", menu: @menu, menu_recipes: @menu_recipes
 
 - if @people_changed
+  -# La collection est transmise à chaque carte : sans ce local, chaque carte
+  -# re-rendue rechargerait les repas du menu pour son seul état ⬆️/⬇️.
   - @menu_recipes.each do |mr|
     = turbo_stream.replace "menu_recipe_#{mr.id}" do
-      = render "menus/menu_recipe_card", menu_recipe: mr, menu: @menu
+      = render "menus/menu_recipe_card", menu_recipe: mr, menu: @menu, meals: @menu_recipes

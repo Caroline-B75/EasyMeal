@@ -4,87 +4,49 @@ module Menus
   # Génère un Menu(status: :draft) persisté en base avec ses repas initiaux.
   #
   # Appelé depuis MenusController#create lors de la soumission du formulaire
-  # de génération (UC1).
+  # de génération (UC1/UC7).
   #
-  # Algorithme de sélection (UC1 — règle "priorité saison") :
-  # 1. Construire le pool de saison (recettes compatibles + de saison ce mois).
-  # 2. Mélanger aléatoirement ce pool et piocher jusqu'à number_of_meals.
-  # 3. Compléter avec le pool hors saison si le pool saison est insuffisant.
-  # 4. Créer le Menu et les MenuRecipes dans une transaction atomique.
+  # Le remplissage relève de ComposeMealsService — partagé avec la
+  # re-génération d'un brouillon : un pool par moment commandé, priorité
+  # saison à l'intérieur de chaque quota, remplissage partiel sans erreur
+  # (les pools trop maigres deviennent des manques affichés, jamais un échec).
   #
   # @example
   #   menu = Menus::GenerateService.call(
   #     user: current_user,
   #     diet: :vegetarien,
   #     default_people: 4,
-  #     number_of_meals: 6
+  #     meal_counts: MealCounts.from_hash({ "breakfast" => 7, "dinner" => 7 })
   #   )
   #   # => Menu (status: :draft, persisted)
   class GenerateService
     # @param user [User]
     # @param diet [Symbol, String] Régime alimentaire (ex: :vegetarien)
     # @param default_people [Integer] Nombre de personnes par défaut pour les repas
-    # @param number_of_meals [Integer] Nombre de repas à générer
+    # @param meal_counts [MealCounts] Répartition des repas commandée, par moment
     # @param name [String, nil] Nom du menu (auto-généré si absent)
     # @return [Menu] Menu draft persisté
-    def self.call(user:, diet:, default_people:, number_of_meals:, name: nil)
+    def self.call(user:, diet:, default_people:, meal_counts:, name: nil)
       new(
         user: user,
         diet: diet,
         default_people: default_people,
-        number_of_meals: number_of_meals,
+        meal_counts: meal_counts,
         name: name
       ).call
     end
 
-    def initialize(user:, diet:, default_people:, number_of_meals:, name:)
+    def initialize(user:, diet:, default_people:, meal_counts:, name:)
       @user           = user
       @diet           = diet.to_s
       @default_people = default_people.to_i
-      @number_of_meals = number_of_meals.to_i
-      @name           = name.presence || auto_name
+      @meal_counts    = meal_counts
+      @name           = name.presence || Menu.default_name
     end
 
+    # Un seul brouillon par utilisateur : l'éventuel brouillon précédent est
+    # remplacé dans la même transaction que la création du nouveau.
     def call
-      selection = pick_recipes
-      build_menu(selection)
-    end
-
-    private
-
-    # Sélectionne number_of_meals recettes sans doublons (saison d'abord).
-    # Le tri aléatoire et la limite sont délégués à PostgreSQL.
-    # Le scope seasonal_for_month utilise DISTINCT (JOIN ingrédients) : on l'isole
-    # en sous-requête pour éviter le conflit PostgreSQL DISTINCT + ORDER BY RANDOM().
-    def pick_recipes
-      month          = Date.current.month
-      base           = Recipe.published.compatible_with(@diet)
-      seasonal_scope = base.seasonal_for_month(month)
-
-      seasonal = Recipe.where(id: seasonal_scope.select(:id))
-                       .order(Arel.sql("RANDOM()"))
-                       .limit(@number_of_meals)
-                       .to_a
-
-      remaining = @number_of_meals - seasonal.size
-      other = if remaining > 0
-                # Exclure TOUTES les recettes saisonnières (pas seulement celles retenues)
-                base.where.not(id: seasonal_scope.select(:id))
-                    .order(Arel.sql("RANDOM()"))
-                    .limit(remaining)
-                    .to_a
-              else
-                []
-              end
-
-      selection = seasonal + other
-      raise Menus::NoCandidatesError if selection.empty?
-
-      selection
-    end
-
-    # Crée le Menu et ses MenuRecipes dans une transaction atomique
-    def build_menu(selection)
       ActiveRecord::Base.transaction do
         @user.menus.status_draft.find_each(&:destroy!)
 
@@ -96,21 +58,8 @@ module Menus
           status:         :draft
         )
 
-        selection.each_with_index do |recipe, index|
-          menu.menu_recipes.create!(
-            recipe:           recipe,
-            number_of_people: @default_people,
-            position:         index
-          )
-        end
-
-        menu
+        ComposeMealsService.call(menu: menu, meal_counts: @meal_counts)
       end
-    end
-
-    # Nom par défaut si aucun nom n'est fourni par l'utilisateur
-    def auto_name
-      "Menu du #{Date.current.strftime('%d/%m/%Y')}"
     end
   end
 end

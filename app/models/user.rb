@@ -34,9 +34,15 @@ class User < ApplicationRecord
     message: "doit être au moins 1"
   }
 
-  validates :default_number_of_meals, numericality: {
-    only_integer: true,
-    in: 1..21,
-    message: "doit être compris entre 1 et 21"
-  }
+  # === Méthodes d'instance ===
+
+  # Semaine type mémorisée (UC7) : la répartition des repas par moment, sous
+  # forme d'objet-valeur. La colonne jsonb n'est qu'un support de stockage —
+  # MealCounts est le seul point d'entrée légitime, en lecture comme en écriture
+  # (`user.default_meal_counts = meal_counts.to_h`), et c'est lui qui garantit
+  # que d'anciennes valeurs ou une saisie exotique restent inoffensives.
+  # @return [MealCounts] répartition vide tant que la semaine n'a pas été décrite
+  def preferred_meal_counts
+    MealCounts.from_hash(default_meal_counts)
+  end
 end

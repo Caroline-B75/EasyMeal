@@ -5,7 +5,7 @@
 # Règles :
 # - Créer un menu : tout utilisateur connecté.
 # - Toutes les autres actions (show, edit, update, destroy, activate,
-#   add_random_meal, replace_meal) :
+#   replace_meal) :
 #   utilisateur connecté ET propriétaire du menu.
 # - Scope : un utilisateur ne voit que ses propres menus.
 class MenuPolicy < ApplicationPolicy
@@ -47,11 +47,6 @@ class MenuPolicy < ApplicationPolicy
     owner?
   end
 
-  # Ajout d'un repas aléatoire — UC1/UC2
-  def add_random_meal?
-    owner?
-  end
-
   # Remplacement d'un repas — UC2
   def replace_meal?
     owner?
@@ -69,6 +64,11 @@ class MenuPolicy < ApplicationPolicy
 
   # Re-génération du menu brouillon avec de nouveaux paramètres — UC2
   def regenerate?
+    owner?
+  end
+
+  # Ajustement du nombre de repas d'un moment du brouillon — UC7
+  def adjust_meal_count?
     owner?
   end
 

@@ -36,6 +36,16 @@ module RecipesHelper
     format_prep_time(total)
   end
 
+  # Texte compact du badge temps d'une mini-carte (UC7, ex « 35 min ») — nil
+  # si aucun temps n'est renseigné : le badge ne doit alors pas s'afficher.
+  # Volontairement sans conversion en heures (contrairement à format_prep_time) :
+  # le badge reste un repère rapide, pas une durée précise.
+  # @return [String, nil]
+  def total_time_badge(recipe)
+    total = recipe.total_time_minutes
+    "#{total} min" if total.positive?
+  end
+
   # Retourne les étoiles affichées pour la note moyenne
   # rating_avg est un decimal (ex: 4.3)
   def rating_stars(rating_avg)
@@ -60,6 +70,24 @@ module RecipesHelper
     color_class = colors[diet] || "badge-orange"
 
     content_tag :span, diet.humanize, class: "badge #{color_class}"
+  end
+
+  # === Boutons d'ajout / retrait du brouillon (UC2/UC7) ===
+
+  # Destination annoncée par le tooltip d'un bouton d'ajout / retrait du
+  # brouillon. En contexte de moment (catalogue filtré, UC7), elle nomme le
+  # moment réellement visé — « aux goûters du menu à valider » ; sinon le menu
+  # tout court. Partagée par le bouton compact des cartes du catalogue
+  # (_draft_button) et le CTA de la fiche recette (_draft_cta), qui ne
+  # divergent que par ce qui la précède.
+  # @param meal_type [String, nil] moment du contexte
+  # @param action [Symbol] :add ou :remove — la préposition suit le sens
+  # @return [String]
+  def draft_toggle_destination(meal_type, action)
+    adding = action == :add
+    return adding ? "au menu à valider" : "du menu à valider" if meal_type.blank?
+
+    "#{adding ? 'aux' : 'des'} #{MealTypes.inline_label(meal_type)} du menu à valider"
   end
 
   # === Rail « menu à valider » du catalogue (UC2) ===

@@ -1,11 +1,18 @@
 -# Carte des réglages qui s'appliquent à tout le menu (brouillon uniquement) :
--# nombre de personnes et régime alimentaire. Présentée en colonne latérale à
--# côté de la grille de repas (voir _draft_view, .mc-split) — le titre du menu
--# n'est ainsi plus repoussé vers le bas par une barre de réglages pleine largeur.
+-# régime alimentaire, nombre de personnes et répartition des repas. Présentée
+-# en colonne latérale à côté de la grille de repas (voir _draft_view,
+-# .mc-split) — le titre du menu n'est ainsi plus repoussé vers le bas par une
+-# barre de réglages pleine largeur.
 -#
--# Cible du Turbo Stream de mise à jour du nombre de personnes (voir
--# update.turbo_stream.haml) : après un +/- du stepper, l'état disabled des
--# boutons aux bornes (1 et 12) doit être rafraîchi depuis le serveur.
+-# Les réglages se lisent dans le MÊME ordre que les cartes du formulaire de
+-# génération (menus/_params_form) : régime, personnes, répartition. C'est le
+-# même menu qu'on décrit, avant puis après génération — l'œil retrouve les
+-# réglages à la place où il les a saisis.
+-#
+-# La carte porte un id car elle est la cible d'un Turbo Stream à chaque geste
+-# qui la périme : le +/- du nombre de personnes (update.turbo_stream.haml, pour
+-# l'état disabled aux bornes) et tout changement de composition du menu
+-# (refresh_draft.turbo_stream.haml, pour les steppers de répartition).
 -#
 -# En mobile, le corps de la carte se replie en accordéon (controller
 -# mobile-accordion, porté par .mc-split-aside dans _draft_view) : la grille de
@@ -14,8 +21,10 @@
 -#
 -# Locals :
 -#   menu         : Menu (status: :draft)
--#   menu_recipes : collection ordonnée des MenuRecipe (nombre de repas, pour la régénération de régime)
+-#   menu_recipes : collection ordonnée des MenuRecipe, déjà chargée par l'appelant
+-#                  — les steppers de répartition comptent dessus
 - body_id = "menu_settings_body_#{menu.id}"
+- meal_counts = menu.composed_meal_counts(menu_recipes)
 
 .mc-settings-panel{ id: "menu_settings_#{menu.id}" }
   %h2.mc-settings-panel-title
@@ -33,6 +42,40 @@
     %p.mc-settings-panel-note
       = svg_icon("info", size: 12)
       %span S'applique à tout le menu. Tu peux ajuster plat par plat ci-contre.
+
+    .mc-settings-panel-sep
+
+    .mc-setting
+      .mc-setting-icon.mc-setting-icon--diet
+        = svg_icon("leaf", size: 17)
+      .mc-setting-body
+        %span.mc-setting-label Type de régime
+
+        -# Changer le régime est destructif : toutes les recettes sont remplacées.
+        -# Seul le régime est transmis — le serveur rejoue la commande mémorisée
+        -# du menu (requested_meal_counts) pour re-générer à l'identique (UC7).
+        .mc-diet-picker{ data: { menu_params_target: "dietPicker" } }
+          %button.mc-diet-toggle{ type: "button",
+                                   "aria-expanded": "false",
+                                   "aria-haspopup": "listbox",
+                                   data: { action: "click->menu-params#toggleDietPicker",
+                                           menu_params_target: "dietToggle" } }
+            = menu_diet_label(menu.diet)
+            = svg_icon("chevron-down", size: 11, css_class: "mc-diet-chevron")
+          .mc-diet-options{ data: { menu_params_target: "dietOptions" }, hidden: true, role: "listbox" }
+            - Menu.diets.keys.each do |diet_key|
+              - if diet_key == menu.diet
+                %span.mc-diet-opt.mc-diet-opt--current{ role: "option", "aria-selected": "true" }
+                  = svg_icon("check", size: 10)
+                  = menu_diet_label(diet_key)
+              - else
+                = form_with url: regenerate_menu_path(menu), method: :post, class: "mc-diet-opt-form" do
+                  = hidden_field_tag "menu[diet]", diet_key
+                  %button.mc-diet-opt{ type: "submit",
+                                        role: "option",
+                                        "aria-selected": "false",
+                                        data: { turbo_confirm: "Passer en « #{menu_diet_label(diet_key)} » remplacera toutes les recettes du menu. Continuer ?" } }
+                    = menu_diet_label(diet_key)
 
     .mc-settings-panel-sep
 
@@ -64,33 +107,39 @@
 
     .mc-settings-panel-sep
 
-    .mc-setting
-      .mc-setting-icon.mc-setting-icon--diet
-        = svg_icon("leaf", size: 17)
+    -# Répartition des repas (UC7) : un stepper par moment, qui agit directement
+    -# sur la composition — « + » tire une recette du moment et la pose à la
+    -# suite de la grille, « − » retire le dernier repas de ce moment. Le nombre
+    -# affiché est donc celui des cartes réellement présentes.
+    -#
+    -# Chaque bouton est un submit à part entière (name: "delta") plutôt qu'un
+    -# compteur piloté en JavaScript : le serveur seul connaît la composition,
+    -# et il renvoie la grille et ces steppers d'un même mouvement. Le geste est
+    -# volontairement le même que celui du formulaire de génération — mêmes
+    -# lignes, mêmes steppers compacts (voir shared/_meal_counts_fields).
+    .mc-setting.mc-setting--stacked
+      .mc-setting-icon.mc-setting-icon--meals
+        = svg_icon("utensils", size: 17)
       .mc-setting-body
-        %span.mc-setting-label Type de régime
+        %span.mc-setting-label Répartition des repas
 
-        -# Changer le régime est destructif : toutes les recettes sont remplacées
-        .mc-diet-picker{ data: { menu_params_target: "dietPicker" } }
-          %button.mc-diet-toggle{ type: "button",
-                                   "aria-expanded": "false",
-                                   "aria-haspopup": "listbox",
-                                   data: { action: "click->menu-params#toggleDietPicker",
-                                           menu_params_target: "dietToggle" } }
-            = menu_diet_label(menu.diet)
-            = svg_icon("chevron-down", size: 11, css_class: "mc-diet-chevron")
-          .mc-diet-options{ data: { menu_params_target: "dietOptions" }, hidden: true, role: "listbox" }
-            - Menu.diets.keys.each do |diet_key|
-              - if diet_key == menu.diet
-                %span.mc-diet-opt.mc-diet-opt--current{ role: "option", "aria-selected": "true" }
-                  = svg_icon("check", size: 10)
-                  = menu_diet_label(diet_key)
-              - else
-                = form_with url: regenerate_menu_path(menu), method: :post, class: "mc-diet-opt-form" do
-                  = hidden_field_tag "menu[diet]", diet_key
-                  = hidden_field_tag "menu[number_of_meals]", menu_recipes.size
-                  %button.mc-diet-opt{ type: "submit",
-                                        role: "option",
-                                        "aria-selected": "false",
-                                        data: { turbo_confirm: "Passer en « #{menu_diet_label(diet_key)} » remplacera toutes les recettes du menu. Continuer ?" } }
-                    = menu_diet_label(diet_key)
+        .mn-meal-counts
+          - MealTypes::MEAL_TYPES.each do |meal_type|
+            - count = meal_counts[meal_type]
+            - singular = MealTypes.inline_label(meal_type, 1)
+            .mn-meal-row
+              -# Libellé compact : la colonne latérale n'a pas la largeur d'un
+              -# « Petits-déjeuners » ; le pluriel reste porté par aria-label.
+              %span.mn-meal-label= MealTypes.compact_label(meal_type)
+              = form_with url: adjust_meal_count_menu_path(menu), method: :patch,
+                          class: "mc-stepper-form" do
+                = hidden_field_tag :meal_type, meal_type, id: nil
+                .mc-stepper.mc-stepper--compact{ role: "group",
+                                                 "aria-label": MealTypes.plural_label(meal_type) }
+                  %button.mc-stepper-btn{ type: "submit", name: "delta", value: -1,
+                                          "aria-label": "Retirer un #{singular} du menu",
+                                          disabled: count.zero? } −
+                  %span.mc-stepper-val= count
+                  %button.mc-stepper-btn{ type: "submit", name: "delta", value: 1,
+                                          "aria-label": "Ajouter un #{singular} au menu",
+                                          disabled: count >= MealCounts::MAX } +

@@ -54,7 +54,6 @@ class UsersController < ApplicationController
       :admin,
       :default_diet,
       :default_people,
-      :default_number_of_meals,
       :preferences_configured
     )
 

@@ -21,6 +21,7 @@ module AttributeCleaner
   def clean_attributes
     clean_aliases if respond_to?(:aliases) && aliases_changed?
     clean_season_months if respond_to?(:season_months) && season_months_changed?
+    clean_meal_types if respond_to?(:meal_types) && meal_types_changed?
   end
 
   # Convertit aliases en tableau propre via la table de dispatch ALIASES_NORMALIZERS.
@@ -48,8 +49,17 @@ module AttributeCleaner
     end
   end
 
-  # Parse une chaîne en tableau (délimitée par virgules)
-  def parse_string_to_array(string)
-    string.split(",").map(&:strip).reject(&:blank?).uniq
+  # Nettoie meal_types : un groupe de cases à cocher HTML envoie toujours une
+  # entrée "" fantôme, qui ferait passer « rien de coché » pour un moment valide.
+  # On retire les vides et les doublons ; l'ordre canonique de la journée est
+  # rétabli à l'affichage, pas en base.
+  def clean_meal_types
+    return if meal_types.nil?
+
+    self.meal_types = if meal_types.is_a?(Array)
+                        meal_types.map { |type| type.to_s.strip }.reject(&:blank?).uniq
+    else
+                        []
+    end
   end
 end

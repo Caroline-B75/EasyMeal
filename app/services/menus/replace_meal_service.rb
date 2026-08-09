@@ -4,9 +4,12 @@ module Menus
   # Remplace un repas existant par une nouvelle recette tirée aléatoirement (UC2).
   #
   # Règles :
-  # - La nouvelle recette est choisie via CandidatePickerService (priorité saison,
-  #   anti-doublon sur les recettes déjà présentes dans le menu).
-  # - Le number_of_people du repas remplacé est CONSERVÉ sur le nouveau repas.
+  # - La nouvelle recette est tirée via CandidatePickerService dans le pool du
+  #   MÊME moment que le repas remplacé (UC7 : un dîner redonne un dîner),
+  #   priorité saison, en excluant la recette remplacée et celles déjà
+  #   présentes dans ce moment.
+  # - Le nouveau repas reprend la place du remplacé : nombre de personnes,
+  #   moment, position et jour annoté sont CONSERVÉS.
   # - L'ancien MenuRecipe est supprimé, un nouveau est créé.
   # - L'opération est atomique (transaction).
   #
@@ -30,24 +33,27 @@ module Menus
     end
 
     def call
-      # Mémoriser le nb de personnes AVANT suppression
-      people = @menu_recipe.number_of_people
+      new_recipe = pick_replacement
 
-      # Choisir la nouvelle recette en excluant la recette actuelle du calcul des candidats
-      # (elle sera supprimée, mais on l'exclut pour éviter de la re-tirer immédiatement)
-      new_recipe = CandidatePickerService.call(
-        menu:              @menu,
-        extra_excluded_ids: [@menu_recipe.recipe_id]
-      )
+      # La place du repas remplacé, relevée AVANT sa suppression
+      slot = @menu_recipe.slice(:number_of_people, :meal_type, :position, :day_of_week)
 
       ActiveRecord::Base.transaction do
         @menu_recipe.destroy!
 
-        @menu.menu_recipes.create!(
-          recipe:           new_recipe,
-          number_of_people: people
-        )
+        @menu.menu_recipes.create!(slot.merge(recipe: new_recipe))
       end
+    end
+
+    private
+
+    # Tire dans le pool du moment du repas remplacé, sans re-tirer sa recette
+    def pick_replacement
+      CandidatePickerService.call(
+        menu:               @menu,
+        meal_type:          @menu_recipe.meal_type,
+        extra_excluded_ids: [ @menu_recipe.recipe_id ]
+      )
     end
   end
 end

@@ -288,22 +288,6 @@
   color: var(--color-accent-text);
 }
 
-/* Ligne de méta : nombre de repas, prochain repas */
-.hero-card-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-xs) var(--spacing-md);
-  margin-bottom: var(--spacing-md);
-  font-size: var(--font-size-sm);
-  color: var(--color-ink-3);
-}
-
-.hero-card-meta-item {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-}
-
 /* Note explicative (brouillon / état vide) */
 .hero-card-note {
   margin-bottom: var(--spacing-md);

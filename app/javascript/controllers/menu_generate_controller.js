@@ -1,9 +1,11 @@
 import { Controller } from "@hotwired/stimulus"
+import { paintSliderTrack } from "slider_track"
 
 /**
  * Interactivité du formulaire de paramètres de menu (génération / régénération) :
  * - Sélection du régime alimentaire (cartes radio accessibles ARIA)
- * - Sliders "personnes" et "repas" avec piste colorée
+ * - Slider "personnes" avec piste colorée
+ * - Répartition des repas : écoute les steppers du contrôleur meal-counts
  * - Barre résumé synchronisée en temps réel
  * - État de chargement au submit
  *
@@ -14,16 +16,15 @@ export default class extends Controller {
   static targets = [
     "dietOption", "dietInput",
     "peopleSlider", "peopleDisplay", "peopleUnit",
-    "mealsSlider", "mealsDisplay",
     "nameInput",
     "sumDiet", "sumPeople", "sumMeals", "sumName",
-    "submitBtn"
+    "emptyMealsHint", "submitBtn"
   ]
 
   static values = { defaultName: String }
 
   connect() {
-    this.updateAllSliderTracks()
+    if (this.hasPeopleSliderTarget) paintSliderTrack(this.peopleSliderTarget)
   }
 
   // ── Régime alimentaire ──────────────────────────────────
@@ -57,17 +58,19 @@ export default class extends Controller {
     const unit = val === 1 ? "personne" : "personnes"
     this.peopleDisplayTarget.textContent = val
     this.peopleUnitTarget.textContent = unit
-    this.updateSliderTrack(this.peopleSliderTarget)
+    paintSliderTrack(this.peopleSliderTarget)
     if (this.hasSumPeopleTarget) this.sumPeopleTarget.textContent = `${val} ${unit}`
   }
 
-  // ── Nombre de repas (slider) ────────────────────────────
+  // ── Répartition des repas (steppers meal-counts) ────────
 
-  updateMeals() {
-    const val = parseInt(this.mealsSliderTarget.value)
-    this.mealsDisplayTarget.textContent = val
-    this.updateSliderTrack(this.mealsSliderTarget)
-    if (this.hasSumMealsTarget) this.sumMealsTarget.textContent = `${val} repas`
+  // Réagit à l'événement meal-counts:change émis par les steppers : le résumé
+  // reprend la répartition, et une semaine sans aucun repas ne se génère pas —
+  // le bouton se désactive plutôt que de laisser partir une commande vide.
+  updateMealCounts({ detail: { total, summary } }) {
+    if (this.hasSumMealsTarget) this.sumMealsTarget.textContent = summary
+    if (this.hasEmptyMealsHintTarget) this.emptyMealsHintTarget.hidden = total > 0
+    if (this.hasSubmitBtnTarget) this.submitBtnTarget.disabled = total === 0
   }
 
   // ── Nom du menu ─────────────────────────────────────────
@@ -75,25 +78,6 @@ export default class extends Controller {
   updateName() {
     if (!this.hasSumNameTarget) return
     this.sumNameTarget.textContent = this.nameInputTarget.value.trim() || this.defaultNameValue
-  }
-
-  // ── Slider track visual update ──────────────────────────
-
-  updateAllSliderTracks() {
-    if (this.hasPeopleSliderTarget) {
-      this.updateSliderTrack(this.peopleSliderTarget)
-    }
-    if (this.hasMealsSliderTarget) {
-      this.updateSliderTrack(this.mealsSliderTarget)
-    }
-  }
-
-  updateSliderTrack(slider) {
-    const min = parseInt(slider.min) || 1
-    const max = parseInt(slider.max) || 14
-    const val = parseInt(slider.value) || 7
-    const pct = Math.round(((val - min) / (max - min)) * 100)
-    slider.style.background = `linear-gradient(to right, var(--color-primary) ${pct}%, var(--color-bg-tertiary) ${pct}%)`
   }
 
   // ── Submit avec état de chargement ──────────────────────

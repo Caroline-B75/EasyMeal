@@ -1,0 +1,6 @@
+-# Turbo Stream : re-rend le bloc des repas du menu actif après un ⬆️/⬇️ —
+-# l'ordre des cartes et l'état des flèches aux extrémités retombent juste
+-# d'un seul tenant. Pendant symétrique de refresh_draft, sans panneau de
+-# réglages ni manques : la composition d'un menu validé ne bouge plus.
+= turbo_stream.replace "active_meals" do
+  = render "menus/active_meals", menu: @menu, menu_recipes: @menu_recipes

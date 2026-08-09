@@ -107,6 +107,21 @@ RSpec.describe Groceries::BuildForMenuService do
     end
   end
 
+  describe ".call — recette répétée dans le menu (UC7)" do
+    it "additionne les quantités des doublons" do
+      menu = menu_with(ingredient => 100)
+      # La même recette une seconde fois : la levée de l'unicité menu/recette ne
+      # doit pas faire « oublier » l'un des deux repas à la liste de courses.
+      create(:menu_recipe, menu: menu, recipe: menu.menu_recipes.first.recipe, number_of_people: 1)
+
+      described_class.call(menu: menu)
+
+      expect(menu.menu_recipes.count).to eq(2)
+      item = menu.grocery_items.generated.find_by(ingredient: ingredient)
+      expect(item.quantity_base).to eq(200)
+    end
+  end
+
   describe ".call — idempotence" do
     it "deux appels consécutifs sans changement de menu ne modifient rien" do
       menu = menu_with(ingredient => 100)

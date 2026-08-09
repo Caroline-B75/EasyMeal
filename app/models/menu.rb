@@ -18,6 +18,14 @@ class Menu < ApplicationRecord
   # Lignes de la liste de courses (générées + manuelles)
   has_many :grocery_items, dependent: :destroy
 
+  # Nom donné à un menu créé sans nom — par la génération, par le démarrage
+  # depuis le catalogue, et annoncé en placeholder du formulaire. Une seule
+  # source : le nom promis à l'utilisatrice est exactement celui qu'elle obtient.
+  # @return [String] ex. « Menu du 08/08/2026 »
+  def self.default_name
+    "Menu du #{Date.current.strftime('%d/%m/%Y')}"
+  end
+
   # === Enums ===
 
   # Cycle de vie du menu
@@ -50,18 +58,12 @@ class Menu < ApplicationRecord
   }, if: :status_draft?
 
   # === Scopes ===
-
-  # Brouillons de l'utilisateur (en cours de composition)
-  scope :drafts, -> { where(status: :draft) }
+  # Les filtres par statut passent par les scopes de l'enum (status_draft,
+  # status_active, status_archived) — sauf active_menus, dont le nom explicite
+  # se lit mieux sur les appels « le menu actif de l'utilisatrice ».
 
   # Menus finalisés (un seul actif par utilisateur)
   scope :active_menus, -> { where(status: :active) }
-
-  # Menus archivés (historique)
-  scope :archived, -> { where(status: :archived) }
-
-  # Brouillons inactifs depuis plus de 7 jours — candidats au nettoyage
-  scope :stale_drafts, -> { draft.where("updated_at < ?", 7.days.ago) }
 
   # Tri chronologique (les plus récents d'abord)
   scope :recent, -> { order(created_at: :desc) }
@@ -119,9 +121,24 @@ class Menu < ApplicationRecord
     menu_recipes.count
   end
 
-  # Nombre total de personnes servies (somme de tous les repas)
-  def total_servings
-    menu_recipes.sum(:number_of_people)
+  # Repas prêts pour l'affichage des vues brouillon / actif : ordonnés par
+  # position, photo préchargée. Chargement partagé entre la page du menu et
+  # les Turbo Streams qui re-rendent ses cartes.
+  def meals_for_display
+    menu_recipes.includes(recipe: :photo_attachment).by_position
+  end
+
+  # Ajoute un repas à la suite du dernier de la grille — la place de tout ajout
+  # dans un brouillon, qu'il vienne du catalogue ou des steppers du panneau de
+  # réglages. Le nombre de personnes du menu s'applique, comme à la génération.
+  # @param recipe [Recipe]
+  # @param meal_type [String, nil] moment du repas ; nil hors contexte de moment
+  # @return [MenuRecipe]
+  def append_meal!(recipe:, meal_type: nil)
+    menu_recipes.create!(recipe:           recipe,
+                         meal_type:        meal_type,
+                         number_of_people: default_people,
+                         position:         menu_recipes.maximum(:position).to_i + 1)
   end
 
   # Progression de la liste de courses : articles cochés sur total.
@@ -136,18 +153,50 @@ class Menu < ApplicationRecord
     { checked: checked, total: total, percent: percent }
   end
 
-  # Prochain repas planifié à venir (date >= aujourd'hui).
-  # Renvoie nil si aucun repas n'a de date planifiée (scheduled_date nullable).
-  # @return [MenuRecipe, nil]
-  def next_scheduled_meal
-    menu_recipes.where(scheduled_date: Date.current..).order(:scheduled_date).first
-  end
-
   # Un brouillon avec une liste existante provient d'un menu actif repassé en
   # modification : sa validation mettra à jour la liste plutôt que d'en créer une
   # première version.
   def pending_revalidation?
     status_draft? && grocery_items.exists?
+  end
+
+  # La commande passée à la génération (UC7), sous forme d'objet-valeur.
+  # La colonne jsonb requested_meal_counts n'est qu'un support de stockage —
+  # même principe que User#preferred_meal_counts.
+  # @return [MealCounts]
+  def requested_counts
+    MealCounts.from_hash(requested_meal_counts)
+  end
+
+  # La composition RÉELLE du menu, moment par moment (UC7) — par opposition à
+  # la commande (requested_counts) : ce que la grille contient vraiment.
+  # Comptage brut et non MealCounts, qui borne et élague les quotas d'une
+  # commande : les steppers du panneau de réglages doivent afficher les cinq
+  # moments, zéros compris, et dire la vérité même au-delà de MealCounts::MAX.
+  # @param meals [Enumerable<MenuRecipe>] repas à compter — par défaut
+  #   l'association, mais la vue du brouillon passe la collection qu'elle a
+  #   déjà chargée pour éviter une requête doublon
+  # @return [Hash{String => Integer}] les cinq moments, dans l'ordre de la journée
+  def composed_meal_counts(meals = menu_recipes)
+    tally = meals.map(&:display_meal_type).tally
+
+    MealTypes::MEAL_TYPES.index_with { |meal_type| tally.fetch(meal_type, 0) }
+  end
+
+  # Les manques par moment (UC7) : ce que la commande demandait, moins ce que
+  # le menu contient — « Il manque 3 petits-déjeuners ». Un moment servi
+  # au-delà de sa commande n'est pas un manque, et un menu d'avant les quotas
+  # (commande vide) n'en a aucun.
+  # @param meals [Enumerable<MenuRecipe>] voir composed_meal_counts
+  # @return [Hash{String => Integer}] moments incomplets seuls, dans l'ordre
+  #   de la journée
+  def missing_meal_counts(meals = menu_recipes)
+    requested = requested_counts
+
+    composed_meal_counts(meals).each_with_object({}) do |(meal_type, count), missing|
+      gap = requested[meal_type] - count
+      missing[meal_type] = gap if gap.positive?
+    end
   end
 
   private

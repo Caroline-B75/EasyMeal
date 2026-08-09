@@ -5,7 +5,7 @@ Rails.application.routes.draw do
 
   # Préférences du profil utilisateur
   resource :profile, only: [], controller: :profiles do
-    get  :preferences
+    get   :preferences
     patch :preferences, action: :update_preferences
   end
 
@@ -31,15 +31,19 @@ Rails.application.routes.draw do
       post :activate            # UC1 : Valider le menu brouillon → génère la liste de courses
       post :reactivate          # Réactiver un menu archivé (remplace le menu actif courant)
       post :revert_to_draft    # R3.2bis : Repasser un menu actif en brouillon pour le modifier
-      post :add_random_meal    # UC2 : Ajouter un repas aléatoire au menu
       post :replace_meal       # UC2 : Remplacer un repas (params: menu_recipe_id)
       get  :grocery                   # UC3 : Page dédiée de la liste de courses
       post :regenerate_grocery       # UC3 : Régénérer la liste de courses
       post :regenerate               # UC2 : Re-générer le menu brouillon avec de nouveaux paramètres
+      patch :adjust_meal_count       # UC7 : + / − sur un moment, depuis le panneau de réglages du brouillon
     end
-    resources :menu_recipes, only: [ :create, :update, :destroy ] do
+    resources :menu_recipes, only: [ :update, :destroy ] do
       collection do
         patch :reorder
+      end
+      member do
+        patch :move_up    # UC7 : réordonner dans sa section (boutons mobiles ⬆️)
+        patch :move_down  # UC7 : réordonner dans sa section (boutons mobiles ⬇️)
       end
     end
     resources :grocery_items, only: [ :create, :update, :destroy ]

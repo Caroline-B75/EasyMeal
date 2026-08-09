@@ -10,14 +10,15 @@
   -# ── Variables filtres (calculées avant le layout pour le badge mobile) ──
   - selected_tag_ids = Array(params[:tag_ids]).map(&:to_s)
   - tags_count = selected_tag_ids.size
-  - has_query    = params[:query].present?
-  - has_diet     = params[:diet].present?
-  - has_diff     = params[:difficulty].present?
-  - has_time     = params[:max_time].present?
-  - has_seasonal = params[:seasonal] == "true"
-  - has_favs     = params[:favorites] == "true"
-  - has_any_filter = has_query || has_diet || has_diff || has_time || has_seasonal || has_favs || tags_count > 0
-  - active_count = [has_query, has_diet, has_diff, has_time, has_seasonal, has_favs].count(true) + tags_count
+  - has_query     = params[:query].present?
+  - has_diet      = params[:diet].present?
+  - has_meal_type = params[:meal_type].present?
+  - has_diff      = params[:difficulty].present?
+  - has_time      = params[:max_time].present?
+  - has_seasonal  = params[:seasonal] == "true"
+  - has_favs      = params[:favorites] == "true"
+  - has_any_filter = has_query || has_diet || has_meal_type || has_diff || has_time || has_seasonal || has_favs || tags_count > 0
+  - active_count = [has_query, has_diet, has_meal_type, has_diff, has_time, has_seasonal, has_favs].count(true) + tags_count
 
   -# ── Bouton flottant mobile (pill fixe en bas, invisible sur desktop) ──
   %button.filters-mobile-btn{ type: "button",
@@ -87,6 +88,14 @@
                        data: { action: "change->recipe-filter#submit" }
 
           .filter-group
+            = f.label :meal_type, "Moment du repas", class: "filter-label"
+            = f.select :meal_type,
+                       options_for_select(MealTypes::MEAL_TYPES.map { |t| [MealTypes.label(t), t] }, params[:meal_type]),
+                       { include_blank: "Tous" },
+                       class: "filter-select#{' filter-select--active' if has_meal_type}",
+                       data: { action: "change->recipe-filter#submit" }
+
+          .filter-group
             = f.label :difficulty, "Difficulté", class: "filter-label"
             = f.select :difficulty,
                        options_for_select(Recipe.difficulties.keys.map { |d| [d.humanize, d] }, params[:difficulty]),
@@ -127,6 +136,12 @@
                                            data: { action: "click->recipe-filter#clearFilter",
                                                    recipe_filter_field: "diet" } }
                 = params[:diet].humanize
+                %span.badge-remove= svg_icon(:x, size: 12)
+            - if has_meal_type
+              %button.active-filter-badge{ type: "button",
+                                           data: { action: "click->recipe-filter#clearFilter",
+                                                   recipe_filter_field: "meal_type" } }
+                = MealTypes.label(params[:meal_type])
                 %span.badge-remove= svg_icon(:x, size: 12)
             - if has_diff
               %button.active-filter-badge{ type: "button",
@@ -227,7 +242,9 @@
             .recipes-grid
               - @recipes.each do |recipe|
                 .recipe-card-wrapper
-                  = link_to recipe_path(recipe), class: "recipe-card-link", data: { turbo_frame: "_top", turbo_prefetch: "false" } do
+                  -# Le contexte de moment (UC7) suit la navigation vers la fiche :
+                  -# son CTA d'ajout créera le repas avec ce moment.
+                  = link_to recipe_path(recipe, meal_type: context_meal_type), class: "recipe-card-link", data: { turbo_frame: "_top", turbo_prefetch: "false" } do
                     -# Clé de cache incluant le mois : le badge « De saison » dépend
                     -# du mois courant, il doit donc s'invalider chaque mois.
                     - cache [recipe, "season-m#{@current_month}"] do
@@ -283,7 +300,8 @@
                   - if current_user && @draft
                     = render "recipes/draft_button", recipe: recipe,
                                                      in_draft: @draft_recipe_ids.include?(recipe.id),
-                                                     container_id: "draft-btn-#{recipe.id}"
+                                                     container_id: "draft-btn-#{recipe.id}",
+                                                     meal_type: context_meal_type
 
             .pagination-container
               = pagy_nav(@pagy) if @pagy.pages > 1

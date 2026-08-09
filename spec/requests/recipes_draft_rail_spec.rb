@@ -103,5 +103,58 @@ RSpec.describe "Rail menu à valider du catalogue", type: :request do
 
       expect(response.body).to include("Aucune recette dans le menu")
     end
+
+    # UC7, chapitre 4 : depuis un catalogue filtré par moment, l'ajout crée le
+    # repas avec ce moment — la recette atterrit dans la bonne section — et le
+    # toggle s'évalue dans ce moment seulement.
+    context "depuis un catalogue filtré par moment" do
+      let!(:draft) { create(:menu, user: user, status: :draft) }
+
+      it "crée le repas avec le moment du contexte et le reconduit dans le bouton re-rendu" do
+        post toggle_in_draft_recipe_path(recipe, meal_type: "snack"), as: :turbo_stream
+
+        expect(draft.menu_recipes.sole).to have_attributes(recipe_id: recipe.id, meal_type: "snack")
+        expect(response.body).to include(toggle_in_draft_recipe_path(recipe, meal_type: "snack"))
+      end
+
+      it "ajoute la même recette dans un second moment au lieu de la retirer" do
+        create(:menu_recipe, menu: draft, recipe: recipe, meal_type: "dinner", position: 0)
+
+        post toggle_in_draft_recipe_path(recipe, meal_type: "snack"), as: :turbo_stream
+
+        expect(draft.menu_recipes.pluck(:meal_type)).to contain_exactly("dinner", "snack")
+      end
+
+      it "ne retire que l'exemplaire du moment du contexte" do
+        create(:menu_recipe, menu: draft, recipe: recipe, meal_type: "dinner", position: 0)
+        create(:menu_recipe, menu: draft, recipe: recipe, meal_type: "snack", position: 1)
+
+        post toggle_in_draft_recipe_path(recipe, meal_type: "snack"), as: :turbo_stream
+
+        expect(draft.menu_recipes.sole.meal_type).to eq("dinner")
+      end
+
+      it "ignore un moment hors vocabulaire (liste blanche)" do
+        post toggle_in_draft_recipe_path(recipe, meal_type: "hacker"), as: :turbo_stream
+
+        expect(draft.menu_recipes.sole.meal_type).to be_nil
+      end
+    end
+  end
+
+  describe "GET /recipes filtré par moment (UC7)" do
+    before { sign_in user }
+
+    it "n'affiche « déjà ajoutée » que dans le moment du filtre" do
+      versatile = create(:recipe, :with_ingredient, name: "Cake salé", meal_types: %w[dinner snack])
+      draft = create(:menu, user: user, status: :draft)
+      create(:menu_recipe, menu: draft, recipe: versatile, meal_type: "dinner", position: 0)
+
+      get recipes_path(meal_type: "dinner")
+      expect(response.body).to include("Retirer des dîners du menu à valider")
+
+      get recipes_path(meal_type: "snack")
+      expect(response.body).to include("Ajouter aux goûters du menu à valider")
+    end
   end
 end

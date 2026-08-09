@@ -8,6 +8,10 @@ fr:
     abbr_month_names: [~, jan., fév., mar., avr., mai, juin, juil., août, sep., oct., nov., déc.]
     day_names: [dimanche, lundi, mardi, mercredi, jeudi, vendredi, samedi]
     abbr_day_names: [dim., lun., mar., mer., jeu., ven., sam.]
+    # Diminutifs sans point des sélecteurs de jour (cartes de repas, UC7) : deux
+    # sélecteurs s'y partagent la largeur d'une carte, chaque caractère compte.
+    # Indexés comme Date#wday, tout comme abbr_day_names ci-dessus.
+    short_day_names: [Dim, Lun, Mar, Mer, Jeu, Ven, Sam]
   time:
     formats:
       default: "%d/%m/%Y %H:%M"
@@ -88,6 +92,7 @@ fr:
         price: Budget
         appliance: Appareil
         instructions: Instructions
+        meal_types: Moment du repas
       preparation:
         ingredient_id: Ingrédient
         quantity_base: Quantité
@@ -96,8 +101,8 @@ fr:
         start_date: Date de début
       menu_recipe:
         number_of_people: Nombre de personnes
-        meal_type: Type de repas
-        scheduled_date: Date prévue
+        meal_type: Moment du repas
+        day_of_week: Jour
     errors:
       models:
         ingredient:
@@ -121,6 +126,8 @@ fr:
               blank: ne peut pas être vide
               not_a_number: doit être un nombre
               greater_than: doit être supérieur à %{count}
+            meal_types:
+              blank: doit comporter au moins un moment
         preparation:
           attributes:
             ingredient_id:
@@ -171,14 +178,62 @@ fr:
         present: "doit être vide"
         required: "doit exister"
 
-  # Traductions pour les types de repas
-  menu_recipes:
-    meal_types:
-      breakfast: Petit-déjeuner
-      lunch: Déjeuner
-      dinner: Dîner
-      snack: Collation
-        
+  # Moments du repas — vocabulaire partagé par Recipe#meal_types (array)
+  # et MenuRecipe#meal_type (valeur unique), via le concern MealTypes.
+  # Ordonnés comme la journée se déroule.
+  meal_types:
+    breakfast: Petit-déjeuner
+    lunch: Déjeuner
+    snack: Goûter
+    apero: Apéro
+    dinner: Dîner
+
+  # Même vocabulaire au pluriel : on commande DES petits-déjeuners et on titre
+  # une section avec cette forme (MealTypes.plural_label).
+  meal_types_plural:
+    breakfast: Petits-déjeuners
+    lunch: Déjeuners
+    snack: Goûters
+    apero: Apéros
+    dinner: Dîners
+
+  # Libellés des sélecteurs de moment des cartes de repas (MealTypes.compact_label) :
+  # ils partagent la largeur d'une carte avec le sélecteur de jour, où
+  # « Petit-déjeuner » ne tient pas.
+  meal_types_compact:
+    breakfast: Petit-déj
+    lunch: Déjeuner
+    snack: Goûter
+    apero: Apéro
+    dinner: Dîner
+
+  # Formes courtes et accordées de la barre de résumé du formulaire de menu :
+  # « 7 petits-déjs · 2 déjs · 1 apéro » (MealTypes.short_label).
+  meal_types_short:
+    breakfast:
+      one: petit-déj
+      other: petits-déjs
+    lunch:
+      one: déj
+      other: déjs
+    snack:
+      one: goûter
+      other: goûters
+    apero:
+      one: apéro
+      other: apéros
+    dinner:
+      one: dîner
+      other: dîners
+
+  # Manques du brouillon face à la commande (UC7, chapitre 3) : une seule ligne
+  # pour tout le menu, jamais une erreur. %{meals} reçoit l'énumération déjà
+  # accordée en nombre — « 6 petits-déjeuners, 2 déjeuners » (voir
+  # MenusHelper#missing_meals_message).
+  menus:
+    draft:
+      missing_meals: "Il manque %{meals} pour compléter ce menu."
+
   errors:
     messages:
       blank: "ne peut pas être vide"

@@ -1028,3 +1028,61 @@ Mettre à jour users avec admin/default_diet/default_people (UC6)
 Créer menus + menu_recipes (UC1/UC2)
 Créer grocery_items amélioré (UC3)
 Créer favorite_recipes + reviews (UC4)
+
+---
+
+# 🥐 UC7 — Les types de repas (livré le 08/08/2026)
+
+> ⚠️ Ne pas confondre avec la table `accesses (UC7 - partage, plus tard)` mentionnée
+> plus haut : ce brouillon de conception réservait ce numéro au partage de menu, qui
+> reste **hors périmètre**. Le UC7 réalisé est celui de
+> `docs/specs/UC7_types_de_repas.md` — les moments du repas.
+
+Cahier des charges : `docs/specs/UC7_types_de_repas.md`.
+Conventions de code associées : voir la section « Les moments du repas » de `CLAUDE.md`.
+
+## Ce que UC7 change au schéma
+
+```
+# recipes
++ meal_types:string[]          (NOT NULL, default [], index GIN)
+                               une recette peut annoncer PLUSIEURS moments
+
+# menu_recipes
++ day_of_week:integer          (nullable — pure annotation, 0 = dimanche … 6 = samedi)
+- scheduled_date:date          (colonne jamais alimentée — supprimée)
+  menu_id + recipe_id          l'unicité est LEVÉE : la répétition est permise
+
+# menus
++ requested_meal_counts:jsonb  (NOT NULL, default {}) — la commande honorée
+
+# users
++ default_meal_counts:jsonb    (NOT NULL, default {}) — la semaine type
+- default_number_of_meals      (remplacée par la répartition ci-dessus)
+```
+
+Les deux colonnes `jsonb` portent le même objet-valeur `MealCounts` : le vocabulaire
+des moments appartient au code (`MealTypes`), pas au schéma — en ajouter un ne coûtera
+jamais une migration.
+
+## Services de menu après UC7
+
+| Service                           | Responsabilité                                          |
+| --------------------------------- | ------------------------------------------------------- |
+| `Menus::GenerateService`          | Crée le Menu(draft) puis délègue la composition          |
+| `Menus::ComposeMealsService`      | (Re)compose les repas par quotas — génération ET re-génération |
+| `Menus::SeasonalDrawService`      | Tire dans un pool, recettes de saison d'abord            |
+| `Menus::CandidatePickerService`   | Tire 1 remplaçant dans le pool du bon moment             |
+| `Menus::ReplaceMealService`       | Remplace 1 repas en conservant sa place et son moment    |
+| `Menus::ToggleDraftRecipeService` | Ajoute / retire une recette depuis le catalogue          |
+
+Supprimés par UC7 : `Menus::AddRandomMealService` et `Menus::RegenerateService`
+(fondu dans `ComposeMealsService`). Après la génération, on n'ajoute plus que
+depuis le catalogue pré-filtré sur le moment de la section.
+
+## Volontairement hors périmètre
+
+La vue semaine, le drag & drop tactile entre cases, l'exclusion des recettes des
+derniers menus et le bouton « Ranger par jour » (voir le chapitre « Pour plus tard »
+du cahier des charges). `menu_recipes.day_of_week` est la brique de données déjà
+posée pour la future vue semaine.

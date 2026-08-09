@@ -132,6 +132,97 @@ module MenusHelper
   PEOPLE_OPTIONS = (1..20).to_a.freeze
 
   def people_select_options
-    PEOPLE_OPTIONS.map { |n| ["#{n} pers.", n] }
+    PEOPLE_OPTIONS.map { |n| [ "#{n} pers.", n ] }
+  end
+
+  # === Répartition des repas par moment (UC7) ===
+
+  # Résumé d'une semaine encore vide — le formulaire s'ouvre là-dessus.
+  NO_MEALS_SUMMARY = "Aucun repas".freeze
+
+  # Résumé lisible d'une répartition — « 7 petits-déjs · 2 déjs · 1 apéro ».
+  # Seuls les moments commandés apparaissent (cahier des charges UC7, ch. 2).
+  # Le contrôleur Stimulus meal-counts reconstruit cette même chaîne à chaque
+  # clic, à partir des libellés que le partial des steppers lui transmet : le
+  # français n'est écrit qu'une fois, dans les locales.
+  # @param meal_counts [MealCounts]
+  # @return [String]
+  def meal_counts_summary(meal_counts)
+    parts = MealTypes::MEAL_TYPES.filter_map do |meal_type|
+      count = meal_counts[meal_type]
+      "#{count} #{MealTypes.short_label(meal_type, count)}" if count.positive?
+    end
+
+    parts.join(" · ").presence || NO_MEALS_SUMMARY
+  end
+
+  # Répartition pré-remplie dans le formulaire de paramètres : la commande
+  # mémorisée du menu d'abord (re-génération à l'identique — elle retient la
+  # demande même quand des pools trop maigres ont donné moins de repas), sinon
+  # ce que le menu contient (brouillon d'avant les quotas), sinon la semaine
+  # type mémorisée par l'utilisatrice — sinon rien : tous les steppers à zéro.
+  # @param menu [Menu] menu neuf ou brouillon existant
+  # @param user [User]
+  # @return [MealCounts]
+  def form_meal_counts(menu, user)
+    requested = menu.requested_counts
+    return requested if requested.any?
+
+    composed = MealCounts.from_menu_recipes(menu.menu_recipes)
+    composed.any? ? composed : user.preferred_meal_counts
+  end
+
+  # === Manques du brouillon (UC7, chapitre 3) ===
+
+  # Résumé compact des manques face à la commande — « Il manque 6 petits-déjeuners,
+  # 2 déjeuners pour compléter ce menu. » Une seule ligne pour tout le menu, en
+  # tête de la grille : celle-ci n'affiche aucun moment, il n'existe nulle part
+  # ailleurs où poser l'information. Ce n'est jamais une erreur, seulement un état.
+  # @param missing_counts [Hash{String => Integer}] Menu#missing_meal_counts
+  # @return [String, nil] nil quand la commande est honorée : rien à afficher
+  def missing_meals_message(missing_counts)
+    return nil if missing_counts.empty?
+
+    meals = missing_counts.map { |meal_type, count| "#{count} #{MealTypes.inline_label(meal_type, count)}" }
+    t("menus.draft.missing_meals", meals: meals.join(", "))
+  end
+
+  # === Carte de repas enrichie (UC7, chapitre 4) ===
+
+  # Enveloppe une section de carte de repas (photo, nom) : simple bloc inerte
+  # dans le brouillon, lien vers la recette sur un menu validé — c'est depuis
+  # le menu actif qu'on cuisine. turbo_frame "_top" sort de la turbo-frame de
+  # la carte (sinon la recette se chargerait dedans) ; draggable "false" rend
+  # le glissement à la carte, qui l'utilise pour réordonner la grille.
+  # @param menu_recipe [MenuRecipe]
+  # @param editable [Boolean] true dans le brouillon
+  # @param css_class [String] classe du bloc, identique dans les deux modes
+  def menu_card_wrapper(menu_recipe, editable, css_class, &block)
+    return tag.div(class: css_class, &block) if editable
+
+    link_to recipe_path(menu_recipe.recipe), class: css_class, draggable: "false",
+            data: { turbo_frame: "_top", turbo_prefetch: "false" }, &block
+  end
+
+  # Options du sélecteur « Moment » d'une carte : vocabulaire partagé MealTypes,
+  # dans l'ordre de la journée, en libellés compacts — le sélecteur ne dispose
+  # que d'une demi-largeur de carte, qu'il partage avec celui du jour.
+  # @return [Array<Array(String, String)>]
+  def meal_type_select_options
+    MealTypes::MEAL_TYPES.map { |type| [ MealTypes.compact_label(type), type ] }
+  end
+
+  # day_of_week suit Date#wday (0 = dimanche … 6 = samedi, cf. MenuRecipe) mais
+  # le cahier des charges veut un sélecteur affiché Lundi → Dimanche : l'ordre
+  # d'affichage diffère donc de l'ordre de stockage.
+  DAY_OF_WEEK_DISPLAY_ORDER = [ 1, 2, 3, 4, 5, 6, 0 ].freeze
+
+  # Options du sélecteur « Jour » d'une carte : "—" (vide, par défaut) puis
+  # Lun…Dim. Aucune validation ni tri associés (cahier des charges) : le jour
+  # annote la carte — et lui donne sa teinte — sans jamais la déplacer.
+  # @return [Array<Array(String, String)>]
+  def day_of_week_select_options
+    blank = [ [ "—", "" ] ]
+    blank + DAY_OF_WEEK_DISPLAY_ORDER.map { |wday| [ I18n.t("date.short_day_names")[wday], wday ] }
   end
 end

@@ -1,0 +1,19 @@
+-# Turbo Stream partagé : re-rend tout ce qu'un changement de COMPOSITION du
+-# brouillon fait bouger. Deux blocs, indissociables (UC7) :
+-#
+-# - le bloc des repas — un remplacement de carte ne suffirait pas dès qu'un
+-#   repas apparaît ou disparaît : compte d'en-tête, manques face à la commande,
+-#   état des ⬆️/⬇️ aux extrémités et bouton de validation doivent retomber
+-#   juste d'un seul tenant ;
+-# - le panneau de réglages — ses steppers de répartition affichent ce que la
+-#   grille contient : laissés en arrière, un « − » de plus retirerait un repas
+-#   que l'utilisatrice croyait déjà parti.
+-#
+-# Appelé par MenusController#adjust_meal_count (les steppers eux-mêmes) et par
+-# MenuRecipesController#refresh_meals (retrait d'un repas, ⬆️/⬇️ du brouillon —
+-# le menu actif, lui, passe par refresh_active).
+= turbo_stream.replace "draft_meals" do
+  = render "menus/draft_meals", menu: @menu, menu_recipes: @menu_recipes
+
+= turbo_stream.replace "menu_settings_#{@menu.id}" do
+  = render "menus/settings_panel", menu: @menu, menu_recipes: @menu_recipes

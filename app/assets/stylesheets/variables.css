@@ -72,13 +72,26 @@
      des options de régime — tons propres à ce composant. */
   --color-icon-violet: #7C3AED;
   --color-icon-violet-bg: #EDE9FE;
-  --color-icon-amber: #D97706;
   --color-diet-selected: #D73A49;
   --color-diet-selected-bg: #FFF8F8;
   --color-diet-omni-bg: #FFF0EE;
   --color-diet-vege-bg: #EDF7E6;
   --color-diet-vegan-bg: #E6F5EE;
   --color-diet-pesc-bg: #E6F1FB;
+
+  /* === TEINTES DE JOUR (cartes de repas du brouillon, UC7) ===
+     Indexées comme Date#wday (0 = dimanche … 6 = samedi), l'entier stocké dans
+     MenuRecipe#day_of_week : la carte lit sa teinte via son attribut data-day.
+     Volontairement très désaturées — la charte reste anthracite + ambre, ces
+     tons ne servent qu'à repérer d'un coup d'œil les repas d'un même jour dans
+     une grille qu'on réorganise à la main, jamais à décorer. */
+  --color-day-0: #FBF0F2;  /* dimanche  — rose poudré */
+  --color-day-1: #F0F4F9;  /* lundi     — bleu ardoise */
+  --color-day-2: #F1F6F0;  /* mardi     — vert sauge */
+  --color-day-3: #FDF6E7;  /* mercredi  — ambre pâle */
+  --color-day-4: #FBF1EB;  /* jeudi     — terracotta pâle */
+  --color-day-5: #F4F1FA;  /* vendredi  — lilas */
+  --color-day-6: #EDF5F6;  /* samedi    — bleu-vert pâle */
 
   /* === BORDURES === */
   --color-border: #E7E5E4;

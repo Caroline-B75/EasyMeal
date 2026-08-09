@@ -4,11 +4,14 @@
 
 - draft_count = @draft_recipes.size
 
--# 1. Bouton draft compact sur la carte de la recette (index)
+-# 1. Bouton draft compact sur la carte de la recette (index).
+-#    Le contexte de moment (UC7) est reconduit : les toggles suivants
+-#    continuent de viser la même section du brouillon.
 = turbo_stream.replace "draft-btn-#{@recipe.id}" do
   = render "recipes/draft_button", recipe: @recipe,
                                     in_draft: @added,
-                                    container_id: "draft-btn-#{@recipe.id}"
+                                    container_id: "draft-btn-#{@recipe.id}",
+                                    meal_type: context_meal_type
 
 -# 2. Rail « menu à valider » : compteur + vignettes (index)
 = turbo_stream.replace "draft-rail" do
@@ -18,10 +21,12 @@
 -#    has_draft: true — après un toggle, le brouillon existe forcément.
 = turbo_stream.replace "draft-cta-hero-#{@recipe.id}" do
   = render "recipes/draft_cta", recipe: @recipe, in_draft: @added, has_draft: true,
-                                variant: "hero", container_id: "draft-cta-hero-#{@recipe.id}"
+                                variant: "hero", container_id: "draft-cta-hero-#{@recipe.id}",
+                                meal_type: context_meal_type
 = turbo_stream.replace "draft-cta-mobile-#{@recipe.id}" do
   = render "recipes/draft_cta", recipe: @recipe, in_draft: @added, has_draft: true,
-                                variant: "mobile", container_id: "draft-cta-mobile-#{@recipe.id}"
+                                variant: "mobile", container_id: "draft-cta-mobile-#{@recipe.id}",
+                                meal_type: context_meal_type
 
 -# 4. Affiche le flash de confirmation (wrapper #flash préservé pour les remplacements suivants)
 - suffix = "(#{draft_count} recette#{'s' if draft_count != 1})"

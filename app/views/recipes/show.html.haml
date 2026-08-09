@@ -28,9 +28,12 @@
           %span.rs-meta-value= @recipe.cook_time_minutes || "–"
           %span.rs-meta-label CUISSON (MIN)
 
-      -# Badges — attributs pratiques + tags (le régime est porté par le kicker).
-      -# Tous neutres : aucune valeur n'est mise en avant par une couleur.
+      -# Badges — moments du repas + attributs pratiques + tags (le régime est
+      -# porté par le kicker). Tous neutres : aucune valeur n'est mise en avant
+      -# par une couleur.
       .rs-badges
+        - @recipe.ordered_meal_types.each do |type|
+          %span.rs-badge= MealTypes.label(type)
         - if @recipe.difficulty.present?
           %span.rs-badge= @recipe.difficulty_human
         - if @recipe.price.present?
@@ -42,7 +45,8 @@
       .rs-actions
         - if current_user
           = render "recipes/draft_cta", recipe: @recipe, in_draft: @in_draft, has_draft: @draft.present?,
-                                        variant: "hero", container_id: "draft-cta-hero-#{@recipe.id}"
+                                        variant: "hero", container_id: "draft-cta-hero-#{@recipe.id}",
+                                        meal_type: context_meal_type
         - else
           = link_to "Démarrer un menu", new_user_session_path, class: "btn-accent rs-btn-accent"
 
@@ -168,6 +172,7 @@
 .rs-mobile-cta
   - if current_user
     = render "recipes/draft_cta", recipe: @recipe, in_draft: @in_draft, has_draft: @draft.present?,
-                                  variant: "mobile", container_id: "draft-cta-mobile-#{@recipe.id}"
+                                  variant: "mobile", container_id: "draft-cta-mobile-#{@recipe.id}",
+                                  meal_type: context_meal_type
   - else
     = link_to "Démarrer un menu", new_user_session_path, class: "btn-accent rs-mobile-cta-btn"

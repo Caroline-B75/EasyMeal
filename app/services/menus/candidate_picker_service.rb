@@ -1,65 +1,54 @@
 # frozen_string_literal: true
 
 module Menus
-  # Service interne (non appelé directement depuis les contrôleurs) qui encapsule
-  # la logique de tirage d'une recette candidate pour l'ajout ou le remplacement.
+  # Tire UNE recette candidate pour le remplacement 🔀 d'un repas dans un menu
+  # existant (service interne, non appelé directement des contrôleurs).
   #
-  # Algorithme (UC1/UC2 — règle "priorité saison") :
-  # 1. Tenter de piocher dans le pool "de saison" du mois courant en excluant
-  #    les recettes déjà présentes dans le menu.
-  # 2. Si le pool saison est épuisé, tenter dans le pool hors saison.
-  # 3. Si les deux sont épuisés → lève Menus::NoCandidatesError.
+  # Le tirage (priorité saison du mois courant, puis hors saison) est délégué
+  # à SeasonalDrawService, sur le pool des recettes publiées compatibles avec
+  # le régime — restreint au moment demandé quand meal_type est fourni (UC7 :
+  # le remplacement 🔀 d'un dîner redonne un dîner).
   #
-  # Le paramètre extra_excluded_ids permet d'exclure temporairement une recette
-  # supplémentaire (ex : l'ancienne recette lors d'un remplacement, si on veut
-  # s'assurer qu'elle n'est pas re-tirée immédiatement).
+  # Anti-doublon : la répétition étant permise dans un menu (UC7), seules les
+  # recettes déjà présentes dans le MÊME moment sont écartées — une recette
+  # peut vivre dans deux moments différents, pas deux fois dans le même.
+  # extra_excluded_ids écarte en plus la recette en cours de remplacement,
+  # pour qu'elle ne soit pas re-tirée immédiatement.
   class CandidatePickerService
-    # @param menu [Menu] Le menu en cours (fournit diet + present_recipe_ids)
+    # @param menu [Menu] Le menu en cours (fournit le régime et les repas présents)
+    # @param meal_type [String, nil] Moment du repas à servir (nil = repas sans moment)
     # @param extra_excluded_ids [Array<Integer>] IDs supplémentaires à exclure
     # @return [Recipe]
-    # @raise [Menus::NoCandidatesError]
-    def self.call(menu:, extra_excluded_ids: [])
-      new(menu: menu, extra_excluded_ids: extra_excluded_ids).call
+    # @raise [Menus::NoCandidatesError] quand le pool du moment est épuisé
+    def self.call(menu:, meal_type:, extra_excluded_ids: [])
+      new(menu: menu, meal_type: meal_type, extra_excluded_ids: extra_excluded_ids).call
     end
 
-    def initialize(menu:, extra_excluded_ids: [])
-      @menu = menu
+    def initialize(menu:, meal_type:, extra_excluded_ids:)
+      @menu               = menu
+      @meal_type          = meal_type
       @extra_excluded_ids = extra_excluded_ids
     end
 
     def call
-      excluded_ids = present_recipe_ids + @extra_excluded_ids
-      month = Date.current.month
-
-      # Tentative 1 : pool de saison (sous-requête pour éviter DISTINCT + ORDER BY RANDOM())
-      candidate = Recipe.where(id: seasonal_pool(month).select(:id))
-                        .where.not(id: excluded_ids)
-                        .order(Arel.sql("RANDOM()"))
-                        .first
-      # Tentative 2 : pool hors saison (pas de DISTINCT, ORDER BY RANDOM() direct)
-      candidate ||= offseason_pool(month).where.not(id: excluded_ids)
-                                         .order(Arel.sql("RANDOM()"))
-                                         .first
+      candidate = SeasonalDrawService.call(pool: pool, count: 1, excluded_ids: excluded_ids).first
 
       candidate || raise(Menus::NoCandidatesError)
     end
 
     private
 
-    # Recettes compatibles ET de saison pour le mois courant
-    def seasonal_pool(month)
-      Recipe.published.compatible_with(@menu.diet).seasonal_for_month(month)
+    # Recettes publiées compatibles régime, restreintes au moment demandé
+    # (for_meal_type laisse passer tout le catalogue quand meal_type est nil).
+    def pool
+      Recipe.published.compatible_with(@menu.diet).for_meal_type(@meal_type)
     end
 
-    # Recettes compatibles ET hors saison (ou sans info de saison)
-    def offseason_pool(month)
-      seasonal_ids = seasonal_pool(month).select(:id)
-      Recipe.published.compatible_with(@menu.diet).where.not(id: seasonal_ids)
-    end
-
-    # IDs des recettes déjà présentes dans ce menu
-    def present_recipe_ids
-      @present_recipe_ids ||= @menu.menu_recipes.pluck(:recipe_id)
+    # Recettes déjà présentes dans CE moment du menu (pour un repas sans
+    # moment, l'anti-doublon joue entre repas sans moment), plus les
+    # exclusions ponctuelles de l'appelant.
+    def excluded_ids
+      @menu.menu_recipes.for_meal(@meal_type).pluck(:recipe_id) + @extra_excluded_ids
     end
   end
 end

@@ -42,10 +42,6 @@
           = f.label :default_people, "Personnes par repas", class: "form-label"
           = f.number_field :default_people, min: 1, class: "form-input"
           = field_errors(@user, :default_people)
-        .form-group
-          = f.label :default_number_of_meals, "Repas par menu", class: "form-label"
-          = f.number_field :default_number_of_meals, min: 1, max: 21, class: "form-input"
-          = field_errors(@user, :default_number_of_meals)
 
       .users-form-flags
         %label.users-checkbox

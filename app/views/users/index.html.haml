@@ -38,7 +38,9 @@
               %td
                 .users-preferences
                   %span= menu_diet_label(user.default_diet)
-                  %small= "#{user.default_people} pers. · #{user.default_number_of_meals} repas"
+                  -# Le détail par moment est une affaire d'utilisatrice : la
+                  -# supervision se contente du volume de sa semaine type.
+                  %small= "#{user.default_people} pers. · #{user.preferred_meal_counts.total} repas"
                   - unless user.preferences_configured?
                     %span.users-warning Préférences à confirmer
               %td

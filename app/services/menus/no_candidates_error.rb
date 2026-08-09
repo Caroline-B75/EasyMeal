@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module Menus
-  # Levée quand aucune recette candidate n'est disponible pour un ajout ou remplacement.
-  # Les pools saison ET hors saison sont tous épuisés (recettes déjà toutes présentes).
+  # Levée quand aucune recette candidate n'est disponible pour le remplacement
+  # d'un repas : les pools saison ET hors saison du moment sont épuisés.
   #
   # Usage :
   #   rescue Menus::NoCandidatesError => e

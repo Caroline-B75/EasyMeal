@@ -84,7 +84,8 @@ RECIPES = [
       cook_time_minutes: 15,
       difficulty: :facile,
       price: :economique,
-      diet: :omnivore
+      diet: :omnivore,
+      meal_types: %w[lunch dinner]
     },
     ingredients: [ [ "pâtes", 400 ], [ "lardon", 200 ], [ "œuf", 4 ], [ "parmesan", 100 ], [ "poivre", 2 ] ],
     tags: [ "plat" ]

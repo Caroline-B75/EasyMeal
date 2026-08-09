@@ -1,0 +1,61 @@
+-# Répartition des repas par moment : 5 steppers − / + (UC7, chapitre 2).
+-#
+-# Partagé par le formulaire de génération de menu et les réglages du foyer :
+-# décrire sa semaine type est exactement le même geste des deux côtés, ce sont
+-# juste les champs qui ne portent pas le même nom.
+-#
+-# Le contrôleur Stimulus meal-counts pilote les +/−, les bornes, l'affichage et
+-# l'apparition de l'option « même petit-déjeuner ». Il annonce chaque changement
+-# par un événement meal-counts:change, que la barre de résumé du formulaire de
+-# génération écoute (les préférences, elles, n'ont rien à en faire).
+-#
+-# Locals :
+-#   meal_counts : MealCounts — répartition pré-remplie
+-#   name_prefix : préfixe des champs (ex : "menu[meal_counts]")
+- breakfast_count = meal_counts[MealCounts::BREAKFAST]
+
+.mn-meal-counts{ data: { controller: "meal-counts",
+                         meal_counts_min_value: MealCounts::MIN,
+                         meal_counts_max_value: MealCounts::MAX,
+                         meal_counts_breakfast_value: MealCounts::BREAKFAST,
+                         meal_counts_same_breakfast_min_value: MealCounts::SAME_BREAKFAST_MIN,
+                         meal_counts_empty_summary_value: MenusHelper::NO_MEALS_SUMMARY } }
+
+  - MealTypes::MEAL_TYPES.each do |meal_type|
+    - count = meal_counts[meal_type]
+    - singular = MealTypes.label(meal_type).downcase
+    .mn-meal-row
+      %span.mn-meal-label= MealTypes.plural_label(meal_type)
+      .mc-stepper.mc-stepper--compact{ role: "group", "aria-label": MealTypes.plural_label(meal_type) }
+        %button.mc-stepper-btn{ type: "button",
+                                "aria-label": "Retirer un #{singular}",
+                                disabled: count <= MealCounts::MIN,
+                                data: { action: "click->meal-counts#decrement",
+                                        meal_counts_type_param: meal_type,
+                                        meal_counts_target: "decrement",
+                                        meal_type: meal_type } } −
+        %span.mc-stepper-val{ data: { meal_counts_target: "display", meal_type: meal_type } }= count
+        %button.mc-stepper-btn{ type: "button",
+                                "aria-label": "Ajouter un #{singular}",
+                                disabled: count >= MealCounts::MAX,
+                                data: { action: "click->meal-counts#increment",
+                                        meal_counts_type_param: meal_type,
+                                        meal_counts_target: "increment",
+                                        meal_type: meal_type } } +
+
+      -# Valeur réellement soumise. Elle transporte aussi les libellés courts
+      -# accordés, seule source de français dont le contrôleur Stimulus a besoin
+      -# pour reconstruire le résumé sans le traduire lui-même.
+      = hidden_field_tag "#{name_prefix}[#{meal_type}]", count, id: nil,
+                         data: { meal_counts_target: "input",
+                                 meal_type: meal_type,
+                                 short_label_one: MealTypes.short_label(meal_type, 1),
+                                 short_label_other: MealTypes.short_label(meal_type, 2) }
+
+  -# Répéter le petit-déjeuner ne veut rien dire en dessous de deux matins :
+  -# l'option n'apparaît qu'à partir de là (le contrôleur la suit en direct).
+  %label.mn-meal-option{ data: { meal_counts_target: "sameBreakfast" },
+                         hidden: breakfast_count < MealCounts::SAME_BREAKFAST_MIN }
+    = check_box_tag "#{name_prefix}[#{MealCounts::SAME_BREAKFAST_KEY}]", "1",
+                    meal_counts.same_breakfast?, id: nil, class: "mn-meal-option-checkbox"
+    %span Mon petit-déjeuner est le même toute la semaine

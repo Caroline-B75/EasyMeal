@@ -1,5 +1,6 @@
--# Carte compacte d'un repas en lecture seule (menu actif / archivé)
+-# Carte compacte d'un repas en lecture seule (dashboards de la home)
 -# Même design que la carte de personnalisation mais sans actions (drag/replace/delete)
+-# — la page du menu actif, elle, rend menus/_menu_recipe_card en mode figé.
 -# menu_recipe : MenuRecipe
 
 = link_to recipe_path(menu_recipe.recipe), class: "mc-recipe-card mc-recipe-card--readonly", data: { turbo_prefetch: "false" } do

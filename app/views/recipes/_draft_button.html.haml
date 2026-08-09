@@ -5,11 +5,17 @@
 -#   recipe       : Recipe (required)
 -#   in_draft     : Boolean — recette déjà dans le brouillon (required)
 -#   container_id : String, id du wrapper DOM (default: "draft-btn-<recipe.id>")
+-#   meal_type    : String, nil — moment du contexte (catalogue filtré, UC7).
+-#                  Transporté par le POST : le repas est créé avec ce moment
+-#                  et atterrit dans la bonne section du brouillon.
 - container_id = local_assigns.fetch(:container_id, "draft-btn-#{recipe.id}")
+- meal_type = local_assigns[:meal_type]
+-# En contexte de moment, le tooltip annonce la destination réelle (« aux goûters »)
+- title = in_draft ? "Retirer #{draft_toggle_destination(meal_type, :remove)}" : "Ajouter #{draft_toggle_destination(meal_type, :add)}"
 %div.recipe-draft-container{ id: container_id }
-  = button_to toggle_in_draft_recipe_path(recipe),
+  = button_to toggle_in_draft_recipe_path(recipe, meal_type: meal_type),
               method: :post,
               class: "draft-btn draft-btn-compact #{in_draft ? 'in-draft' : ''}",
-              title: in_draft ? "Retirer du menu à valider" : "Ajouter au menu à valider",
+              title: title,
               form: { data: { turbo_frame: "_top", turbo_stream: true } } do
     = svg_icon(in_draft ? :check : :plus, size: 16)

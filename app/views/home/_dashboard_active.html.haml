@@ -2,7 +2,6 @@
 -# Résume le menu en cours et l'avancement de la liste de courses.
 -# active_menu : Menu(status: :active)
 - progress = active_menu.grocery_progress
-- next_meal = active_menu.next_scheduled_meal
 - menu_recipes = active_menu.menu_recipes.by_position
 
 .hero-card
@@ -11,12 +10,6 @@
       %h2.hero-card-title= active_menu.name
       %span.hero-card-meal-count= "(#{active_menu.recipes_count} repas)"
     %span.hero-card-status.hero-card-status--active Actif
-
-  - if next_meal
-    .hero-card-meta
-      %span.hero-card-meta-item
-        = svg_icon("clock", size: 15)
-        = "Prochain : #{next_meal.recipe_name}"
 
   -# Progression de la liste de courses (masquée si la liste est vide)
   - if progress[:total].positive?

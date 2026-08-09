@@ -1,6 +1,12 @@
 # Représente une recette de cuisine avec ses ingrédients, temps de préparation, difficulté, etc.
 # Une recette peut avoir plusieurs ingrédients (via preparations) et être dans plusieurs menus
 class Recipe < ApplicationRecord
+  # === Concerns ===
+  # Moments du repas : vocabulaire partagé, validations et scope de filtre
+  include HasMealTypes
+  # Normalise meal_types avant validation (cases à cocher → array propre)
+  include AttributeCleaner
+
   # === Associations ===
   has_many :preparations, dependent: :destroy
   has_many :ingredients, through: :preparations
@@ -70,6 +76,9 @@ class Recipe < ApplicationRecord
   validates :prep_time_minutes, numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
   validates :cook_time_minutes, numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
 
+  # Les règles sur meal_types (au moins un moment, vocabulaire fermé) sont
+  # portées par le concern HasMealTypes.
+
   # Validation custom : une recette doit avoir au moins un ingrédient (sauf brouillon IA)
   validate :must_have_at_least_one_ingredient, unless: :draft?
 
@@ -101,6 +110,8 @@ class Recipe < ApplicationRecord
 
   # Filtrer par difficulté
   scope :by_difficulty, ->(difficulty_value) { where(difficulty: difficulty_value) if difficulty_value.present? }
+
+  # Le scope for_meal_type est fourni par le concern HasMealTypes.
 
   # Filtrer par temps total maximum (en minutes)
   scope :with_total_time_lte, ->(max_minutes) {
@@ -163,9 +174,10 @@ class Recipe < ApplicationRecord
   # Utilisé par la liste des brouillons pour prioriser ce qui reste à faire.
   def draft_missing_fields
     missing = []
-    missing << "Titre"        if name.blank? || name == PLACEHOLDER_NAME
-    missing << "Ingrédients"  if preparations.empty?
-    missing << "Instructions" if instructions.blank?
+    missing << "Titre"           if name.blank? || name == PLACEHOLDER_NAME
+    missing << "Ingrédients"     if preparations.empty?
+    missing << "Instructions"    if instructions.blank?
+    missing << "Moment du repas" if meal_types.blank?
     missing
   end
 

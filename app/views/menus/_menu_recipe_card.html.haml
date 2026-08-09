@@ -1,15 +1,35 @@
--# Carte compacte d'un repas (UC2 — card grid)
--# Photo carrée + nom + barre d'actions (remplacer / personnes / supprimer)
+-# Carte compacte d'un repas (UC2 — card grid), enrichie UC7 (chapitre 4) :
+-# badge temps, moment et jour du repas, réordonnancement mobile.
+-#
+-# Deux modes selon le statut du menu :
+-# - brouillon : tout est modifiable — moment, jour, personnes, remplacement,
+-#   retrait, ordre ;
+-# - menu actif : le jour (pure annotation visuelle, la liste de courses n'y est
+-#   pas sensible) et l'ordre restent modifiables ; moment et personnes sont
+-#   figés — ils engagent la liste validée — et photo + nom ouvrent la recette
+-#   (menu_card_wrapper : c'est depuis le menu actif qu'on cuisine).
+-#
+-# La carte porte son jour en data-day : c'est lui qui lui donne sa teinte (CSS),
+-# posée dans la foulée du changement par menu-customize#setDay.
+-#
 -# menu_recipe : MenuRecipe
 -# menu : Menu
+-# meals (optionnel) : tous les repas du menu, déjà ordonnés par le partial
+-#   appelant — évite une requête par carte pour l'état ⬆️/⬇️. À défaut
+-#   (ré-rendu Turbo Stream d'une carte isolée), rechargés depuis la base.
+
+- meals = local_assigns[:meals] || menu.meals_for_display
+- index = meals.index(menu_recipe)
+- can_move_up = index.positive?
+- can_move_down = index < meals.size - 1
+- editable = menu.status_draft?
 
 = turbo_frame_tag "menu_recipe_#{menu_recipe.id}" do
-  .mc-recipe-card{ draggable: "true",
-                   data: { menu_customize_target: "card",
-                           action: "dragstart->menu-customize#dragStart dragend->menu-customize#dragEnd dragover->menu-customize#dragOver dragleave->menu-customize#dragLeave drop->menu-customize#drop" } }
+  .mc-recipe-card{ draggable: "true", data: { day: menu_recipe.day_of_week,
+                   action: "dragstart->menu-customize#dragStart dragend->menu-customize#dragEnd dragover->menu-customize#dragOver dragleave->menu-customize#dragLeave drop->menu-customize#drop" } }
 
     -# ── Photo carrée ──────────────────────────────────────
-    .mc-card-photo
+    = menu_card_wrapper(menu_recipe, editable, "mc-card-photo") do
       - if menu_recipe.recipe.photo.attached?
         = image_tag menu_recipe.recipe.photo.variant(resize_to_fill: [260, 260]),
                     alt: menu_recipe.recipe.name, width: 260, height: 260, loading: "lazy"
@@ -18,32 +38,90 @@
       .mc-drag-hint
         = svg_icon("grip-vertical", size: 10)
 
+      -# ⏱️ Badge temps (UC7) : rien si la recette n'a aucun temps renseigné.
+      - time_badge = total_time_badge(menu_recipe.recipe)
+      - if time_badge
+        .mc-card-time-badge
+          = svg_icon("clock", size: 10)
+          = time_badge
+
     -# ── Nom de la recette ─────────────────────────────────
-    .mc-card-name-wrap
+    = menu_card_wrapper(menu_recipe, editable, "mc-card-name-wrap") do
       .mc-card-name= menu_recipe.recipe.name
 
-    -# ── Barre d'actions : remplacer | personnes | supprimer
-    -# aria-label : nom accessible annoncé au focus clavier (pas seulement au hover)
-    .mc-card-actions
-      = form_with url: replace_meal_menu_path(menu), method: :post, class: "mc-act-form" do |f|
-        = f.hidden_field :menu_recipe_id, value: menu_recipe.id
-        %button.mc-act-btn{ type: "submit",
-                            "aria-label": "Remplacer #{menu_recipe.recipe.name} par un autre repas",
-                            title: "Remplacer aléatoirement" }
-          = svg_icon("shuffle", size: 12)
+    -# ── Moment / jour (UC7) ─────────────────────────────────
+    -# Les deux contrôles se partagent la ligne à parts égales — même mécanique
+    -# auto-submit que le sélecteur de personnes ci-dessous. Le moment ne
+    -# déplace pas la carte (grille unique) : il ne change que le décompte des
+    -# manques ; le jour ne change que la teinte de la carte. Sur un menu
+    -# validé, le moment devient une simple étiquette.
+    .mc-card-controls
+      - if editable
+        = form_with model: [menu, menu_recipe], method: :patch, class: "mc-card-control",
+                    data: { controller: "auto-submit" } do |f|
+          = f.select :meal_type,
+                     meal_type_select_options,
+                     { selected: menu_recipe.display_meal_type },
+                     class: "mc-mini-select", title: "Moment du repas",
+                     "aria-label": "Moment du repas pour #{menu_recipe.recipe.name}",
+                     data: { action: "change->auto-submit#submit" }
+      - else
+        %span.mc-card-control.mc-mini-select.mc-mini-select--static{ title: "Moment du repas" }
+          = MealTypes.compact_label(menu_recipe.display_meal_type)
 
-      = form_with model: [menu, menu_recipe], method: :patch, class: "mc-act-form",
+      = form_with model: [menu, menu_recipe], method: :patch, class: "mc-card-control",
                   data: { controller: "auto-submit" } do |f|
-        = f.select :number_of_people,
-                   people_select_options,
-                   { selected: menu_recipe.number_of_people },
-                   class: "mc-ppl-select", title: "Nombre de personnes",
-                   "aria-label": "Nombre de personnes pour #{menu_recipe.recipe.name}",
-                   data: { action: "change->auto-submit#submit" }
+        = f.select :day_of_week,
+                   day_of_week_select_options,
+                   { selected: menu_recipe.day_of_week },
+                   class: "mc-mini-select", title: "Jour",
+                   "aria-label": "Jour pour #{menu_recipe.recipe.name}",
+                   data: { action: "change->auto-submit#submit change->menu-customize#setDay" }
 
-      = form_with url: menu_menu_recipe_path(menu, menu_recipe), method: :delete,
+    -# ── Barre d'actions : remplacer | personnes | supprimer | réordonner
+    -# aria-label : nom accessible annoncé au focus clavier (pas seulement au hover)
+    -# Menu validé : remplacer et supprimer disparaissent, les personnes
+    -# s'affichent figées — en changer modifierait la liste de courses validée.
+    .mc-card-actions
+      - if editable
+        = form_with url: replace_meal_menu_path(menu), method: :post, class: "mc-act-form" do |f|
+          = f.hidden_field :menu_recipe_id, value: menu_recipe.id
+          %button.mc-act-btn{ type: "submit",
+                              "aria-label": "Remplacer #{menu_recipe.recipe.name} par un autre repas",
+                              title: "Remplacer aléatoirement" }
+            = svg_icon("shuffle", size: 12)
+
+        = form_with model: [menu, menu_recipe], method: :patch, class: "mc-act-form",
+                    data: { controller: "auto-submit" } do |f|
+          = f.select :number_of_people,
+                     people_select_options,
+                     { selected: menu_recipe.number_of_people },
+                     class: "mc-mini-select mc-ppl-select", title: "Nombre de personnes",
+                     "aria-label": "Nombre de personnes pour #{menu_recipe.recipe.name}",
+                     data: { action: "change->auto-submit#submit" }
+
+        = form_with url: menu_menu_recipe_path(menu, menu_recipe), method: :delete,
+                    class: "mc-act-form" do
+          %button.mc-act-btn.mc-del{ type: "submit",
+                                     "aria-label": "Retirer #{menu_recipe.recipe.name} du menu",
+                                     title: "Retirer du menu" }
+            = svg_icon("trash", size: 12)
+      - else
+        %span.mc-card-meta-people= "#{menu_recipe.number_of_people} pers."
+
+      -# ⬆️/⬇️ réordonnancement (UC7) : mobile uniquement (CSS) — le drag & drop
+      -# HTML5 couvre déjà les appareils à souris. Désactivés aux extrémités de
+      -# la grille (voir index en tête de partial).
+      = form_with url: move_up_menu_menu_recipe_path(menu, menu_recipe), method: :patch,
                   class: "mc-act-form" do
-        %button.mc-act-btn.mc-del{ type: "submit",
-                                   "aria-label": "Retirer #{menu_recipe.recipe.name} du menu",
-                                   title: "Retirer du menu" }
-          = svg_icon("trash", size: 12)
+        %button.mc-act-btn.mc-move-btn.mc-move-btn--up{ type: "submit", disabled: !can_move_up,
+                                                          "aria-label": "Monter #{menu_recipe.recipe.name} dans le menu",
+                                                          title: "Monter" }
+          = svg_icon("chevron-down", size: 12)
+
+      = form_with url: move_down_menu_menu_recipe_path(menu, menu_recipe), method: :patch,
+                  class: "mc-act-form" do
+        %button.mc-act-btn.mc-move-btn{ type: "submit", disabled: !can_move_down,
+                                         "aria-label": "Descendre #{menu_recipe.recipe.name} dans le menu",
+                                         title: "Descendre" }
+          = svg_icon("chevron-down", size: 12)

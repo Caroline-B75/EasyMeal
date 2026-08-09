@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_07_24_101000) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_08_100004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "plpgsql"
@@ -95,13 +95,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_24_101000) do
     t.bigint "recipe_id", null: false
     t.integer "number_of_people", null: false
     t.string "meal_type"
-    t.date "scheduled_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "position", default: 0, null: false
+    t.integer "day_of_week"
     t.index ["menu_id", "position"], name: "index_menu_recipes_on_menu_id_and_position"
     t.index ["menu_id", "recipe_id"], name: "index_menu_recipes_on_menu_id_and_recipe_id"
-    t.index ["menu_id", "scheduled_date"], name: "index_menu_recipes_on_menu_id_and_scheduled_date"
     t.index ["menu_id"], name: "index_menu_recipes_on_menu_id"
     t.index ["recipe_id"], name: "index_menu_recipes_on_recipe_id"
   end
@@ -115,6 +114,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_24_101000) do
     t.integer "status", default: 0, null: false
     t.integer "diet"
     t.integer "default_people", default: 2, null: false
+    t.jsonb "requested_meal_counts", default: {}, null: false
     t.index ["status"], name: "index_menus_on_status"
     t.index ["user_id", "start_date"], name: "index_menus_on_user_id_and_start_date"
     t.index ["user_id", "status"], name: "index_menus_on_user_id_and_status"
@@ -161,9 +161,11 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_24_101000) do
     t.integer "status", default: 1, null: false
     t.string "source_type"
     t.jsonb "ai_raw_data"
+    t.string "meal_types", default: [], null: false, array: true
     t.index "((COALESCE(prep_time_minutes, 0) + COALESCE(cook_time_minutes, 0)))", name: "index_recipes_on_total_time"
     t.index ["diet"], name: "index_recipes_on_diet"
     t.index ["difficulty"], name: "index_recipes_on_difficulty"
+    t.index ["meal_types"], name: "index_recipes_on_meal_types", using: :gin
     t.index ["name"], name: "index_recipes_on_name"
     t.index ["name"], name: "index_recipes_on_name_trgm", opclass: :gin_trgm_ops, using: :gin
     t.index ["status"], name: "index_recipes_on_status"
@@ -206,8 +208,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_24_101000) do
     t.string "gender"
     t.integer "default_diet", default: 0, null: false
     t.integer "default_people", default: 2, null: false
-    t.integer "default_number_of_meals", default: 7, null: false
     t.boolean "preferences_configured", default: false, null: false
+    t.jsonb "default_meal_counts", default: {}, null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["username"], name: "index_users_on_username", unique: true

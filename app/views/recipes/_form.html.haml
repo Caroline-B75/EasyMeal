@@ -39,6 +39,18 @@
           = f.select :price, Recipe.prices.keys.map { |p| [p.humanize, p] }, { include_blank: "Non renseigné" }, class: "form-select"
           = field_errors(recipe, :price)
 
+      -# Moment(s) du repas : multi-sélection obligatoire (sauf brouillon IA, cf.
+      -# HasMealTypes). Un checkbox non coché envoie "" (3ᵉ/4ᵉ arg du check_box) :
+      -# clean_meal_types (AttributeCleaner) filtre cette entrée fantôme.
+      .form-group{ class: field_error_class(recipe, :meal_types) }
+        = f.label :meal_types, "Moment(s) du repas *", class: "form-label"
+        .tags-grid
+          - MealTypes::MEAL_TYPES.each do |type|
+            %label.tag-checkbox
+              = f.check_box :meal_types, { multiple: true, checked: recipe.meal_types.include?(type) }, type, ""
+              %span.tag-name= MealTypes.label(type)
+        = field_errors(recipe, :meal_types)
+
       .form-row
         .form-group.form-group-small{ class: field_error_class(recipe, :prep_time_minutes) }
           = f.label :prep_time_minutes, "Préparation (min)", class: "form-label"

@@ -181,7 +181,7 @@ class RecipesController < ApplicationController
       :name, :description, :instructions,
       :default_servings, :prep_time_minutes, :cook_time_minutes,
       :difficulty, :price, :diet, :appliance, :source_url, :photo,
-      tag_ids: [],
+      tag_ids: [], meal_types: [],
       preparations_attributes: [ :id, :ingredient_id, :quantity_base, :_destroy ]
     )
   end

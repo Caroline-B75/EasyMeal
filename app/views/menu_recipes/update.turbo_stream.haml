@@ -1,3 +1,13 @@
--# Turbo Stream : met à jour la carte après modification du nombre de personnes
-= turbo_stream.replace "menu_recipe_#{@menu_recipe.id}" do
-  = render "menus/menu_recipe_card", menu_recipe: @menu_recipe, menu: @menu
+-# Turbo Stream : changement de moment d'un repas.
+-# La carte ne bouge pas (la grille est unique et son ordre appartient à
+-# l'utilisatrice) : seuls les décomptes par moment changent. On se garde bien
+-# de re-rendre la carte, ce qui détruirait le <select> que l'utilisatrice vient
+-# d'actionner : il perd le focus et le navigateur repositionne le défilement
+-# sur un autre repère — la page « saute ».
+= turbo_stream.replace "draft_missing_meals" do
+  = render "menus/missing_meals_alert", menu: @menu, menu_recipes: @menu_recipes
+
+-# Un repas a changé de moment : les steppers de répartition du panneau de
+-# réglages en comptent un de moins d'un côté, un de plus de l'autre.
+= turbo_stream.replace "menu_settings_#{@menu.id}" do
+  = render "menus/settings_panel", menu: @menu, menu_recipes: @menu_recipes

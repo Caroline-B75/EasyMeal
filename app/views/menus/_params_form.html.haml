@@ -13,11 +13,13 @@
 - confirm = local_assigns.fetch(:confirm, nil)
 - default_diet = menu.diet || current_user.default_diet || "omnivore"
 - default_people = menu.default_people || current_user.default_people || 4
-- default_meals = menu.menu_recipes.size.positive? ? menu.menu_recipes.size : (current_user.default_number_of_meals || 7)
-- default_name_placeholder = "Menu du #{french_date(Date.today)}"
+- meal_counts = form_meal_counts(menu, current_user)
+-# Le nom réellement attribué en l'absence de saisie — annoncé tel quel.
+- default_name_placeholder = Menu.default_name
 
 = form_with model: menu, url: url, method: :post, class: "mn-generate-form",
             data: { controller: "menu-generate",
+                    action: "meal-counts:change->menu-generate#updateMealCounts",
                     menu_generate_default_name_value: default_name_placeholder } do |f|
 
   -# ── Carte 1 — Régime alimentaire (grille 2×2 avec icônes) ────────
@@ -67,26 +69,17 @@
           %span.mn-slider-mark 6
           %span.mn-slider-mark 12
 
-    -# ── Carte 3 — Nombre de repas (slider) ─────────────────
+    -# ── Carte 3 — Répartition des repas (5 steppers) ───────
     .mn-form-card
       .mn-form-card-header
         .mn-form-card-num 3
-        %span.mn-form-card-title Nombre de repas
+        %span.mn-form-card-title Répartition des repas
       .mn-form-card-body.mn-form-card-body--compact
-        .mn-slider-display
-          .mn-slider-icon.mn-slider-icon--meals
-            = svg_icon("utensils", size: 20)
-          %span.mn-slider-big{ data: { menu_generate_target: "mealsDisplay" } }= default_meals
-          %span.mn-slider-label repas
-        = f.range_field :number_of_meals, min: 1, max: 14, value: default_meals,
-                        class: "mn-slider",
-                        "aria-label": "Nombre de repas",
-                        data: { action: "input->menu-generate#updateMeals",
-                                menu_generate_target: "mealsSlider" }
-        .mn-slider-marks
-          %span.mn-slider-mark 1
-          %span.mn-slider-mark 7
-          %span.mn-slider-mark 14
+        = render "shared/meal_counts_fields", meal_counts: meal_counts,
+                                              name_prefix: "menu[meal_counts]"
+        %p.mn-field-hint{ data: { menu_generate_target: "emptyMealsHint" },
+                          hidden: meal_counts.any? }
+          Choisis au moins un repas pour lancer la génération.
 
   -# ── Carte 4 — Nom du menu (optionnel) ──────────────────
   .mn-form-card
@@ -115,7 +108,7 @@
       = "#{default_people} #{default_people == 1 ? 'personne' : 'personnes'}"
     %span.mn-summary-sep ·
     %span.mn-summary-chip{ data: { menu_generate_target: "sumMeals" } }
-      = "#{default_meals} repas"
+      = meal_counts_summary(meal_counts)
     %span.mn-summary-sep ·
     %span.mn-summary-chip{ data: { menu_generate_target: "sumName" } }
       = menu.name.presence || default_name_placeholder
@@ -128,11 +121,12 @@
       .mn-save-defaults-text
         %span.mn-save-defaults-title Mémoriser ces paramètres
         %span.mn-save-defaults-hint
-          Régime, personnes et nombre de repas seront utilisés par défaut pour vos prochains menus.
+          Régime, personnes et répartition des repas seront utilisés par défaut pour vos prochains menus.
 
   -# ── Bouton de soumission ───────────────────────────────
   .mn-submit-zone
     %button.mn-btn-generate{ type: "submit",
+                             disabled: !meal_counts.any?,
                              data: { menu_generate_target: "submitBtn",
                                      turbo_confirm: confirm }.compact }
       = svg_icon("sparkle", size: 16)

@@ -1,41 +1,62 @@
-// Contrôleur Stimulus pour la page de personnalisation du menu (card grid).
-// Gère : drag & drop visuel, compteur de repas, publication de la hauteur de carte.
+// Contrôleur Stimulus des pages de menu en grille — brouillon ET menu actif :
+// sur un menu validé, le jour et l'ordre des cartes restent à la main de
+// l'utilisatrice. Les repas vivent dans une grille unique dont l'ordre lui
+// appartient (UC7). Gère : drag & drop, teinte de jour, compteur de repas
+// (brouillon seulement, seul état où le nombre de cartes bouge), publication
+// de la hauteur de carte.
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["grid", "card", "countChip"]
+  static targets = ["grid", "countChip"]
   static values  = { reorderUrl: String }
 
   connect() {
     this.dragSrc = null
+    this.refreshFrame = null
     this.syncCardHeight()
     this.updateCount()
-    this.observeGrid()
+    this.observeCards()
     window.addEventListener("resize", this.boundResize = () => this.syncCardHeight())
   }
 
   disconnect() {
-    this.gridObserver?.disconnect()
+    this.cardsObserver?.disconnect()
+    if (this.refreshFrame) cancelAnimationFrame(this.refreshFrame)
     window.removeEventListener("resize", this.boundResize)
   }
 
-  // ── Observation du grid pour MAJ automatique du compteur ──
-  observeGrid() {
-    if (!this.hasGridTarget) return
-    this.gridObserver = new MutationObserver(() => {
+  // ── Observation des cartes pour MAJ automatique du compteur ──
+  // Posé sur l'élément racine (subtree) et non sur la grille : le Turbo Stream
+  // de suppression remplace le bloc des repas entier, un observer accroché à la
+  // grille mourrait avec elle.
+  observeCards() {
+    this.cardsObserver = new MutationObserver(() => this.scheduleRefresh())
+    this.cardsObserver.observe(this.element, { childList: true, subtree: true })
+  }
+
+  // Les mutations arrivent en rafale — un Turbo Stream remplace le bloc des
+  // repas d'un seul tenant : on ne recalcule qu'une fois par frame, sinon
+  // syncCardHeight force autant de reflows qu'il y a de nœuds touchés.
+  scheduleRefresh() {
+    if (this.refreshFrame) return
+    this.refreshFrame = requestAnimationFrame(() => {
+      this.refreshFrame = null
       this.updateCount()
       this.syncCardHeight()
     })
-    this.gridObserver.observe(this.gridTarget, { childList: true })
   }
 
-  // ── Compteur de repas (chip dans la context bar) ────────
+  // ── Compteur de repas (chip dans l'en-tête) ─────────────
+  // Le chip vit dans l'en-tête, donc DANS le sous-arbre observé ci-dessus, et
+  // affecter textContent recrée le nœud texte — c'est une mutation childList
+  // même à texte identique. Sans cette écriture conditionnelle, l'observer se
+  // rappellerait lui-même sans fin et figerait l'onglet.
   updateCount() {
-    const n = this.hasGridTarget
-      ? this.gridTarget.querySelectorAll(".mc-recipe-card").length
-      : 0
-    if (this.hasCountChipTarget) {
-      this.countChipTarget.textContent = `${n} repas`
+    if (!this.hasCountChipTarget) return
+
+    const label = `${this.element.querySelectorAll(".mc-recipe-card").length} repas`
+    if (this.countChipTarget.textContent !== label) {
+      this.countChipTarget.textContent = label
     }
   }
 
@@ -43,16 +64,15 @@ export default class extends Controller {
   // La hauteur d'une carte dépend de la largeur de colonne du grid (photo
   // carrée) : elle n'est pas calculable en CSS. On la mesure ici et on la
   // publie en variable CSS sur l'élément de page, que les blocs qui doivent
-  // s'aligner sur une carte consomment en CSS (slot d'ajout, panneau de
-  // réglages). Pas de style inline : la valeur survit au remplacement de ces
-  // blocs par un Turbo Stream (stepper « nombre de personnes »).
+  // s'aligner sur une carte consomment en CSS (bouton « + catalogue »,
+  // panneau de réglages). Pas de style inline : la valeur survit au
+  // remplacement de ces blocs par un Turbo Stream.
   syncCardHeight() {
-    if (!this.hasGridTarget) return
-    const firstCard = this.gridTarget.querySelector(".mc-recipe-card")
+    const firstCard = this.element.querySelector(".mc-recipe-card")
     const cardH = firstCard ? firstCard.getBoundingClientRect().height : 0
 
-    // Grille vide (ou pas encore mise en page) : pas de référence, on retire la
-    // variable plutôt que de laisser une hauteur périmée.
+    // Page sans carte (ou pas encore mise en page) : pas de référence, on
+    // retire la variable plutôt que de laisser une hauteur périmée.
     if (cardH < 10) {
       this.element.style.removeProperty("--mc-card-height")
       return
@@ -60,28 +80,50 @@ export default class extends Controller {
     this.element.style.setProperty("--mc-card-height", `${Math.round(cardH)}px`)
   }
 
-  // ── Drag & Drop (réordonnement visuel) ──────────────────
-  dragStart(event) {
-    this.dragSrc = event.currentTarget
-    event.dataTransfer.effectAllowed = "move"
-    // Délai pour que la classe dragging ne bloque pas le drag
-    setTimeout(() => event.currentTarget.classList.add("mc-dragging"), 0)
+  // ── Teinte de jour ──────────────────────────────────────
+  // Posée tout de suite sur la carte, sans attendre le serveur : le <select>
+  // qui déclenche le changement vit DANS la carte, la re-rendre lui ferait
+  // perdre le focus. Le serveur ne fait plus que persister (204).
+  setDay(event) {
+    const card = event.target.closest(".mc-recipe-card")
+    if (!card) return
+
+    if (event.target.value === "") {
+      delete card.dataset.day
+    } else {
+      card.dataset.day = event.target.value
+    }
   }
 
-  dragEnd(event) {
-    event.currentTarget.classList.remove("mc-dragging")
-    this.gridTarget.querySelectorAll(".mc-drag-over").forEach(el =>
-      el.classList.remove("mc-drag-over")
+  // ── Drag & Drop (réordonnement de la grille) ────────────
+  // Aucune frontière : l'ordre des repas appartient à l'utilisatrice, qui
+  // range sa semaine comme elle la vit (UC7).
+  dragStart(event) {
+    const card = event.currentTarget
+    this.dragSrc = card
+    event.dataTransfer.effectAllowed = "move"
+    // Délai pour que la classe dragging ne bloque pas le drag. On capture la
+    // carte ci-dessus : event.currentTarget est remis à null à la fin de la
+    // propagation, il ne vaut plus rien dans un callback différé.
+    setTimeout(() => card.classList.add("mc-dragging"), 0)
+  }
+
+  // Balayage plutôt que nettoyage de la seule carte source : un Turbo Stream
+  // peut avoir remplacé les cartes pendant le glissement, laissant une classe
+  // orpheline sur un nœud qui n'est plus celui qu'on a saisi.
+  dragEnd() {
+    this.element.querySelectorAll(".mc-dragging, .mc-drag-over").forEach(el =>
+      el.classList.remove("mc-dragging", "mc-drag-over")
     )
     this.dragSrc = null
   }
 
   dragOver(event) {
-    event.preventDefault()
     const card = event.currentTarget
-    if (this.dragSrc && this.dragSrc !== card) {
-      card.classList.add("mc-drag-over")
-    }
+    if (!this.dragSrc || this.dragSrc === card) return
+
+    event.preventDefault()
+    card.classList.add("mc-drag-over")
   }
 
   dragLeave(event) {
@@ -92,11 +134,11 @@ export default class extends Controller {
     event.preventDefault()
     const target = event.currentTarget
     target.classList.remove("mc-drag-over")
-    if (!this.dragSrc || this.dragSrc === target) return
+    if (!this.dragSrc || this.dragSrc === target || !this.hasGridTarget) return
 
     const grid = this.gridTarget
-    const srcWrapper = this._gridChild(this.dragSrc)
-    const tgtWrapper = this._gridChild(target)
+    const srcWrapper = this._gridChild(this.dragSrc, grid)
+    const tgtWrapper = this._gridChild(target, grid)
     if (!srcWrapper || !tgtWrapper) return
 
     const children = [...grid.children]
@@ -106,18 +148,22 @@ export default class extends Controller {
     this.persistOrder()
   }
 
-  // Remonte jusqu'au fils direct du grid (turbo-frame ou l'élément lui-même)
-  _gridChild(el) {
-    while (el && el.parentElement !== this.gridTarget) {
+  // Remonte jusqu'au fils direct de la grille (turbo-frame ou l'élément lui-même).
+  // null si l'élément n'est pas dans la grille — le bouton « + » l'est aussi,
+  // mais il n'est pas draggable, il n'arrive donc jamais ici.
+  _gridChild(el, grid) {
+    while (el && el.parentElement !== grid) {
       el = el.parentElement
     }
     return el
   }
 
   // ── Persistance de l'ordre après drag & drop ────────────
+  // L'ordre envoyé est celui du DOM : la position est une séquence unique sur
+  // tout le menu, le moment de chaque repas (meal_type) en étant indépendant.
   persistOrder() {
     if (!this.hasReorderUrlValue) return
-    const ids = [...this.gridTarget.querySelectorAll("turbo-frame[id^='menu_recipe_']")]
+    const ids = [...this.element.querySelectorAll("turbo-frame[id^='menu_recipe_']")]
       .map(f => f.id.replace("menu_recipe_", ""))
       .filter(id => /^\d+$/.test(id))
 
