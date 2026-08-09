@@ -2468,9 +2468,9 @@
   min-height: 28px;
 }
 
-/* Menu validé : photo et nom sont des liens vers la recette (menu_card_wrapper)
-   — même habillage que leurs équivalents inertes du brouillon, sans
-   soulignement ; seul le nom se souligne au survol pour annoncer le clic. */
+/* Photo et nom : liens vers la recette (menu_card_recipe_link) — même habillage
+   qu'un bloc inerte, sans soulignement ; seul le nom se souligne au survol
+   pour annoncer le clic. */
 a.mc-card-photo,
 a.mc-card-name-wrap {
   display: block;

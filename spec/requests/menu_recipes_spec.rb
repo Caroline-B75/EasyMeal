@@ -50,6 +50,16 @@ RSpec.describe "Repas d'un menu (MenuRecipe)", type: :request do
       expect(response.body).to include(">Lun<", ">Dim<", ">Petit-déj<")
       expect(response.body).not_to include(">Petit-déjeuner<")
     end
+
+    it "photo et nom ouvrent la recette, hors de la turbo-frame et sans gêner le drag" do
+      meal = add_meal("dinner", position: 0)
+
+      get menu_path(menu)
+
+      expect(response.body).to include(%(href="#{recipe_path(meal.recipe)}"))
+      expect(response.body).to include(%(data-turbo-frame="_top"))
+      expect(response.body).to include(%(draggable="false"))
+    end
   end
 
   describe "PATCH /menus/:menu_id/menu_recipes/:id" do

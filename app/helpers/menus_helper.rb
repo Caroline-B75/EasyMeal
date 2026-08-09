@@ -189,17 +189,15 @@ module MenusHelper
 
   # === Carte de repas enrichie (UC7, chapitre 4) ===
 
-  # Enveloppe une section de carte de repas (photo, nom) : simple bloc inerte
-  # dans le brouillon, lien vers la recette sur un menu validé — c'est depuis
-  # le menu actif qu'on cuisine. turbo_frame "_top" sort de la turbo-frame de
-  # la carte (sinon la recette se chargerait dedans) ; draggable "false" rend
-  # le glissement à la carte, qui l'utilise pour réordonner la grille.
+  # Enveloppe une section de carte de repas (photo, nom) d'un lien vers la
+  # recette : vérifier ingrédients et préparation sert autant en composant le
+  # brouillon qu'en cuisinant depuis le menu actif. turbo_frame "_top" sort de
+  # la turbo-frame de la carte (sinon la recette se chargerait dedans) ;
+  # draggable "false" rend le glissement à la carte, qui l'utilise pour
+  # réordonner la grille — le lien ne gêne donc jamais le drag & drop.
   # @param menu_recipe [MenuRecipe]
-  # @param editable [Boolean] true dans le brouillon
-  # @param css_class [String] classe du bloc, identique dans les deux modes
-  def menu_card_wrapper(menu_recipe, editable, css_class, &block)
-    return tag.div(class: css_class, &block) if editable
-
+  # @param css_class [String] classe du bloc, identique quel que soit le statut
+  def menu_card_recipe_link(menu_recipe, css_class, &block)
     link_to recipe_path(menu_recipe.recipe), class: css_class, draggable: "false",
             data: { turbo_frame: "_top", turbo_prefetch: "false" }, &block
   end

@@ -6,8 +6,10 @@
 -#   retrait, ordre ;
 -# - menu actif : le jour (pure annotation visuelle, la liste de courses n'y est
 -#   pas sensible) et l'ordre restent modifiables ; moment et personnes sont
--#   figés — ils engagent la liste validée — et photo + nom ouvrent la recette
--#   (menu_card_wrapper : c'est depuis le menu actif qu'on cuisine).
+-#   figés — ils engagent la liste validée.
+-# Dans les deux modes, photo et nom ouvrent la recette (menu_card_recipe_link) :
+-# vérifier ingrédients et préparation sert autant en composant le menu qu'en
+-# le cuisinant.
 -#
 -# La carte porte son jour en data-day : c'est lui qui lui donne sa teinte (CSS),
 -# posée dans la foulée du changement par menu-customize#setDay.
@@ -29,7 +31,7 @@
                    action: "dragstart->menu-customize#dragStart dragend->menu-customize#dragEnd dragover->menu-customize#dragOver dragleave->menu-customize#dragLeave drop->menu-customize#drop" } }
 
     -# ── Photo carrée ──────────────────────────────────────
-    = menu_card_wrapper(menu_recipe, editable, "mc-card-photo") do
+    = menu_card_recipe_link(menu_recipe, "mc-card-photo") do
       - if menu_recipe.recipe.photo.attached?
         = image_tag menu_recipe.recipe.photo.variant(resize_to_fill: [260, 260]),
                     alt: menu_recipe.recipe.name, width: 260, height: 260, loading: "lazy"
@@ -46,7 +48,7 @@
           = time_badge
 
     -# ── Nom de la recette ─────────────────────────────────
-    = menu_card_wrapper(menu_recipe, editable, "mc-card-name-wrap") do
+    = menu_card_recipe_link(menu_recipe, "mc-card-name-wrap") do
       .mc-card-name= menu_recipe.recipe.name
 
     -# ── Moment / jour (UC7) ─────────────────────────────────
