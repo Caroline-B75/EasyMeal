@@ -72,17 +72,28 @@
     = menu_card_recipe_link(menu_recipe, "mc-card-name-wrap") do
       .mc-card-name= menu_recipe.recipe.name
 
-    -# ── Moment / jour (UC7) ─────────────────────────────────
+    -# ── Jour / moment (UC7) ─────────────────────────────────
     -# Les deux contrôles se partagent la ligne à parts égales — même mécanique
-    -# auto-submit que le sélecteur de personnes ci-dessous. Le moment ne
-    -# déplace pas la carte (grille unique) : il ne change que le décompte des
-    -# manques ; le jour ne change que la couleur de la carte. Sur un menu
-    -# validé, le moment devient une simple étiquette.
+    -# auto-submit que le sélecteur de personnes ci-dessous. Le jour vient en
+    -# premier : c'est lui qui situe le repas dans la semaine, le moment ne le
+    -# précise qu'ensuite (« mardi, dîner »). Le moment ne déplace pas la carte
+    -# (grille unique) : il ne change que le décompte des manques ; le jour ne
+    -# change que la couleur de la carte. Sur un menu validé, le moment devient
+    -# une simple étiquette.
     -#
     -# id: nil sur les sélecteurs — form_with les nomme d'après le modèle
     -# (menu_recipe_meal_type…), donc à l'identique sur chaque carte de la grille.
     -# Aucun <label> ne les vise, leur nom accessible vient de leur aria-label.
     .mc-card-controls
+      = form_with model: [menu, menu_recipe], method: :patch, class: "mc-card-control",
+                  data: { controller: "auto-submit" } do |f|
+        = f.select :day_of_week,
+                   day_of_week_select_options,
+                   { selected: menu_recipe.day_of_week },
+                   class: "mc-mini-select mc-day-select", title: "Jour", id: nil,
+                   "aria-label": "Jour pour #{short_name}",
+                   data: { action: "change->auto-submit#submit change->menu-customize#setDay" }
+
       - if editable
         = form_with model: [menu, menu_recipe], method: :patch, class: "mc-card-control",
                     data: { controller: "auto-submit" } do |f|
@@ -99,15 +110,6 @@
         %span.mc-card-control.mc-mini-select.mc-mini-select--static{ title: "Moment du repas" }
           = svg_icon(MealTypes.icon(menu_recipe.display_meal_type), size: 13)
           = MealTypes.compact_label(menu_recipe.display_meal_type)
-
-      = form_with model: [menu, menu_recipe], method: :patch, class: "mc-card-control",
-                  data: { controller: "auto-submit" } do |f|
-        = f.select :day_of_week,
-                   day_of_week_select_options,
-                   { selected: menu_recipe.day_of_week },
-                   class: "mc-mini-select mc-day-select", title: "Jour", id: nil,
-                   "aria-label": "Jour pour #{short_name}",
-                   data: { action: "change->auto-submit#submit change->menu-customize#setDay" }
 
     -# ── Barre d'actions : remplacer | personnes | supprimer | réordonner
     -# aria-label : nom accessible annoncé au focus clavier (pas seulement au hover)

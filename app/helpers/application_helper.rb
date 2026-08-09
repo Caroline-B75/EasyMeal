@@ -164,7 +164,14 @@ module ApplicationHelper
     # Moments de la journée (UC7) : c'est MealTypes.icon qui les nomme, personne
     # d'autre. « glass » (apéro) n'existe pas chez Feather — elle est dessinée
     # dans le même langage que les autres : viewBox 24, trait de 2, bouts arrondis.
-    "sunrise"       => '<path d="M17 18a5 5 0 0 0-10 0"/><line x1="12" y1="2" x2="12" y2="9"/><line x1="4.22" y1="10.22" x2="5.64" y2="11.64"/><line x1="1" y1="18" x2="3" y2="18"/><line x1="21" y1="18" x2="23" y2="18"/><line x1="18.36" y1="11.64" x2="19.78" y2="10.22"/><line x1="23" y1="22" x2="1" y2="22"/><polyline points="8 6 12 2 16 6"/>',
+    #
+    # « sunrise » est celle de Feather MOINS sa pointe de flèche
+    # (<polyline points="8 6 12 2 16 6"/>). C'est elle qui, chez Feather, oppose
+    # sunrise à sunset ; mais rendue à 13 px dans la carte de repas, elle domine
+    # le dessin et se lit comme un chevron « monter » plutôt que comme un lever
+    # de soleil. Sans elle, le trait vertical redevient le rayon du haut et la
+    # silhouette est un soleil à cinq rayons au-dessus de l'horizon.
+    "sunrise"       => '<path d="M17 18a5 5 0 0 0-10 0"/><line x1="12" y1="2" x2="12" y2="9"/><line x1="4.22" y1="10.22" x2="5.64" y2="11.64"/><line x1="1" y1="18" x2="3" y2="18"/><line x1="21" y1="18" x2="23" y2="18"/><line x1="18.36" y1="11.64" x2="19.78" y2="10.22"/><line x1="23" y1="22" x2="1" y2="22"/>',
     "sun"           => '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>',
     "coffee"        => '<path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>',
     "glass"         => '<path d="M5 3h14l-7 8z"/><line x1="12" y1="11" x2="12" y2="20"/><line x1="8" y1="20" x2="16" y2="20"/>',
