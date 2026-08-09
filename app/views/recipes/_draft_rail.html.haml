@@ -10,23 +10,26 @@
 -# au remplacement Turbo Stream. En desktop le JS désactive le déclencheur.
 -#
 -# Locals :
--#   draft   : Menu (status: :draft) — le rail n'est rendu que s'il en existe un
--#   recipes : Array<Recipe> — recettes du brouillon, dans l'ordre du menu
+-#   draft : Menu (status: :draft) — le rail n'est rendu que s'il en existe un
+-#   meals : Array<MenuRecipe> — repas du brouillon, dans l'ordre du menu (une
+-#           vignette par repas : la répétition étant permise, une même recette
+-#           peut y figurer plusieurs fois)
 %aside#draft-rail.draft-rail{ "aria-label": "Menu à valider" }
-  - if recipes.any?
+  - if meals.any?
     %button.draft-rail-count{ type: "button",
                               "aria-expanded": "true",
                               "aria-controls": "draft-rail-list",
                               data: { action: "click->mobile-accordion#toggle",
                                       mobile_accordion_target: "toggle" } }
-      %span= draft_rail_label(recipes.size)
+      %span= draft_rail_label(meals.size)
       = svg_icon("chevron-down", size: 14, css_class: "draft-rail-chevron")
 
     -# title : nom complet de la recette au survol. Infobulle native plutôt que
     -# CSS, qui serait rognée par le défilement du rail (overflow).
     %ul#draft-rail-list.draft-rail-list{ data: { controller: "draft-rail" } }
-      - recipes.each do |recipe|
-        %li
+      - meals.each do |meal|
+        - recipe = meal.recipe
+        %li.draft-rail-item
           = link_to recipe_path(recipe), class: "draft-rail-thumb", title: recipe.name do
             - if recipe.photo.attached?
               = image_tag cloudinary_photo_url(recipe.photo, width: 96, height: 96, crop: :fill),
@@ -35,9 +38,18 @@
             - else
               = image_tag "photo_par_defaut_recette.webp", alt: recipe.name,
                           width: 96, height: 96, loading: "lazy"
+          -# Croix de retrait : supprime CE repas sans quitter le catalogue. Le
+          -# moment du contexte est reconduit pour que les fragments re-rendus
+          -# (boutons, rail) restent dans le contexte courant.
+          = button_to recipes_draft_meal_path(meal, meal_type: context_meal_type),
+                      method: :delete,
+                      class: "draft-rail-remove",
+                      title: "Retirer du menu",
+                      "aria-label": "Retirer #{recipe.name} du menu à valider" do
+            = svg_icon(:x, size: 12)
   - else
     -# Rien à replier : le compteur n'est qu'un libellé, sans déclencheur.
-    %p.draft-rail-count= draft_rail_label(recipes.size)
+    %p.draft-rail-count= draft_rail_label(meals.size)
 
   -# La colonne est trop étroite pour le nom du menu : il reste accessible en
   -# infobulle sur l'action, plutôt qu'affiché et tronqué.

@@ -141,6 +141,31 @@ class Menu < ApplicationRecord
                          position:         menu_recipes.maximum(:position).to_i + 1)
   end
 
+  # Insère une copie d'un repas juste après lui — la répétition d'un même plat
+  # dans la semaine (UC7 : le même petit-déjeuner plusieurs matins). Là où
+  # append_meal! crée un repas neuf aux valeurs du menu, on reprend ici TOUT ce
+  # qui a déjà été réglé sur la carte — moment, personnes, jour : c'est un
+  # duplicata. D'où le `dup`, qui embarquera aussi les colonnes que MenuRecipe
+  # gagnera plus tard, sans qu'on ait à y repenser.
+  #
+  # La copie se pose juste derrière son original, et non en fin de grille où
+  # elle serait hors écran sur un menu long — le clic paraîtrait sans effet.
+  # Les repas suivants sont décalés d'un cran pour lui faire place, en une
+  # seule requête.
+  # @param menu_recipe [MenuRecipe] repas de ce menu à dupliquer
+  # @return [MenuRecipe] la copie
+  def duplicate_meal!(menu_recipe)
+    copy_position = menu_recipe.position + 1
+
+    transaction do
+      menu_recipes.where(position: copy_position..).update_all("position = position + 1")
+      copy = menu_recipe.dup
+      copy.position = copy_position
+      copy.save!
+      copy
+    end
+  end
+
   # Progression de la liste de courses : articles cochés sur total.
   # `checked` est une colonne booléenne et `count` renvoie un Integer,
   # donc percent est calculé sans risque de division sur nil.

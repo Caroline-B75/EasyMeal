@@ -51,6 +51,15 @@ RSpec.describe "Repas d'un menu (MenuRecipe)", type: :request do
       expect(response.body).not_to include(">Petit-déjeuner<")
     end
 
+    it "propose de dupliquer le repas, sur la photo et hors de son lien" do
+      meal = add_meal("breakfast", position: 0)
+
+      get menu_path(menu)
+
+      expect(response.body).to include(%(action="#{duplicate_menu_menu_recipe_path(menu, meal)}"))
+      expect(response.body).to include("mc-card-dup")
+    end
+
     it "photo et nom ouvrent la recette, hors de la turbo-frame et sans gêner le drag" do
       meal = add_meal("dinner", position: 0)
 
@@ -101,6 +110,40 @@ RSpec.describe "Repas d'un menu (MenuRecipe)", type: :request do
     end
   end
 
+  # UC7 — répéter un repas : le catalogue en est incapable (son bouton est un
+  # toggle, un second clic dans le même moment retire au lieu d'ajouter), et il
+  # créerait de toute façon un repas neuf, sans les réglages déjà faits ici.
+  describe "POST /menus/:menu_id/menu_recipes/:id/duplicate" do
+    it "reprend tout le repas — recette, moment, personnes et jour" do
+      meal = add_meal("breakfast", position: 0)
+      meal.update!(number_of_people: 3, day_of_week: 1)
+      copied = %w[recipe_id meal_type number_of_people day_of_week]
+
+      expect {
+        post duplicate_menu_menu_recipe_path(menu, meal), as: :turbo_stream
+      }.to change { menu.menu_recipes.count }.by(1)
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include(%(target="draft_meals"))
+      copy = menu.menu_recipes.where.not(id: meal.id).sole
+      expect(copy.slice(*copied)).to eq(meal.slice(*copied))
+    end
+
+    it "pose la copie juste derrière l'original et décale les repas suivants" do
+      first  = add_meal("breakfast", position: 0)
+      second = add_meal("lunch", position: 1)
+      third  = add_meal("dinner", position: 2)
+
+      post duplicate_menu_menu_recipe_path(menu, first), as: :turbo_stream
+
+      copy = menu.menu_recipes.where(recipe: first.recipe).where.not(id: first.id).sole
+      expect(first.reload.position).to eq(0)
+      expect(copy.position).to eq(1)
+      expect(second.reload.position).to eq(2)
+      expect(third.reload.position).to eq(3)
+    end
+  end
+
   # UC3 — le menu validé garde une grille vivante : le jour (pure annotation,
   # sans effet sur la liste de courses) et l'ordre des cartes restent à la main
   # de l'utilisatrice ; moment et personnes, eux, engagent la liste validée.
@@ -138,6 +181,17 @@ RSpec.describe "Repas d'un menu (MenuRecipe)", type: :request do
       }.not_to change { meal.reload.slice(:number_of_people, :meal_type) }
 
       expect(meal.day_of_week).to eq(4)
+    end
+
+    it "refuse de dupliquer, même en requête forgée : la copie manquerait à la liste" do
+      meal = add_meal("dinner", position: 0)
+
+      get menu_path(menu)
+      expect(response.body).not_to include("mc-card-dup")
+
+      expect {
+        post duplicate_menu_menu_recipe_path(menu, meal), as: :turbo_stream
+      }.not_to change { menu.menu_recipes.count }
     end
 
     it "réordonne ⬆️/⬇️ en re-rendant le bloc des repas actif" do

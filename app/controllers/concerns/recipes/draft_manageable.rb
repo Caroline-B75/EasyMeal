@@ -24,7 +24,28 @@ module Recipes
       result = Menus::ToggleDraftRecipeService.call(draft: @draft, recipe: recipe,
                                                     meal_type: context_meal_type)
       @added = result.added
-      load_draft_recipes
+      load_draft_meals
+
+      respond_success(redirect_path: recipes_path)
+    end
+
+    # DELETE /recipes/draft_meals/:id
+    # UC2 : retrait d'un repas via la croix d'une vignette du rail — sans quitter
+    # le catalogue. Vise un MenuRecipe précis, et non la recette : la répétition
+    # étant permise, seule la vignette cliquée doit disparaître (le toggle, lui,
+    # retirerait un exemplaire choisi d'après le moment du contexte).
+    def remove_from_draft
+      @draft = current_draft or raise ActiveRecord::RecordNotFound
+      meal = @draft.menu_recipes.find(params[:id])
+      authorize meal, :destroy?
+
+      @recipe = meal.recipe
+      meal.destroy!
+      load_draft_meals
+      # État du bouton de la carte après retrait : un autre exemplaire de la
+      # recette peut encore occuper le contexte (ex. présente au déjeuner ET au
+      # dîner dans un catalogue non filtré) — même règle que load_draft_data.
+      @in_draft = draft_meals_in_context.exists?(recipe_id: @recipe.id)
 
       respond_success(redirect_path: recipes_path)
     end
@@ -71,16 +92,17 @@ module Recipes
       context_meal_type ? @draft.menu_recipes.for_meal(context_meal_type) : @draft.menu_recipes
     end
 
-    # Recettes du brouillon dans l'ordre du menu, photo préchargée — alimente le
-    # rail du catalogue. Chargement distinct de load_draft_data : la fiche recette
-    # n'a besoin que des IDs et n'a pas à payer ces jointures.
+    # Repas du brouillon dans l'ordre du menu, recette et photo préchargées —
+    # alimente le rail du catalogue (une vignette par repas, avec sa croix de
+    # retrait). Chargement distinct de load_draft_data : la fiche recette n'a
+    # besoin que des IDs et n'a pas à payer ces jointures.
     # Toujours requêté (et non lu dans l'association) pour refléter l'état de la
-    # base après un toggle.
-    def load_draft_recipes
-      @draft_recipes = if @draft
+    # base après un toggle ou un retrait.
+    def load_draft_meals
+      @draft_meals = if @draft
         @draft.menu_recipes.by_position
               .includes(recipe: { photo_attachment: :blob })
-              .map(&:recipe)
+              .to_a
       else
         []
       end

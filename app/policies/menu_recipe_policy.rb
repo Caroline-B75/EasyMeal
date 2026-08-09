@@ -4,8 +4,9 @@
 #
 # Délègue systématiquement à MenuPolicy du menu parent :
 # seul le propriétaire du menu peut modifier ou supprimer ses repas.
-# (L'ajout passe par le catalogue — Recipes::DraftManageable — et est couvert
-# par RecipePolicy#toggle_in_draft?.)
+# (Le choix d'une recette passe par le catalogue — Recipes::DraftManageable —
+# et est couvert par RecipePolicy#toggle_in_draft? ; la duplication d'un repas
+# déjà placé, elle, est couverte ici.)
 class MenuRecipePolicy < ApplicationPolicy
   # Modifier un repas (personnes, type, jour)
   def update?
@@ -20,6 +21,14 @@ class MenuRecipePolicy < ApplicationPolicy
   # Supprimer un repas du menu
   def destroy?
     menu_owner?
+  end
+
+  # Dupliquer un repas (UC7) : réservé au brouillon — plus strict que les autres
+  # actions. Sur un menu validé, la copie serait un repas absent de la liste de
+  # courses déjà arrêtée. La carte n'y propose donc pas le bouton, et la règle
+  # est rappelée ici pour une requête forgée.
+  def duplicate?
+    menu_owner? && record.menu.status_draft?
   end
 
   # Scope non nécessaire (les menu_recipes sont toujours accédés via @menu)

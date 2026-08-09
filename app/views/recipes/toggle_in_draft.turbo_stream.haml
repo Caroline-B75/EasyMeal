@@ -2,8 +2,6 @@
 -# Met à jour toutes les cibles présentes selon le contexte ; celles absentes
 -# de la page courante (index vs fiche) sont ignorées côté client (no-op).
 
-- draft_count = @draft_recipes.size
-
 -# 1. Bouton draft compact sur la carte de la recette (index).
 -#    Le contexte de moment (UC7) est reconduit : les toggles suivants
 -#    continuent de viser la même section du brouillon.
@@ -15,7 +13,7 @@
 
 -# 2. Rail « menu à valider » : compteur + vignettes (index)
 = turbo_stream.replace "draft-rail" do
-  = render "recipes/draft_rail", draft: @draft, recipes: @draft_recipes
+  = render "recipes/draft_rail", draft: @draft, meals: @draft_meals
 
 -# 3. CTAs Ajouter/Retirer de la fiche recette (hero + barre mobile).
 -#    has_draft: true — après un toggle, le brouillon existe forcément.
@@ -29,8 +27,7 @@
                                 meal_type: context_meal_type
 
 -# 4. Affiche le flash de confirmation (wrapper #flash préservé pour les remplacements suivants)
-- suffix = "(#{draft_count} recette#{'s' if draft_count != 1})"
-- notice_msg = @added ? (@draft_created ? "Menu à valider démarré avec \"#{@recipe.name}\" #{suffix}" : "\"#{@recipe.name}\" ajoutée au menu à valider #{suffix}") : "\"#{@recipe.name}\" retirée du menu à valider #{suffix}"
 = turbo_stream.update "flash" do
   .flash-message.notice{ data: { controller: "flash" } }
-    = notice_msg
+    = draft_change_notice(recipe_name: @recipe.name, count: @draft_meals.size,
+                          added: @added, draft_created: @draft_created)

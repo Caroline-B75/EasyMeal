@@ -102,6 +102,23 @@ module RecipesHelper
     "#{count} recette#{'s' if count > 1} dans le menu"
   end
 
+  # Message de confirmation d'un changement du brouillon depuis le catalogue —
+  # flash des réponses Turbo Stream toggle_in_draft et remove_from_draft.
+  # @param recipe_name [String] nom de la recette ajoutée / retirée
+  # @param count [Integer] nombre de repas du brouillon après l'opération
+  # @param added [Boolean] sens de l'opération
+  # @param draft_created [Boolean] le toggle vient-il de démarrer le brouillon ?
+  def draft_change_notice(recipe_name:, count:, added:, draft_created: false)
+    suffix = "(#{count} recette#{'s' if count != 1})"
+    return "\"#{recipe_name}\" retirée du menu à valider #{suffix}" unless added
+
+    if draft_created
+      "Menu à valider démarré avec \"#{recipe_name}\" #{suffix}"
+    else
+      "\"#{recipe_name}\" ajoutée au menu à valider #{suffix}"
+    end
+  end
+
   # === Helpers pour la fiche recette ===
 
   # Distribution des notes pour l'histogramme (hash {1=>count, 2=>count, ...})

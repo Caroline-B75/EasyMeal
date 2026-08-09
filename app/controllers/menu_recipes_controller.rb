@@ -1,15 +1,17 @@
 # Gestion des repas d'un menu (MenuRecipe)
 # Toutes les actions sont nestées sous /menus/:menu_id/menu_recipes.
 # Réponses Turbo Stream pour une expérience fluide sans rechargement de page.
-# L'ajout d'un repas passe par le catalogue (Recipes::DraftManageable) : ici ne
-# restent que la vie d'un repas déjà en place — personnes, moment, jour, ordre, retrait.
+# Le choix d'une recette passe par le catalogue (Recipes::DraftManageable, qui
+# offre aussi un retrait express via la croix de son rail) : ici ne reste que la
+# vie d'un repas déjà en place — personnes, moment, jour, ordre, retrait, et sa
+# duplication (répéter un repas ne demande aucun choix de recette).
 class MenuRecipesController < ApplicationController
   include TurboFlashable
 
   # Actions qui portent sur un @menu_recipe déjà existant (chargé + autorisé
   # en amont). reorder s'en distingue : il opère sur le menu entier (voir
   # authorize_reorder) et ne cible aucun MenuRecipe précis.
-  MUTATE_ACTIONS = %i[update destroy move_up move_down].freeze
+  MUTATE_ACTIONS = %i[update destroy duplicate move_up move_down].freeze
 
   before_action :authenticate_user!
   before_action :set_menu
@@ -59,6 +61,18 @@ class MenuRecipesController < ApplicationController
 
   def move_down
     swap_with_neighbor(1)
+  end
+
+  # POST /menus/:menu_id/menu_recipes/:id/duplicate
+  # UC7 : répéter un repas déjà réglé — le même petit-déjeuner plusieurs matins.
+  # Le catalogue ne sait pas le faire : son bouton d'ajout est un toggle (un
+  # second clic dans le même moment retire au lieu d'ajouter) et il créerait un
+  # repas neuf, sans le jour ni les personnes choisis ici. Réservé au brouillon
+  # (MenuRecipePolicy#duplicate?) : sur un menu validé, la copie n'existerait
+  # dans aucune liste de courses.
+  def duplicate
+    @menu.duplicate_meal!(@menu_recipe)
+    refresh_meals
   end
 
   # DELETE /menus/:menu_id/menu_recipes/:id
@@ -112,7 +126,7 @@ class MenuRecipesController < ApplicationController
     refresh_meals
   end
 
-  # Réponse Turbo Stream partagée par destroy / move_up / move_down : re-rend
+  # Réponse Turbo Stream partagée par destroy / duplicate / move_up / move_down : re-rend
   # d'un seul tenant le bloc des repas du menu — celui du brouillon (avec le
   # panneau de réglages, voir menus/refresh_draft.turbo_stream.haml, partagé
   # avec l'ajustement des quotas) ou celui du menu actif (menus/refresh_active,

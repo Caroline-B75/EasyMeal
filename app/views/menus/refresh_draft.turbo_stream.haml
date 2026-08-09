@@ -10,8 +10,8 @@
 -#   que l'utilisatrice croyait déjà parti.
 -#
 -# Appelé par MenusController#adjust_meal_count (les steppers eux-mêmes) et par
--# MenuRecipesController#refresh_meals (retrait d'un repas, ⬆️/⬇️ du brouillon —
--# le menu actif, lui, passe par refresh_active).
+-# MenuRecipesController#refresh_meals (retrait ou duplication d'un repas, ⬆️/⬇️
+-# du brouillon — le menu actif, lui, passe par refresh_active).
 = turbo_stream.replace "draft_meals" do
   = render "menus/draft_meals", menu: @menu, menu_recipes: @menu_recipes
 

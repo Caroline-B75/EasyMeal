@@ -1267,8 +1267,7 @@
 
 /* État favorié en compact : fond rouge explicite (spécificité plus haute) */
 .favorite-btn.favorite-btn-compact.favorited {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
+  background: darkred;
   color: var(--color-bg-white);
 }
 
@@ -2490,6 +2489,38 @@ button.draft-rail-count:not(:disabled) {
   object-fit: cover;
 }
 
+/* Croix de retrait d'une vignette : ancrée sur le <li> et posée DANS le coin
+   de l'image — un débord serait rogné par le défilement du bandeau (overflow),
+   même contrainte que l'infobulle native du lien. Pastille overlay compacte,
+   comme les actions des cartes du menu (.mc-act-btn) : la cible tactile
+   canonique de 44px ne tient pas sur une vignette de 56px. */
+.draft-rail-item {
+  position: relative;
+}
+
+.draft-rail-remove {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--color-bg-white);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.draft-rail-remove:hover,
+.draft-rail-remove:focus-visible {
+  background: var(--color-danger);
+}
+
 .draft-rail-btn {
   grid-area: action;
   white-space: nowrap;
@@ -2595,7 +2626,7 @@ button.draft-rail-count:not(:disabled) {
   height: 38px;
   padding: 0;
   border-radius: 50%;
-  border: 1.5px solid transparent;
+  border: 1.5px solid var(--color-border-strong);
   font-size: 1.1rem;
   cursor: pointer;
   background: rgba(255, 255, 255, 0.92);

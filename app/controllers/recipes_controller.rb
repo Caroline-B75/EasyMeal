@@ -39,7 +39,7 @@ class RecipesController < ApplicationController
     end
     load_draft_data
     # Vignettes du rail « menu à valider » affiché à côté des résultats
-    load_draft_recipes
+    load_draft_meals
   end
 
   # GET /recipes/:id

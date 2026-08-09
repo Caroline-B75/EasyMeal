@@ -2368,6 +2368,15 @@
 }
 
 /* ── Photo carrée ──────────────────────────────────────── */
+/* Enveloppe de la photo (UC7) : repère de positionnement du bouton Dupliquer,
+   qui se superpose à la photo sans pouvoir vivre dans son lien (<form> dans
+   <a>). Sans ce parent, il se réglerait sur toute la hauteur de la carte. La
+   poignée de glissement et le badge temps, eux, vivent DANS le lien et se
+   règlent sur .mc-card-photo. */
+.mc-card-media {
+  position: relative;
+}
+
 .mc-card-photo {
   width: 100%;
   aspect-ratio: 1 / 0.8;
@@ -2446,6 +2455,43 @@
   width: 10px;
   height: 10px;
   flex-shrink: 0;
+}
+
+/* ⧉ Dupliquer (UC7) : répéter un repas dans la semaine. Coin bas-droit de la
+   photo — le haut est pris par la poignée (gauche) et le badge temps (droite).
+   Toujours visible comme le badge, et non au survol comme la poignée : le
+   glisser-déposer n'existe qu'à la souris, dupliquer sert aussi au doigt.
+   Même habillage sombre translucide que les deux autres surimpressions. */
+.mc-card-dup {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  border: none;
+  /* 7px + 14px d'icône = 28px, la taille des boutons de la barre d'actions :
+     même confort au doigt, sans mesure propre à ce bouton. */
+  padding: 7px;
+  border-radius: var(--radius-badge);
+  background: rgba(28, 25, 23, 0.65);
+  color: var(--color-bg-white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast);
+}
+
+.mc-card-dup svg {
+  width: 14px;
+  height: 14px;
+}
+
+.mc-card-dup:hover {
+  background: rgba(28, 25, 23, 0.9);
+}
+
+.mc-card-dup:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
 }
 
 /* ── Nom de la recette ─────────────────────────────────────
@@ -2808,6 +2854,12 @@ a.mc-card-name-wrap:hover .mc-card-name {
   .mc-act-btn svg {
     width: 19px;
     height: 19px;
+  }
+
+  /* Suit l'agrandissement des cartes, comme les boutons de la barre d'actions */
+  .mc-card-dup svg {
+    width: 17px;
+    height: 17px;
   }
 
   .mc-mini-select {

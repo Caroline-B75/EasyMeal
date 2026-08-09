@@ -44,6 +44,7 @@ Rails.application.routes.draw do
       member do
         patch :move_up    # UC7 : réordonner dans sa section (boutons mobiles ⬆️)
         patch :move_down  # UC7 : réordonner dans sa section (boutons mobiles ⬇️)
+        post  :duplicate  # UC7 : répéter un repas — la copie se pose juste après lui
       end
     end
     resources :grocery_items, only: [ :create, :update, :destroy ]
@@ -66,6 +67,11 @@ Rails.application.routes.draw do
     # Avis (UC4) — gérés par Recipes::ReviewsController
     resources :reviews, only: [ :create, :destroy ], module: :recipes
   end
+
+  # UC2 : retrait d'un repas (MenuRecipe) via la croix du rail « menu à valider »
+  # du catalogue. Route distincte de menus/:menu_id/menu_recipes/:id : la réponse
+  # est taillée pour le catalogue (rail + bouton de carte), pas pour la page du menu.
+  delete "recipes/draft_meals/:id", to: "recipes#remove_from_draft", as: :recipes_draft_meal
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
