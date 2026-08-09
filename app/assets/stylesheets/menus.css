@@ -1084,9 +1084,7 @@
   gap: 0.5rem;
 }
 
-/* ── Readonly recipe card (dashboards de la home) ────────
-   .mc-card-meta-people sert aussi de « X pers. » figé dans la barre
-   d'actions de la carte du menu actif (menus/_menu_recipe_card). */
+/* ── Readonly recipe card (dashboards de la home) ──────── */
 /* Sélecteur doublé à dessein : .mc-recipe-card pose plus bas dans ce fichier un
    raccourci `border-left` qui, à spécificité égale, l'emporterait par simple
    ordre de déclaration. */
@@ -1097,19 +1095,17 @@
      bordure uniforme plutôt que la barre latérale neutre de 5px, qui n'y
      signifierait rien. */
   border-left-width: var(--border-width);
+  /* Le nom est le dernier bloc de la carte (pas de méta) : la carte reprend à
+     son compte le retrait bas que portait la ligne « X pers. ». */
+  padding-bottom: 7px;
 }
 
 .mc-recipe-card--readonly:hover {
   text-decoration: none;
 }
 
-.mc-card-meta {
-  padding: 4px 8px 7px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
+/* « X pers. » figé dans la barre d'actions de la carte du menu actif
+   (menus/_menu_recipe_card). */
 .mc-card-meta-people {
   font-size: var(--font-size-xs);
   color: var(--color-ink-3);
@@ -2850,7 +2846,7 @@ a.mc-card-name-wrap:hover .mc-card-name {
 
 /* ── Agrandissement desktop des cartes de recette (mc-*) ──
    La grille (minmax 190px ci-dessus) agrandit déjà la photo carrée ; on
-   remonte ici les éléments internes (nom, barre d'actions, méta) dans la
+   remonte ici les éléments internes (nom, barre d'actions) dans la
    même proportion pour que la carte agrandie ne paraisse pas déséquilibrée.
    Scindé du reste des styles mc-* pour laisser le mobile (2 colonnes,
    gabarit compact ci-dessous) strictement inchangé. */
@@ -2864,8 +2860,8 @@ a.mc-card-name-wrap:hover .mc-card-name {
     min-height: 38px;
   }
 
-  .mc-card-meta {
-    padding: 6px 10px 9px;
+  .mc-recipe-card.mc-recipe-card--readonly {
+    padding-bottom: 10px;
   }
 
   .mc-card-controls {

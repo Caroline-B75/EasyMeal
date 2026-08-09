@@ -9,9 +9,6 @@
     = render "menus/recipe_photo", recipe: menu_recipe.recipe
 
   -# ── Nom de la recette ─────────────────────────────────
+  -# Pas de méta ici : sur la home, la carte se limite à la photo et au nom.
   .mc-card-name-wrap
     .mc-card-name= menu_recipe.recipe.name
-
-  -# ── Méta : nombre de personnes ────────────────────────
-  .mc-card-meta
-    %span.mc-card-meta-people= "#{menu_recipe.number_of_people} pers."

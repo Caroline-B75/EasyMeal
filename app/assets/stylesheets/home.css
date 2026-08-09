@@ -355,7 +355,9 @@
   line-height: 1.3;
 }
 
-.hero-card-recipes .mc-card-meta {
+/* Sélecteur doublé (comme dans menus.css) : le retrait bas de la carte y est
+   posé à specificité (0,2,0) — et menus.css est requis après home.css. */
+.hero-card-recipes .mc-recipe-card.mc-recipe-card--readonly {
   padding-bottom: 8px;
 }
 

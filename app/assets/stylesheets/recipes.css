@@ -878,7 +878,7 @@
 
 .favorite-btn.favorited {
   background: var(--color-primary);
-  border-color: var(--color-primary);
+  border-color: var(--color-ink-3);
   color: var(--color-bg-white);
   animation: heart-pop 0.3s ease-out;
 }
@@ -2638,8 +2638,8 @@ button.draft-rail-count:not(:disabled) {
 
 /* État : recette dans le brouillon */
 .draft-btn.draft-btn-compact.in-draft {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
+  background: var(--color-accent);
+  border-color: var(--color-accent-hover);
   color: var(--color-bg-white);
 }
 
