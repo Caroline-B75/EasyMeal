@@ -45,7 +45,17 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(255, 255, 255, 0.4);
+  /* Voile porté de 0,40 à 0,55. Ici le texte est SOMBRE sur voile CLAIR, donc le
+     pire cas n'est pas la zone la plus claire de la photo mais la plus SOMBRE —
+     l'inverse du raisonnement habituel. Pire cas retenu : noir pur, cohérent avec
+     la méthode employée pour les autres voiles du projet.
+       voile 0,40 -> fond composé #666666 -> --color-ink à 3,05:1  ✗ (seuil 4,5:1)
+       voile 0,51 -> seuil atteint tout juste
+       voile 0,55 -> fond composé #8C8C8C -> --color-ink à 5,20:1  ✓
+     Le titre et le sous-titre de la vitrine, ainsi que la salutation du tableau de
+     bord, reposent directement sur cette surface : au-dessus d'un grain de poivre
+     ou d'une ombre, ils passaient sous le seuil AA. */
+  background: rgba(255, 255, 255, 0.55);
   z-index: 2;
 }
 
@@ -95,12 +105,16 @@
   margin-bottom: 1.5rem;
 }
 
-/* Sous-texte contextuel — voix douce, sans-serif système */
+/* Sous-texte contextuel — voix douce, sans-serif système.
+   La douceur est portée par la graisse (400) et la taille, PAS par la couleur :
+   ce texte repose directement sur la photo voilée, où --color-ink-3 ne donnait que
+   1,99:1 dans le pire cas. Aucun voile raisonnable ne le rattrapait — il aurait
+   fallu 0,83 d'opacité, ce qui effacerait la photo. --color-ink donne 5,20:1. */
 .hero-greeting-subtext {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans);
   font-size: var(--hero-greeting-subtext-size);
   font-weight: 400;
-  color: var(--color-ink-3);
+  color: var(--color-ink);
   line-height: 1.6;
   margin-top: 10px;
   margin-bottom: var(--hero-greeting-subtext-margin-bottom);
@@ -466,7 +480,9 @@
 }
 
 .hero-step-text {
-  font-size: var(--font-size-s);
+  /* Était --font-size-s, qui n'existe pas : coquille de --font-size-sm. Un var()
+     non résolu échoue en silence, la taille retombait sur l'héritage du parent. */
+  font-size: var(--font-size-sm);
   color: var(--color-ink-3);
   line-height: 1.5;
 }

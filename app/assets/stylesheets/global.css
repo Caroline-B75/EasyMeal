@@ -26,6 +26,28 @@ body {
 }
 
 /* === Titres === */
+/* Fraunces sur les titres. Spécificité 0,0,1 : cette règle ne couvre que les
+   titres nus. Les classes de titre des feuilles de fin de cascade (menus.css,
+   recipes.css) portent leur propre font-family — elles ont été basculées sur le
+   MÊME token plutôt que laissées sur leur Georgia en dur, ce qui évite d'avoir à
+   surenchérir en spécificité ici. Aucun !important, aucune classe utilitaire.
+
+   Pas de font-variation-settings, volontairement. Fraunces a un axe de taille
+   optique (opsz) que font-optical-sizing:auto — la valeur par défaut — ajuste
+   déjà d'après la font-size : empattements plus fins sur les grands titres,
+   formes plus robustes en petit. Or écrire font-variation-settings ÉCRASE ce
+   réglage automatique, et il faudrait alors répéter un 'opsz' correct sur chacune
+   des dix classes de titre, qui vont de 17px à 28px. On laisse donc faire le
+   navigateur. Les deux autres axes ne justifient pas d'y toucher : SOFT n'est pas
+   embarqué (voir fonts.css.erb) et WONK ne modifie visiblement que l'esperluette.
+
+   font-weight 500 : Fraunces est une variable 100-900, et le gras par défaut du
+   navigateur (700) est trop lourd pour un display serif à ces tailles. */
+h1, h2, h3 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+}
+
 /* Base responsive pour tout h1 : sans cette règle, un titre sans font-size
    explicite hérite du défaut navigateur (2em, soit 32px) — identique sur mobile.
    Spécificité 0,0,1 : les classes de titre existantes gardent la main. */

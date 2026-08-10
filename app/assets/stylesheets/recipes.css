@@ -1395,7 +1395,7 @@
 }
 
 .rs-title {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-size: 28px;
   font-weight: 400;
   color: var(--color-bg-white);
@@ -1456,7 +1456,12 @@
   font-weight: 500;
   border-radius: var(--radius-button);
   background: var(--rs-bg-dark);
-  color: #D6D3D1;
+  /* Était #D6D3D1, un gris FROID hérité de l'ancienne palette, sur une surface
+     sombre. --color-ink-on-dark porte exactement ce rôle et suit la teinte 70°
+     des neutres : 9,73:1 sur --rs-bg-dark, contre 10,18:1 avant — les deux très
+     au-dessus du seuil, on ne perd donc rien en lisibilité et on gagne la
+     cohérence de teinte avec le reste des surfaces sombres. */
+  color: var(--color-ink-on-dark);
   border: var(--border-width) solid var(--rs-border-dark);
   white-space: nowrap;
 }
@@ -1586,7 +1591,12 @@
 }
 
 .rs-photo-score {
-  color: #D6D3D1;
+  /* Était #D6D3D1, un gris FROID hérité de l'ancienne palette, sur une surface
+     sombre. --color-ink-on-dark porte exactement ce rôle et suit la teinte 70°
+     des neutres : 9,73:1 sur --rs-bg-dark, contre 10,18:1 avant — les deux très
+     au-dessus du seuil, on ne perd donc rien en lisibilité et on gagne la
+     cohérence de teinte avec le reste des surfaces sombres. */
+  color: var(--color-ink-on-dark);
   font-size: var(--font-size-xs);
 }
 
@@ -2666,7 +2676,7 @@ button.draft-rail-count:not(:disabled) {
 }
 
 .rf-hero-title {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-size: 24px;
   font-weight: 400;
   color: var(--color-bg-white);

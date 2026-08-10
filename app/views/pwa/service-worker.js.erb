@@ -17,6 +17,14 @@
   precache_urls = [
     asset_path("application.css"),
     asset_path("logos/logo_EasyMeal.svg"),
+    # Police d'affichage (Fraunces, ~66 Ko). Précachée et non simplement mise en
+    # cache paresseusement, parce que font-display:optional ne laisse au
+    # navigateur AUCUNE fenêtre d'attente : une police absente du cache au moment
+    # du rendu est purement et simplement ignorée pour cette page-là. Sans
+    # pré-cache, la seconde visite — le cas normal d'une PWA installée — resterait
+    # en pile système tant que la police n'aurait pas été téléchargée par
+    # ailleurs. C'est le pré-cache qui rend « optional » utilisable.
+    asset_path("fraunces-variable.woff2"),
     # Icônes versionnées manuellement (suffixe -vN) : comme ce sont des fichiers
     # statiques NON fingerprintés, on change leur NOM à chaque refonte pour forcer
     # navigateurs et OS à retélécharger (les caches d'icônes de raccourci sont tenaces).

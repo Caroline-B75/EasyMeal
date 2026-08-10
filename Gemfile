@@ -11,9 +11,8 @@ gem "importmap-rails", "~> 2.2.3"
 gem "turbo-rails", "~> 2.0.21"
 gem "jbuilder", "~> 2.14.1"
 
-# UI / Forms / Icons
+# UI / Forms
 gem "simple_form", "~> 5.4.1"
-gem "font-awesome-sass", "~> 6.7.2"
 
 # Templates Haml
 gem "haml-rails", "~> 3.0.0"
@@ -27,6 +26,14 @@ gem "pundit", "~> 2.5.2"
 
 # Cache / Sessions
 gem "redis", "~> 4.8.1"
+# Épinglé en 2.x : connection_pool 3.0 est passé aux arguments nommés, alors que
+# ActiveSupport 7.2.3 appelle encore ConnectionPool.new(hash_positionnel) dans
+# redis_cache_store.rb:153. ActiveSupport ne déclarant que « >= 2.2.5 », Bundler
+# résolvait un majeur incompatible et TOUT boot en RAILS_ENV=production échouait
+# sur « wrong number of arguments (given 1, expected 0) » — assets:precompile et
+# déploiement compris. À délier quand on passera à une version de Rails dont le
+# RedisCacheStore appelle connection_pool en arguments nommés.
+gem "connection_pool", "~> 2.5"
 
 # Recherche & pagination
 gem "ransack", "~> 4.4.1"

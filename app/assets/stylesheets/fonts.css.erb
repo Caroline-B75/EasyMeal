@@ -1,0 +1,72 @@
+/* =========================================================================
+   POLICES AUTO-HÉBERGÉES
+   =========================================================================
+
+   Fraunces variable — police d'affichage (titres). Consommée via --font-serif,
+   déclaré dans variables.css à côté de --font-sans.
+
+   AUTO-HÉBERGEMENT, PAS DE CDN. Deux raisons. Technique : un appel tiers ajoute
+   résolution DNS, négociation TLS et requête bloquante avant le premier rendu,
+   ce qui contredit l'esprit offline-first de cette PWA. Juridique : servir
+   Google Fonts depuis le CDN transmet l'IP du visiteur à Google (LG München I,
+   3 O 17493/20, janvier 2022). L'auto-hébergement supprime la question.
+
+   SOUS-ENSEMBLE : « latin » seul (U+0000-00FF, U+0131, U+0152-0153, U+2000-206F,
+   U+20AC…). Vérifié comme suffisant pour le français : é è ê à ç ù î ï ô sont
+   dans U+00C0-00FF, œ/Œ sont les U+0152-0153 inclus explicitement, « » sont
+   U+00AB/U+00BB, le tiret cadratin et l'apostrophe typographique sont dans
+   U+2000-206F. « latin-ext » n'apporterait aucun glyphe utile ici et doublerait
+   la charge. Pas de descripteur unicode-range : avec un fichier unique il ne
+   sert à rien (le repli glyphe par glyphe vers Georgia est natif) et n'ajoute
+   qu'un moyen de bloquer un caractère par erreur.
+
+   AXES EMBARQUÉS : opsz 9-144, wght 100-900, WONK 0-1. Pas de SOFT — décision
+   de poids, mesurée et non supposée :
+
+     opsz + wght seuls ........  65,7 Ko
+     + WONK ...................  65,9 Ko   (+184 o)
+     + SOFT ................... 118,0 Ko   (+52,2 Ko)
+
+   SOFT coûtait 44 % du fichier à lui seul. Rendu à 30px — le plafond réel de
+   --font-size-h1 — l'écart entre SOFT 0 et SOFT 40 vaut 45 % des pixels d'encre
+   pour un écart max de 113/255, c'est-à-dire une différence d'antialiasing
+   invisible à l'œil : il faut un agrandissement x7 pour la distinguer. Sur un
+   asset précaché d'une PWA offline-first, 52 Ko pour du sous-perceptible ne se
+   justifient pas. WONK reste : à 184 octets il est gratuit, et il apporte une
+   esperluette à fioriture (c'est le seul glyphe qu'il modifie visiblement).
+
+   Conséquence : ne PAS écrire 'SOFT' dans un font-variation-settings — l'axe est
+   absent du fichier, la mention serait silencieusement ignorée et mensongère.
+   ========================================================================= */
+
+@font-face {
+  font-family: 'Fraunces';
+
+  /* asset_path, et non un url() relatif : ces feuilles sont en .css et
+     Sprockets 4 ne fait passer un .css par aucun préprocesseur — un chemin
+     relatif ne serait donc PAS réécrit vers le chemin digéré. D'où l'extension
+     .erb sur ce seul fichier. La route .scss + font-url() n'est pas disponible
+     ici : sassc-rails n'est pas dans le bundle, donc aucun transformer n'est
+     enregistré pour text/scss et rien ne compile de Sass dans ce projet. */
+  src: url('<%= asset_path("fraunces-variable.woff2") %>') format('woff2');
+
+  font-weight: 100 900;  /* plage de l'axe wght : une seule ressource variable */
+  font-style: normal;
+
+  /* « optional », PAS « swap ». variables.css documente le choix de la pile
+     système par « aucune requête réseau ni FOUT, le plus robuste pour une PWA
+     offline-first ». Ajouter une police custom ne doit pas annuler cet
+     arbitrage. Avec « swap », le navigateur affiche la pile système puis
+     rebascule à l'arrivée du fichier : c'est exactement le FOUT que ce choix
+     écartait. Avec « optional », le navigateur n'attend jamais la police et ne
+     rebascule jamais dans la page en cours : première visite rendue en pile
+     système pendant que le fichier se met en cache, puis toutes les visites
+     suivantes — le cas normal d'une PWA installée — en Fraunces immédiatement,
+     sans flash. On obtient l'identité typographique à FOUT nul.
+
+     Corollaire : AUCUN <link rel="preload"> sur cette police. Le preload la
+     téléchargerait en priorité haute, donc au détriment des ressources du
+     premier rendu, pour une police que « optional » garantit inutilisée à ce
+     rendu-là. Preload et optional se contredisent. */
+  font-display: optional;
+}

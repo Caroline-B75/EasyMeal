@@ -25,7 +25,7 @@
 }
 
 .mi-page-title {
-  font-family: Georgia, serif;
+  font-family: var(--font-serif);
   font-size: 22px;
   font-weight: 400;
   color: var(--color-ink);
@@ -400,7 +400,7 @@
 }
 
 .mi-hero-menu-name {
-  font-family: Georgia, serif;
+  font-family: var(--font-serif);
   font-size: 20px;
   font-weight: 400;
   color: var(--color-bg-white);
@@ -1302,7 +1302,7 @@
 }
 
 .mn-page-title {
-  font-family: Georgia, serif;
+  font-family: var(--font-serif);
   font-size: 24px;
   font-weight: 400;
   color: var(--color-ink);
@@ -1814,7 +1814,7 @@
 }
 
 .mc-page-title {
-  font-family: Georgia, serif;
+  font-family: var(--font-serif);
   font-size: 20px;
   font-weight: 400;
   color: var(--color-ink);
@@ -1882,7 +1882,7 @@
 
 .mc-head-title,
 .mc-head-title-input {
-  font-family: Georgia, serif;
+  font-family: var(--font-serif);
   font-size: 26px;
   font-weight: 400;
   line-height: 1.2;
@@ -2037,7 +2037,7 @@
 }
 
 .mc-settings-panel-title {
-  font-family: Georgia, serif;
+  font-family: var(--font-serif);
   font-size: 17px;
   font-weight: 400;
   color: var(--color-ink);
@@ -2542,6 +2542,11 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   min-height: 28px;
+  /* Équilibre la coupure entre les deux lignes plutôt que de remplir la première
+     au maximum : évite le mot orphelin sur la seconde ligne et les coupures en
+     milieu de syntagme (« Tartelette au chèvre / sur »). Sans effet là où le
+     navigateur ne le gère pas encore. */
+  text-wrap: pretty;
 }
 
 /* Photo et nom : liens vers la recette (menu_card_recipe_link) — même habillage
@@ -3363,7 +3368,7 @@ a.mc-card-name-wrap:hover .mc-card-name {
 }
 
 .pref-title {
-  font-family: Georgia, serif;
+  font-family: var(--font-serif);
   font-size: 26px;
   font-weight: 400;
   color: var(--color-ink);

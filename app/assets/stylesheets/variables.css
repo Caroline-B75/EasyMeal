@@ -150,7 +150,11 @@
   --radius-badge: 2px;
   --radius-card: 6px;
   --radius-card-compact: 4px;
-  --radius-input: 10px;
+  /* Aligné sur --radius-card (était 10px). Dans un formulaire, le champ était
+     plus arrondi que le bouton qui le valide (4px) — un écart de 6px visible à
+     l'œil et sans intention. La famille est maintenant cohérente : 4px pour les
+     contrôles, 6px pour les surfaces qui les contiennent. */
+  --radius-input: 6px;
   --radius-icon-btn: 4px;
 
   /* === ESPACEMENTS (inchangés) === */
@@ -180,6 +184,16 @@
      Choix « le plus robuste » pour une PWA offline-first (aucun asset à
      précacher). Source unique de vérité — référencée par body dans global.css. */
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  /* Police d'affichage, réservée aux titres. Le @font-face auto-hébergé est
+     dans fonts.css.erb, qui explique pourquoi font-display vaut « optional » et
+     pourquoi cela n'annule pas l'arbitrage offline-first ci-dessus.
+     Repli sur Georgia : serif à empattements présent sur tous les OS, ce qui
+     rend le premier rendu (avant mise en cache de Fraunces) cohérent en style
+     plutôt que renvoyé au serif générique du navigateur.
+     Ce token n'a encore AUCUN consommateur : le branchement sur les titres est
+     le sujet du lot typographie, pas de celui-ci. */
+  --font-serif: 'Fraunces', Georgia, 'Times New Roman', serif;
 
   /* Échelle typographique cohérente et non redondante.
      Source unique de vérité — un pas net entre chaque token, aucun doublon.

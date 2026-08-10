@@ -32,6 +32,30 @@ Ne commit pas à la place de Caroline : elle relit le diff et rédige le message
 lot signale explicitement ce qu'il ne faut pas toucher. Un problème repéré en
 passant se signale, il ne se corrige pas dans le même diff.
 
+**Ce document n'est peut-être pas suivi par git.** Si les `.md` sont dans le
+`.gitignore`, il est un instrument de travail, pas une archive : il peut disparaître
+au premier `git clean -fdx` et son historique n'existe pas. La conséquence est une
+obligation, pas une préférence :
+
+> **Chaque lot doit déposer son « pourquoi » dans un commentaire de code, à côté de
+> la valeur qu'il modifie.** Un ratio de contraste, une contrainte, un arbitrage :
+> ce qui n'est pas écrit dans le fichier modifié n'existera plus dans six mois.
+
+Le projet a déjà les bons réflexes — le commentaire de `--color-ink-3` citant un
+ratio et un numéro d'audit, la justification des couleurs de jour, l'explication de
+`--border-width`. Ce sont ces commentaires, et non un historique git, qui ont permis
+de détecter les erreurs des versions v1 et v2 de ce document. Ils passent de bonus
+à exigence.
+
+Ajouter à chaque prompt de lot :
+
+```
+Pour chaque valeur que tu modifies ou crées, laisse sur place un commentaire
+qui explique la contrainte : ratio de contraste mesuré, arbitrage, valeur
+précédente et raison du changement. Le document de spec n'est pas versionné,
+le commentaire est la seule trace durable.
+```
+
 ---
 
 ## CONTRAINTES ÉTABLIES DU PROJET
@@ -569,27 +593,72 @@ Interdit : profiter du passage pour toucher à autre chose.
 
 ### 2bis-B — Groupe B : arbitrage par occurrence
 
-**Ne pas mapper par luminosité. Mapper par rôle.** C'est le piège de cette
-substitution :
+**Un ratio de contraste ne veut rien dire sans son fond.** Première tâche : établir
+la surface réelle de chaque occurrence en remontant la chaîne d'ancêtres jusqu'à
+trouver un `background`. Les valeurs de ce projet vivent sur au moins trois surfaces
+différentes — `--color-bg-main` crème, `--color-bg-white` (sidebar recettes),
+`--rs-bg-dark` (héros de fiche recette) — et le mapping en dépend entièrement.
 
-| En dur | Sur `#F0EAE3` | Voisin en luminosité | Rôle réel |
-|---|---|---|---|
-| `#666` | 4,81:1 ✓ | `ink-3` (5,61:1) | texte secondaire |
-| `#888` | **2,97:1 ✗** | `ink-4` (2,11:1) | texte secondaire |
-| `#999` | **2,39:1 ✗** | `ink-4` (2,11:1) | texte secondaire |
-| `#78716C` | **4,02:1 ✗** | `ink-3` (5,61:1) | texte secondaire |
-| `#D1D5DB` | — | `border-strong` | bordure |
+**Ne pas mapper par luminosité. Mapper par rôle**, et le rôle se lit sur place :
 
-`#888` et `#999` portent du texte et **échouent déjà AA**. Les mapper vers leur
-voisin `--color-ink-4` (2,11:1) ne corrigerait rien : ça inscrirait l'échec dans le
-design system, avec un token que le 5.2 déclare décoratif uniquement.
+| Rôle constaté | Cible | Piège |
+|---|---|---|
+| texte, quelle que soit sa luminosité d'origine | `--color-ink-3` | jamais `ink-4` : 2,52:1 sur blanc, 2,11:1 sur crème |
+| icône d'un **contrôle fonctionnel** (submit, toggle) | `--color-ink-3` | ce n'est **pas** décoratif : seuil UI 3:1 applicable |
+| ornement pur (filet, séparateur) | `ink-4` acceptable | vérifier qu'il ne borde pas un contrôle |
+| fond de survol de bouton | `--color-secondary-hover` | c'est une surface, pas une bordure |
+| bordure de survol sur fond **sombre** | voir ci-dessous | le token dédié échoue, il faut le corriger |
 
-**Règle :** toute valeur en dur portant du **texte** va vers `--color-ink-3`, quelle
-que soit sa luminosité d'origine. Elles vont visiblement s'assombrir, et c'est le
-but — ce sont des corrections d'accessibilité déguisées en harmonisation de teinte.
-Seules les occurrences purement décoratives (icône, séparateur) vont vers `ink-4`.
+**Le cas des bordures sur fond sombre.** Mesuré sur `--color-surface-dark` :
 
-Donc : lecture du rôle à chaque site, pas de rechercher-remplacer.
+| | Contraste | Seuil UI 3:1 |
+|---|---|---|
+| `#78716C` en dur | 3,16:1 | ✓ |
+| `--color-surface-dark-border-hover` `#57524C` | **1,96:1** | ✗ |
+| `--color-ink-3` `#615B54` | 2,26:1 | ✗ |
+
+Le token dédié exactement à ce rôle échoue le seuil : la valeur en dur était
+accidentellement plus correcte que son remplaçant. La conclusion n'est pas de garder
+la valeur en dur, c'est de **corriger le token** :
+
+```css
+--color-surface-dark-border-hover: #7A736C;  /* était #57524C — 1,96:1 sur
+   --color-surface-dark, sous le seuil UI de 3:1. oklch(0.56 0.014 70) → 3,26:1. */
+```
+
+Compter ses autres usages avant : s'il sert ailleurs sur fond sombre, ils échouaient
+tous le seuil et bénéficieront de la correction.
+
+**Le code mort se supprime, il ne se tokenise pas.** Une règle dont `git grep`
+prouve qu'aucune vue, aucun partial et aucun contrôleur ne l'atteint ne doit pas
+gagner un token à maintenir. Supprimer est un diff plus petit que tokeniser, et le
+mode d'échec est bénin : si le sélecteur s'avérait utilisé, la suppression de la
+déclaration `color` le fait retomber sur sa couleur héritée, qui est justement
+`--color-ink-3`. **Commit séparé**, pour rester révocable en une commande.
+
+**Un état ne se peint pas en descendant la rampe de surfaces.** Les pas de la rampe
+claire sont de ~0,025 en L, soit ~1,09:1 entre voisins — bon pour empiler des
+surfaces, trop fin pour signaler un changement d'état. Tout candidat opaque pris
+dans la rampe décevra donc, et emprunter un token de bordure pour peindre une
+surface est un écart de rôle à refuser.
+
+La réponse est un **lavis translucide** : `--color-primary-light`
+(`rgba(28, 25, 22, 0.08)`) donne ~1,17:1 sur `bg-main`, `bg-secondary`,
+`bg-tertiary` **et** sur blanc. Un écart constant quel que soit le fond, là où une
+valeur opaque n'est accordée qu'à une seule surface.
+
+Principe : **la rampe hiérarchise, les lavis interagissent.** Deux mécanismes, deux
+métiers. Attention toutefois à ne pas faire servir le même lavis à un survol et à un
+état sélectionné — vérifier les usages existants avant de le réemployer.
+
+À noter : une valeur en dur qui semble « mieux marcher » que son équivalent tokenisé
+triche souvent avec la teinte. `#D1D5DB` est un gris froid sur un fond chaud ;
+l'écart perçu doit autant à la teinte qu'à la luminosité, et cet appoint disparaît
+dès qu'on rentre dans la rampe. Mesurer la luminosité seule sous-estime ce qu'on
+retire.
+
+**Ne pas oublier les noms CSS.** `white`, `black`, `grey` dupliquent des tokens
+autant qu'un hexadécimal. Un balayage limité aux notations `#` les manque.
 
 `#78716C` mérite une mention : c'est la valeur que l'audit R1.3 avait rejetée,
 réintroduite en dur à deux endroits. Mode d'échec canonique — on corrige le token,
@@ -668,8 +737,13 @@ ne suis pas juriste, mais l'auto-hébergement supprime la question tout en étan
 toute façon la meilleure option technique.
 
 Récupération : interroger l'API CSS2 de Google avec un User-Agent moderne renvoie
-des URLs `fonts.gstatic.com` pointant sur les `.woff2` variables. Vérifier que
-`latin` et `latin-ext` sont couverts (é è ê à ç ù î ï ô œ).
+des URLs `fonts.gstatic.com` pointant sur les `.woff2` variables. Avec un UA ancien,
+l'API renvoie du TTF — vérifier qu'on obtient bien du woff2.
+
+**Un seul sous-ensemble : `latin`.** Sa plage Google couvre U+0000-00FF (tous les
+accents français), U+0152-0153 (Œ œ) et U+20AC (€). `latin-ext` est inutile ici, et
+chaque fichier supplémentaire est une URL de plus dans `cache.addAll`, donc un point
+de défaillance de plus pour l'installation du service worker. Un fichier, une URL.
 
 ```
 Fraunces  variable — axes : opsz 9-144, wght 100-900, SOFT 0-100, WONK 0-1
@@ -682,33 +756,71 @@ par aucun préprocesseur** : un `url('fraunces-variable.woff2')` n'y sera pas
 réécrit vers le chemin digéré, et la police ne se chargera pas — ou se chargera
 en développement et pas en production, ce qui est pire.
 
-Deux routes viables, à trancher en vérifiant laquelle produit une URL qui répond :
-
-- **`fonts.css.erb`** dans `app/assets/stylesheets/`, avec
-  `src: url('<%= asset_path("fraunces-variable.woff2") %>')`. Sprockets traite
-  l'extension `.erb`. Attention : le manifeste déclare `link_directory ../stylesheets .css`,
-  vérifier que le `.css.erb` est bien pris.
-- **`fonts.scss`**, avec `font-url()` ou `asset-url()` fournis par sassc-rails.
-
-Dans les deux cas, ajouter le nouveau fichier au manifeste `application.css`, en
-tête — avant `variables` de préférence, la déclaration `@font-face` n'ayant aucune
-dépendance.
+**Route tranchée : `fonts.css.erb` avec `asset_path`.** La route `.scss` est
+inapplicable, et ce n'est pas une préférence : `font-url()` et `asset-url()` sont des
+helpers de **`sassc-rails`, qui n'est pas dans le bundle**. Le projet n'a que `sassc`,
+tiré en dépendance transitive de `font-awesome-sass`, sans l'intégration Sprockets.
+Sans `sassc-rails`, Sprockets 4 n'a aucun transformer enregistré pour `text/scss` :
+un `fonts.scss` ne serait pas compilé du tout.
 
 ```css
+/* app/assets/stylesheets/fonts.css.erb */
 @font-face {
   font-family: 'Fraunces';
-  src: url(/* voir ci-dessus */) format('woff2');
+  src: url('<%= asset_path("fraunces-variable.woff2") %>') format('woff2');
   font-weight: 100 900;
   font-style: normal;
   font-display: optional;
 }
 ```
 
+Pas de `unicode-range` : il n'a d'intérêt qu'avec plusieurs fichiers téléchargés
+conditionnellement. Avec un fichier unique, il n'ajoute qu'un moyen de bloquer des
+glyphes par erreur — le repli par caractère vers Georgia est natif.
+
+À ajouter au manifeste `application.css` avant `require variables` : le `@font-face`
+ne dépend d'aucun token et n'entre dans aucune concurrence de spécificité.
+
 Token, nommé pour rester cohérent avec `--font-sans` :
 
 ```css
 --font-serif: 'Fraunces', Georgia, 'Times New Roman', serif;
 ```
+
+Déclaration seule, zéro consommateur — c'est le LOT 3 qui la branche. **Conséquence
+à assumer : après ce lot, rien ne change visuellement.** C'est le résultat attendu.
+
+**Deux pièges d'ordre.** `//= link_tree ../fonts` sur un répertoire inexistant
+**lève à la compilation des assets** : créer le dossier et déposer le fichier *avant*
+d'ajouter la ligne. Et `app/assets/*` entre au load path à l'initialisation, donc un
+dossier créé à chaud n'est vu qu'**après redémarrage du serveur** — c'est le « ça ne
+marche pas » classique de cette étape.
+
+**Test de l'échec silencieux.** `curl application.css | grep -i fraunces` : si `<%=`
+apparaît littéralement, le `.css.erb` n'a pas été traité. Un 200 sur le `.woff2` ne
+détecterait pas ce cas.
+
+**Test de clôture.** Les preuves ci-dessus valident que l'URL se résout, aucune ne
+valide que la police est valide et que ses axes répondent. Comme rien ne consomme
+`--font-serif` avant le LOT 3, un fichier corrompu passerait tous les tests. Forcer
+temporairement un titre en `font-family: 'Fraunces'` depuis la console DevTools, faire
+varier un axe, vérifier que les lettres changent — sans laisser de trace dans le code.
+
+### 1.4 bis Axes personnalisés : chantier borné
+
+Le LOT 3 prévoit `'SOFT' 40, 'WONK' 1`. `opsz` et `wght` sont des axes enregistrés et
+seront servis. `SOFT` et `WONK` sont personnalisés, et le support des axes custom par
+l'API css2 de Google a évolué — à vérifier empiriquement, en contrôlant le **statut
+HTTP** avant de comparer les tailles : le mode d'échec le plus probable est un 400,
+pas une URL identique.
+
+**Si les axes custom ne sont pas servis : livrer avec `opsz` et `wght` seuls et
+retirer `SOFT`/`WONK` du LOT 3. Ne pas démarrer de sous-settage `fonttools`.**
+
+Ces axes sont un supplément de caractère, pas l'identité. Les récupérer suppose de
+télécharger la variable complète, de la sous-setter en conservant la table `fvar` et
+de vérifier que les axes survivent : faisable, mais c'est un chantier de typographie
+greffé sur le lot le plus risqué de la refonte. À reprendre séparément.
 
 ### 1.5 Ne pas faire
 
