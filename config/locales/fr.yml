@@ -93,6 +93,24 @@ fr:
         appliance: Appareil
         instructions: Instructions
         meal_types: Moment du repas
+        # Valeurs des enums de Recipe — libellés lus par Recipe.enum_label,
+        # donc partagés par la fiche recette, les filtres et le formulaire.
+        diets:
+          omnivore: Omnivore
+          vegetarien: Végétarien
+          vegan: Vegan
+          pescetarien: Pescétarien
+        difficulties:
+          facile: Facile
+          moyen: Moyen
+          difficile: Difficile
+        # Le budget se lit à l'échelle, pas au mot : trois niveaux de « € » se
+        # comparent d'un coup d'œil là où « Économique / Moyen / Cher » demande
+        # de lire. Même libellé sur la fiche recette et dans le formulaire.
+        prices:
+          economique: "€"
+          moyen: "€€"
+          cher: "€€€"
       preparation:
         ingredient_id: Ingrédient
         quantity_base: Quantité

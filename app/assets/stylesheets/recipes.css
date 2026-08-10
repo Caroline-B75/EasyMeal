@@ -2807,6 +2807,44 @@ button.draft-rail-count:not(:disabled) {
   }
 }
 
+/* === Nom de la recette — champ « trait » ===
+
+   Le titre de la recette se saisit comme un titre : pas de cadre, un simple
+   trait qui se colore au focus, et une taille de texte nettement supérieure au
+   reste du formulaire. Placé après la media query mobile ci-dessus (même
+   spécificité) pour que sa taille tienne aussi sur petit écran — 24px passe
+   largement le seuil des 16px qui déclenche le zoom iOS. */
+
+.rf-form .rf-name-input {
+  padding: 4px 0 10px;
+  font-size: var(--font-size-2xl);
+  font-weight: 600;
+  line-height: 1.25;
+  border: none;
+  border-bottom: var(--border-width) solid var(--color-border-strong);
+  border-radius: 0;
+  background: transparent;
+}
+
+.rf-form .rf-name-input::placeholder {
+  color: var(--color-ink-4);
+  font-weight: 600;
+}
+
+/* Au survol le trait se renforce. Sans cette règle, le hover global de
+   .form-input (spécificité supérieure) l'éclaircirait au lieu de l'appuyer. */
+.rf-form .rf-name-input:hover:not(:focus) {
+  border-bottom-color: var(--color-ink-3);
+}
+
+/* Le trait remplace le cadre : ni anneau de focus ni fond, seule sa couleur
+   change — l'épaisseur, elle, ne bouge pas (le champ sauterait d'un pixel). */
+.rf-form .rf-name-input:focus {
+  border-bottom-color: var(--color-primary);
+  background: transparent;
+  box-shadow: none;
+}
+
 /* === Champ « valeur + unité » — cadre partagé ===
 
    Un seul cadre autour du nombre et de son unité : l'input abandonne le sien au
@@ -3017,6 +3055,102 @@ button.draft-rail-count:not(:disabled) {
 /* Les erreurs des trois champs passent sous la rangée entière. */
 .rf-measures .field-errors {
   flex-basis: 100%;
+}
+
+/* === Sélecteurs segmentés — régime, difficulté, budget, moments === */
+
+/* Rangée « intitulé à gauche, options à droite ». Les quatre rangées partagent
+   la même colonne d'intitulés : l'œil descend une seule verticale au lieu de
+   chercher où commence chaque groupe d'options. */
+.rf-form .rf-choice {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin-bottom: 12px;
+}
+
+.rf-form .rf-choice:last-child {
+  margin-bottom: 0;
+}
+
+/* Largeur fixe (et non « au contenu ») : les intitulés n'ont pas la même
+   longueur (« Budget » vs « Moment(s) du repas * »), donc sans cette largeur
+   commune les rangées d'options ne démarreraient pas au même endroit. */
+.rf-form .rf-choice > .form-label {
+  flex: 0 0 140px;
+}
+
+/* Une erreur passe sous la rangée entière, jamais entre l'intitulé et ses
+   options. */
+.rf-choice .field-errors {
+  flex: 1 0 100%;
+}
+
+/* La piste : un rail sur lequel l'option active se pose en pastille claire. */
+.rf-segmented {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 3px;
+  background: var(--color-bg-secondary);
+  border: var(--border-thin);
+  border-radius: var(--radius-input);
+}
+
+.rf-choice.has-error .rf-segmented {
+  border-color: var(--color-danger);
+}
+
+.rf-segment {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  /* Plancher de largeur : sans lui, un libellé d'un caractère (« € ») donnerait
+     une pastille deux fois plus étroite que ses voisines, et une cible au doigt
+     trop petite. */
+  min-width: 44px;
+  border-radius: calc(var(--radius-input) - 3px);
+  font-size: var(--font-size-sm);
+  color: var(--color-ink-3);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+/* Le contrôle natif reste dans le DOM — donc focusable au clavier et exposé
+   aux lecteurs d'écran — mais tout l'état visuel est porté par la pastille. */
+.rf-segment input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  margin: 0;
+  opacity: 0;
+}
+
+/* Le contour global des champs focusés se poserait sur un input de 0×0, donc
+   invisible : il est reporté sur la pastille, seule chose que l'œil voit. */
+.rf-segment input:focus-visible {
+  outline: none;
+}
+
+.rf-segment:has(input:focus-visible) {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
+.rf-segment:hover {
+  color: var(--color-ink);
+}
+
+.rf-segment:has(input:checked) {
+  background: var(--color-bg-white);
+  color: var(--color-ink);
+  font-weight: 500;
+  box-shadow: var(--shadow-sm);
 }
 
 /* === Tags — sous-groupes style éditorial === */
@@ -3293,37 +3427,36 @@ button.draft-rail-count:not(:disabled) {
     font-size: 17px;
   }
 
-  /* Label + champ sur une même ligne : pour les champs à réponse courte
-     (nombre de personnes, minutes, listes déroulantes), empiler le label
-     au-dessus n'apporte rien et allonge la page inutilement. */
-  .rf-form .form-row .form-group-inline {
-    flex: 1 1 100%;
-    width: 100%;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
-  }
-
-  /* Largeur de colonne fixe (et non « au contenu ») : les 4 libellés n'ont pas
-     la même longueur ("Budget" vs "Régime alimentaire *"), donc sans cette
-     largeur commune, les champs ne démarreraient pas à la même position et
-     n'auraient pas la même largeur d'une ligne à l'autre. */
-  .rf-form .form-group-inline .form-label {
-    flex: 0 0 140px;
-    margin-bottom: 0;
-  }
-
-  .rf-form .form-group-inline .form-input,
-  .rf-form .form-group-inline .form-select {
-    flex: 1;
-    min-width: 0;
-  }
-
-  /* Une erreur éventuelle passe sous la ligne label + champ plutôt que de
-     s'intercaler entre les deux. */
-  .rf-form .form-group-inline .field-errors {
+  /* La colonne d'intitulés de 140px ne laisse plus assez de place aux options
+     à cette largeur : l'intitulé reprend sa ligne entière, la rangée d'options
+     s'étale dessous. */
+  .rf-form .rf-choice > .form-label {
     flex: 1 0 100%;
+  }
+
+  /* Une ligne par champ, sur toute la largeur de l'écran : la piste s'étire et
+     ses options s'y partagent la place à parts égales. */
+  .rf-segmented {
+    width: 100%;
+    flex-wrap: nowrap;
+  }
+
+  /* min-width: 0 lève le plancher de 44px ET la largeur minimale implicite d'un
+     élément flex — sans quoi les cinq moments déborderaient de l'écran au lieu
+     de se répartir. La hauteur, elle, reste à hauteur de doigt. */
+  .rf-segment {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 38px;
+    padding: 6px 4px;
+    font-size: var(--font-size-xs);
+  }
+
+  /* Filet de sécurité sur les écrans les plus étroits : un libellé qui ne tient
+     pas dans sa part s'abrège au lieu de pousser la piste hors de l'écran. */
+  .rf-segment-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   /* .preparations-actions passe déjà en colonne via components.css */

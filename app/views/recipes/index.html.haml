@@ -82,7 +82,7 @@
           .filter-group
             = f.label :diet, "Régime", class: "filter-label"
             = f.select :diet,
-                       options_for_select(Recipe.diets.keys.map { |d| [d.humanize, d] }, params[:diet]),
+                       options_for_select(Recipe.enum_options(:diet), params[:diet]),
                        { include_blank: "Tous" },
                        class: "filter-select#{' filter-select--active' if has_diet}",
                        data: { action: "change->recipe-filter#submit" }
@@ -98,7 +98,7 @@
           .filter-group
             = f.label :difficulty, "Difficulté", class: "filter-label"
             = f.select :difficulty,
-                       options_for_select(Recipe.difficulties.keys.map { |d| [d.humanize, d] }, params[:difficulty]),
+                       options_for_select(Recipe.enum_options(:difficulty), params[:difficulty]),
                        { include_blank: "Toutes" },
                        class: "filter-select#{' filter-select--active' if has_diff}",
                        data: { action: "change->recipe-filter#submit" }

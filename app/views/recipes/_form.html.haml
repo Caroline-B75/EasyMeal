@@ -9,9 +9,12 @@
     -# chiffrées de la recette se partagent la ligne suivante.
     .rf-section
       .form-row
+        -# Le nom se saisit comme un titre : pas de libellé visible (le placeholder
+        -# le porte), un simple trait sous le champ. Le label reste dans le DOM en
+        -# .sr-only pour que le champ garde son intitulé au lecteur d'écran.
         .form-group{ class: field_error_class(recipe, :name) }
-          = f.label :name, "Nom de la recette *", class: "form-label"
-          = f.text_field :name, class: "form-input", placeholder: "Ex: Pâtes carbonara", required: true
+          = f.label :name, "Nom de la recette *", class: "sr-only"
+          = f.text_field :name, class: "form-input rf-name-input", placeholder: "Nom de la recette", required: true
           = field_errors(recipe, :name)
 
       -# Les valeurs chiffrées se lisent comme une phrase — « Pour 4 personnes ·
@@ -61,9 +64,13 @@
         = field_errors(recipe, :prep_time_minutes)
         = field_errors(recipe, :cook_time_minutes)
 
-      -# Photo — une photo déjà en place se remplace via « Changer de photo », qui
-      -# révèle la zone de dépôt ; sinon celle-ci est visible d'emblée. Un seul
-      -# bloc d'upload dans les deux cas, piloté par l'attribut hidden.
+    -# Section : Photo
+    -# Une photo déjà en place se remplace via « Changer de photo », qui révèle
+    -# la zone de dépôt ; sinon celle-ci est visible d'emblée. Un seul bloc
+    -# d'upload dans les deux cas, piloté par l'attribut hidden.
+    .rf-section
+      .rf-section-label PHOTO
+
       - photo_attached = recipe.persisted? && recipe.photo.attached?
       .form-group.rf-photo{ data: { controller: "image-preview" } }
         - if photo_attached
@@ -85,33 +92,31 @@
     .rf-section
       .rf-section-label CARACTÉRISTIQUES
 
-      .form-row
-        .form-group.form-group-inline{ class: field_error_class(recipe, :diet) }
-          = f.label :diet, "Régime alimentaire *", class: "form-label"
-          = f.select :diet, Recipe.diets.keys.map { |d| [d.humanize, d] }, { prompt: "Sélectionnez un régime" }, class: "form-select", required: true
-          = field_errors(recipe, :diet)
+      -# Les quatre caractéristiques se lisent comme quatre rangées d'options
+      -# alignées sur une même colonne d'intitulés : chaque vocabulaire est
+      -# visible en entier, sans dérouler de liste. Les moments et le régime
+      -# sont obligatoires (validations du modèle), la difficulté et le budget
+      -# se laissent effacer en recliquant sur l'option active.
+      -#
+      -# Les moments ouvrent la section : ce sont eux qui déterminent où la
+      -# recette peut tomber dans un menu, donc la première question qu'on se
+      -# pose devant une recette à classer.
+      -# Multi-sélection obligatoire (sauf brouillon IA, cf. HasMealTypes),
+      -# dans l'ordre où la journée se déroule. Libellés compacts : cinq moments
+      -# se partagent la largeur d'un écran de téléphone, où « Petit-déjeuner »
+      -# ne tient pas — c'est exactement le registre de MealTypes.compact_label.
+      = render "recipes/segmented_field", f: f, attribute: :meal_types,
+               label: "Moment(s) du repas *", multiple: true, required: true,
+               options: MealTypes::MEAL_TYPES.map { |type| [MealTypes.compact_label(type), type] }
 
-        .form-group.form-group-inline{ class: field_error_class(recipe, :difficulty) }
-          = f.label :difficulty, "Difficulté", class: "form-label"
-          = f.select :difficulty, Recipe.difficulties.keys.map { |d| [d.humanize, d] }, { include_blank: "Non renseignée" }, class: "form-select"
-          = field_errors(recipe, :difficulty)
+      = render "recipes/segmented_field", f: f, attribute: :diet,
+               label: "Régime alimentaire *", options: Recipe.enum_options(:diet), required: true
 
-        .form-group.form-group-inline{ class: field_error_class(recipe, :price) }
-          = f.label :price, "Budget", class: "form-label"
-          = f.select :price, Recipe.prices.keys.map { |p| [p.humanize, p] }, { include_blank: "Non renseigné" }, class: "form-select"
-          = field_errors(recipe, :price)
+      = render "recipes/segmented_field", f: f, attribute: :difficulty,
+               label: "Difficulté", options: Recipe.enum_options(:difficulty)
 
-      -# Moment(s) du repas : multi-sélection obligatoire (sauf brouillon IA, cf.
-      -# HasMealTypes). Un checkbox non coché envoie "" (3ᵉ/4ᵉ arg du check_box) :
-      -# clean_meal_types (AttributeCleaner) filtre cette entrée fantôme.
-      .form-group{ class: field_error_class(recipe, :meal_types) }
-        = f.label :meal_types, "Moment(s) du repas *", class: "form-label"
-        .tags-grid
-          - MealTypes::MEAL_TYPES.each do |type|
-            %label.tag-checkbox
-              = f.check_box :meal_types, { multiple: true, checked: recipe.meal_types.include?(type) }, type, ""
-              %span.tag-name= MealTypes.label(type)
-        = field_errors(recipe, :meal_types)
+      = render "recipes/segmented_field", f: f, attribute: :price,
+               label: "Budget", options: Recipe.enum_options(:price)
 
     -# Section : Tags
     .rf-section

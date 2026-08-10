@@ -6,6 +6,9 @@ class Recipe < ApplicationRecord
   include HasMealTypes
   # Normalise meal_types avant validation (cases à cocher → array propre)
   include AttributeCleaner
+  # Libellés français des enums (régime, difficulté, budget) : Recipe.enum_label,
+  # .enum_options pour les sélecteurs, human_enum_value pour une recette donnée
+  include EnumLabels
 
   # === Associations ===
   has_many :preparations, dependent: :destroy
@@ -227,7 +230,7 @@ class Recipe < ApplicationRecord
 
   # Nom lisible du régime en français
   def diet_human
-    I18n.t("activerecord.attributes.recipe.diets.#{diet}", default: diet.humanize)
+    human_enum_value(:diet, "Non renseigné")
   end
 
   # Nom lisible de la difficulté en français
@@ -241,14 +244,6 @@ class Recipe < ApplicationRecord
   end
 
   private
-
-  # Génère le label i18n d'une valeur d'enum, avec fallback si nil
-  def human_enum_value(field, nil_label) # :reek:NilCheck
-    value = send(field)
-    return nil_label if value.nil?
-
-    I18n.t("activerecord.attributes.recipe.#{field.to_s.pluralize}.#{value}", default: value.humanize)
-  end
 
   # Validation : une recette doit avoir au moins un ingrédient
   def must_have_at_least_one_ingredient
