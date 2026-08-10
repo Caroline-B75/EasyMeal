@@ -1121,8 +1121,8 @@
 /* Espacement porté par le gap du conteneur (.rf-photo-upload) */
 .photo-upload-notice {
   margin: 0;
-  font-size: var(--font-size-xs);
-  color: var(--color-accent);
+  font-size: var(--font-size-md);
+  color: var(--color-accent-deep);
   font-weight: 500;
 }
 
@@ -1132,53 +1132,9 @@
   border-radius: var(--radius-card);
 }
 
-/* === Tags grid === */
-
-.tags-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 0.75rem;
-}
-
-.tag-checkbox {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: var(--color-bg-secondary);
-  border: 2px solid var(--color-bg-secondary);
-  border-radius: var(--radius-badge);
-  cursor: pointer;
-  transition: all var(--transition-normal) ease;
-  font-size: 0.95rem;
-}
-
-.tag-checkbox:hover {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-bg-white);
-}
-
-.tag-checkbox input[type="checkbox"] {
-  margin: 0;
-  cursor: pointer;
-}
-
-.tag-checkbox input:checked + .tag-name {
-  color: var(--color-primary);
-  font-weight: 600;
-}
-
-.tag-checkbox:has(input:checked) {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-bg-white);
-}
-
-.tag-checkbox:has(input:checked) .tag-name {
-  color: var(--color-bg-white);
-}
+/* Les capsules de tags (.tags-grid / .tag-checkbox) ne servent que dans le
+   formulaire de recette : leur définition canonique est dans la section
+   « Tags — capsules » plus bas, avec le reste des styles .rf-form. */
 
 /* .icon-btn / .icon-btn-edit / .icon-btn-delete : voir components.css
    (version canonique avec cibles tactiles et hover accessibles). */
@@ -2709,14 +2665,23 @@ button.draft-rail-count:not(:disabled) {
   padding-top: 0;
 }
 
+/* Ambre foncé plutôt que gris : les intitulés de section sont les repères qui
+   découpent un formulaire long, ils doivent accrocher l'œil avant les libellés
+   de champ. L'ambre est le seul accent coloré de la charte, et
+   --color-accent-text en est la déclinaison lisible sur fond clair
+   (5,94:1 sur --color-bg-main). Les familles de tags (.rf-tags-category)
+   restent en gris : elles vivent à l'intérieur d'une section, et c'est cet
+   écart de couleur qui porte la hiérarchie entre les deux niveaux. */
 .rf-section-label {
-  font-size: var(--font-size-xs);
-  font-weight: 500;
+  font-size: var(--font-size-base);
+  font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--color-ink-3);
+  color: var(--color-accent-text);
   padding-bottom: 6px;
-  border-bottom: var(--border-thin);
+  /* Le filet reprend la couleur du libellé, un cran plus épais que la bordure
+     fine des champs : il souligne le titre au lieu de séparer deux blocs. */
+  border-bottom: 2px solid var(--color-accent-text);
   margin-bottom: 12px;
 }
 
@@ -2772,18 +2737,20 @@ button.draft-rail-count:not(:disabled) {
   box-shadow: 0 0 0 2px var(--color-primary-light);
 }
 
+/* Blanc comme tous les autres champs : le beige du textarea se confondait avec
+   le fond de page, la zone de saisie la plus vaste du formulaire était aussi la
+   moins visible. Une seule couleur de champ, une seule règle de lecture. */
 .rf-form .form-textarea {
   padding: 8px 12px;
   font-size: var(--font-size-sm);
   border: var(--border-thin);
-  background: var(--color-bg-secondary);
+  background: var(--color-bg-white);
   line-height: 1.7;
   transition: border-color var(--transition-fast), background var(--transition-fast);
 }
 
 .rf-form .form-textarea:focus {
   border-color: var(--color-primary);
-  background: var(--color-bg-white);
   box-shadow: 0 0 0 2px var(--color-primary-light);
 }
 
@@ -2810,8 +2777,15 @@ button.draft-rail-count:not(:disabled) {
   font-size: var(--font-size-2xl);
   font-weight: 600;
   line-height: 1.25;
+  /* Même ambre que son filet et que les intitulés de section : le nom est le
+     titre de la recette, il appartient à la même famille de repères. Seule la
+     valeur saisie la prend — le placeholder reste gris, sinon un champ vide se
+     lirait comme un champ rempli. */
+  color: var(--color-accent-text);
   border: none;
-  border-bottom: var(--border-width) solid var(--color-border-strong);
+  /* Même filet que les intitulés de section : 2px ambre. Le nom est le titre de
+     la recette, il ouvre le formulaire comme les sections le rythment. */
+  border-bottom: 2px solid var(--color-accent-text);
   border-radius: 0;
   background: transparent;
 }
@@ -2822,9 +2796,11 @@ button.draft-rail-count:not(:disabled) {
 }
 
 /* Au survol le trait se renforce. Sans cette règle, le hover global de
-   .form-input (spécificité supérieure) l'éclaircirait au lieu de l'appuyer. */
+   .form-input (spécificité supérieure) l'éclaircirait au lieu de l'appuyer.
+   Il vire à l'anthracite adouci et non à un gris : depuis un ambre foncé, un
+   gris moyen se lirait comme un affadissement du trait, pas comme un appui. */
 .rf-form .rf-name-input:hover:not(:focus) {
-  border-bottom-color: var(--color-ink-3);
+  border-bottom-color: var(--color-primary-hover);
 }
 
 /* Le trait remplace le cadre : ni anneau de focus ni fond, seule sa couleur
@@ -2877,13 +2853,13 @@ button.draft-rail-count:not(:disabled) {
   appearance: textfield;
 }
 
-/* Unité en lecture seule : suffixe gris détaché par un filet vertical. */
+/* Unité en lecture seule : simple suffixe gris, sans filet de séparation — elle
+   fait corps avec le nombre qu'elle qualifie, le cadre commun suffit à la tenir. */
 .rf-unit-suffix {
   display: flex;
   align-items: center;
   flex-shrink: 0;
   padding: 0 10px;
-  border-left: var(--border-thin);
   font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--color-ink-3);
@@ -2989,11 +2965,9 @@ button.draft-rail-count:not(:disabled) {
 }
 
 /* « min » : calé à droite du cadre, en retrait de taille et de couleur — c'est
-   une mention, pas une valeur. Pas de filet vertical, contrairement à l'unité
-   (variable, elle) d'un ingrédient : ici l'unité fait corps avec le nombre. */
+   une mention, pas une valeur. */
 .rf-measure .rf-unit-suffix {
   padding: 0 12px 0 0;
-  border-left: none;
   font-size: var(--font-size-xs);
   font-weight: 500;
   color: var(--color-ink-4);
@@ -3077,15 +3051,24 @@ button.draft-rail-count:not(:disabled) {
   flex: 1 0 100%;
 }
 
-/* La piste : un rail sur lequel l'option active se pose en pastille claire. */
+/* La rangée : un cadre blanc dans lequel les options se partagent la place,
+   séparées par un filet. Le rail grisé sur lequel se posait une pastille claire
+   a été abandonné — il disait « sélectionné = clair » quelques centimètres
+   au-dessus des tags qui disent « sélectionné = anthracite ». Un seul signal de
+   sélection dans tout le formulaire : l'aplat anthracite.
+   Ce qui distingue une rangée d'options d'une grappe de capsules n'est donc plus
+   la couleur mais la forme : ici les options sont soudées dans un cadre unique
+   (jeu fermé, on en choisit une), là les capsules flottent librement (liste
+   ouverte, on picore). */
 .rf-segmented {
   display: flex;
   flex-wrap: wrap;
-  gap: 2px;
-  padding: 3px;
-  background: var(--color-bg-secondary);
+  background: var(--color-bg-white);
   border: var(--border-thin);
   border-radius: var(--radius-input);
+  /* Les aplats des options aux extrémités suivent l'arrondi du cadre sans avoir
+     à porter eux-mêmes un rayon. */
+  overflow: hidden;
 }
 
 .rf-choice.has-error .rf-segmented {
@@ -3099,10 +3082,9 @@ button.draft-rail-count:not(:disabled) {
   justify-content: center;
   padding: 6px 14px;
   /* Plancher de largeur : sans lui, un libellé d'un caractère (« € ») donnerait
-     une pastille deux fois plus étroite que ses voisines, et une cible au doigt
+     une option deux fois plus étroite que ses voisines, et une cible au doigt
      trop petite. */
   min-width: 44px;
-  border-radius: calc(var(--radius-input) - 3px);
   font-size: var(--font-size-sm);
   color: var(--color-ink-3);
   white-space: nowrap;
@@ -3111,8 +3093,16 @@ button.draft-rail-count:not(:disabled) {
     box-shadow var(--transition-fast);
 }
 
+/* Le filet de séparation est une ombre interne plutôt qu'une bordure : il ne
+   prend pas de place dans la boîte, donc toutes les options gardent la même
+   largeur, et il disparaît d'un trait dès que l'option est cochée — un aplat
+   anthracite n'a pas besoin qu'on lui souligne le bord. */
+.rf-segment + .rf-segment {
+  box-shadow: inset 1px 0 0 var(--color-border);
+}
+
 /* Le contrôle natif reste dans le DOM — donc focusable au clavier et exposé
-   aux lecteurs d'écran — mais tout l'état visuel est porté par la pastille. */
+   aux lecteurs d'écran — mais tout l'état visuel est porté par l'option. */
 .rf-segment input {
   position: absolute;
   width: 0;
@@ -3122,31 +3112,53 @@ button.draft-rail-count:not(:disabled) {
 }
 
 /* Le contour global des champs focusés se poserait sur un input de 0×0, donc
-   invisible : il est reporté sur la pastille, seule chose que l'œil voit. */
+   invisible : il est reporté sur l'option, seule chose que l'œil voit. */
 .rf-segment input:focus-visible {
   outline: none;
 }
 
+/* Contour tracé vers l'intérieur : à l'extérieur, il serait rogné par
+   l'overflow du cadre sur les deux options des extrémités. */
 .rf-segment:has(input:focus-visible) {
   outline: 2px solid var(--color-focus-ring);
-  outline-offset: 1px;
+  outline-offset: -2px;
 }
 
 .rf-segment:hover {
+  background: var(--color-bg-secondary);
   color: var(--color-ink);
 }
 
+/* Sélectionné : le même aplat anthracite que les capsules de tags. */
 .rf-segment:has(input:checked) {
-  background: var(--color-bg-white);
-  color: var(--color-ink);
+  background: var(--color-primary);
+  color: var(--color-bg-white);
   font-weight: 500;
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
 }
 
-/* === Tags — sous-groupes style éditorial === */
+.rf-segment:has(input:checked):hover {
+  background: var(--color-primary-hover);
+}
+
+/* Sur l'aplat anthracite, un contour anthracite ne se verrait pas : le focus
+   clavier repasse en blanc dès que l'option est cochée. */
+.rf-segment:has(input:checked:focus-visible) {
+  outline-color: var(--color-bg-white);
+}
+
+/* === Tags — capsules ===
+
+   Les tags sont un vocabulaire ouvert et nombreux (une quarantaine, répartis en
+   quatre familles) : contrairement aux caractéristiques, ils ne tiennent pas sur
+   une piste segmentée. Chaque tag est donc une capsule autonome, posée à plat sur
+   le fond de la page, et les familles se lisent grâce à leur intitulé en
+   capitales. L'arrondi complet (999px, comme les compteurs de groupe de
+   tags.css) les distingue au premier coup d'œil des contrôles rectangulaires du
+   formulaire : ici on picore dans une liste, on ne choisit pas dans un jeu fermé. */
 
 .rf-tags-group {
-  margin-bottom: 10px;
+  margin-bottom: 18px;
 }
 
 .rf-tags-group:last-child {
@@ -3154,42 +3166,73 @@ button.draft-rail-count:not(:disabled) {
 }
 
 .rf-tags-category {
-  font-size: var(--font-size-xs);
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
   letter-spacing: 0.1em;
-  text-transform: uppercase;
   color: var(--color-ink-3);
-  margin-bottom: 6px;
+  margin-bottom: 10px;
 }
 
-.rf-form .tags-grid {
-  gap: 6px;
-  margin-top: 0;
+.tags-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.rf-form .tag-checkbox {
-  padding: 4px 10px;
-  font-size: var(--font-size-xs);
-  border: var(--border-thin);
+.tag-checkbox {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 16px;
   background: var(--color-bg-white);
-  border-radius: var(--radius-button);
-  transition: all var(--transition-fast);
+  border: var(--border-thin);
+  border-radius: 999px;
+  font-size: var(--font-size-sm);
+  line-height: 1.2;
+  color: var(--color-ink-2);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast),
+    color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.rf-form .tag-checkbox:hover {
-  border-color: var(--color-primary);
+/* Le contrôle natif reste dans le DOM — focusable au clavier et exposé aux
+   lecteurs d'écran — mais tout l'état visuel est porté par la capsule. */
+.tag-checkbox input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  margin: 0;
+  opacity: 0;
+}
+
+/* Le contour global des champs focusés se poserait sur un input de 0×0, donc
+   invisible : il est reporté sur la capsule, seule chose que l'œil voit. */
+.tag-checkbox input:focus-visible {
+  outline: none;
+}
+
+.tag-checkbox:has(input:focus-visible) {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.tag-checkbox:hover {
+  border-color: var(--color-border-strong);
   background: var(--color-bg-secondary);
   color: var(--color-ink);
 }
 
-.rf-form .tag-checkbox:has(input:checked) {
+/* Sélectionné : aplat anthracite, comme partout ailleurs dans la charte. */
+.tag-checkbox:has(input:checked) {
   background: var(--color-primary);
   border-color: var(--color-primary);
   color: var(--color-bg-white);
+  box-shadow: var(--shadow-sm);
 }
 
-.rf-form .tag-checkbox:has(input:checked) .tag-name {
-  color: var(--color-bg-white);
+.tag-checkbox:has(input:checked):hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
 }
 
 /* === Photo === */
@@ -3223,7 +3266,7 @@ button.draft-rail-count:not(:disabled) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 15px;
   padding: 26px 20px;
   border: var(--border-width) dashed var(--color-border-strong);
   border-radius: var(--radius-input);
@@ -3266,14 +3309,21 @@ button.draft-rail-count:not(:disabled) {
 }
 
 /* === Ingrédients — nested fields ===
-   Un ingrédient = une carte. Base mobile : le nom et sa croix sur une ligne,
+   Un ingrédient = une rangée. Base mobile : le nom et sa croix sur une ligne,
    la quantité en dessous. Sur écran large les trois éléments se réalignent sur
-   une seule ligne dans la même carte (cf. media query en fin de section). */
+   une seule ligne (cf. media query en fin de section).
+
+   Pas de carte autour : elle était blanche et ne contenait que des champs
+   blancs — un cadre sans contenu propre, qui décalait en prime les champs de
+   12px vers l'intérieur par rapport au reste du formulaire. Les champs se
+   détachent d'eux-mêmes sur le fond beige de la page ; ce qui tient la rangée
+   ensemble, c'est la proximité, donc l'écart interne (8px) doit rester
+   nettement inférieur à l'écart entre deux ingrédients (16px). */
 
 .preparations-container {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 2px;
 }
 
 .preparation-fields {
@@ -3283,11 +3333,7 @@ button.draft-rail-count:not(:disabled) {
     "ingredient remove"
     "quantity   quantity";
   align-items: center;
-  gap: 10px;
-  padding: 12px;
-  background: var(--color-bg-white);
-  border: var(--border-thin);
-  border-radius: var(--radius-card);
+  gap: 8px;
 }
 
 /* Ligne marquée pour suppression : toujours soumise (donc dans le DOM) mais
@@ -3301,10 +3347,31 @@ button.draft-rail-count:not(:disabled) {
 }
 
 /* Valeur courte : largeur fixe, qui sert aussi de gabarit à la colonne « quantité »
-   de la grille sur écran large. */
+   de la grille sur écran large. Elle tient la valeur la plus longue plus son
+   unité — au-delà, c'est de l'air qui éloigne inutilement le nombre de la croix. */
 .preparation-quantity {
   grid-area: quantity;
-  width: 140px;
+  width: 112px;
+}
+
+/* Une ligne d'ingrédient et les deux boutons qui closent la liste appartiennent
+   au même empilement : ils partagent donc la hauteur des boutons (.btn, 44px),
+   sinon la section descend en marches d'escalier. Le padding vertical des champs
+   reste inchangé, c'est la hauteur minimale qui les met au gabarit. */
+.rf-form .preparation-ingredient .form-select,
+.preparation-quantity .rf-unit-field {
+  min-height: var(--min-touch-target);
+}
+
+/* Chevron dessiné plutôt que la flèche native, collée au bord dans la plupart
+   des navigateurs : elle respire ici des mêmes 12px que le texte du champ. */
+.rf-form .preparation-ingredient .form-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 32px;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23615B54' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
 }
 
 .preparation-remove {
@@ -3315,11 +3382,15 @@ button.draft-rail-count:not(:disabled) {
    overrides de formulaire), y compris son état d'erreur. */
 
 /* Croix de suppression : bouton icône canonique (components.css) débarrassé de
-   son cadre — la carte délimite déjà la zone — et de sa marge horizontale. */
+   son cadre — la rangée se lit sans qu'on encadre chacun de ses éléments — et
+   de sa marge horizontale. L'icône passe en ink-3 : le gris ink-4 par défaut
+   tenait sur le blanc de l'ancienne carte, il descend à 2,3:1 sur le beige de
+   la page, sous le seuil de 3:1 attendu d'un contrôle. */
 .preparation-remove .icon-btn {
   margin: 0;
   border-color: transparent;
   background: transparent;
+  color: var(--color-ink-3);
 }
 
 /* Spécificité 0,3,0 : bat aussi le fond gris de .icon-btn:hover en mobile. */
@@ -3336,12 +3407,44 @@ button.draft-rail-count:not(:disabled) {
     grid-template-columns: minmax(0, 1fr) auto auto;
     grid-template-areas: "ingredient quantity remove";
   }
+
+  /* Base nulle plutôt que auto : les deux boutons occupent la même largeur quel
+     que soit celle de leur libellé, sinon « Créer un nouvel ingrédient » serait
+     le plus large des deux alors que c'est le geste le plus rare. */
+  .rf-form .preparations-actions .btn {
+    flex: 1 1 0;
+  }
 }
 
+/* Les deux actions se font face sur une seule rangée et se partagent la largeur
+   à parts égales (cf. media query desktop plus bas) ; sous 768px elles
+   s'empilent, chacune sur toute la largeur. Ce qui les distingue n'est donc pas
+   leur encombrement mais leur traitement — tirets contre bouton plein — et leur
+   picto. */
 .rf-form .preparations-actions {
-  margin-top: 12px;
+  margin-top: 16px;
   margin-bottom: 0;
   gap: 10px;
+}
+
+/* Ajout d'une ligne : le trait en tirets dit « la liste continue ici » — même
+   geste que la zone de dépôt photo (.rf-dropzone) ou l'ajout d'un repas dans un
+   menu (.mc-add-btn). Il libère surtout l'aplat anthracite, qui doit rester
+   l'apanage de l'action finale : deux boutons noirs identiques dans un même
+   écran, l'un pour ajouter une ligne et l'autre pour créer la recette, se
+   disputaient le même poids alors qu'ils n'engagent pas du tout autant. */
+.rf-form .rf-add-ingredient {
+  background: var(--color-bg-white);
+  border: var(--border-width) dashed var(--color-border-strong);
+  color: var(--color-ink-2);
+}
+
+/* Au survol, l'ambre de la charte : la zone s'annonce cliquable sans se
+   remplir, et reprend l'accent déjà porté par les intitulés de section. */
+.rf-form .rf-add-ingredient:hover {
+  border-color: var(--color-accent-deep);
+  color: var(--color-accent-text);
+  background: var(--color-bg-white);
 }
 
 /* === Actions du formulaire === */
@@ -3424,7 +3527,7 @@ button.draft-rail-count:not(:disabled) {
     flex: 1 0 100%;
   }
 
-  /* Une ligne par champ, sur toute la largeur de l'écran : la piste s'étire et
+  /* Une ligne par champ, sur toute la largeur de l'écran : le cadre s'étire et
      ses options s'y partagent la place à parts égales. */
   .rf-segmented {
     width: 100%;
@@ -3447,6 +3550,13 @@ button.draft-rail-count:not(:disabled) {
   .rf-segment-label {
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  /* Les capsules restent à leur largeur de contenu (elles se replient au fil du
+     texte) mais gagnent la hauteur de doigt des autres contrôles du formulaire. */
+  .tag-checkbox {
+    min-height: 38px;
+    padding: 8px 16px;
   }
 
   /* .preparations-actions passe déjà en colonne via components.css */

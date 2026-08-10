@@ -75,7 +75,7 @@
       .form-group.rf-photo{ data: { controller: "image-preview" } }
         - if photo_attached
           = image_tag cloudinary_photo_url(recipe.photo, width: 200, height: 150), class: "photo-preview", width: 200, height: 150, loading: "lazy"
-          %button.btn.btn-secondary{ type: "button", data: { image_preview_target: "changeButton", action: "click->image-preview#showUploadField" } }
+          %button.btn.btn-white{ type: "button", data: { image_preview_target: "changeButton", action: "click->image-preview#showUploadField" } }
             Changer de photo
 
         .rf-photo-upload{ data: { image_preview_target: "uploadArea" }, hidden: photo_attached }
@@ -118,21 +118,6 @@
       = render "recipes/segmented_field", f: f, attribute: :price,
                label: "Budget", options: Recipe.enum_options(:price)
 
-    -# Section : Tags
-    .rf-section
-      .rf-section-label TAGS
-
-      .form-group
-        -# N'affiche que les catégories qui ont des tags (Tag.grouped_by_type ignore les groupes vides)
-        - Tag.grouped_by_type(Tag.alphabetical).each do |_type_key, type_label, group_tags|
-          .rf-tags-group
-            .rf-tags-category= type_label
-            .tags-grid
-              - group_tags.each do |tag|
-                %label.tag-checkbox
-                  = f.check_box :tag_ids, { multiple: true, checked: recipe.tags.include?(tag) }, tag.id, nil
-                  %span.tag-name= tag.name
-
     -# Panneau IA (brouillon uniquement — juste au-dessus des ingrédients)
     - if @ai_matches.present?
       = render "recipes/ai_ingredients_panel", ai_matches: @ai_matches
@@ -155,12 +140,16 @@
           = render "recipes/preparation_fields", f: pf
 
       .preparations-actions
-        %button.btn.btn-primary{ type: "button", data: { action: "click->nested-form#add" } }
+        -# Ajout d'une ligne : volontairement pas un bouton plein — l'aplat
+        -# anthracite est réservé à l'action finale du formulaire.
+        %button.btn.rf-add-ingredient{ type: "button", data: { action: "click->nested-form#add" } }
           = svg_icon(:plus, size: 16)
           Ajouter un ingrédient
 
-        %button.btn.btn-secondary{ type: "button", data: { action: "click->slideout#open" } }
-          = svg_icon(:plus, size: 16)
+        -# Feuille et non « + » : ce bouton n'ajoute rien à la recette, il ouvre
+        -# le catalogue d'ingrédients — dont c'est déjà l'icône (ingredients/index).
+        %button.btn.btn-white{ type: "button", data: { action: "click->slideout#open" } }
+          = svg_icon(:leaf, size: 16)
           Créer un nouvel ingrédient
 
       #ingredient-created-notification
@@ -174,6 +163,25 @@
         = f.text_area :instructions, class: "form-textarea", rows: 10, placeholder: "Faire bouillir l'eau...\nAjouter les pâtes...\n..."
         = field_errors(recipe, :instructions)
 
+    -# Section : Tags — en fin de formulaire, après la recette elle-même : ce
+    -# sont des étiquettes de classement, pas des données de la préparation.
+    .rf-section
+      .rf-section-label TAGS
+
+      .form-group
+        -# N'affiche que les catégories qui ont des tags (Tag.grouped_by_type ignore les groupes vides)
+        - Tag.grouped_by_type(Tag.alphabetical).each do |_type_key, type_label, group_tags|
+          .rf-tags-group
+            .rf-tags-category= type_label
+            -# Capsules : la case à cocher reste dans le DOM (focusable au clavier,
+            -# lue par les lecteurs d'écran) mais tout l'état visuel est porté par
+            -# la pastille, comme pour les sélecteurs segmentés.
+            .tags-grid
+              - group_tags.each do |tag|
+                %label.tag-checkbox
+                  = f.check_box :tag_ids, { multiple: true, checked: recipe.tags.include?(tag) }, tag.id, nil
+                  = tag.name
+
     -# Actions du formulaire
     .rf-actions
       - if recipe.persisted? && recipe.draft?
@@ -181,10 +189,10 @@
         %button.btn.btn-primary.btn-lg{ type: "submit", name: "_publish", value: "1" }
           = svg_icon(:check, size: 16)
           Publier la recette
-        = f.submit "Sauvegarder", class: "btn btn-secondary"
+        = f.submit "Sauvegarder", class: "btn btn-white"
       - else
         = f.submit recipe.new_record? ? "Créer la recette" : "Mettre à jour", class: "btn btn-primary"
-        = link_to "Annuler", recipes_path, class: "btn btn-link"
+        = link_to "Annuler", recipes_path, class: "btn btn-white"
 
   -# Slideout pour créer un ingrédient à la volée
   .slideout-overlay{ data: { slideout_target: "overlay", action: "click->slideout#closeOnOverlay" } }
