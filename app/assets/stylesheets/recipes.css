@@ -1924,38 +1924,9 @@
   margin-top: 8px;
 }
 
-.rs-admin-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  background: var(--color-bg-white);
-  color: var(--color-ink-2);
-  border: var(--border-thin);
-  border-radius: var(--radius-button);
-  text-decoration: none;
-  cursor: pointer;
-  transition: border-color var(--transition-fast);
-}
-
-.rs-admin-btn:hover {
-  border-color: var(--color-border-strong);
-  text-decoration: none;
-  color: var(--color-ink);
-}
-
-.rs-admin-btn--danger {
-  background: var(--color-danger-light);
-  color: var(--color-danger-text);
-  border-color: var(--color-danger-border);
-}
-
-.rs-admin-btn--danger:hover {
-  border-color: var(--color-danger);
-  color: var(--color-danger-text);
-}
+/* Les deux actions utilisent les boutons canoniques du système
+   (.btn-primary / .btn-danger, cf. components.css) : même gabarit que
+   « Créer la recette » du formulaire. */
 
 .rs-admin-delete {
   display: inline;
@@ -2260,10 +2231,12 @@
     flex-direction: column;
   }
 
-  .rs-admin-btn {
+  /* Empilés : chaque action prend toute la largeur — y compris le bouton de
+     suppression, enveloppé dans le form généré par button_to. */
+  .rs-admin-bar .btn,
+  .rs-admin-delete,
+  .rs-admin-delete form {
     width: 100%;
-    justify-content: center;
-    min-height: var(--min-touch-target);
   }
 }
 

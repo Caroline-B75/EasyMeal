@@ -129,17 +129,17 @@
     -# Barre admin (Pundit)
     - if policy(@recipe).edit?
       .rs-admin-bar
-        = link_to edit_recipe_path(@recipe), class: "rs-admin-btn" do
-          = svg_icon(:edit, size: 13)
+        = link_to edit_recipe_path(@recipe), class: "btn btn-primary" do
+          = svg_icon(:edit, size: 16)
           Modifier la recette
 
         - if policy(@recipe).destroy?
           .rs-admin-delete{ data: { controller: "modal" } }
             = button_to recipe_path(@recipe),
                         method: :delete,
-                        class: "rs-admin-btn rs-admin-btn--danger",
+                        class: "btn btn-danger",
                         form: { data: { action: "submit->modal#open" } } do
-              = svg_icon(:trash, size: 13)
+              = svg_icon(:trash, size: 16)
               Supprimer
             = render "shared/delete_confirmation_modal", resource_name: "recette"
 
