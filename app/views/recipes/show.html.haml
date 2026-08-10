@@ -3,10 +3,7 @@
 - rating_avg = @recipe.rating_avg
 - reviews_count = @recipe.reviews_count
 
--# Zone 1 — Lien retour
-= context_bar_back(recipes_path, "Retour aux recettes")
-
--# Zone 2 — Hero sur fond sombre
+-# Zone 1 — Hero sur fond sombre
 .rs-hero
   .rs-hero-inner
     -# Colonne gauche
@@ -73,7 +70,7 @@
           = rating_avg
           = "· #{reviews_count} avis"
 
--# Zone 3 — Corps principal en deux colonnes
+-# Zone 2 — Corps principal en deux colonnes
 .rs-body{ data: { controller: "servings", servings_default_value: @recipe.default_servings } }
   -# Colonne gauche — Préparation + Avis
   .rs-main
@@ -87,7 +84,7 @@
           .rs-step-number= index + 1
           .rs-step-text= step.strip
 
-    -# Zone 4 — Section Avis
+    -# Zone 3 — Section Avis
     .rs-section.rs-section--reviews
       .rs-section-title AVIS
 
