@@ -174,7 +174,7 @@
 .btn-checkbox--checked {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: white;
+  color: var(--color-bg-white);
   animation: checkPop 0.25s ease-out;
 }
 
@@ -308,7 +308,7 @@
 
 .grocery-qty-save-btn {
   background: var(--color-primary);
-  color: white;
+  color: var(--color-bg-white);
 }
 
 .grocery-qty-save-btn:hover {

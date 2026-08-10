@@ -81,33 +81,38 @@ body.home-page {
   }
 }
 
+/* Les quatre toasts tiraient leurs fonds et leurs textes de valeurs en dur qui
+   divergeaient des tokens de même rôle — une seconde palette clandestine (le
+   vert des toasts n'était même pas celui du design system). Ils passent tous sur
+   les tokens : si un fond paraît trop pâle, on ajuste le token, pas la règle. */
+
 /* Notice (Success) */
 p.notice,
 .flash-message.notice {
-  background-color: #d1fae5;
-  color: #065f46;
+  background-color: var(--color-success-light);
+  color: var(--color-success-text);
   border-left-color: var(--color-success);
 }
 
 /* Alert (Error) */
 p.alert,
 .flash-message.alert {
-  background-color: #fee2e2;
-  color: #991b1b;
+  background-color: var(--color-danger-light);
+  color: var(--color-danger-text);
   border-left-color: var(--color-danger);
 }
 
 /* Info */
 .flash-message.info {
-  background-color: #dbeafe;
-  color: #1e40af;
+  background-color: var(--color-info-light);
+  color: var(--color-info-text);
   border-left-color: var(--color-info);
 }
 
 /* Warning */
 .flash-message.warning {
-  background-color: #fef3c7;
-  color: #92400e;
+  background-color: var(--color-warning-light);
+  color: var(--color-warning-text);
   border-left-color: var(--color-warning);
 }
 
@@ -123,11 +128,11 @@ body > p.alert {
 }
 
 body > p.notice {
-  border-bottom-color: var(--success-border);
+  border-bottom-color: var(--color-success);
 }
 
 body > p.alert {
-  border-bottom-color: var(--error-border);
+  border-bottom-color: var(--color-danger);
 }
 
 /* Hide empty flash messages */
@@ -193,16 +198,20 @@ a:not([class*="btn"]):hover {
   z-index: 10000;
   padding: 0.75rem 1.25rem;
   background: var(--color-primary);
-  color: #FFFFFF;
+  color: var(--color-bg-white);
   font-weight: 600;
   border-radius: 0 0 var(--radius-button) 0;
   text-decoration: none;
 }
 
+/* Même contour que tous les autres éléments focusables. L'ambre utilisé ici
+   auparavant était le seul contour non conforme du bloc accessibilité :
+   outline-offset le pose en partie sur le fond de page, où il ne dépassait pas
+   1,40:1 (seuil UI : 3:1). L'anthracite y atteint 14,65:1. */
 .skip-link:focus,
 .skip-link:focus-visible {
   left: 0;
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
 }
 
@@ -210,7 +219,7 @@ a:not([class*="btn"]):hover {
    repasserait en anthracite (invisible sur ce fond foncé). */
 .skip-link:hover,
 .skip-link:focus {
-  color: #FFFFFF;
+  color: var(--color-bg-white);
   text-decoration: none;
 }
 
@@ -225,7 +234,7 @@ textarea:focus-visible,
 .active-filter-badge:focus-visible,
 .filter-tag-check-label:focus-visible,
 .recipe-card-link:focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
 }
 

@@ -15,12 +15,12 @@
   gap: 0.5rem;
   padding: 0.4rem 0.85rem;
   border-radius: 999px;
-  background: var(--color-ink, #1C1917);
-  color: #fff;
+  background: var(--color-ink);
+  color: var(--color-bg-white);
   font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1;
-  box-shadow: var(--shadow-lg, 0 2px 8px rgba(0, 0, 0, 0.08));
+  box-shadow: var(--shadow-lg);
 
   /* Masqué par défaut : hors du champ + non interactif, transition douce. */
   opacity: 0;
@@ -44,15 +44,15 @@
 }
 
 .network-status--offline {
-  background: var(--color-ink-2, #44403C);
+  background: var(--color-ink-2);
 }
 
 .network-status--offline .network-status__dot {
-  background: var(--color-danger, #DC2626);
+  background: var(--color-danger);
 }
 
 .network-status--syncing .network-status__dot {
-  background: var(--color-accent, #FBBF24);
+  background: var(--color-accent);
   animation: network-status-pulse 1s ease-in-out infinite;
 }
 

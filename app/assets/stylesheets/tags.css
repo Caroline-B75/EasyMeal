@@ -274,7 +274,7 @@
   L'ambre est réservé au seul CTA accent de l'app. */
 .btn-icon-save {
   background: var(--color-primary);
-  color: white;
+  color: var(--color-bg-white);
 }
 
 .btn-icon-save:hover {
@@ -289,7 +289,12 @@
 }
 
 .btn-icon-cancel:hover {
-  background: #D1D5DB;
+  /* Lavis d'encre à 8 % plutôt qu'un cran opaque de la rampe : les pas entre
+     surfaces voisines valent ~0,025 en luminance, soit ~1,09:1 — trop fin pour
+     signaler un état. Le lavis donne 1,17:1 contre la surface qu'il recouvre,
+     ici --color-bg-secondary porté par .tag-row.editing, seul contexte où ce
+     bouton est rendu. */
+  background: var(--color-primary-light);
   transform: translateY(-1px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }

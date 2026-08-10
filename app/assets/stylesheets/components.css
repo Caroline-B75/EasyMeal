@@ -42,13 +42,13 @@
 
 .btn-primary {
   background: var(--color-primary);
-  color: #FFFFFF;
+  color: var(--color-bg-white);
   border: none;
 }
 
 .btn-primary:hover {
   background: var(--color-primary-hover);
-  color: #FFFFFF;
+  color: var(--color-bg-white);
   text-decoration: none;
 }
 
@@ -124,13 +124,13 @@
 
 .btn-danger {
   background: var(--color-danger);
-  color: #FFFFFF;
+  color: var(--color-bg-white);
   border: none;
 }
 
 .btn-danger:hover {
   background: var(--color-danger-hover);
-  color: #FFFFFF;
+  color: var(--color-bg-white);
 }
 
 /* Tailles partagées du système (utilisées avec .btn) */
@@ -393,7 +393,7 @@
 
 .badge-red {
   background: var(--color-danger);
-  color: white;
+  color: var(--color-bg-white);
 }
 
 .badge-green {
@@ -823,7 +823,7 @@
 
 
 .form-errors {
-  background: #fef2f2;
+  background: var(--color-danger-light);
   border: 2px solid var(--color-danger);
   border-radius: var(--radius-card-compact);
   padding: 1rem;
@@ -866,7 +866,7 @@
 .has-error .form-select,
 .has-error .form-textarea {
   border-color: var(--color-danger);
-  background: #fef2f2;
+  background: var(--color-danger-light);
 }
 
 .form-group.has-error .form-input:focus,
@@ -875,7 +875,7 @@
 .has-error .form-input:focus,
 .has-error .form-select:focus,
 .has-error .form-textarea:focus {
-  box-shadow: 0 0 0 2px rgba(28, 25, 23, 0.08);
+  box-shadow: 0 0 0 2px rgba(28, 25, 22, 0.08);
 }
 
 .form-group.has-error .form-label,

@@ -127,7 +127,7 @@
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-bg-white);
   border: none;
   border-radius: var(--radius-button);
   font-size: var(--font-size-base);
@@ -150,7 +150,7 @@
   min-width: 20px;
   height: 20px;
   padding: 0 4px;
-  background: #fff;
+  background: var(--color-bg-white);
   color: var(--color-primary);
   border-radius: 10px;
   font-size: 0.7rem;
@@ -246,7 +246,10 @@
   font-size: 1rem;
   line-height: 1;
   padding: 0.3rem;
-  color: #999;
+  /* L'icône est le seul contenu du bouton submit : un contrôle fonctionnel,
+     soumis au seuil UI de 3:1, pas un ornement. #999 n'y répondait pas
+     (2,85:1 sur --color-bg-white, fond de la sidebar) ; ink-3 donne 6,70:1. */
+  color: var(--color-ink-3);
   transition: color 0.2s;
 }
 
@@ -362,7 +365,7 @@
   width: 18px;
   height: 18px;
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-bg-white);
   border-radius: 50%;
   font-size: 0.7rem;
   font-weight: 700;
@@ -383,7 +386,9 @@
 
 .active-filters-label {
   font-size: var(--font-size-sm);
-  color: #888;
+  /* #888 échouait AA (3,54:1 sur --color-bg-white, fond de la sidebar) ;
+     ink-3 donne 6,70:1. */
+  color: var(--color-ink-3);
   white-space: nowrap;
   flex-shrink: 0;
   margin-right: 0.1rem;
@@ -395,7 +400,7 @@
   gap: 0.35rem;
   padding: 0.25rem 0.7rem;
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-bg-white);
   border: none;
   border-radius: var(--radius-button);
   font-size: var(--font-size-sm);
@@ -477,7 +482,7 @@
   height: 18px;
   padding: 0 5px;
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-bg-white);
   border-radius: 9px;
   font-size: 0.7rem;
   font-weight: 700;
@@ -554,38 +559,6 @@
   font-weight: 600;
 }
 
-/* Lien réinitialiser dans la barre filtres actifs */
-.active-filter-reset {
-  margin-left: auto;
-  color: #999;
-  font-size: var(--font-size-sm);
-  text-decoration: none;
-  white-space: nowrap;
-  flex-shrink: 0;
-  align-self: center;
-  padding: 0.2rem 0;
-}
-
-.active-filter-reset:hover {
-  color: var(--color-ink);
-  text-decoration: underline;
-}
-
-/* Lien "Effacer tous les filtres" ancien — rétro-compat */
-.reset-filters-link {
-  display: block;
-  text-align: right;
-  margin-top: 0.5rem;
-  font-size: var(--font-size-sm);
-  color: #999;
-  text-decoration: none;
-}
-
-.reset-filters-link:hover {
-  color: var(--color-ink);
-  text-decoration: underline;
-}
-
 /* Bouton "Réinitialiser" dans le header sidebar — visible et explicite
    (icône ✕ + libellé), ne s'affiche que si au moins un filtre est actif. */
 .reset-filters-btn {
@@ -612,7 +585,7 @@
 .reset-filters-btn:hover {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: #fff;
+  color: var(--color-bg-white);
 }
 
 /* Aucun filtre actif : bouton discret (rien à effacer) mais toujours présent */
@@ -701,7 +674,9 @@
 
 .recipes-count {
   font-size: var(--font-size-sm);
-  color: #666;
+  /* #666 tenait tout juste AA (4,81:1 sur --color-bg-main) ; ink-3 donne 5,61:1
+     sur la même surface. */
+  color: var(--color-ink-3);
   margin-bottom: 1.25rem;
 }
 
@@ -1234,7 +1209,8 @@
 }
 
 .empty-state p {
-  color: #666;
+  /* 4,81:1 → 5,61:1 sur --color-bg-main, fond porté par .empty-state. */
+  color: var(--color-ink-3);
   margin-bottom: 1.5rem;
 }
 
@@ -1312,7 +1288,8 @@
 }
 
 .rating-value {
-  color: #666;
+  /* 4,81:1 → 5,61:1 sur --color-bg-main, fond du bloc de notation. */
+  color: var(--color-ink-3);
   font-size: var(--font-size-sm);
 }
 
@@ -1421,7 +1398,7 @@
   font-family: Georgia, "Times New Roman", serif;
   font-size: 28px;
   font-weight: 400;
-  color: #FFFFFF;
+  color: var(--color-bg-white);
   line-height: 1.15;
   margin: 0;
 }
@@ -1451,7 +1428,7 @@
 .rs-meta-value {
   font-size: 15px;
   font-weight: 500;
-  color: #FFFFFF;
+  color: var(--color-bg-white);
 }
 
 .rs-meta-label {
@@ -1544,8 +1521,10 @@
 }
 
 .rs-btn-fav:hover {
-  color: #FFFFFF;
-  border-color: #78716C;
+  color: var(--color-bg-white);
+  /* 3,26:1 sur --rs-bg-dark : le token de bordure survolée sur fond sombre,
+     là où #78716C était une copie en dur de l'ancien ink-3 rejeté par l'audit R1.3. */
+  border-color: var(--color-surface-dark-border-hover);
 }
 
 .rs-btn-fav.favorited {
@@ -1568,8 +1547,9 @@
 }
 
 .rs-btn-icon:hover {
-  color: #FFFFFF;
-  border-color: #78716C;
+  color: var(--color-bg-white);
+  /* 3,26:1 sur --rs-bg-dark, même bordure survolée que .rs-btn-fav. */
+  border-color: var(--color-surface-dark-border-hover);
 }
 
 /* -- Colonne droite — Photo -- */
@@ -1660,7 +1640,7 @@
   align-items: center;
   justify-content: center;
   background: var(--color-primary);
-  color: #FFFFFF;
+  color: var(--color-bg-white);
   font-size: var(--font-size-sm);
   font-weight: 500;
   border-radius: var(--radius-button);
@@ -1860,7 +1840,7 @@
   font-size: var(--font-size-sm);
   font-weight: 500;
   background: var(--color-primary);
-  color: #FFFFFF;
+  color: var(--color-bg-white);
   border: none;
   border-radius: var(--radius-button);
   cursor: pointer;
@@ -1991,7 +1971,7 @@
 .rs-admin-btn--danger {
   background: var(--color-danger-light);
   color: var(--color-danger-text);
-  border-color: #FECACA;
+  border-color: var(--color-danger-border);
 }
 
 .rs-admin-btn--danger:hover {
@@ -2048,7 +2028,7 @@
 
 .rs-servings-btn:hover {
   background: var(--color-primary);
-  color: #FFFFFF;
+  color: var(--color-bg-white);
   border-color: var(--color-primary);
 }
 
@@ -2148,7 +2128,7 @@
   z-index: 300;
   padding: 10px 18px;
   background: var(--color-ink);
-  color: #fff;
+  color: var(--color-bg-white);
   font-size: var(--font-size-sm);
   font-weight: 500;
   border-radius: var(--radius-button);
@@ -2635,7 +2615,7 @@ button.draft-rail-count:not(:disabled) {
 /* État : recette dans le brouillon */
 .draft-btn.draft-btn-compact.in-draft {
   background: var(--color-accent);
-  border-color: var(--color-accent-hover);
+  border-color: var(--color-accent-deep);
   color: var(--color-bg-white);
 }
 
@@ -2689,7 +2669,7 @@ button.draft-rail-count:not(:disabled) {
   font-family: Georgia, "Times New Roman", serif;
   font-size: 24px;
   font-weight: 400;
-  color: #FFFFFF;
+  color: var(--color-bg-white);
   line-height: 1.15;
   margin: 0;
 }
@@ -3195,11 +3175,11 @@ button.draft-rail-count:not(:disabled) {
 .rf-form .tag-checkbox:has(input:checked) {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: #FFFFFF;
+  color: var(--color-bg-white);
 }
 
 .rf-form .tag-checkbox:has(input:checked) .tag-name {
-  color: #FFFFFF;
+  color: var(--color-bg-white);
 }
 
 /* === Photo === */
@@ -3495,9 +3475,9 @@ button.draft-rail-count:not(:disabled) {
 /* === Badge brouillon === */
 
 .badge--draft {
-  background: #FEF3C7;
-  color: #92400E;
-  border: 1px solid #FCD34D;
+  background: var(--color-accent-light);
+  color: var(--color-accent-text);
+  border: 1px solid var(--color-accent-border);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.05em;
@@ -3511,9 +3491,9 @@ button.draft-rail-count:not(:disabled) {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: #EFF6FF;
+  background: var(--color-info-light);
   color: #1D4ED8;
-  border: 1px solid #BFDBFE;
+  border: 1px solid var(--color-info-border);
   font-size: 11px;
   font-weight: 600;
   padding: 3px 8px;
@@ -3965,7 +3945,7 @@ button.draft-rail-count:not(:disabled) {
   border-radius: 20px;
   background: var(--color-warning-light);
   color: var(--color-warning-text);
-  border: 1px solid #FCD34D;
+  border: 1px solid var(--color-warning-border);
 }
 
 /* Mobile */
@@ -4041,13 +4021,13 @@ button.draft-rail-count:not(:disabled) {
 
 .import-tab--active {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-bg-white);
   font-weight: 600;
 }
 
 .import-tab--active:hover {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-bg-white);
 }
 
 /* === Sections URL / Photo === */
@@ -4233,7 +4213,7 @@ button.draft-rail-count:not(:disabled) {
   width: 16px;
   height: 16px;
   border: 2px solid rgba(255, 255, 255, 0.45);
-  border-top-color: #fff;
+  border-top-color: var(--color-bg-white);
   border-radius: 50%;
   animation: import-spin 0.7s linear infinite;
   flex-shrink: 0;

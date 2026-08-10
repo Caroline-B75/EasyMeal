@@ -191,7 +191,7 @@
 
 .mi-draft-card {
   background: var(--color-bg-white);
-  border: var(--border-width) solid var(--color-accent-hover);
+  border: var(--border-width) solid var(--color-accent-deep);
   border-radius: var(--radius-button);
   overflow: hidden;
   margin-bottom: 8px;
@@ -251,7 +251,7 @@
 /* Draft expanded content (hidden by default) */
 .mi-draft-expanded {
   display: none;
-  border-top: var(--border-width) solid var(--color-accent-hover);
+  border-top: var(--border-width) solid var(--color-accent-deep);
 }
 
 .mi-draft-expanded.open {
@@ -1297,7 +1297,7 @@
 .mn-page-kicker-sep {
   width: 16px;
   height: var(--border-width);
-  background: var(--color-accent-hover);
+  background: var(--color-accent-deep);
   opacity: 0.6;
 }
 
@@ -1398,13 +1398,13 @@
 }
 
 .mn-diet-option:hover {
-  border-color: var(--color-diet-selected);
-  background: var(--color-diet-selected-bg);
+  border-color: var(--color-brand);
+  background: var(--color-brand-light);
 }
 
 .mn-diet-option.selected {
-  border-color: var(--color-diet-selected);
-  background: var(--color-diet-selected-bg);
+  border-color: var(--color-brand);
+  background: var(--color-brand-light);
 }
 
 /* Masquer le radio natif */
@@ -1442,8 +1442,8 @@
 }
 
 .mn-diet-option.selected .mn-diet-radio {
-  background: var(--color-diet-selected);
-  border-color: var(--color-diet-selected);
+  background: var(--color-brand);
+  border-color: var(--color-brand);
 }
 
 .mn-diet-option.selected .mn-diet-radio::after {
@@ -1490,8 +1490,8 @@
 }
 
 .mn-slider-icon--people {
-  background: var(--color-icon-violet-bg);
-  color: var(--color-icon-violet);
+  background: var(--color-category-icon-bg);
+  color: var(--color-category-icon);
 }
 
 .mn-slider-big {
@@ -1642,7 +1642,7 @@
 
 .mn-summary-chip--highlighted {
   background: var(--color-accent-light);
-  border-color: var(--color-accent-hover);
+  border-color: var(--color-accent-deep);
   color: var(--color-accent-text);
 }
 
@@ -1726,7 +1726,12 @@
 
 /* ── Diet icons (backgrounds thématiques) ────────────────── */
 
+/* Comme pour les cartes de repas, le neutre par défaut est porté par l'élément
+   lui-même : un seul point de peinture, et tout régime sans pastille dédiée
+   (--default compris) est couvert sans règle supplémentaire. */
 .mn-diet-icon {
+  --diet-tint: var(--color-bg-tertiary);
+
   width: 36px;
   height: 36px;
   border-radius: var(--radius-card);
@@ -1734,26 +1739,17 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  background: var(--diet-tint);
 }
 
-.mn-diet-icon--omni {
-  background: var(--color-diet-omni-bg);
-}
+.mn-diet-icon--omni  { --diet-tint: var(--diet-omni-tint); }
+.mn-diet-icon--vege  { --diet-tint: var(--diet-vege-tint); }
+.mn-diet-icon--vegan { --diet-tint: var(--diet-vegan-tint); }
+.mn-diet-icon--pesc  { --diet-tint: var(--diet-pesc-tint); }
 
-.mn-diet-icon--vege {
-  background: var(--color-diet-vege-bg);
-}
-
-.mn-diet-icon--vegan {
-  background: var(--color-diet-vegan-bg);
-}
-
-.mn-diet-icon--pesc {
-  background: var(--color-diet-pesc-bg);
-}
-
+/* Le glyphe générique est tracé en currentColor, contrairement aux quatre
+   pictogrammes de régime qui portent leurs propres couleurs de remplissage. */
 .mn-diet-icon--default {
-  background: var(--color-bg-tertiary);
   color: var(--color-ink-3);
 }
 
@@ -2107,12 +2103,12 @@
 }
 
 .mc-setting-icon--people {
-  background: var(--color-icon-violet-bg);
-  color: var(--color-icon-violet);
+  background: var(--color-category-icon-bg);
+  color: var(--color-category-icon);
 }
 
 .mc-setting-icon--diet {
-  background: var(--color-diet-vege-bg);
+  background: var(--diet-vege-tint);
   color: var(--color-success);
 }
 
@@ -2344,6 +2340,30 @@
 .mc-recipe-card[data-day="6"] { --day-tint: #FFEDE7; --day-edge: #FFCFC5; --day-accent: #CE8171; --day-deep: #7B392D; } /* samedi   */
 .mc-recipe-card[data-day="0"] { --day-tint: #FFECF5; --day-edge: #FCCDE0; --day-accent: #C87E9F; --day-deep: #763755; } /* dimanche */
 
+/* ── Palette des régimes & de la pastille de catégorie ───
+   Mêmes raisons que les couleurs de jour ci-dessus : tous leurs points de
+   consommation sont dans ce fichier, elles n'ont donc rien à faire dans la
+   palette globale. Même convention de nommage aussi — « tint » désigne le fond
+   d'une pastille — plutôt qu'un second vocabulaire à quelques lignes d'écart.
+
+   Teintes générées en OKLCH à luminosité et chroma constants (L 0.955 / C 0.030),
+   seule la teinte tourne : aucun régime ne « saute » plus que les autres, ce que
+   les anciennes valeurs ne garantissaient pas. Converties en sRGB, pour la raison
+   déjà donnée plus haut — une déclaration oklch() invalide ferait retomber tous
+   les régimes sur le même gris. */
+:root {
+  --diet-omni-tint:  #FFE9E6;  /* oklch(0.955 0.030  25) */
+  --diet-vege-tint:  #EBF4DE;  /* oklch(0.955 0.030 125) */
+  --diet-vegan-tint: #DFF7EB;  /* oklch(0.955 0.030 165) */
+  --diet-pesc-tint:  #E0F3FF;  /* oklch(0.955 0.030 245) */
+
+  /* Pastille du compteur de personnes. Nommée par son rôle et non par sa
+     teinte : le jour où elle passe au bleu, un token « violet » deviendrait un
+     mensonge impossible à corriger sans rename global. */
+  --color-category-icon: #7C3AED;
+  --color-category-icon-bg: #EDE9FE;
+}
+
 /* ── Recipe card ───────────────────────────────────────── */
 .mc-recipe-card {
   /* Colonne flex pour que la barre d'actions se cale en bas (margin-top: auto).
@@ -2386,8 +2406,8 @@
    raccourci `border` ramènerait la barre latérale de 5px à 1px et décalerait le
    contenu de la carte à chaque survol pendant le glissement. */
 .mc-recipe-card.mc-drag-over {
-  border-color: var(--color-accent-hover);
-  border-left-color: var(--color-accent-hover);
+  border-color: var(--color-accent-deep);
+  border-left-color: var(--color-accent-deep);
   background: var(--color-accent-light);
 }
 
@@ -2425,7 +2445,7 @@
   left: 5px;
   opacity: 0;
   transition: opacity var(--transition-fast);
-  background: rgba(28, 25, 23, 0.65);
+  background: rgba(28, 25, 22, 0.65);
   border-radius: 2px;
   padding: 3px 4px;
   display: flex;
@@ -2449,7 +2469,7 @@
   position: absolute;
   top: 5px;
   right: 5px;
-  background: rgba(28, 25, 23, 0.65);
+  background: rgba(28, 25, 22, 0.65);
   color: var(--color-bg-white);
   border-radius: var(--radius-badge);
   padding: 2px 6px;
@@ -2481,7 +2501,7 @@
      même confort au doigt, sans mesure propre à ce bouton. */
   padding: 7px;
   border-radius: var(--radius-badge);
-  background: rgba(28, 25, 23, 0.65);
+  background: rgba(28, 25, 22, 0.65);
   color: var(--color-bg-white);
   cursor: pointer;
   display: flex;
@@ -2496,7 +2516,7 @@
 }
 
 .mc-card-dup:hover {
-  background: rgba(28, 25, 23, 0.9);
+  background: rgba(28, 25, 22, 0.9);
 }
 
 .mc-card-dup:focus-visible {
