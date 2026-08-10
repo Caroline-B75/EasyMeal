@@ -82,6 +82,9 @@ fr:
         last_name: Nom
         gender: Genre
         remember_me: Se souvenir de moi
+      review:
+        rating: La note
+        content: Le commentaire
       recipe:
         name: Nom
         diet: Régime alimentaire

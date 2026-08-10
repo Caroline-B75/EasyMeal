@@ -1,4 +1,8 @@
 -# Partial pour le formulaire de nouvel avis
+-# `review` (optionnel) : avis invalide renvoyé par le contrôleur, pour réafficher
+-# les erreurs et la saisie de l'utilisateur sans la lui faire retaper.
+- review = local_assigns[:review]
+- errors = review&.errors
 .rs-review-form
   -# h2 (et non h4) : après le h1 du titre de recette, c'est le seul vrai titre
   -# de la page (les libellés de section sont des div décoratifs). Évite le saut
@@ -9,15 +13,23 @@
       - (1..5).each do |star|
         %label.rs-star-label
           = f.radio_button :rating, star,
+                           checked: review&.rating == star,
                            data: { action: "change->rating#update" },
                            class: "rs-star-radio"
           %span.rs-star{ data: { rating_target: "star" } } ☆
 
+    - if errors&.key?(:rating)
+      .rs-form-error{ role: "alert" }= errors.full_messages_for(:rating).to_sentence
+
     .rs-form-group
       = f.text_area :content,
+                    value: review&.content,
                     class: "rs-form-textarea",
                     rows: 3,
                     placeholder: "Partage ton expérience..."
+
+      - if errors&.key?(:content)
+        .rs-form-error{ role: "alert" }= errors.full_messages_for(:content).to_sentence
 
     .rs-form-actions
       = f.submit "Publier mon avis", class: "rs-btn-submit"

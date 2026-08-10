@@ -1773,6 +1773,18 @@
   }
 }
 
+/* Message d'erreur du formulaire d'avis, affiché sous le champ concerné. */
+.rs-form-error {
+  margin: -6px 0 12px;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-danger);
+}
+
+.rs-form-group .rs-form-error {
+  margin: 6px 0 0;
+}
+
 .rs-form-textarea {
   width: 100%;
   padding: 10px 12px;
