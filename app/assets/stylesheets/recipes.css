@@ -1139,10 +1139,9 @@
   border-color: var(--color-primary);
 }
 
-/* Input natif masqué — déclenché par le label stylé */
-.photo-upload-input {
-  display: none;
-}
+/* Le champ natif est masqué visuellement par .sr-only (et non display: none)
+   pour rester atteignable au clavier : c'est .rf-dropzone qui porte son rendu
+   et son état de focus. */
 
 /* Espacement porté par le gap du conteneur (.rf-photo-upload) */
 .photo-upload-notice {
@@ -2364,9 +2363,6 @@
    Compact, bordures fines, typo serrée.
    ============================================ */
 
-/* === Back bar === */
-/* NOTE: .rf-back-bar et .rf-back-link supprimés — utilise .context-bar */
-
 /* ============================================
    DRAFT RAIL — Menu à valider visible pendant la recherche
    ============================================
@@ -2758,7 +2754,7 @@ button.draft-rail-count:not(:disabled) {
   display: flex;
   flex-wrap: wrap;
   gap: 14px;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
 .rf-form .form-row:last-child {
@@ -2768,17 +2764,6 @@ button.draft-rail-count:not(:disabled) {
 .rf-form .form-row .form-group {
   flex: 1;
   min-width: 200px;
-}
-
-.rf-form .form-row .form-group-large {
-  flex: 2;
-}
-
-/* Champ à valeur courte (nombre de personnes, minutes) : largeur juste
-   nécessaire, il ne s'étire pas sur toute la ligne. */
-.rf-form .form-row .form-group-small {
-  flex: 0 0 150px;
-  min-width: 0;
 }
 
 .rf-form .form-input,
@@ -2820,6 +2805,218 @@ button.draft-rail-count:not(:disabled) {
   .rf-form .form-textarea {
     font-size: 16px;
   }
+}
+
+/* === Champ « valeur + unité » — cadre partagé ===
+
+   Un seul cadre autour du nombre et de son unité : l'input abandonne le sien au
+   profit du conteneur, qui porte aussi l'anneau de focus. Partagé par les durées
+   de la rangée des valeurs chiffrées et par la quantité de chaque ingrédient. */
+
+.rf-unit-field {
+  display: flex;
+  align-items: stretch;
+  border: var(--border-thin);
+  border-radius: var(--radius-input);
+  background: var(--color-bg-white);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.rf-unit-field:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+.rf-form .rf-unit-field .form-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Champ étroit : les flèches natives du number input mangeraient la place déjà
+   occupée par l'unité — et, pour les personnes, par les boutons − / +. */
+.rf-unit-field .form-input::-webkit-outer-spin-button,
+.rf-unit-field .form-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.rf-unit-field .form-input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Unité en lecture seule : suffixe gris détaché par un filet vertical. */
+.rf-unit-suffix {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 0 10px;
+  border-left: var(--border-thin);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-ink-3);
+  white-space: nowrap;
+}
+
+/* Aucun ingrédient sélectionné : le tiret est plus discret qu'une unité réelle
+   (.text-muted est posée/retirée par ingredient_unit_controller). */
+.rf-unit-suffix.text-muted {
+  color: var(--color-ink-4);
+}
+
+/* L'input étant sans bordure, l'état d'erreur est porté par le cadre commun. */
+.has-error > .rf-unit-field {
+  border-color: var(--color-danger);
+  background: var(--color-danger-light);
+}
+
+/* === Rangée des valeurs chiffrées (personnes, durées) ===
+
+   « Pour 4 personnes · Préparation 20 min · Cuisson 15 min » : une phrase dont
+   les champs sont les mots. D'où le parti pris typographique de toute la rangée —
+   les mots (libellés, unités, ponctuation) en gris discret et graisse de texte,
+   les valeurs seules en évidence dans leur cadre. Les libellés restent donc en
+   ligne plutôt qu'empilés, et la rangée se replie groupe par groupe : un groupe
+   (libellé, champ, unité) n'est jamais coupé.
+
+   Elle occupe toute la largeur en écartant les groupes, pas en étirant les
+   cadres : un champ deux fois trop large laisse sa valeur flotter dans le vide,
+   alors que l'espace entre deux groupes, lui, articule la phrase. Le gap fait
+   office de minimum garanti (18 px), y compris une fois la rangée repliée. */
+
+.rf-measures {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 18px;
+  margin-bottom: 14px;
+}
+
+.rf-measure {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Les mots de la phrase : un seul traitement pour les libellés, les unités hors
+   cadre et la ponctuation. Ils accompagnent la valeur, ils ne la concurrencent
+   pas — et ne reviennent jamais à la ligne au milieu d'un mot. */
+.rf-measures .form-label,
+.rf-measure-unit,
+.rf-measure-sep {
+  font-size: var(--font-size-sm);
+  font-weight: 400;
+  color: var(--color-ink-3);
+  white-space: nowrap;
+}
+
+.rf-measure-sep {
+  color: var(--color-ink-4);
+}
+
+/* Largeurs de cadre explicites, taillées sur leur contenu : de quoi loger trois
+   chiffres sans jamais serrer. Elles sont indispensables — sans elles, la largeur
+   de référence qui décide du retour à la ligne serait celle, énorme, d'un
+   input[type=number] par défaut (~180 px), et la rangée se replierait sur deux
+   lignes avant même de manquer de place. */
+.rf-stepper {
+  width: 120px;
+}
+
+.rf-duration {
+  width: 108px;
+}
+
+/* Survol : la bordure se réchauffe, sauf si le champ est déjà mis en avant par
+   le focus. Réservé à cette rangée — les cadres de quantité, empilés par
+   dizaines dans la liste d'ingrédients, s'en passent très bien. */
+.rf-measure .rf-unit-field:hover:not(:focus-within) {
+  border-color: var(--color-ink-4);
+}
+
+/* La valeur est le seul texte en évidence de la rangée. Elle occupe tout le
+   cadre (moins l'unité) : aucune zone morte, on clique n'importe où pour saisir,
+   et le nombre reste centré. Chiffres tabulaires : sans eux, la largeur du
+   nombre change d'un clic à l'autre sur le stepper et la valeur tressaute. */
+.rf-form .rf-measure .form-input {
+  text-align: center;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Durée non renseignée : un tiret discret plutôt qu'un vide. Il s'efface dès
+   qu'on entre dans le champ — par défaut un placeholder reste affiché sous le
+   curseur tant qu'on n'a pas tapé. */
+.rf-duration .form-input::placeholder {
+  color: var(--color-ink-4);
+}
+
+.rf-duration .form-input:focus::placeholder {
+  color: transparent;
+}
+
+/* « min » : calé à droite du cadre, en retrait de taille et de couleur — c'est
+   une mention, pas une valeur. Pas de filet vertical, contrairement à l'unité
+   (variable, elle) d'un ingrédient : ici l'unité fait corps avec le nombre. */
+.rf-measure .rf-unit-suffix {
+  padding: 0 12px 0 0;
+  border-left: none;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-ink-4);
+}
+
+/* Stepper : les deux boutons occupent les extrémités du cadre sur toute sa
+   hauteur, le champ prend tout l'espace entre eux — la valeur est donc centrée
+   et la moindre zone cliquable du cadre mène à la saisie. */
+.rf-form .rf-stepper .form-input {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.rf-stepper-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 32px;
+  padding: 0;
+  border: none;
+  /* Rayon intérieur du cadre (4 px de rayon moins 1 px de bordure) : le fond de
+     survol épouse le coin arrondi au lieu d'y laisser un éclat blanc. */
+  border-radius: 3px;
+  background: none;
+  color: var(--color-ink-3);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  /* Sans cela, un double-clic un peu rapide sur « + » sélectionne le glyphe. */
+  user-select: none;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.rf-stepper-btn:hover:not(:disabled) {
+  background: var(--color-bg-secondary);
+  color: var(--color-ink);
+}
+
+/* Retour tactile à l'appui : le fond se fonce le temps du clic. */
+.rf-stepper-btn:active:not(:disabled) {
+  background: var(--color-bg-tertiary);
+}
+
+.rf-stepper-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Les erreurs des trois champs passent sous la rangée entière. */
+.rf-measures .field-errors {
+  flex-basis: 100%;
 }
 
 /* === Tags — sous-groupes style éditorial === */
@@ -2873,14 +3070,21 @@ button.draft-rail-count:not(:disabled) {
 
 /* === Photo === */
 
-/* .rf-photo et .rf-photo-upload sont des colonnes flex : sans align-items, un
-   .btn (inline-flex) y serait étiré sur toute la largeur du formulaire. */
-.rf-form .rf-photo,
-.rf-form .rf-photo-upload {
+/* .rf-photo est une colonne flex : sans align-items, l'aperçu et le bouton
+   « Changer de photo » (inline-flex) seraient étirés sur toute la largeur. */
+.rf-form .rf-photo {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
+}
+
+/* La zone de dépôt, elle, occupe toute la largeur du formulaire. */
+.rf-form .rf-photo-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
 }
 
 /* La zone d'upload est masquée tant qu'une photo est en place : il faut battre
@@ -2889,11 +3093,52 @@ button.draft-rail-count:not(:disabled) {
   display: none;
 }
 
-.rf-hint {
-  display: block;
+/* === Zone de dépôt de la photo === */
+
+.rf-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 26px 20px;
+  border: var(--border-width) dashed var(--color-border-strong);
+  border-radius: var(--radius-input);
+  background: var(--color-bg-white);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.rf-dropzone:hover {
+  border-color: var(--color-ink-3);
+}
+
+/* Survol d'un fichier glissé (classe posée par image_preview_controller) et
+   focus clavier sur le champ fichier masqué : même mise en avant. */
+.rf-dropzone.is-dragging,
+.rf-photo-upload:has(.photo-upload-input:focus-visible) .rf-dropzone {
+  border-color: var(--color-primary);
+}
+
+/* Le contenu ne capte ni le clic ni le survol : sans cela, passer d'un enfant à
+   l'autre en glissant émet un dragleave parasite qui fait clignoter la zone. */
+.rf-dropzone > * {
+  pointer-events: none;
+}
+
+.rf-dropzone-icon {
+  color: var(--color-ink-3);
+}
+
+.rf-dropzone-title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.rf-dropzone-hint {
   font-size: var(--font-size-xs);
   color: var(--color-ink-3);
-  font-style: italic;
 }
 
 /* === Ingrédients — nested fields ===
@@ -2942,68 +3187,8 @@ button.draft-rail-count:not(:disabled) {
   grid-area: remove;
 }
 
-/* Quantité + unité : un seul cadre, l'input abandonne le sien au profit du
-   conteneur qui porte aussi l'anneau de focus. */
-.quantity-field {
-  display: flex;
-  align-items: stretch;
-  border: var(--border-thin);
-  border-radius: var(--radius-input);
-  background: var(--color-bg-white);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-}
-
-.quantity-field:focus-within {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-primary-light);
-}
-
-.rf-form .quantity-field .form-input {
-  flex: 1;
-  min-width: 0;
-  border: none;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-}
-
-/* Champ étroit : les flèches natives du number input mangeraient la place déjà
-   occupée par l'unité. */
-.quantity-field .form-input::-webkit-outer-spin-button,
-.quantity-field .form-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.quantity-field .form-input[type="number"] {
-  -moz-appearance: textfield;
-  appearance: textfield;
-}
-
-/* Unité en lecture seule : suffixe gris détaché par un filet vertical. */
-.quantity-unit {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  padding: 0 10px;
-  border-left: var(--border-thin);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: var(--color-ink-3);
-  white-space: nowrap;
-}
-
-/* Aucun ingrédient sélectionné : le tiret est plus discret qu'une unité réelle
-   (.text-muted est posée/retirée par ingredient_unit_controller). */
-.quantity-unit.text-muted {
-  color: var(--color-ink-4);
-}
-
-/* L'input étant sans bordure, l'état d'erreur est porté par le cadre commun. */
-.preparation-quantity.has-error .quantity-field {
-  border-color: var(--color-danger);
-  background: var(--color-danger-light);
-}
+/* Quantité + unité : cadre partagé .rf-unit-field (défini plus haut avec les
+   overrides de formulaire), y compris son état d'erreur. */
 
 /* Croix de suppression : bouton icône canonique (components.css) débarrassé de
    son cadre — la carte délimite déjà la zone — et de sa marge horizontale. */
@@ -3051,8 +3236,6 @@ button.draft-rail-count:not(:disabled) {
 
 /* Mobile (max-width: 767px) */
 @media (max-width: 767px) {
-  /* NOTE: .rf-back-bar responsive supprimé — utilise .context-bar */
-
   .rf-hero {
     padding: 14px 16px 16px;
   }
@@ -3073,9 +3256,8 @@ button.draft-rail-count:not(:disabled) {
     margin-bottom: 10px;
   }
 
-  /* Champs empilés par retour à la ligne (et non en colonne) : les champs à
-     valeur courte se regroupent alors sur une même ligne au lieu d'occuper
-     chacun une ligne entière. */
+  /* Une ligne par champ : à cette largeur, deux champs côte à côte laissent
+     trop peu de place au libellé comme à la valeur. */
   .rf-form .form-row {
     gap: 10px;
   }
@@ -3085,16 +3267,35 @@ button.draft-rail-count:not(:disabled) {
     min-width: 0;
   }
 
-  .rf-form .form-row .form-group-small {
-    flex: 0 0 auto;
-    width: 128px;
+  /* La phrase des valeurs chiffrées tient rarement sur une ligne à cette
+     largeur : elle se replie groupe par groupe, et la ponctuation qui séparait
+     « personnes » de « Préparation » n'a alors plus rien à séparer. */
+  .rf-measure-sep {
+    display: none;
+  }
+
+  /* Repliée, la rangée n'a plus de ligne à occuper : chaque groupe prend la
+     largeur disponible et son cadre s'étire — plus confortable au doigt que
+     trois petits champs perdus au milieu du vide. */
+  .rf-measure {
+    flex: 1 1 auto;
+  }
+
+  /* Cibles tactiles : cadres à hauteur de doigt et boutons de stepper élargis
+     (ils s'étirent déjà sur toute la hauteur du cadre). */
+  .rf-measure .rf-unit-field {
+    flex-grow: 1;
+    min-height: var(--min-touch-target);
+  }
+
+  .rf-stepper-btn {
+    flex-basis: 42px;
+    font-size: 17px;
   }
 
   /* Label + champ sur une même ligne : pour les champs à réponse courte
-     (nombre de personnes, listes déroulantes), empiler le label au-dessus
-     n'apporte rien et allonge la page inutilement. Passe devant la règle
-     .form-group-small ci-dessus (même spécificité, déclarée après) pour les
-     champs qui cumulent les deux classes. */
+     (nombre de personnes, minutes, listes déroulantes), empiler le label
+     au-dessus n'apporte rien et allonge la page inutilement. */
   .rf-form .form-row .form-group-inline {
     flex: 1 1 100%;
     width: 100%;

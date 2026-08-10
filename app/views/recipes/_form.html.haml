@@ -4,20 +4,82 @@
 .recipe-form-wrapper{ data: { controller: "slideout" } }
   = form_with model: recipe, class: "rf-form", data: { controller: "nested-form form-errors", turbo: false } do |f|
 
-    -# Section : Informations générales
+    -# Informations générales — section sans intitulé : les libellés des champs
+    -# se suffisent. Le nom occupe sa propre ligne, puis les trois valeurs
+    -# chiffrées de la recette se partagent la ligne suivante.
     .rf-section
-      .rf-section-label INFORMATIONS GÉNÉRALES
-
       .form-row
-        .form-group.form-group-large{ class: field_error_class(recipe, :name) }
+        .form-group{ class: field_error_class(recipe, :name) }
           = f.label :name, "Nom de la recette *", class: "form-label"
           = f.text_field :name, class: "form-input", placeholder: "Ex: Pâtes carbonara", required: true
           = field_errors(recipe, :name)
 
-        .form-group.form-group-small.form-group-inline{ class: field_error_class(recipe, :default_servings) }
-          = f.label :default_servings, "Personnes *", class: "form-label"
-          = f.number_field :default_servings, class: "form-input", min: 1, value: recipe.default_servings || 4, required: true
-          = field_errors(recipe, :default_servings)
+      -# Les valeurs chiffrées se lisent comme une phrase — « Pour 4 personnes ·
+      -# Préparation 20 min · Cuisson 15 min » — plutôt que comme trois champs
+      -# étiquetés : libellés en ligne, unité à l'intérieur du champ. Chaque unité
+      -# est reliée à son champ par aria-describedby, pour que le lecteur d'écran
+      -# annonce la phrase telle qu'elle se lit.
+      .rf-measures
+        .rf-measure{ class: field_error_class(recipe, :default_servings) }
+          = f.label :default_servings, "Pour", class: "form-label"
+          -# Stepper − / + : le champ reste saisissable (taper « 12 » va plus vite
+          -# que douze clics) et porte seul la borne basse, lue par le contrôleur.
+          .rf-unit-field.rf-stepper{ data: { controller: "number-stepper" } }
+            %button.rf-stepper-btn{ type: "button", "aria-label": "Retirer une personne",
+                                    data: { action: "number-stepper#decrement",
+                                            number_stepper_target: "decrement" } } −
+            = f.number_field :default_servings, class: "form-input",
+                             min: 1, required: true, value: recipe.default_servings || 4,
+                             aria: { describedby: "recipe_servings_unit" },
+                             data: { number_stepper_target: "input", action: "input->number-stepper#refresh" }
+            %button.rf-stepper-btn{ type: "button", "aria-label": "Ajouter une personne",
+                                    data: { action: "number-stepper#increment",
+                                            number_stepper_target: "increment" } } +
+          %span.rf-measure-unit#recipe_servings_unit personnes
+
+        -# Ponctuation de la phrase : masquée aux lecteurs d'écran, et retirée
+        -# en CSS dès que la rangée se replie sur plusieurs lignes.
+        %span.rf-measure-sep{ "aria-hidden": "true" } ·
+
+        .rf-measure{ class: field_error_class(recipe, :prep_time_minutes) }
+          = f.label :prep_time_minutes, "Préparation", class: "form-label"
+          .rf-unit-field.rf-duration
+            = f.number_field :prep_time_minutes, class: "form-input", min: 0, placeholder: "—",
+                             aria: { describedby: "recipe_prep_unit" }
+            %span.rf-unit-suffix#recipe_prep_unit min
+
+        .rf-measure{ class: field_error_class(recipe, :cook_time_minutes) }
+          = f.label :cook_time_minutes, "Cuisson", class: "form-label"
+          .rf-unit-field.rf-duration
+            = f.number_field :cook_time_minutes, class: "form-input", min: 0, placeholder: "—",
+                             aria: { describedby: "recipe_cook_unit" }
+            %span.rf-unit-suffix#recipe_cook_unit min
+
+        -# Une erreur éventuelle passe sous la rangée entière, jamais entre deux
+        -# groupes qui couperaient la phrase en deux.
+        = field_errors(recipe, :default_servings)
+        = field_errors(recipe, :prep_time_minutes)
+        = field_errors(recipe, :cook_time_minutes)
+
+      -# Photo — une photo déjà en place se remplace via « Changer de photo », qui
+      -# révèle la zone de dépôt ; sinon celle-ci est visible d'emblée. Un seul
+      -# bloc d'upload dans les deux cas, piloté par l'attribut hidden.
+      - photo_attached = recipe.persisted? && recipe.photo.attached?
+      .form-group.rf-photo{ data: { controller: "image-preview" } }
+        - if photo_attached
+          = image_tag cloudinary_photo_url(recipe.photo, width: 200, height: 150), class: "photo-preview", width: 200, height: 150, loading: "lazy"
+          %button.btn.btn-secondary{ type: "button", data: { image_preview_target: "changeButton", action: "click->image-preview#showUploadField" } }
+            Changer de photo
+
+        .rf-photo-upload{ data: { image_preview_target: "uploadArea" }, hidden: photo_attached }
+          -# La zone entière est le label du champ fichier : elle est donc
+          -# cliquable, et le glisser-déposer y réinjecte le fichier déposé.
+          %label.rf-dropzone{ for: "recipe_photo", data: { image_preview_target: "dropzone", action: "dragover->image-preview#dragOver dragleave->image-preview#dragLeave drop->image-preview#dropFile" } }
+            = svg_icon(:camera, size: 24, css_class: "rf-dropzone-icon")
+            %span.rf-dropzone-title Dépose une photo ici
+            %span.rf-dropzone-hint ou clique pour choisir — JPEG/PNG, 800×600 minimum
+          = f.file_field :photo, accept: "image/*", id: "recipe_photo", class: "photo-upload-input sr-only", data: { image_preview_target: "input", action: "change->image-preview#showFilename" }
+          %p.photo-upload-notice{ data: { image_preview_target: "notice" }, hidden: true }
 
     -# Section : Caractéristiques
     .rf-section
@@ -51,17 +113,6 @@
               %span.tag-name= MealTypes.label(type)
         = field_errors(recipe, :meal_types)
 
-      .form-row
-        .form-group.form-group-small{ class: field_error_class(recipe, :prep_time_minutes) }
-          = f.label :prep_time_minutes, "Préparation (min)", class: "form-label"
-          = f.number_field :prep_time_minutes, class: "form-input", min: 0, placeholder: "Ex: 20"
-          = field_errors(recipe, :prep_time_minutes)
-
-        .form-group.form-group-small{ class: field_error_class(recipe, :cook_time_minutes) }
-          = f.label :cook_time_minutes, "Cuisson (min)", class: "form-label"
-          = f.number_field :cook_time_minutes, class: "form-input", min: 0, placeholder: "Ex: 30"
-          = field_errors(recipe, :cook_time_minutes)
-
     -# Section : Tags
     .rf-section
       .rf-section-label TAGS
@@ -76,28 +127,6 @@
                 %label.tag-checkbox
                   = f.check_box :tag_ids, { multiple: true, checked: recipe.tags.include?(tag) }, tag.id, nil
                   %span.tag-name= tag.name
-
-    -# Section : Photo
-    .rf-section
-      .rf-section-label PHOTO
-
-      -# Une photo déjà en place se remplace via « Changer de photo », qui révèle
-      -# la zone d'upload — sinon celle-ci est visible d'emblée. Un seul bloc
-      -# d'upload dans les deux cas, piloté par l'attribut hidden.
-      - photo_attached = recipe.persisted? && recipe.photo.attached?
-      .form-group.rf-photo{ data: { controller: "image-preview" } }
-        - if photo_attached
-          = image_tag cloudinary_photo_url(recipe.photo, width: 200, height: 150), class: "photo-preview", width: 200, height: 150, loading: "lazy"
-          %button.btn.btn-secondary{ type: "button", data: { image_preview_target: "changeButton", action: "click->image-preview#showUploadField" } }
-            Changer de photo
-
-        .rf-photo-upload{ data: { image_preview_target: "uploadArea" }, hidden: photo_attached }
-          %label.btn.btn-primary{ for: "recipe_photo" }
-            = svg_icon(:upload, size: 16)
-            Ajouter une photo
-          = f.file_field :photo, accept: "image/*", id: "recipe_photo", class: "photo-upload-input", data: { image_preview_target: "input", action: "change->image-preview#showFilename" }
-          %small.rf-hint Format recommandé : JPEG ou PNG, 800×600 minimum
-          %p.photo-upload-notice{ data: { image_preview_target: "notice" }, hidden: true }
 
     -# Panneau IA (brouillon uniquement — juste au-dessus des ingrédients)
     - if @ai_matches.present?

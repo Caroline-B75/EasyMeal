@@ -24,13 +24,14 @@
 
   .form-group.preparation-quantity{ class: field_error_class(f.object, :quantity_base) }
     = f.label :quantity_base, "Quantité", class: "form-label sr-only"
-    -# Quantité et unité de base partagent un seul cadre : l'unité est un simple
-    -# suffixe en lecture seule, elle suit l'ingrédient sélectionné.
+    -# Quantité et unité de base partagent un seul cadre (.rf-unit-field, commun
+    -# aux durées du formulaire) : l'unité est un simple suffixe en lecture
+    -# seule, elle suit l'ingrédient sélectionné.
     - base_unit = f.object.ingredient&.base_unit
-    .quantity-field
+    .rf-unit-field
       = f.number_field :quantity_base, class: "form-input", step: "0.01", min: "0.01", placeholder: "Qté"
-      %span.quantity-unit{ class: ("text-muted" if base_unit.blank?),
-                           data: { ingredient_unit_target: "display" } }
+      %span.rf-unit-suffix{ class: ("text-muted" if base_unit.blank?),
+                            data: { ingredient_unit_target: "display" } }
         = base_unit.presence || "—"
     = field_errors(f.object, :quantity_base)
 

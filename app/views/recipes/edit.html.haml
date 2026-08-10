@@ -1,11 +1,6 @@
 -# Page d'édition / validation de brouillon IA (admin only)
 - content_for :title, @recipe.draft? ? "Valider #{@recipe.name}" : "Modifier #{@recipe.name}"
 
-- if @recipe.draft?
-  = context_bar_back(recipe_drafts_path, "Retour aux recettes importées", variant: :narrow)
-- else
-  = context_bar_back(recipe_path(@recipe), "Retour à la recette", variant: :narrow)
-
 .rf-hero
   .rf-hero-inner
     .rf-kicker
