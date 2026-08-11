@@ -21,7 +21,7 @@ class RecipeImportsController < ApplicationController
       redirect_to new_recipe_import_path,
         alert: "Impossible de créer le brouillon : #{recipe.errors.full_messages.to_sentence}"
     end
-  rescue Recipes::ExtractorService::ExtractionError => e
+  rescue Recipes::ExtractionError => e
     redirect_to new_recipe_import_path, alert: "Extraction échouée : #{e.message}"
   end
 
@@ -34,15 +34,15 @@ class RecipeImportsController < ApplicationController
   def extract_from_source
     case params[:source_type]
     when "url"
-      raise Recipes::ExtractorService::ExtractionError, "Veuillez saisir une URL" if params[:source_url].blank?
+      raise Recipes::ExtractionError, "Veuillez saisir une URL" if params[:source_url].blank?
       Recipes::ExtractorService.from_url(params[:source_url].strip)
     when "photo"
       file = params[:photo_file]
-      raise Recipes::ExtractorService::ExtractionError, "Veuillez choisir une image" if file.blank?
+      raise Recipes::ExtractionError, "Veuillez choisir une image" if file.blank?
       base64 = Base64.strict_encode64(file.read)
       Recipes::ExtractorService.from_photo(base64, media_type: file.content_type)
     else
-      raise Recipes::ExtractorService::ExtractionError, "Source non reconnue"
+      raise Recipes::ExtractionError, "Source non reconnue"
     end
   end
 

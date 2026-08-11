@@ -67,7 +67,7 @@ RSpec.describe "Recipe imports (import IA)", type: :request do
     # qu'elles remontaient en NameError plutôt qu'en ExtractionError.
     it "renvoie au formulaire avec le motif quand l'extraction échoue" do
       allow(Recipes::ExtractorService).to receive(:from_url)
-        .and_raise(Recipes::ExtractorService::ExtractionError, "URL inaccessible (code 404)")
+        .and_raise(Recipes::ExtractionError, "URL inaccessible (code 404)")
 
       post recipe_imports_path, params: { source_type: "url", source_url: "https://exemple.fr/tarte" }
 
