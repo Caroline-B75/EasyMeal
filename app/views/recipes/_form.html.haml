@@ -1,7 +1,10 @@
 -# Formulaire partagé pour création/édition de recette
 -# Design Slate Craft Premium — cohérent avec la fiche recette
 
-.recipe-form-wrapper{ data: { controller: "slideout" } }
+-# Le panneau IA demande l'ouverture du slideout par événement : c'est slideout#open
+-# qui réinitialise le formulaire de création d'ingrédient avant de l'afficher.
+.recipe-form-wrapper{ data: { controller: "slideout",
+                              action: "ai-panel:openIngredientForm->slideout#open" } }
   -# novalidate : la validation native du navigateur s'arrêterait au premier champ
   -# `required` (le nom) et n'afficherait qu'une bulle éphémère, alors que le
   -# formulaire est long et que la plupart des règles — moments, régime, au moins
@@ -200,6 +203,19 @@
       - else
         = f.submit recipe.new_record? ? "Créer la recette" : "Mettre à jour", class: "btn btn-primary"
         = link_to "Annuler", recipes_path, class: "btn btn-white"
+
+  -# Abandon d'un import : hors du form_with, et pour deux raisons. Un <form> ne
+  -# peut pas en contenir un autre, et le formulaire recette porte turbo: false —
+  -# un bouton placé dedans échapperait à Turbo, donc au modal de confirmation.
+  - if recipe.persisted? && recipe.draft?
+    .rf-discard
+      %p.rf-discard__hint
+        Extraction inexploitable ? Supprimez l'import et relancez-en un.
+      = button_to "Supprimer l'import",
+          recipe_draft_path(recipe),
+          method: :delete,
+          class: "btn btn-link rf-discard__btn",
+          data: { turbo_confirm: "Supprimer définitivement cet import ? La recette extraite sera perdue." }
 
   -# Slideout pour créer un ingrédient à la volée
   .slideout-overlay{ data: { slideout_target: "overlay", action: "click->slideout#closeOnOverlay" } }

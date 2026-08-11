@@ -23,4 +23,73 @@ RSpec.describe "Recipe imports (import IA)", type: :request do
       expect(response.body).to include("Extraire la recette avec l'IA")
     end
   end
+
+  describe "GET /recipes/:id/edit — revue du brouillon importé" do
+    let(:draft) do
+      create(:recipe, status: :draft, ai_raw_data: {
+        "ingredients" => [ { "name" => "farine de blé", "quantity" => 200, "unit" => "g" } ]
+      })
+    end
+
+    it "rend le panneau IA et confie l'ouverture du formulaire d'ingrédient au slideout" do
+      get edit_recipe_path(draft)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("Ingrédients détectés par l'IA", "farine de blé")
+      # Le panneau demande l'ouverture par événement plutôt que d'ajouter les
+      # classes lui-même : seul slideout#open remet le formulaire à neuf entre
+      # deux créations d'ingrédient. En retour, il oublie sa ligne en attente
+      # quand le slideout se referme sans création.
+      expect(response.body).to include("ai-panel:openIngredientForm",
+                                       "slideout:closed@document-&gt;ai-panel#forgetPending")
+    end
+
+    it "propose d'abandonner l'import, à l'écart des actions du formulaire" do
+      get edit_recipe_path(draft)
+
+      # Le bloc est hors du formulaire recette : il porte sa propre classe et
+      # vise la route de suppression des brouillons.
+      expect(response.body).to include("rf-discard")
+      expect(response.body).to include(recipe_draft_path(draft))
+      expect(response.body).to include("Supprimer définitivement cet import")
+    end
+
+    it "ne propose pas d'abandon sur une recette publiée" do
+      get edit_recipe_path(create(:recipe, :with_ingredient))
+
+      expect(response.body).not_to include("rf-discard")
+    end
+  end
+
+  describe "POST /recipe_imports" do
+    # Un échec d'extraction doit ramener au formulaire avec le motif : c'est le
+    # chemin que les erreurs de ExtractorService court-circuitaient en 500 tant
+    # qu'elles remontaient en NameError plutôt qu'en ExtractionError.
+    it "renvoie au formulaire avec le motif quand l'extraction échoue" do
+      allow(Recipes::ExtractorService).to receive(:from_url)
+        .and_raise(Recipes::ExtractorService::ExtractionError, "URL inaccessible (code 404)")
+
+      post recipe_imports_path, params: { source_type: "url", source_url: "https://exemple.fr/tarte" }
+
+      expect(response).to redirect_to(new_recipe_import_path)
+      expect(flash[:alert]).to eq("Extraction échouée : URL inaccessible (code 404)")
+    end
+
+    it "crée un brouillon et ouvre le formulaire de review quand l'extraction réussit" do
+      allow(Recipes::ExtractorService).to receive(:from_url).and_return(
+        "name" => "Tarte aux poireaux", "default_servings" => 6, "diet" => "vegetarien"
+      )
+
+      expect {
+        post recipe_imports_path, params: { source_type: "url", source_url: "https://exemple.fr/tarte" }
+      }.to change(Recipe, :count).by(1)
+
+      recipe = Recipe.last
+      expect(recipe).to have_attributes(
+        status: "draft", source_type: "url", name: "Tarte aux poireaux",
+        default_servings: 6, diet: "vegetarien"
+      )
+      expect(response).to redirect_to(edit_recipe_path(recipe))
+    end
+  end
 end

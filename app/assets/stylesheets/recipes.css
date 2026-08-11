@@ -3442,6 +3442,37 @@ button.draft-rail-count:not(:disabled) {
   margin-top: 4px;
 }
 
+/* Abandon d'un import IA : action destructive tenue à distance des actions du
+   formulaire, sous une séparation nette — on ne supprime pas un import d'un
+   clic voisin de « Publier ». */
+.rf-discard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.rf-discard__hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-ink-3);
+}
+
+.rf-discard__btn {
+  padding-left: 0;
+  padding-right: 0;
+  color: var(--color-danger);
+  white-space: nowrap;
+}
+
+.rf-discard__btn:hover {
+  color: var(--color-danger-hover);
+  text-decoration: underline;
+}
+
 /* ============================================
    FORMULAIRE RECETTE — RESPONSIVE
    ============================================ */
@@ -3555,6 +3586,12 @@ button.draft-rail-count:not(:disabled) {
     align-items: stretch;
     gap: 10px;
     padding-top: 16px;
+  }
+
+  .rf-discard {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
   }
 }
 

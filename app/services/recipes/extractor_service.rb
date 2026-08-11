@@ -68,25 +68,37 @@ module Recipes
     end
 
     # ── Parsing schema.org ──────────────────────────────────────────
+    # Un champ JSON-LD vaut indifféremment un scalaire ou un tableau : on le
+    # normalise toujours avec Array.wrap, jamais avec Array(), qui éclaterait
+    # un Hash en paires clé/valeur.
 
     def parse_schema_org(html)
       doc = Nokogiri::HTML(html)
       doc.css('script[type="application/ld+json"]').each do |script|
-        data = JSON.parse(script.content)
-        # Certains sites wrappent dans @graph
-        data = data["@graph"] if data.is_a?(Hash) && data.key?("@graph")
-        recipe = Array(data).flatten.find { |d| recipe_type?(d) }
+        recipe = json_ld_nodes(JSON.parse(script.content)).find { |node| recipe_type?(node) }
         return recipe if recipe
-      rescue JSON::ParseError
-        next
+      rescue JSON::ParserError
+        next # bloc malformé : la page peut en porter un autre, exploitable
       end
       nil
     end
 
+    # Aplatit un bloc JSON-LD en la liste de ses nœuds : les sites publient
+    # indifféremment un objet nu, un tableau d'objets, ou un objet encapsulant
+    # tout son contenu dans @graph.
+    def json_ld_nodes(data)
+      case data
+      when Array then data.flat_map { |node| json_ld_nodes(node) }
+      when Hash  then data.key?("@graph") ? json_ld_nodes(data["@graph"]) : [ data ]
+      else []
+      end
+    end
+
     def recipe_type?(data)
       return false unless data.is_a?(Hash)
-      type = data["@type"]
-      Array(type).include?("Recipe")
+      # Le type se déclare tantôt par son nom, tantôt par son URL de vocabulaire
+      # complète ("https://schema.org/Recipe").
+      Array.wrap(data["@type"]).any? { |type| type.to_s.split("/").last == "Recipe" }
     end
 
     # Construit le hash de retour à partir des données schema.org.
@@ -103,13 +115,19 @@ module Recipes
         "diet"               => "omnivore",
         "appliance"          => nil,
         "instructions"       => format_instructions(schema["recipeInstructions"]),
-        "suggested_tags"     => Array(schema["recipeCategory"]).flat_map { |c| c.split(/[,\/]/) }.map(&:strip).reject(&:blank?),
+        "suggested_tags"     => parse_categories(schema["recipeCategory"]),
         "ingredients"        => []
       }
 
-      raw_ingredients = Array(schema["recipeIngredient"]).reject(&:blank?)
+      raw_ingredients = Array.wrap(schema["recipeIngredient"]).reject(&:blank?)
       base["ingredients"] = raw_ingredients.any? ? parse_ingredients_with_claude(raw_ingredients) : []
       base
+    end
+
+    # Les catégories arrivent en vrac, tableau ou liste séparée par des virgules
+    # ou des barres obliques : "Plat principal, Tarte".
+    def parse_categories(value)
+      Array.wrap(value).flat_map { |category| category.to_s.split(/[,\/]/) }.map(&:strip).reject(&:blank?)
     end
 
     def parse_yield(value)
@@ -120,18 +138,20 @@ module Recipes
     end
 
     # Convertit une durée ISO 8601 (ex: "PT1H30M") en minutes.
+    # La partie horaire suit toujours le "T" : s'y ancrer évite de confondre les
+    # minutes avec les mois de la partie calendaire, et couvre les formes
+    # complètes du type "P0DT1H30M".
     def parse_iso_duration(value)
       return nil if value.blank?
-      match   = value.to_s.match(/(?:(\d+)H)?(?:(\d+)M)?/)
-      hours   = match[1].to_i
-      minutes = match[2].to_i
-      total   = hours * 60 + minutes
+      match = value.to_s.match(/T(?:(\d+)H)?(?:(\d+)M)?/i)
+      return nil if match.nil?
+      total = match[1].to_i * 60 + match[2].to_i
       total > 0 ? total : nil
     end
 
     def format_instructions(data)
       return "" if data.blank?
-      steps = Array(data).filter_map do |step|
+      steps = Array.wrap(data).filter_map do |step|
         case step
         when Hash   then (step["text"] || step["name"])&.strip
         when String then step.strip
@@ -163,10 +183,16 @@ module Recipes
       PROMPT
 
       result = call_claude([ { role: "user", content: prompt } ])
-      result.is_a?(Array) ? result : []
+      # Toute réponse qui n'est pas un tableau est inexploitable : on garde le brut.
+      result.is_a?(Array) ? result : raw_ingredients_fallback(raw_ingredients)
     rescue ExtractionError
-      # Fallback : retourne les strings brutes si Claude échoue
-      raw_ingredients.map { |i| { "name" => i, "quantity" => nil, "unit" => nil } }
+      raw_ingredients_fallback(raw_ingredients)
+    end
+
+    # Repli quand l'IA n'a pas structuré la liste : la chaîne d'origine devient
+    # le nom de l'ingrédient, que l'utilisatrice corrigera au moment de la review.
+    def raw_ingredients_fallback(raw_ingredients)
+      raw_ingredients.map { |ingredient| { "name" => ingredient, "quantity" => nil, "unit" => nil } }
     end
 
     # ── Messages Claude ─────────────────────────────────────────────
@@ -246,14 +272,13 @@ module Recipes
       response = http.request(request)
 
       unless response.is_a?(Net::HTTPSuccess)
-        error_msg = JSON.parse(response.body).dig("error", "message") rescue response.body
-        raise ExtractionError, "Erreur API Claude (#{response.code}) : #{error_msg}"
+        raise ExtractionError, "Erreur API Claude (#{response.code}) : #{api_error_message(response)}"
       end
 
       raw   = JSON.parse(response.body).dig("content", 0, "text").to_s
       clean = raw.gsub(/\A```(?:json)?\s*/m, "").gsub(/\s*```\z/m, "").strip
       JSON.parse(clean)
-    rescue JSON::ParseError => e
+    rescue JSON::ParserError => e
       raise ExtractionError, "L'IA n'a pas retourné un JSON valide : #{e.message}"
     rescue Net::OpenTimeout, Net::ReadTimeout
       raise ExtractionError, "L'API Claude n'a pas répondu dans les délais impartis"
@@ -261,6 +286,16 @@ module Recipes
       raise
     rescue => e
       raise ExtractionError, "Erreur inattendue : #{e.message}"
+    end
+
+    # Message d'erreur de l'API : normalement { "error": { "message": … } },
+    # mais une panne d'infrastructure peut renvoyer du HTML — on rend alors le
+    # corps tel quel plutôt que de masquer la cause.
+    def api_error_message(response)
+      payload = JSON.parse(response.body)
+      (payload.is_a?(Hash) && payload.dig("error", "message")) || response.body
+    rescue JSON::ParserError
+      response.body
     end
 
     def api_key

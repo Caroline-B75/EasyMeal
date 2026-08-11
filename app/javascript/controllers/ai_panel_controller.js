@@ -77,19 +77,25 @@ export default class extends Controller {
     this.pendingQuantity = parseFloat(btn.dataset.aiPanelQuantityBase) || 1
     this.pendingUnit = btn.dataset.aiPanelUnit || null
 
+    // Passe par slideout#open plutôt que d'ouvrir le panneau à la main : c'est
+    // lui, et lui seul, qui remet le formulaire à neuf. Sans ça, la deuxième
+    // création rouvre le panneau avec le rayon, le groupe d'unités et les
+    // options avancées de l'ingrédient précédent.
+    this.dispatch("openIngredientForm")
+
+    // Après la réinitialisation seulement : le champ vient d'être recréé.
     const nameInput = document.querySelector('#quick-ingredient-form input[name="ingredient[name]"]')
     if (nameInput) nameInput.value = btn.dataset.aiPanelName || ''
-
-    const slideoutPanel = document.querySelector('.slideout-panel')
-    const slideoutOverlay = document.querySelector('.slideout-overlay')
-    if (slideoutPanel) slideoutPanel.classList.add('open')
-    if (slideoutOverlay) slideoutOverlay.classList.add('open')
-    document.body.style.overflow = 'hidden'
   }
 
   // Réagit à la création d'un ingrédient via le slideout (si ouvert depuis le panneau IA)
   onIngredientCreated(event) {
     if (!this.pendingRow) return
+    // Revendique la création : c'est ce panneau qui pose la ligne, avec la
+    // quantité détectée par l'IA. ingredient-created ne doit donc pas
+    // présélectionner l'ingrédient dans la ligne vide du formulaire.
+    event.preventDefault()
+
     const { id, displayName, baseUnit, unitGroup } = event.detail
 
     // Convertir la quantité IA vers la base_unit du nouvel ingrédient (ex: 1 kg → 1000 g)
@@ -99,6 +105,13 @@ export default class extends Controller {
 
     this.addPreparationRow(id, displayName, baseUnit, finalQty)
     this.markDone(this.pendingRow)
+    this.forgetPending()
+  }
+
+  // Oublie la ligne en attente : le slideout s'est refermé sans création.
+  // Sans ça, un ingrédient créé plus tard par le bouton du bas de formulaire
+  // serait posé avec la quantité de la ligne abandonnée.
+  forgetPending() {
     this.pendingRow = null
     this.pendingQuantity = null
     this.pendingUnit = null

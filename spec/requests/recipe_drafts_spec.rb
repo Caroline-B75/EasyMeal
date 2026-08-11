@@ -51,4 +51,32 @@ RSpec.describe "Recipe drafts (recettes importées)", type: :request do
       expect(response.body).to include("Photo")
     end
   end
+
+  describe "DELETE /recipe_drafts/:id" do
+    it "supprime le brouillon et ramène à la liste des imports" do
+      draft = create(:recipe, status: :draft)
+
+      expect { delete recipe_draft_path(draft) }.to change(Recipe, :count).by(-1)
+
+      expect(response).to redirect_to(recipe_drafts_path)
+      expect(flash[:notice]).to eq("Brouillon supprimé.")
+    end
+
+    # La route ne voit que les brouillons (Recipe.draft.find) : une recette
+    # publiée n'est pas supprimable par ce chemin, même par un admin.
+    it "refuse de supprimer une recette publiée" do
+      published = create(:recipe, :with_ingredient)
+
+      expect { delete recipe_draft_path(published) }.not_to change(Recipe, :count)
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it "refuse la suppression à un utilisateur non admin" do
+      draft = create(:recipe, status: :draft)
+      sign_in create(:user)
+
+      expect { delete recipe_draft_path(draft) }.not_to change(Recipe, :count)
+      expect(flash[:alert]).to eq("Tu n'es pas autorisé(e) à effectuer cette action.")
+    end
+  end
 end

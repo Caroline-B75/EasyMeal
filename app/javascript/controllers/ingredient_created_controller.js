@@ -14,10 +14,14 @@ export default class extends Controller {
   connect() {
     this.updateIngredientSelects()
 
-    // Notifie les autres controllers (ex: ai-panel) avant de présélectionner,
-    // pour qu'ils puissent ajouter une ligne et être ciblés par preselectIngredient.
-    document.dispatchEvent(new CustomEvent('easymeal:ingredientCreated', {
+    // Notifie les autres controllers (ex: ai-panel). Celui qui prend en charge
+    // le nouvel ingrédient annule l'événement : il pose lui-même la ligne, avec
+    // la quantité détectée par l'IA. Sans cette revendication, la
+    // présélection ci-dessous garnirait en plus la ligne vide du formulaire —
+    // le même ingrédient en double, et celui-là sans quantité.
+    const claimed = !document.dispatchEvent(new CustomEvent('easymeal:ingredientCreated', {
       bubbles: true,
+      cancelable: true,
       detail: {
         id: this.idValue,
         name: this.nameValue,
@@ -27,7 +31,7 @@ export default class extends Controller {
       }
     }))
 
-    this.preselectIngredient()
+    if (!claimed) this.preselectIngredient()
     this.showFlashMessage()
     this.closeSlideout()
     setTimeout(() => this.element.remove(), 100)

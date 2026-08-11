@@ -1,7 +1,8 @@
 -# Panneau de revue des ingrédients suggérés par l'IA
 -# Affiché dans _form.html.haml juste au-dessus de la section ingrédients
 
-.ai-panel{ data: { controller: "ai-panel" } }
+.ai-panel{ data: { controller: "ai-panel",
+                   action: "slideout:closed@document->ai-panel#forgetPending" } }
   .ai-panel__header
     %p.ai-panel__title
       Ingrédients détectés par l'IA

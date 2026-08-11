@@ -48,10 +48,16 @@ export default class extends Controller {
   // Ferme le panneau latéral
   close(event) {
     if (event) event.preventDefault()
-    
+
     this.panelTarget.classList.remove("open")
     this.overlayTarget.classList.remove("open")
     this.enableBodyScroll()
+
+    // Fermeture = création abandonnée : prévient ceux qui attendaient un
+    // ingrédient (ex: le panneau IA) pour qu'ils oublient leur ligne en attente.
+    // Une création réussie ne passe pas par ici — ingredient-created referme le
+    // panneau lui-même, une fois la ligne posée.
+    this.dispatch("closed", { target: document })
   }
 
   // Ferme si on clique sur l'overlay
@@ -66,37 +72,6 @@ export default class extends Controller {
     if (event.key === 'Escape' && this.panelTarget.classList.contains('open')) {
       this.close()
     }
-  }
-
-  // Appelé après création réussie d'un ingrédient
-  // Rafraîchit les selects d'ingrédients et ferme le panneau
-  ingredientCreated(event) {
-    const { id, name, displayName, baseUnit } = event.detail
-    
-    // Mettre à jour tous les selects d'ingrédients dans la page
-    document.querySelectorAll('select[name*="ingredient_id"]').forEach(select => {
-      // Vérifier si l'ingrédient n'existe pas déjà
-      if (!select.querySelector(`option[value="${id}"]`)) {
-        // Créer une nouvelle option
-        const option = document.createElement('option')
-        option.value = id
-        option.textContent = displayName
-        option.dataset.unit = baseUnit
-        
-        // Insérer en ordre alphabétique
-        const options = Array.from(select.querySelectorAll('option')).slice(1) // Skip first "Choisir..."
-        const insertIndex = options.findIndex(opt => opt.textContent.localeCompare(displayName) > 0)
-        
-        if (insertIndex === -1) {
-          select.appendChild(option)
-        } else {
-          select.insertBefore(option, options[insertIndex])
-        }
-      }
-    })
-    
-    // Fermer le panneau
-    this.close()
   }
 
   // Réinitialise le contenu du slideout à son état initial
