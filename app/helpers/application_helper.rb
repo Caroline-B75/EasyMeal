@@ -93,7 +93,14 @@ module ApplicationHelper
   # ============================================
   # SYSTÈME D'ICÔNES SVG INLINE
   # ============================================
-  #
+
+  ICONS_PATH = Rails.root.join("app/assets/images/icones")
+
+  # Contenu brut des SVG déjà lus (voir #svg_source) : une page affiche plusieurs
+  # icônes, on ne veut pas un accès disque par icône et par requête. Concurrent::Map
+  # plutôt qu'un Hash nu car Puma sert les requêtes sur plusieurs threads.
+  SVG_SOURCES = Concurrent::Map.new
+
   # Insère un fichier SVG inline pour permettre la stylisation via variables CSS.
   # Les SVGs doivent utiliser fill="currentColor" (monocouleur) ou
   # fill="var(--icon-color-1)" / fill="var(--icon-color-2)" (bicouleur).
@@ -103,12 +110,9 @@ module ApplicationHelper
   #
   # Usage bicouleur (le SVG doit avoir 2 groupes de paths avec --icon-color-1 et --icon-color-2) :
   #   = inline_svg("my-icon", css_class: "icon-md", color: "var(--color-primary)", color2: "var(--color-secondary)")
-  #
   def inline_svg(icon_name, css_class: nil, color: nil, color2: nil, size: nil)
-    file_path = Rails.root.join("app/assets/images/icones/#{icon_name}.svg")
-    return "".html_safe unless File.exist?(file_path)
-
-    svg_content = File.read(file_path)
+    svg_content = svg_source(icon_name)
+    return "".html_safe if svg_content.nil?
 
     # Construction du style inline pour les variables de couleur CSS
     style_parts = []
@@ -122,8 +126,9 @@ module ApplicationHelper
     extra_attrs += " style=\"#{style_parts.join('; ')}\"" if style_parts.any?
     extra_attrs += " aria-hidden=\"true\""
 
-    svg_content = svg_content.gsub(/<svg\b/, "<svg#{extra_attrs}")
-    svg_content.html_safe
+    # gsub et non gsub! : la source est partagée par tous les appels, elle ne doit
+    # jamais être modifiée en place.
+    svg_content.gsub(/<svg\b/, "<svg#{extra_attrs}").html_safe
   end
 
   # Icônes Feather inline (petits SVG courants sans fichier séparé)
@@ -202,5 +207,24 @@ module ApplicationHelper
     return names.join.upcase if names.any?
 
     user.email.to_s.first(2).upcase.presence || "?"
+  end
+
+  private
+
+  # Contenu brut d'une icône, nil si le fichier n'existe pas. Le résultat est mémorisé
+  # — les absences aussi, sinon une icône mal nommée coûterait un File.exist? par appel.
+  # Le cache est court-circuité là où le code est rechargé à chaud (développement) pour
+  # qu'un SVG ajouté ou modifié soit visible sans redémarrer le serveur.
+  def svg_source(icon_name)
+    return read_svg_source(icon_name) if Rails.application.config.enable_reloading
+
+    SVG_SOURCES.fetch_or_store(icon_name.to_s) { read_svg_source(icon_name) }
+  end
+
+  def read_svg_source(icon_name)
+    file_path = ICONS_PATH.join("#{icon_name}.svg")
+    return nil unless File.exist?(file_path)
+
+    File.read(file_path).freeze
   end
 end
