@@ -171,7 +171,7 @@
                 Mes favoris
                 %span.badge-remove= svg_icon(:x, size: 12)
             - if tags_count > 0
-              - @tags&.select { |t| selected_tag_ids.include?(t.id.to_s) }.each do |tag|
+              - @catalog.tags.select { |t| selected_tag_ids.include?(t.id.to_s) }.each do |tag|
                 %button.active-filter-badge{ type: "button",
                                              data: { action: "click->recipe-filter#clearFilter",
                                                      recipe_filter_field: "tag_ids[]",
@@ -180,11 +180,11 @@
                   %span.badge-remove= svg_icon(:x, size: 12)
 
         -# ── Tags par catégorie (cases à cocher verticales) ──
-        - if @tags&.any?
+        - if @catalog.tags.any?
           .filters-tags-section
             %span.filters-section-title Tags
             -# Groupes ordonnés via Tag.grouped_by_type (source unique, ignore les vides).
-            - Tag.grouped_by_type(@tags).each do |_type, label, group|
+            - Tag.grouped_by_type(@catalog.tags).each do |_type, label, group|
               -# Chaque type de tag est un accordéon, ouvert d'office si un de ses
               -# tags est sélectionné (pour garder les filtres actifs visibles).
               - active_in_group = group.count { |t| selected_tag_ids.include?(t.id.to_s) }
@@ -235,19 +235,19 @@
       -# Liste des recettes (Turbo Frame pour rechargement partiel)
       .recipes-results{ data: { recipe_filter_target: "results" } }
         = turbo_frame_tag "recipes_list" do
-          - if @recipes.any?
+          - if @catalog.recipes.any?
             .recipes-count
-              %strong= @pagy.count
-              = " recette#{'s' if @pagy.count > 1} trouvée#{'s' if @pagy.count > 1}"
+              %strong= @catalog.pagy.count
+              = " recette#{'s' if @catalog.pagy.count > 1} trouvée#{'s' if @catalog.pagy.count > 1}"
             .recipes-grid
-              - @recipes.each do |recipe|
+              - @catalog.recipes.each do |recipe|
                 .recipe-card-wrapper
                   -# Le contexte de moment (UC7) suit la navigation vers la fiche :
                   -# son CTA d'ajout créera le repas avec ce moment.
                   = link_to recipe_path(recipe, meal_type: context_meal_type), class: "recipe-card-link", data: { turbo_frame: "_top", turbo_prefetch: "false" } do
                     -# Clé de cache incluant le mois : le badge « De saison » dépend
                     -# du mois courant, il doit donc s'invalider chaque mois.
-                    - cache [recipe, "season-m#{@current_month}"] do
+                    - cache [recipe, "season-m#{@catalog.current_month}"] do
                       .recipe-card
                         .recipe-card-image-wrapper
                           - if recipe.photo.attached?
@@ -270,7 +270,7 @@
                               = svg_icon(:clock, size: 15)
                               = format_total_time(recipe)
                             = diet_badge(recipe.diet)
-                            - if @seasonal_ids.include?(recipe.id)
+                            - if @catalog.seasonal?(recipe)
                               %span.badge.badge-season
                                 = svg_icon(:leaf, size: 12)
                                 De saison
@@ -292,7 +292,7 @@
                   -# Coeur favori en overlay (user-specific, hors cache)
                   - if current_user
                     = render "recipes/favorite_button", recipe: recipe,
-                                                        is_favorited: @favorited_ids.include?(recipe.id),
+                                                        is_favorited: @catalog.favorited?(recipe),
                                                         container_id: "favorite-btn-#{recipe.id}",
                                                         compact: true
 
@@ -304,7 +304,7 @@
                                                      meal_type: context_meal_type
 
             .pagination-container
-              = pagy_nav(@pagy) if @pagy.pages > 1
+              = pagy_nav(@catalog.pagy) if @catalog.pagy.pages > 1
 
           - else
             .empty-state

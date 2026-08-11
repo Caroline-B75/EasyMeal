@@ -7,35 +7,18 @@ class RecipesController < ApplicationController
   include Recipes::Favoritable
   include Recipes::DraftManageable
 
+  # Recettes par page du catalogue
+  PER_PAGE = 20
+
   before_action :authenticate_user!, except: [ :index, :show ]
-  before_action :set_recipe, only: [ :show, :edit, :update, :destroy, :toggle_favorite, :toggle_in_draft, :publish ]
   before_action :authorize_recipe, only: [ :show, :edit, :update, :destroy, :publish ]
 
   # GET /recipes
   # UC5 : Catalogue & Recherche de recettes avec filtres
   def index
     authorize Recipe
-    recipes = Recipes::FilterService.call(recipes_base_scope, params)
-                .includes(:tags, :reviews, :photo_attachment)
-                .order(params[:sort] || :name)
-    @pagy, @recipes = pagy(recipes, items: 20)
-    @recipes = @recipes.to_a
-    @tags = Rails.cache.fetch("tags/with_recipes", expires_in: 1.hour) do
-      Tag.joins(:recipes).distinct.alphabetical.to_a
-    end
-    @favorited_ids = if current_user
-      Set.new(FavoriteRecipe.where(user: current_user, recipe_id: @recipes.map(&:id)).pluck(:recipe_id))
-    else
-      Set.new
-    end
-    # Badge « De saison » sur les cartes : on précalcule en UNE requête les IDs
-    # de recettes de saison ce mois-ci, plutôt que d'appeler seasonal_for_month?
-    # par carte (les ingrédients ne sont pas eager-loaded → éviterait un N+1).
-    @current_month = Date.current.month
-    @seasonal_ids = if @recipes.any?
-      Set.new(Recipe.seasonal_for_month(@current_month).where(id: @recipes.map(&:id)).pluck(:id))
-    else
-      Set.new
+    @catalog = Recipes::CatalogQuery.call(scope: recipes_base_scope, params: params, user: current_user) do |recipes|
+      pagy(recipes, items: PER_PAGE)
     end
     load_draft_data
     # Vignettes du rail « menu à valider » affiché à côté des résultats
@@ -125,10 +108,6 @@ class RecipesController < ApplicationController
   # Accès mémoïsé à la recette courante
   def recipe
     @recipe ||= Recipe.find(params[:id])
-  end
-
-  def set_recipe
-    recipe
   end
 
   def authorize_recipe
