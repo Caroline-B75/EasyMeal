@@ -24,16 +24,6 @@ module MenusHelper
     DIET_DESCRIPTIONS.fetch(diet.to_s, "")
   end
 
-  FRENCH_MONTHS = %w[
-    janvier février mars avril mai juin
-    juillet août septembre octobre novembre décembre
-  ].freeze
-
-  # Retourne une date formatée en français (ex: "28 mars 2026")
-  def french_date(date)
-    "#{date.day} #{FRENCH_MONTHS[date.month - 1]} #{date.year}"
-  end
-
   # Retourne le label du statut du menu
   def menu_status_label(menu)
     case
@@ -82,7 +72,8 @@ module MenusHelper
       details << menu_diet_label(menu.diet)
       details << "#{menu.default_people} pers. par défaut"
     end
-    details << "Créé le #{french_date(menu.created_at)}"
+    # to_date : sans lui, le format :long des *time* ajouterait l'heure.
+    details << "Créé le #{l(menu.created_at.to_date, format: :long)}"
     details
   end
 

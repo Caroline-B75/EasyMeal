@@ -64,7 +64,7 @@
             .mi-hero-card-badges
               .mi-hero-card-badges-left
                 %span.mi-badge-active Actif
-                %span.mi-hero-date= "Créé le #{french_date(@active.created_at)}"
+                %span.mi-hero-date= "Créé le #{l(@active.created_at.to_date, format: :long)}"
               -# Les deux actions de consultation sont groupées : en mobile elles
               -# occupent seules une 2e ligne, à parts égales.
               .mi-hero-card-badges-actions

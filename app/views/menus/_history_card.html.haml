@@ -7,7 +7,7 @@
     .mi-history-card-left
       .mi-history-card-name= menu.name.presence || "Menu sans nom"
       .mi-history-card-meta
-        %span= french_date(menu.created_at)
+        %span= l(menu.created_at.to_date, format: :long)
         %span ·
         %span= menu_diet_label(menu.diet)
         %span ·
