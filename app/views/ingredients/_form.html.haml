@@ -1,5 +1,7 @@
 -# Formulaire pour créer/éditer un ingrédient avec SimpleForm
-= simple_form_for ingredient, html: { class: "ingredient-form", data: { controller: "ingredient-form form-errors", turbo: false } } do |f|
+-# `ingredient_form_units_value` alimente le contrôleur Stimulus avec la seule
+-# source de vérité de la correspondance groupe d'unités → unité de base
+= simple_form_for ingredient, html: { class: "ingredient-form", data: { controller: "ingredient-form form-errors", ingredient_form_units_value: Ingredient::BASE_UNITS, turbo: false } } do |f|
 
   = f.error_notification message: "Des erreurs empêchent la sauvegarde :"
 

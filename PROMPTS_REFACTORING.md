@@ -8,11 +8,13 @@ Envoie **un seul prompt à la fois**, dans l'ordre. Chaque prompt est autonome :
 copie-colle le bloc « Prompt à envoyer » tel quel.
 
 Après chaque étape :
+
 1. Je relance les RSpec indiqués.
 2. Tu fais les vérifications visuelles listées.
 3. **Tu commites toi-même** avec le nom proposé (je ne commite jamais).
 
 Rappels d'environnement :
+
 - Ruby/Rails tournent **uniquement dans WSL** (`cd /mnt/c/Caroline/easymeal`).
 - Git se fait en **PowerShell**.
 - Baseline RSpec : la suite doit rester 100 % verte. Tout échec est une vraie régression.
@@ -33,6 +35,7 @@ puis le **gros chantier** `ExtractorService` (étapes 9 à 12).
 - **Modèle conseillé** : Sonnet — effort faible (configuration d'outillage, aucun code applicatif touché)
 
 ```
+Exécute ce prompt :
 **Qualité non négociable** : code simple, refactorisé, DRY, bien commenté, fiable, robuste, zéro code mort, bonnes pratiques Rails/Hotwire/HAML et conventions du projet.
 
 Contexte : le rapport RubyCritic affiche 0 % de couverture sur tous les fichiers.
@@ -63,9 +66,11 @@ Demandes :
 ### RSpec
 
 À relancer (aucun à modifier) :
+
 ```bash
 cd /mnt/c/Caroline/easymeal && bundle exec rspec
 ```
+
 Le nombre d'exemples ne doit pas bouger, et un résumé de couverture doit s'afficher
 en fin d'exécution.
 
@@ -90,13 +95,12 @@ projet ne sont couvertes par aucun test, ce qui indique où il est risqué de re
 
 # Étape 2 — Supprimer le code mort
 
-> CLAUDE.md interdit explicitement le code mort. Deux méthodes ne servent à rien.
-
-### Prompt à envoyer
-
 - **Modèle conseillé** : Sonnet — effort faible (suppression guidée, périmètre déjà identifié)
 
 ```
+Exécute ce prompt :
+> CLAUDE.md interdit explicitement le code mort. Deux méthodes ne servent à rien.
+
 **Qualité non négociable** : code simple, refactorisé, DRY, bien commenté, fiable, robuste, zéro code mort, bonnes pratiques Rails/Hotwire/HAML et conventions du projet.
 
 Contexte : deux méthodes mortes traînent dans le projet, ce que CLAUDE.md interdit
@@ -127,9 +131,11 @@ Demandes :
 ### RSpec
 
 À relancer :
+
 ```bash
 cd /mnt/c/Caroline/easymeal && bundle exec rspec spec/helpers spec/models
 ```
+
 Puis la suite complète pour confirmer.
 
 ### Vérification de ton côté
@@ -154,13 +160,13 @@ développeur (ou moi) perde du temps à comprendre à quoi ça sert.
 
 # Étape 3 — Unifier le mapping groupe d'unités → unité de base
 
+- **Modèle conseillé** : Opus — effort moyen (refactoring à cheval sur Ruby et Stimulus, API Values à manier correctement)
+
+Exécute ce prompt :
+
 > Après l'étape 2, la correspondance `mass → g`, `volume → ml`... vit encore à
 > **deux** endroits : la validation Ruby et le contrôleur Stimulus. Si l'un des deux
 > change, l'autre se désynchronise silencieusement.
-
-### Prompt à envoyer
-
-- **Modèle conseillé** : Opus — effort moyen (refactoring à cheval sur Ruby et Stimulus, API Values à manier correctement)
 
 ```
 **Qualité non négociable** : code simple, refactorisé, DRY, bien commenté, fiable, robuste, zéro code mort, bonnes pratiques Rails/Hotwire/HAML et conventions du projet.
@@ -206,6 +212,7 @@ Ajoute spec/models/ingredient_spec.rb couvrant :
 ```
 
 À relancer :
+
 ```bash
 cd /mnt/c/Caroline/easymeal && bundle exec rspec spec/models/ingredient_spec.rb && bundle exec rspec
 ```
@@ -223,7 +230,7 @@ cd /mnt/c/Caroline/easymeal && bundle exec rspec spec/models/ingredient_spec.rb 
 
 La même information était écrite deux fois, dans deux langages. On la déclare une
 seule fois côté Ruby, et le JavaScript va la lire — c'est ce qu'on appelle le principe
-DRY (*Don't Repeat Yourself*). Le test de cohérence ajouté est un filet de sécurité : il
+DRY (_Don't Repeat Yourself_). Le test de cohérence ajouté est un filet de sécurité : il
 échouera si quelqu'un ajoute un groupe d'unités sans son unité de base.
 
 ### Commit proposé
@@ -234,11 +241,11 @@ DRY (*Don't Repeat Yourself*). Le test de cohérence ajouté est un filet de sé
 
 # Étape 4 — Utiliser I18n pour les dates françaises
 
-> `MenusHelper` réimplémente à la main ce que Rails fait déjà nativement.
-
-### Prompt à envoyer
-
 - **Modèle conseillé** : Sonnet — effort faible (3 appels à remplacer, comportement natif de Rails)
+
+Exécute ce prompt :
+
+> `MenusHelper` réimplémente à la main ce que Rails fait déjà nativement.
 
 ```
 **Qualité non négociable** : code simple, refactorisé, DRY, bien commenté, fiable, robuste, zéro code mort, bonnes pratiques Rails/Hotwire/HAML et conventions du projet.
@@ -269,6 +276,7 @@ Demandes :
 ### RSpec
 
 À relancer :
+
 ```bash
 cd /mnt/c/Caroline/easymeal && bundle exec rspec spec/requests/menus_views_spec.rb && bundle exec rspec
 ```
@@ -298,14 +306,13 @@ divergent. On supprime donc la version maison au profit de l'outil natif.
 
 # Étape 5 — Déplacer les libellés de régime dans les locales
 
+- **Modèle conseillé** : Sonnet — effort moyen (déplacement mécanique, mais 14 vues consomment ces deux helpers)
+
+Exécute ce prompt :
+
 > Le projet a posé la règle « le français vit dans `config/locales/fr.yml` » pour les
 > moments de repas. On l'applique aux régimes alimentaires.
 
-### Prompt à envoyer
-
-- **Modèle conseillé** : Sonnet — effort moyen (déplacement mécanique, mais 14 vues consomment ces deux helpers)
-
-```
 **Qualité non négociable** : code simple, refactorisé, DRY, bien commenté, fiable, robuste, zéro code mort, bonnes pratiques Rails/Hotwire/HAML et conventions du projet.
 
 Contexte : MenusHelper stocke DIET_LABELS et DIET_DESCRIPTIONS, deux hashes de
@@ -315,12 +322,14 @@ Les libellés de régime doivent suivre la même règle. Ils sont utilisés dans
 14 endroits de vues.
 
 Fichiers de contexte :
+
 - app/helpers/menus_helper.rb (lignes 3-25)
 - config/locales/fr.yml (regarde comment meal_types est structuré, lignes 205-235)
 - app/models/user.rb (pour l'enum default_diets)
-- app/views/menus/_params_form.html.haml (lignes 44-45)
+- app/views/menus/\_params_form.html.haml (lignes 44-45)
 
 Demandes :
+
 1. Ajoute une section `diets:` et `diets_descriptions:` dans config/locales/fr.yml,
    en suivant exactement la convention de nommage déjà utilisée par meal_types.
 2. Réécris menu_diet_label et menu_diet_description pour lire dans les locales via
@@ -329,6 +338,7 @@ Demandes :
 3. Supprime les constantes DIET_LABELS et DIET_DESCRIPTIONS.
 4. NE change pas les signatures des deux méthodes ni leurs noms : 14 vues les
    appellent, elles doivent continuer à fonctionner sans modification.
+
 ```
 
 ### RSpec
@@ -336,15 +346,17 @@ Demandes :
 À créer : `spec/helpers/menus_helper_spec.rb` n'existe pas.
 
 ```
+
 Ajoute spec/helpers/menus_helper_spec.rb couvrant menu_diet_label et
 menu_diet_description : les 4 régimes connus (omnivore, vegetarien, vegan,
 pescetarien) plus le comportement de repli sur une clé inconnue.
-```
+
+````
 
 À relancer :
 ```bash
 cd /mnt/c/Caroline/easymeal && bundle exec rspec spec/helpers && bundle exec rspec
-```
+````
 
 ### Vérification de ton côté
 
@@ -371,13 +383,12 @@ ce qui rendrait une traduction anglaise possible plus tard sans retoucher le cod
 
 # Étape 6 — Déplacer les traductions Ingredient dans les locales
 
-> Même opération que l'étape 5, mais sur les 21 rayons et 4 groupes d'unités.
-
-### Prompt à envoyer
-
 - **Modèle conseillé** : Opus — effort moyen (suppression d'une surcharge Rails ; la liste de courses en dépend indirectement)
 
-```
+Exécute ce prompt :
+
+> Même opération que l'étape 5, mais sur les 21 rayons et 4 groupes d'unités.
+
 **Qualité non négociable** : code simple, refactorisé, DRY, bien commenté, fiable, robuste, zéro code mort, bonnes pratiques Rails/Hotwire/HAML et conventions du projet.
 
 Contexte : Ingredient surcharge self.human_attribute_name pour router
@@ -388,12 +399,14 @@ traduisent via activerecord.attributes.ingredient.<enum>.<clé> dans les locales
 aucune surcharge.
 
 Fichiers de contexte :
+
 - app/models/ingredient.rb (lignes 42-53 et 119-156)
 - config/locales/fr.yml (section activerecord, à partir de la ligne 21)
 - app/views/ingredients/index.html.haml (lignes 16 et 52)
-- app/views/menus/_grocery_section.html.haml (ligne 6)
+- app/views/menus/\_grocery_section.html.haml (ligne 6)
 
 Demandes :
+
 1. Déplace les 21 rayons et les 4 groupes d'unités dans config/locales/fr.yml, sous
    activerecord.attributes.ingredient.category et .unit_group, en respectant la
    structure existante du fichier.
@@ -402,9 +415,10 @@ Demandes :
 3. Vérifie que les 8 appels existants à Ingredient.human_attribute_name("category.X")
    dans les vues continuent de renvoyer le bon libellé sans être modifiés — c'est le
    comportement natif de Rails pour les enums, mais confirme-le par un test.
-4. Attention au cas particulier : menus/_grocery_section.html.haml traduit une
+4. Attention au cas particulier : menus/\_grocery_section.html.haml traduit une
    catégorie de GroceryItem (pas d'Ingredient) via Ingredient.human_attribute_name.
    Vérifie que ce cas fonctionne toujours.
+
 ```
 
 ### RSpec
@@ -412,16 +426,18 @@ Demandes :
 À compléter : `spec/models/ingredient_spec.rb` (créé à l'étape 3).
 
 ```
+
 Ajoute au spec Ingredient des exemples vérifiant que
 Ingredient.human_attribute_name("category.fruits_legumes") renvoie
 "Fruits et légumes", que chaque clé de l'enum category a une traduction, et idem
 pour unit_group.
-```
+
+````
 
 À relancer :
 ```bash
 cd /mnt/c/Caroline/easymeal && bundle exec rspec spec/models/ingredient_spec.rb && bundle exec rspec
-```
+````
 
 ### Vérification de ton côté
 
@@ -448,14 +464,13 @@ laissant le framework faire son travail.
 
 # Étape 7 — Mettre en cache la lecture des fichiers SVG
 
+- **Modèle conseillé** : Opus — effort moyen (arbitrage à faire entre cache en production et confort de développement)
+
+Exécute ce prompt :
+
 > Problème de performance, pas de propreté : chaque icône déclenche un accès disque
 > à chaque affichage de page.
 
-### Prompt à envoyer
-
-- **Modèle conseillé** : Opus — effort moyen (arbitrage à faire entre cache en production et confort de développement)
-
-```
 **Qualité non négociable** : code simple, refactorisé, DRY, bien commenté, fiable, robuste, zéro code mort, bonnes pratiques Rails/Hotwire/HAML et conventions du projet.
 
 Contexte : ApplicationHelper#inline_svg fait un File.exist? puis un File.read à
@@ -464,11 +479,13 @@ les icônes, cela produit plusieurs accès disque par requête, y compris en pro
 où les fichiers ne changent jamais.
 
 Fichiers de contexte :
+
 - app/helpers/application_helper.rb (lignes 108-128)
 - config/environments/production.rb
 - config/environments/development.rb
 
 Demandes :
+
 1. Mémorise le contenu brut des fichiers SVG pour éviter de relire le disque à chaque
    appel. Le cache doit porter sur la lecture du fichier uniquement, pas sur le résultat
    final (qui dépend des paramètres color/color2/size/css_class).
@@ -481,6 +498,7 @@ Demandes :
    le fichier n'existe pas, et injection identique des attributs class/style/aria-hidden.
 4. Ne touche pas à svg_icon (les icônes Feather sont déjà en constante, aucun accès
    disque).
+
 ```
 
 ### RSpec
@@ -489,16 +507,19 @@ Demandes :
 `#greeting_context`.
 
 ```
+
 Ajoute au spec ApplicationHelper des exemples pour inline_svg :
+
 - une icône existante renvoie du SVG contenant les classes attendues
 - une icône inexistante renvoie une chaîne vide
 - les options color, color2 et size produisent bien l'attribut style attendu
-```
+
+````
 
 À relancer :
 ```bash
 cd /mnt/c/Caroline/easymeal && bundle exec rspec spec/helpers/application_helper_spec.rb && bundle exec rspec
-```
+````
 
 ### Vérification de ton côté
 
@@ -523,14 +544,13 @@ qu'un cache trop agressif t'empêche de voir tes modifications d'icônes.
 
 # Étape 8 — Restreindre le rescue trop large de transition_menu
 
+- **Modèle conseillé** : Opus — effort élevé (il faut tracer ce que lèvent réellement les transitions avant de restreindre quoi que ce soit)
+
+Exécute ce prompt :
+
 > Un vrai bug latent : une erreur de programmation se transforme aujourd'hui en
 > message d'interface.
 
-### Prompt à envoyer
-
-- **Modèle conseillé** : Opus — effort élevé (il faut tracer ce que lèvent réellement les transitions avant de restreindre quoi que ce soit)
-
-```
 **Qualité non négociable** : code simple, refactorisé, DRY, bien commenté, fiable, robuste, zéro code mort, bonnes pratiques Rails/Hotwire/HAML et conventions du projet.
 
 Contexte : MenusController#transition_menu (méthode privée) enveloppe activate!,
@@ -541,11 +561,13 @@ sous la forme "Impossible d'activer le menu : undefined method ...". Le bug ne
 remonterait ni dans les logs d'erreur ni dans un outil de suivi.
 
 Fichiers de contexte :
+
 - app/controllers/menus_controller.rb (lignes 104-131 et 233-241)
 - app/models/menu.rb (les méthodes activate!, reactivate!, revert_to_draft!,
   archive!, et ce qu'elles lèvent réellement)
 
 Demandes :
+
 1. Identifie précisément quelles exceptions les trois transitions peuvent lever
    légitimement (échec de validation métier, garde d'état...). Liste-les-moi.
 2. Restreins le rescue à ces seules exceptions. Une erreur de programmation doit
@@ -556,6 +578,7 @@ Demandes :
    déjà dans le projet.
 4. Le message flash vu par l'utilisatrice ne doit pas changer pour les échecs métier
    légitimes.
+
 ```
 
 ### RSpec
@@ -563,15 +586,17 @@ Demandes :
 À compléter : `spec/models/menu_spec.rb` et les specs de requêtes menus.
 
 ```
+
 Vérifie que les specs existants couvrent le cas d'échec d'une transition. Sinon,
 ajoute un exemple par transition : un échec métier produit bien le flash d'alerte
 attendu et une redirection, sans lever d'exception.
-```
+
+````
 
 À relancer :
 ```bash
 cd /mnt/c/Caroline/easymeal && bundle exec rspec spec/models/menu_spec.rb spec/requests/menus_revert_to_draft_spec.rb spec/requests/menus_views_spec.rb && bundle exec rspec
-```
+````
 
 ### Vérification de ton côté
 
@@ -598,14 +623,13 @@ normalement pour qu'on puisse le corriger.
 
 # Étape 9 — Alléger RecipesController#index
 
+- **Modèle conseillé** : Opus — effort élevé (choix d'architecture + optimisations anti-N+1 à déplacer sans les casser)
+
+Exécute ce prompt :
+
 > La seule action de contrôleur réellement trop chargée : 8 variables d'instance et
 > 5 requêtes en ligne.
 
-### Prompt à envoyer
-
-- **Modèle conseillé** : Opus — effort élevé (choix d'architecture + optimisations anti-N+1 à déplacer sans les casser)
-
-```
 **Qualité non négociable** : code simple, refactorisé, DRY, bien commenté, fiable, robuste, zéro code mort, bonnes pratiques Rails/Hotwire/HAML et conventions du projet.
 
 Contexte : RecipesController#index fait 28 lignes, assigne 8 variables d'instance
@@ -617,12 +641,14 @@ préchargés, cache des tags) sont bonnes et doivent être conservées telles qu
 l'objectif est de les déplacer, pas de les changer.
 
 Fichiers de contexte :
+
 - app/controllers/recipes_controller.rb (lignes 14-43 et 123-145)
 - app/controllers/concerns/recipes/draft_manageable.rb
 - app/services/recipes/filter_service.rb
 - app/views/recipes/index.html.haml (pour voir quelles variables la vue consomme)
 
 Demandes :
+
 1. Extrais la construction du catalogue dans un objet dédié — soit un service
    Recipes::CatalogQuery, soit un presenter — cohérent avec l'architecture existante
    du projet (regarde comment Recipes::FilterService et Menus::GenerateService sont
@@ -636,20 +662,22 @@ Demandes :
    qu'appeler le lecteur mémoïsé `recipe`, que authorize_recipe et les concerns
    appellent déjà en première ligne. Si tu confirmes qu'il est redondant, supprime-le ;
    sinon explique-moi pourquoi il doit rester.
-```
+
+````
 
 ### RSpec
 
 À relancer :
 ```bash
 cd /mnt/c/Caroline/easymeal && bundle exec rspec spec/requests/recipes_meal_types_spec.rb spec/requests/recipes_draft_rail_spec.rb spec/requests/recipe_drafts_spec.rb spec/services/recipes/filter_service_spec.rb && bundle exec rspec
-```
+````
 
 Si un `spec/services/recipes/catalog_query_spec.rb` est créé, l'ajouter à la liste.
 
 ### Vérification de ton côté
 
 Le catalogue est la page la plus riche du site, teste-la à fond :
+
 - `/recipes` : la liste s'affiche, la pagination fonctionne.
 - Filtre par **tag**, puis par **régime**, puis le tri — chaque filtre doit fonctionner.
 - Filtre **« Mes favoris »** → seules tes recettes favorites doivent apparaître.
@@ -675,15 +703,14 @@ l'insistance à ne pas les modifier.
 
 # Étape 10 — Filet de sécurité avant de découper ExtractorService
 
+- **Modèle conseillé** : Opus — effort élevé (292 lignes à couvrir, dont des cas limites de parsing et de réseau à simuler)
+
+Exécute ce prompt :
+
 > `ExtractorService` est le pire fichier du projet (note D, complexité 236, 53 smells)
 > et il n'a **aucun spec**. On écrit les tests **avant** de le découper, sinon on
 > refactore à l'aveugle.
 
-### Prompt à envoyer
-
-- **Modèle conseillé** : Opus — effort élevé (292 lignes à couvrir, dont des cas limites de parsing et de réseau à simuler)
-
-```
 **Qualité non négociable** : code simple, refactorisé, DRY, bien commenté, fiable, robuste, zéro code mort, bonnes pratiques Rails/Hotwire/HAML et conventions du projet.
 
 Contexte : Recipes::ExtractorService est le fichier le plus problématique du projet
@@ -695,6 +722,7 @@ des tests qui figent le comportement actuel pour détecter toute régression pen
 découpage.
 
 Fichiers de contexte :
+
 - app/services/recipes/extractor_service.rb
 - app/controllers/recipe_imports_controller.rb
 - spec/requests/recipe_imports_spec.rb (pour voir comment le service y est déjà simulé)
@@ -703,6 +731,7 @@ Fichiers de contexte :
 - Gemfile (vérifie si webmock ou vcr est disponible pour simuler les appels HTTP)
 
 Demandes :
+
 1. Crée spec/services/recipes/extractor_service_spec.rb. Aucun appel réseau réel ne
    doit être fait : simule les réponses HTTP.
 2. Couvre en priorité les méthodes de parsing pur, les plus faciles à figer :
@@ -722,7 +751,8 @@ Demandes :
    leurs nouvelles classes aux étapes 11 et 12.
 7. Ne modifie AUCUN fichier de app/. Si un comportement actuel te paraît être un bug,
    écris le test qui fige le comportement ACTUEL et signale-le-moi séparément.
-```
+
+````
 
 ### RSpec
 
@@ -730,7 +760,7 @@ Demandes :
 
 ```bash
 cd /mnt/c/Caroline/easymeal && bundle exec rspec spec/services/recipes/extractor_service_spec.rb && bundle exec rspec
-```
+````
 
 Note bien le nouveau total d'exemples : c'est ta nouvelle baseline pour les étapes 11 et 12.
 
@@ -741,8 +771,8 @@ suite est verte et que le nombre d'exemples a augmenté.
 
 ### Ce que ça fait
 
-Un « test de caractérisation » ne vérifie pas que le code est *correct*, mais qu'il se
-comporte *comme aujourd'hui*. C'est le filet de sécurité indispensable avant de
+Un « test de caractérisation » ne vérifie pas que le code est _correct_, mais qu'il se
+comporte _comme aujourd'hui_. C'est le filet de sécurité indispensable avant de
 réorganiser du code : si le découpage casse quelque chose, un test rougit immédiatement
 au lieu que le bug apparaisse en production trois semaines plus tard.
 
@@ -754,13 +784,12 @@ au lieu que le bug apparaisse en production trois semaines plus tard.
 
 # Étape 11 — Découper ExtractorService (1/2) : HTTP et schema.org
 
-> Premier tiers du découpage. On sort ce qui n'a rien à voir avec l'IA.
-
-### Prompt à envoyer
-
 - **Modèle conseillé** : Opus — effort élevé (extraction de deux classes + déplacement des specs, sur le fichier le plus complexe du projet)
 
-```
+Exécute ce prompt :
+
+> Premier tiers du découpage. On sort ce qui n'a rien à voir avec l'IA.
+
 **Qualité non négociable** : code simple, refactorisé, DRY, bien commenté, fiable, robuste, zéro code mort, bonnes pratiques Rails/Hotwire/HAML et conventions du projet.
 
 Contexte : Recipes::ExtractorService fait quatre métiers dans une seule classe :
@@ -769,12 +798,14 @@ l'API Claude. On sort les deux premiers dans cette étape. Les tests de caracté
 de l'étape 10 sont le filet de sécurité : ils doivent rester verts.
 
 Fichiers de contexte :
+
 - app/services/recipes/extractor_service.rb (lignes 40-147)
 - spec/services/recipes/extractor_service_spec.rb
 - app/services/menus/generate_service.rb (pour la convention d'objet de service
   du projet)
 
 Demandes :
+
 1. Extrais Recipes::PageFetcher : tout le HTTP de fetch_html (validation d'URL,
    redirections avec limite, timeouts, forçage d'encodage UTF-8, messages d'erreur en
    français).
@@ -792,7 +823,8 @@ Demandes :
    spec/services/recipes/schema_org_parser_spec.rb. Les tests qui utilisaient `send`
    pour atteindre des méthodes privées doivent maintenant les appeler normalement.
 6. Aucun `send` ne doit subsister dans les specs de ces deux nouvelles classes.
-```
+
+````
 
 ### RSpec
 
@@ -801,7 +833,7 @@ Demandes :
 
 ```bash
 cd /mnt/c/Caroline/easymeal && bundle exec rspec spec/services spec/requests/recipe_imports_spec.rb && bundle exec rspec
-```
+````
 
 Le nombre total d'exemples doit rester **identique ou supérieur** à celui de l'étape 10.
 
@@ -830,13 +862,12 @@ structurées d'une page » en deux objets distincts, chacun testable seul.
 
 # Étape 12 — Découper ExtractorService (2/2) : prompts et client Claude
 
-> Dernier tiers. C'est aussi ici qu'on traite la duplication des « règles strictes ».
-
-### Prompt à envoyer
-
 - **Modèle conseillé** : Opus — effort élevé (fin du découpage, mutualisation DRY des prompts IA, plus une analyse à me rendre)
 
-```
+Exécute ce prompt :
+
+> Dernier tiers. C'est aussi ici qu'on traite la duplication des « règles strictes ».
+
 **Qualité non négociable** : code simple, refactorisé, DRY, bien commenté, fiable, robuste, zéro code mort, bonnes pratiques Rails/Hotwire/HAML et conventions du projet.
 
 Contexte : après l'étape 11, ExtractorService contient encore deux métiers : la
@@ -846,11 +877,13 @@ total_time_minutes) sont écrites mot pour mot deux fois, dans text_messages
 (lignes 181-186) et photo_messages (lignes 208-213).
 
 Fichiers de contexte :
+
 - app/services/recipes/extractor_service.rb (état après l'étape 11)
 - spec/services/recipes/extractor_service_spec.rb
 - .env.example ou config/ (pour voir comment ANTHROPIC_API_KEY est déclarée)
 
 Demandes :
+
 1. Extrais Recipes::ClaudePrompts : text_messages, photo_messages,
    parse_ingredients_with_claude (la partie prompt seulement) et json_schema_example.
    Mutualise les 4 "Règles strictes" dupliquées en un seul endroit — c'est la
@@ -866,6 +899,7 @@ Demandes :
    claude_client_spec.rb.
 
 Point à me signaler SANS le corriger dans ce commit (je déciderai après) :
+
 - Le modèle utilisé est "claude-sonnet-4-6". Il est valide et actif, donc rien ne
   casse. Mais claude-sonnet-5 existe maintenant et est meilleur en extraction
   structurée.
@@ -873,8 +907,9 @@ Point à me signaler SANS le corriger dans ce commit (je déciderai après) :
   existe pour Ruby, ce qui supprimerait une bonne partie du code de ClaudeClient.
 - Le nettoyage manuel des blocs markdown (les gsub sur ```json) pourrait être remplacé
   par les sorties structurées de l'API, qui garantissent du JSON valide.
-Fais-moi une estimation de l'effort pour chacun de ces trois points, sans y toucher.
-```
+  Fais-moi une estimation de l'effort pour chacun de ces trois points, sans y toucher.
+
+````
 
 ### RSpec
 
@@ -883,11 +918,12 @@ Fais-moi une estimation de l'effort pour chacun de ces trois points, sans y touc
 
 ```bash
 cd /mnt/c/Caroline/easymeal && bundle exec rspec spec/services spec/requests/recipe_imports_spec.rb && bundle exec rspec
-```
+````
 
 ### Vérification de ton côté
 
 Rejoue **tous** les tests de l'étape 11, puis :
+
 - Importe une recette **depuis une photo** → l'extraction doit fonctionner et
   pré-remplir le formulaire.
 - Importe une URL **sans schema.org** (un blog) → le chemin « texte envoyé à l'IA »
@@ -924,20 +960,20 @@ ne le remarque.
 
 ## Récapitulatif
 
-| # | Étape | Effort | Risque |
-|---|---|---|---|
-| 1 | SimpleCov | 15 min | nul |
-| 2 | Code mort | 15 min | nul |
-| 3 | Mapping unités (Ruby + JS) | 45 min | faible |
-| 4 | Dates via I18n | 20 min | faible |
-| 5 | Libellés régimes → locales | 30 min | faible |
-| 6 | Traductions Ingredient → locales | 45 min | moyen (liste de courses) |
-| 7 | Cache SVG | 30 min | faible |
-| 8 | rescue transition_menu | 30 min | moyen |
-| 9 | RecipesController#index | 1 h 30 | moyen (perf) |
-| 10 | Specs ExtractorService | 1 h 30 | nul |
-| 11 | Découpage 1/2 | 1 h | moyen |
-| 12 | Découpage 2/2 | 1 h | moyen |
+| #   | Étape                            | Effort | Risque                   |
+| --- | -------------------------------- | ------ | ------------------------ |
+| 1   | SimpleCov                        | 15 min | nul                      |
+| 2   | Code mort                        | 15 min | nul                      |
+| 3   | Mapping unités (Ruby + JS)       | 45 min | faible                   |
+| 4   | Dates via I18n                   | 20 min | faible                   |
+| 5   | Libellés régimes → locales       | 30 min | faible                   |
+| 6   | Traductions Ingredient → locales | 45 min | moyen (liste de courses) |
+| 7   | Cache SVG                        | 30 min | faible                   |
+| 8   | rescue transition_menu           | 30 min | moyen                    |
+| 9   | RecipesController#index          | 1 h 30 | moyen (perf)             |
+| 10  | Specs ExtractorService           | 1 h 30 | nul                      |
+| 11  | Découpage 1/2                    | 1 h    | moyen                    |
+| 12  | Découpage 2/2                    | 1 h    | moyen                    |
 
 Les étapes 1 à 8 sont indépendantes : tu peux t'arrêter, reprendre, ou en sauter une.
 Les étapes 10 à 12 forment un bloc — ne commence pas la 11 sans avoir fini la 10.

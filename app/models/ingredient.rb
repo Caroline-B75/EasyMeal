@@ -31,13 +31,28 @@ class Ingredient < ApplicationRecord
     autre: 20
   }, prefix: true
 
-  # Groupes d'unités de mesure
+  # Groupes d'unités de mesure (libellés dans unit_group_translations,
+  # unité de base associée dans BASE_UNITS)
   enum :unit_group, {
-    mass: 0,      # masse (base: g)
-    volume: 1,    # volume (base: ml)
-    count: 2,     # nombre (base: piece)
-    spoon: 3      # cuillères (base: cac)
+    mass: 0,
+    volume: 1,
+    count: 2,
+    spoon: 3
   }, prefix: true
+
+  # === Constantes ===
+
+  # Unité de base attendue pour chaque groupe d'unités.
+  # Source de vérité unique : la validation ci-dessous et le formulaire
+  # (contrôleur Stimulus `ingredient-form`, alimenté par les partials) lisent
+  # tous cette table. Ajouter un groupe d'unités ne demande donc de toucher que
+  # l'enum ci-dessus et cette constante.
+  BASE_UNITS = {
+    "mass" => "g",
+    "volume" => "ml",
+    "count" => "piece",
+    "spoon" => "cac"
+  }.freeze
 
   # Délègue la traduction des enums category et unit_group vers des tables de correspondance
   def self.human_attribute_name(attr, options = {})
@@ -147,20 +162,14 @@ class Ingredient < ApplicationRecord
 
   private
 
-  # Valide que base_unit correspond bien au unit_group
+  # Valide que base_unit est bien l'unité de base du unit_group (cf. BASE_UNITS)
   def base_unit_matches_unit_group
-    valid_units = {
-      "mass" => [ "g" ],
-      "volume" => [ "ml" ],
-      "count" => [ "piece" ],
-      "spoon" => [ "cac" ]
-    }
-
     return if unit_group.blank? || base_unit.blank?
 
-    unless valid_units[unit_group]&.include?(base_unit)
-      errors.add(:base_unit, "doit être #{valid_units[unit_group]&.join(' ou ')} pour le groupe #{unit_group}")
-    end
+    expected_unit = BASE_UNITS[unit_group]
+    return if base_unit == expected_unit
+
+    errors.add(:base_unit, "doit être #{expected_unit} pour le groupe #{unit_group}")
   end
 
   # Valide que tous les season_months sont entre 1 et 12

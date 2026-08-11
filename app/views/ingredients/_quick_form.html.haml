@@ -2,7 +2,7 @@
 -# Utilisé depuis le formulaire de recette pour ajouter un ingrédient à la volée
 -# Soumet en AJAX et dispatch un événement pour mettre à jour les selects
 
-= simple_form_for ingredient, url: quick_create_ingredients_path, html: { class: "ingredient-form ingredient-form-slideout", id: "quick-ingredient-form-content", data: { controller: "ingredient-form" } } do |f|
+= simple_form_for ingredient, url: quick_create_ingredients_path, html: { class: "ingredient-form ingredient-form-slideout", id: "quick-ingredient-form-content", data: { controller: "ingredient-form", ingredient_form_units_value: Ingredient::BASE_UNITS } } do |f|
 
   .slideout-form-content
     = f.error_notification message: "Des erreurs empêchent la sauvegarde :"
