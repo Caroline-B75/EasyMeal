@@ -233,10 +233,16 @@ class MenusController < ApplicationController
   # Transition d'état du menu (activate/reactivate/revert_to_draft) avec gestion
   # d'erreur unifiée. En cas d'échec on retombe toujours sur la vue du menu :
   # success_redirect ne s'applique qu'à la transition réussie.
+  #
+  # Seules les erreurs MÉTIER attendues deviennent un message flash : une garde
+  # d'état refusée et un enregistrement invalide (validations du menu ou d'un
+  # article de courses). Tout le reste — NoMethodError et consorts — est un bug
+  # de programmation : il doit remonter en 500 pour être vu et corrigé, plutôt
+  # que de se déguiser en message poli à l'utilisatrice.
   def transition_menu(method, success_notice, failure_prefix, success_redirect: @menu)
     @menu.public_send(method)
     redirect_to success_redirect, notice: success_notice, status: :see_other
-  rescue StandardError => error
+  rescue Menu::InvalidTransitionError, ActiveRecord::RecordInvalid => error
     redirect_to @menu, alert: "#{failure_prefix} : #{error.message}", status: :see_other
   end
 

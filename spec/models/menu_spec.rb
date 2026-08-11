@@ -46,16 +46,16 @@ RSpec.describe Menu, type: :model do
       expect(item.reload.checked).to be true
     end
 
-    it "lève une erreur depuis un brouillon" do
+    it "lève une erreur métier depuis un brouillon" do
       menu = create(:menu, user: user, status: :draft)
 
-      expect { menu.revert_to_draft! }.to raise_error(/actif/)
+      expect { menu.revert_to_draft! }.to raise_error(Menu::InvalidTransitionError, /actif/)
     end
 
-    it "lève une erreur depuis un menu archivé" do
+    it "lève une erreur métier depuis un menu archivé" do
       menu = create(:menu, user: user, status: :archived)
 
-      expect { menu.revert_to_draft! }.to raise_error(/actif/)
+      expect { menu.revert_to_draft! }.to raise_error(Menu::InvalidTransitionError, /actif/)
     end
   end
 
@@ -114,6 +114,12 @@ RSpec.describe Menu, type: :model do
       expect(generated.reload.checked).to be false
       expect(generated.previous_quantity_base).to be_nil
       expect(manual.reload.checked).to be false
+    end
+
+    it "lève une erreur métier depuis un menu qui n'est pas archivé" do
+      menu = create(:menu, user: user, status: :active)
+
+      expect { menu.reactivate! }.to raise_error(Menu::InvalidTransitionError, /archivé/)
     end
   end
 end

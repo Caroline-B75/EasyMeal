@@ -8,6 +8,16 @@
 # Architecture : le draft n'est PAS stocké en session — c'est un enregistrement
 # DB standard. La différence draft/actif est uniquement portée par l'enum status.
 class Menu < ApplicationRecord
+  # Transition d'état refusée par une garde métier (« seul un menu archivé peut
+  # être réactivé »). C'est une erreur ATTENDUE : le contrôleur la rattrape pour
+  # en faire un message flash. Tout ce qui n'est pas de cette famille est un bug
+  # et doit remonter normalement — même esprit que Menus::NoCandidatesError.
+  #
+  # Usage :
+  #   rescue Menu::InvalidTransitionError => e
+  #     redirect_to menu, alert: e.message
+  class InvalidTransitionError < StandardError; end
+
   # === Associations ===
   belongs_to :user
 
@@ -72,7 +82,7 @@ class Menu < ApplicationRecord
 
   # Passe le menu en statut :active et déclenche la génération de la liste de courses.
   # Archive automatiquement l'éventuel menu actif précédent de l'utilisateur.
-  # Lève une ActiveRecord::RecordInvalid si le menu ne peut pas être activé.
+  # @raise [ActiveRecord::RecordInvalid] si le menu ne peut pas être activé
   def activate!
     transaction do
       archive_current_active!
@@ -83,8 +93,10 @@ class Menu < ApplicationRecord
 
   # Réactive un menu archivé : l'ancien menu actif passe en archived,
   # celui-ci redevient le menu actif et sa liste de courses est régénérée.
+  # @raise [InvalidTransitionError] si le menu n'est pas archivé
+  # @raise [ActiveRecord::RecordInvalid] si le menu ne peut pas être activé
   def reactivate!
-    raise "Seul un menu archivé peut être réactivé" unless status_archived?
+    raise InvalidTransitionError, "Seul un menu archivé peut être réactivé" unless status_archived?
 
     # Les coches de ce vieux menu sont obsolètes (courses d'il y a des semaines) :
     # on repart d'une liste fraîche, entièrement décochée et sans badge résiduel.
@@ -101,9 +113,10 @@ class Menu < ApplicationRecord
   # mettra à jour sans perdre le travail de courses déjà fait.
   # Remplace l'éventuel brouillon existant : un utilisateur ne garde qu'un seul
   # menu à valider pour éviter toute ambiguïté entre menu actif et prochain menu.
-  # Lève une erreur si le menu n'est pas actif.
+  # @raise [InvalidTransitionError] si le menu n'est pas actif
+  # @raise [ActiveRecord::RecordInvalid] si le brouillon ne peut pas être enregistré
   def revert_to_draft!
-    raise "Seul un menu actif peut repasser en brouillon" unless status_active?
+    raise InvalidTransitionError, "Seul un menu actif peut repasser en brouillon" unless status_active?
 
     transaction do
       destroy_other_drafts!
