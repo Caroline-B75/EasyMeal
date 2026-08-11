@@ -64,6 +64,7 @@ group :development, :test do
   gem "selenium-webdriver", "~> 4.40.0"
   gem "awesome_print", "~> 1.9.2"
   gem "table_print", "~> 1.5.7"
+  gem "simplecov", require: false
 end
 
 group :development do
