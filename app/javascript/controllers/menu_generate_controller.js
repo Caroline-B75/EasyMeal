@@ -3,7 +3,7 @@ import { paintSliderTrack } from "slider_track"
 
 /**
  * Interactivité du formulaire de paramètres de menu (génération / régénération) :
- * - Sélection du régime alimentaire (cartes radio accessibles ARIA)
+ * - Régime alimentaire : report du libellé choisi dans le résumé
  * - Slider "personnes" avec piste colorée
  * - Répartition des repas : écoute les steppers du contrôleur meal-counts
  * - Barre résumé synchronisée en temps réel
@@ -14,7 +14,6 @@ import { paintSliderTrack } from "slider_track"
  */
 export default class extends Controller {
   static targets = [
-    "dietOption", "dietInput",
     "peopleSlider", "peopleDisplay", "peopleUnit",
     "nameInput",
     "sumDiet", "sumPeople", "sumMeals", "sumName",
@@ -29,26 +28,14 @@ export default class extends Controller {
 
   // ── Régime alimentaire ──────────────────────────────────
 
+  // Le radio natif porte seul l'état sélectionné : cochage, apparence
+  // (CSS :has(:checked)) et annonce ARIA. Il ne reste au JS qu'à reporter le
+  // libellé du régime choisi dans la barre de résumé.
   selectDiet(event) {
-    const option = event.currentTarget
+    if (!this.hasSumDietTarget) return
 
-    // Mise à jour des classes et ARIA
-    this.dietOptionTargets.forEach(opt => {
-      opt.classList.remove("selected")
-      opt.setAttribute("aria-checked", "false")
-    })
-    option.classList.add("selected")
-    option.setAttribute("aria-checked", "true")
-
-    // Cocher le radio button correspondant
-    const radio = option.querySelector("input[type='radio']")
-    if (radio) radio.checked = true
-
-    // Résumé : libellé lisible lu depuis la carte sélectionnée
-    if (this.hasSumDietTarget) {
-      const name = option.querySelector(".mn-diet-name")
-      if (name) this.sumDietTarget.textContent = name.textContent
-    }
+    const name = event.target.closest(".mn-diet-option")?.querySelector(".mn-diet-name")
+    if (name) this.sumDietTarget.textContent = name.textContent
   }
 
   // ── Nombre de personnes (slider) ────────────────────────

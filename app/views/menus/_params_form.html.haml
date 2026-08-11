@@ -29,17 +29,16 @@
       %span#diet-label.mn-form-card-title Régime alimentaire
     .mn-form-card-body
       .mn-diet-grid
+        -# État visuel et sémantique portés par le radio natif (CSS :has(:checked),
+        -# ARIA implicite) : pas de classe ni d'aria-checked posés au rendu, qui
+        -# resteraient collés à l'option initiale. Le JS n'écoute le changement
+        -# que pour la barre de résumé, seule chose que le CSS ne sait pas faire.
         - Menu.diets.keys.each do |diet_key|
-          - selected = diet_key == default_diet
-          %label.mn-diet-option{ class: (selected ? "selected" : ""),
-                                 role: "radio",
-                                 "aria-checked": selected.to_s,
-                                 data: { action: "click->menu-generate#selectDiet",
-                                         menu_generate_target: "dietOption" } }
+          %label.mn-diet-option
             = render "menus/diet_icon", diet: diet_key
-            = f.radio_button :diet, diet_key, checked: selected,
+            = f.radio_button :diet, diet_key, checked: diet_key == default_diet,
                              class: "mn-diet-radio-input",
-                             data: { menu_generate_target: "dietInput" }
+                             data: { action: "change->menu-generate#selectDiet" }
             .mn-diet-text
               %span.mn-diet-name= menu_diet_label(diet_key)
               %span.mn-diet-desc= menu_diet_description(diet_key)

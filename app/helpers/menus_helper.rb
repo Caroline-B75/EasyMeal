@@ -1,28 +1,33 @@
 # Helper pour les menus — labels d'affichage et badges
 module MenusHelper
-  DIET_LABELS = {
-    "omnivore"    => "Omnivore",
-    "vegetarien"  => "Végétarien",
-    "vegan"       => "Vegan",
-    "pescetarien" => "Pescétarien"
-  }.freeze
-
-  DIET_DESCRIPTIONS = {
-    "omnivore"    => "Toutes les recettes disponibles",
-    "vegetarien"  => "Sans viande ni poisson",
-    "vegan"       => "Sans produits d'origine animale",
-    "pescetarien" => "Végétarien + poisson"
-  }.freeze
-
-  # Retourne le label français du régime alimentaire
+  # Libellé français du régime alimentaire — « Végétarien ».
+  # Le vocabulaire vit dans les locales (section `diets`), jamais dans le code :
+  # un régime inconnu retombe sur sa clé humanisée plutôt que de faire tomber la
+  # page — une étiquette n'a jamais à être bloquante.
+  # @param diet [String, Symbol, nil]
+  # @return [String] chaîne vide si aucun régime n'est fourni
   def menu_diet_label(diet)
-    DIET_LABELS.fetch(diet.to_s, diet.to_s.humanize)
+    diet_translation(diet, "diets", default: diet.to_s.humanize)
   end
 
-  # Retourne la description du régime alimentaire
+  # Phrase décrivant ce que le régime inclut ou exclut, affichée sous son
+  # libellé dans les sélecteurs. Repli sur une chaîne vide : la description est
+  # facultative, contrairement au libellé.
+  # @param diet [String, Symbol, nil]
+  # @return [String]
   def menu_diet_description(diet)
-    DIET_DESCRIPTIONS.fetch(diet.to_s, "")
+    diet_translation(diet, "diets_descriptions", default: "")
   end
+
+  # Traduction commune aux deux registres ci-dessus. La garde sur un régime
+  # absent est indispensable : sans elle, la clé « diets. » désignerait la
+  # section entière et renverrait le hash des libellés.
+  def diet_translation(diet, scope, default:)
+    return default if diet.blank?
+
+    t("#{scope}.#{diet}", default: default)
+  end
+  private :diet_translation
 
   # Retourne le label du statut du menu
   def menu_status_label(menu)

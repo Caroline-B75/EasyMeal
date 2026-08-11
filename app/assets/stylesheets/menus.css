@@ -1402,7 +1402,9 @@
   background: var(--color-brand-light);
 }
 
-.mn-diet-option.selected {
+/* État sélectionné : piloté par le radio natif, donc toujours exact — au clic
+   sur le label comme au clavier, sans classe à poser ni à retirer. */
+.mn-diet-option:has(.mn-diet-radio-input:checked) {
   border-color: var(--color-brand);
   background: var(--color-brand-light);
 }
@@ -1441,12 +1443,12 @@
   transform: translate(-50%, -50%);
 }
 
-.mn-diet-option.selected .mn-diet-radio {
+.mn-diet-option:has(.mn-diet-radio-input:checked) .mn-diet-radio {
   background: var(--color-brand);
   border-color: var(--color-brand);
 }
 
-.mn-diet-option.selected .mn-diet-radio::after {
+.mn-diet-option:has(.mn-diet-radio-input:checked) .mn-diet-radio::after {
   display: block;
 }
 
@@ -3436,11 +3438,6 @@ a.mc-card-name-wrap:hover .mc-card-name {
   background: var(--color-bg-secondary);
 }
 
-.pref-diet-option.selected {
-  border-color: var(--color-primary);
-  background: var(--color-bg-secondary);
-}
-
 .pref-diet-radio {
   position: absolute;
   opacity: 0;
@@ -3475,11 +3472,8 @@ a.mc-card-name-wrap:hover .mc-card-name {
   flex-shrink: 0;
 }
 
-.pref-diet-option.selected .pref-diet-check {
-  opacity: 1;
-}
-
-/* Sélection du régime via le clic sur le label */
+/* État sélectionné : piloté par le radio natif, donc toujours exact — au clic
+   sur le label comme au clavier, sans classe à poser ni à retirer. */
 .pref-diet-option:has(.pref-diet-radio:checked) {
   border-color: var(--color-primary);
   background: var(--color-bg-secondary);

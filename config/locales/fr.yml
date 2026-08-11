@@ -247,6 +247,23 @@ fr:
       one: dîner
       other: dîners
 
+  # Régimes alimentaires — vocabulaire partagé par Recipe#diet, Menu#diet et
+  # User#default_diet (mêmes clés d'enum). Comme les moments du repas, le
+  # français vit ici et nulle part ailleurs (voir MenusHelper#menu_diet_label).
+  diets:
+    omnivore: Omnivore
+    vegetarien: Végétarien
+    vegan: Vegan
+    pescetarien: Pescétarien
+
+  # Une phrase qui dit ce que le régime inclut ou exclut : elle accompagne le
+  # libellé dans les sélecteurs de régime (formulaire de menu, préférences).
+  diets_descriptions:
+    omnivore: Toutes les recettes disponibles
+    vegetarien: Sans viande ni poisson
+    vegan: Sans produits d'origine animale
+    pescetarien: Végétarien + poisson
+
   # Manques du brouillon face à la commande (UC7, chapitre 3) : une seule ligne
   # pour tout le menu, jamais une erreur. %{meals} reçoit l'énumération déjà
   # accordée en nombre — « 6 petits-déjeuners, 2 déjeuners » (voir

@@ -18,10 +18,13 @@
     .pref-section
       %h2.pref-section-title Régime alimentaire
       .pref-diet-grid{ role: "radiogroup", "aria-label": "Régime alimentaire par défaut" }
+        -# L'état visuel suit le radio natif via :has(:checked) en CSS — aucune
+        -# classe « selected » posée au rendu : elle resterait collée à l'option
+        -# initiale, qui apparaîtrait cochée en même temps que le nouveau choix.
         - User.default_diets.keys.each do |diet_key|
-          - selected = diet_key == @user.default_diet
-          %label.pref-diet-option{ class: ("selected" if selected) }
-            = f.radio_button :default_diet, diet_key, checked: selected, class: "pref-diet-radio"
+          %label.pref-diet-option
+            = f.radio_button :default_diet, diet_key, checked: diet_key == @user.default_diet,
+                             class: "pref-diet-radio"
             = render "menus/diet_icon", diet: diet_key
             .pref-diet-body
               %span.pref-diet-name= menu_diet_label(diet_key)
