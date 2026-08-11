@@ -73,8 +73,7 @@ module ApplicationHelper
   def field_errors(object, attribute)
     return unless object.errors[attribute].any?
 
-    # Messages d'erreur courts et clairs (sans le nom du champ)
-    messages = object.errors[attribute].map { |msg| clean_error_message(msg) }
+    messages = object.errors[attribute]
 
     content_tag(:div, class: "field-errors", data: { field_error: true }) do
       safe_join(messages.map { |msg| content_tag(:span, msg, class: "field-error") })
@@ -203,12 +202,5 @@ module ApplicationHelper
     return names.join.upcase if names.any?
 
     user.email.to_s.first(2).upcase.presence || "?"
-  end
-
-  private
-
-  # Nettoie le message d'erreur pour ne garder que l'essentiel
-  def clean_error_message(message)
-    message
   end
 end

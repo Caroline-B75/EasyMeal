@@ -2,7 +2,14 @@
 -# Design Slate Craft Premium — cohérent avec la fiche recette
 
 .recipe-form-wrapper{ data: { controller: "slideout" } }
-  = form_with model: recipe, class: "rf-form", data: { controller: "nested-form form-errors", turbo: false } do |f|
+  -# novalidate : la validation native du navigateur s'arrêterait au premier champ
+  -# `required` (le nom) et n'afficherait qu'une bulle éphémère, alors que le
+  -# formulaire est long et que la plupart des règles — moments, régime, au moins
+  -# un ingrédient — n'ont pas d'équivalent HTML. On laisse donc le modèle valider
+  -# et field_errors afficher toutes les erreurs à la fois, sous leur champ.
+  -# Les attributs `required` restent en place : ils portent l'information aux
+  -# lecteurs d'écran.
+  = form_with model: recipe, class: "rf-form", html: { novalidate: true }, data: { controller: "nested-form form-errors", turbo: false } do |f|
 
     -# Informations générales — section sans intitulé : les libellés des champs
     -# se suffisent. Le nom occupe sa propre ligne, puis les trois valeurs

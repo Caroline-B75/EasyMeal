@@ -9,7 +9,7 @@ require "yaml"
 DATA_FILE = Rails.root.join("db/seeds/data/ingredients.yml")
 
 # Unité de base dérivée du groupe d'unités (source unique de vérité,
-# cohérente avec Ingredient#default_base_unit et la validation du modèle).
+# cohérente avec la validation du modèle Ingredient).
 BASE_UNIT_FOR = {
   "mass"   => "g",
   "volume" => "ml",

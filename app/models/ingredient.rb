@@ -106,16 +106,6 @@ class Ingredient < ApplicationRecord
     "#{name} (#{alias_list})"
   end
 
-  # Retourne l'unité de base en fonction du unit_group
-  def default_base_unit
-    case unit_group
-    when "mass" then "g"
-    when "volume" then "ml"
-    when "count" then "piece"
-    when "spoon" then "cac"
-    end
-  end
-
   class << self
     private
 
