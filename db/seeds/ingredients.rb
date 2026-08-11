@@ -58,5 +58,5 @@ total = Ingredient.count
 puts "\n✅ #{total} ingrédients en base (#{created} créés, #{updated} mis à jour)."
 puts "\nRépartition par rayon :"
 Ingredient.group(:category).count.sort_by { |_category, count| -count }.each do |category, count|
-  puts "  - #{Ingredient.human_attribute_name("category.#{category}")} : #{count}"
+  puts "  - #{Ingredient.enum_label(:category, category)} : #{count}"
 end

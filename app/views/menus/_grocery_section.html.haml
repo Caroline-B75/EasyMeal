@@ -2,8 +2,10 @@
 -# category : String (clé enum, ex: "fruits_legumes") ou nil
 -# items    : collection GroceryItem triés
 -# menu     : Menu
+-# Les rayons de GroceryItem sont ceux d'Ingredient (enum dupliqué, mêmes clés) :
+-# leurs libellés français n'existent qu'une fois, du côté Ingredient.
 - section_id    = "grocery_section_#{(category.presence || 'divers').parameterize}"
-- category_name = category ? Ingredient.human_attribute_name("category.#{category}") : "Divers"
+- category_name = category ? Ingredient.enum_label(:category, category) : "Divers"
 
 = turbo_frame_tag section_id do
   .grocery-section{ data: { controller: "grocery-accordion",

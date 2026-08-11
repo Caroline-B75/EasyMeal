@@ -11,13 +11,13 @@
       .detail-item
         %span.detail-label Rayon
         %span.detail-value
-          %span{ class: "category-badge category-#{@ingredient.category}" }
-            = Ingredient.human_attribute_name("category.#{@ingredient.category}")
+          %span.category-badge{ data: { category: @ingredient.category } }
+            = Ingredient.enum_label(:category, @ingredient.category)
 
       .detail-item
         %span.detail-label Unité de mesure
         %span.detail-value
-          = Ingredient.human_attribute_name("unit_group.#{@ingredient.unit_group}")
+          = Ingredient.enum_label(:unit_group, @ingredient.unit_group)
           = "(#{@ingredient.base_unit})"
 
       - if @ingredient.aliases.present?

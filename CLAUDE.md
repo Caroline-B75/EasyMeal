@@ -30,7 +30,10 @@ Avant de dire qu'une tâche est terminée, vérifier systématiquement :
 ## Conventions importantes
 
 - Les enums Rails exposent la **clé string** via le getter (ex: `item.category` → `"fruits_legumes"`)
-- Les traductions des enums `Ingredient` sont dans `Ingredient.human_attribute_name("category.<key>")`
+- Les libellés français des valeurs d'enum passent par le concern `EnumLabels` :
+  `Model.enum_label(:champ, valeur)`, `Model.enum_options(:champ)` pour les sélecteurs,
+  `record.human_enum_value(:champ, "Non renseigné")`. Le texte vit dans
+  `config/locales/fr.yml` sous `activerecord.attributes.<modèle>.<enum au pluriel>`
 - Les turbo stream responses ignorent le contexte `turbo-frame` — elles s'exécutent toujours
 - Stimulus : `eagerLoadControllersFrom` enregistre automatiquement les controllers — nommage `foo_bar_controller.js` → identifier `foo-bar`
 

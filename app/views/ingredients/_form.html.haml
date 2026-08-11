@@ -16,7 +16,7 @@
   .form-group
     = f.input :category, 
               label: "Rayon *",
-              collection: Ingredient.categories.map { |k, _v| [Ingredient.human_attribute_name("category.#{k}"), k] },
+              collection: Ingredient.enum_options(:category),
               prompt: "Sélectionnez un rayon",
               input_html: { class: "form-select" },
               label_html: { class: "form-label" },
@@ -26,7 +26,7 @@
   .form-group
     = f.input :unit_group, 
               label: "Groupe d'unités *",
-              collection: Ingredient.unit_groups.map { |k, _v| [Ingredient.human_attribute_name("unit_group.#{k}"), k] },
+              collection: Ingredient.enum_options(:unit_group),
               prompt: "Sélectionnez un groupe",
               input_html: { class: "form-select", data: { ingredient_form_target: "unitGroup", action: "change->ingredient-form#updateBaseUnit" } },
               label_html: { class: "form-label" },

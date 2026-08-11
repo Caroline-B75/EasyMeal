@@ -122,7 +122,7 @@
 }
 
 .ingredients-table thead {
-  background: var(--color-bg-main);
+  background: var(--color-ink-4);
 }
 
 .ingredients-table th {
@@ -143,6 +143,30 @@
 
 .ingredients-table tbody tr:hover {
   background: var(--color-bg-main);
+}
+
+/* Colonne Rayon : largeur fixe pour que tous les badges tombent à la même
+   largeur, quel que soit le libellé. Le plus long (« Produits frais en
+   libre-service ») tient sur une ligne dans cette largeur ; s'il déborde
+   malgré tout — zoom texte, police système large — il passe à la ligne plutôt
+   que d'étirer la colonne, d'où le white-space remis à normal. */
+.category-column,
+.category-cell {
+  width: 18rem;
+}
+
+.category-cell .category-badge {
+  display: block;
+  width: 100%;
+  text-align: center;
+  white-space: normal;
+}
+
+/* Le frame des résultats se recharge à chaque filtre : on l'estompe le temps de
+   la requête plutôt que de laisser croire que rien ne s'est passé. */
+#ingredients_list[busy] {
+  opacity: 0.6;
+  transition: opacity var(--transition-fast);
 }
 
 .ingredients-table tbody tr:last-child td {
@@ -371,10 +395,17 @@
   }
 
   /* LIGNE 3 : Rayon */
-  .ingredients-table td[data-label="Rayon"] {
+  .ingredients-table .category-cell {
     order: 4;
     width: 100%;
     margin-bottom: 0.25rem;
+  }
+
+  /* En carte, le badge reprend sa largeur naturelle : la colonne qu'il alignait
+     n'existe plus, et un aplat pleine largeur écraserait la carte. */
+  .ingredients-table .category-cell .category-badge {
+    display: inline-block;
+    width: auto;
   }
 
   /* LIGNE 4 : Mois de saison */

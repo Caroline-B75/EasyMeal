@@ -46,6 +46,9 @@ fr:
         base_unit: Unité de base
         season_months: Mois de saison
         aliases: Alias
+        # Valeurs des enums d'Ingredient — libellés lus par Ingredient.enum_label,
+        # donc partagés par la fiche, les filtres, les formulaires et la liste de
+        # courses (GroceryItem duplique ces mêmes rayons, cf. app/models/grocery_item.rb).
         categories:
           fruits_legumes: Fruits et légumes
           boucherie_viande: Boucherie / Viande
@@ -67,6 +70,7 @@ fr:
           hygiene_beaute: Hygiène et beauté
           entretien_maison: Entretien de la maison
           papeterie_fournitures: Papeterie et fournitures
+          autre: Autre
         unit_groups:
           mass: Masse (g, kg)
           volume: Volume (ml, L)

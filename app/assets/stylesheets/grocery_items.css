@@ -28,31 +28,9 @@
   color: var(--color-ink);
 }
 
-/* ── Couleurs par rayon ─────────────────────────────────── */
-.grocery-section                                                { --section-color: #9E9E9E; }
-.grocery-section[data-category="fruits_legumes"]                { --section-color: #5A8A5B; }
-.grocery-section[data-category="boucherie_viande"]              { --section-color: #B05B5B; }
-.grocery-section[data-category="charcuterie_traiteur"]          { --section-color: #C4768A; }
-.grocery-section[data-category="poissonnerie"]                  { --section-color: #4E7FA8; }
-.grocery-section[data-category="fromagerie_coupe"]              { --section-color: #C49A27; }
-.grocery-section[data-category="boulangerie_patisserie"]        { --section-color: #B08060; }
-.grocery-section[data-category="produits_laitiers"]             { --section-color: #6A9BB5; }
-.grocery-section[data-category="produits_frais_libre_service"]  { --section-color: #6B9B72; }
-.grocery-section[data-category="glaces_desserts_glaces"]        { --section-color: #7AABC0; }
-.grocery-section[data-category="legumes_surgeles"]              { --section-color: #4E8A8A; }
-.grocery-section[data-category="viandes_poissons_surgeles"]     { --section-color: #6E8A9E; }
-.grocery-section[data-category="produits_aperitifs_surgeles"]   { --section-color: #C47845; }
-.grocery-section[data-category="epicerie_salee"]                { --section-color: #8A7055; }
-.grocery-section[data-category="epicerie_sucree"]               { --section-color: #9B7AB5; }
-.grocery-section[data-category="boissons"]                      { --section-color: #3D85C8; }
-.grocery-section[data-category="petit_dejeuner"]                { --section-color: #C49A27; }
-.grocery-section[data-category="produits_monde"]                { --section-color: #B08040; }
-.grocery-section[data-category="hygiene_beaute"]                { --section-color: #B87A8A; }
-.grocery-section[data-category="entretien_maison"]              { --section-color: #7A8A9E; }
-.grocery-section[data-category="papeterie_fournitures"]         { --section-color: #6E9B9B; }
-.grocery-section[data-category="autre"]                        { --section-color: #9E9E9E; }
-
 /* ── Sections par rayon (accordéon) ─────────────────────── */
+/* La couleur du rayon vient de la palette partagée (--category-color,
+   components.css), posée sur le data-category que porte déjà la section. */
 .grocery-section {
   margin-bottom: 1.75rem;
 }
@@ -65,7 +43,7 @@
   background: none;
   border: none;
   border-bottom: var(--border-thin);
-  border-left: 2.5px solid var(--section-color);
+  border-left: 2.5px solid var(--category-color);
   cursor: pointer;
   padding: 0 0 0.375rem 0.625rem;
   margin: 0 0 0.5rem;
@@ -83,14 +61,14 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   /* Texte en ink (AA) : l'identité couleur du rayon reste portée par le liseré
-     gauche et la pastille de compteur (--section-color en décor). */
+     gauche et la pastille de compteur (--category-color en décor). */
   color: var(--color-ink);
 }
 
 .grocery-section-count {
   font-size: var(--font-size-base);
   color: var(--color-ink);
-  background: color-mix(in srgb, var(--section-color) 12%, var(--color-bg-secondary));
+  background: color-mix(in srgb, var(--category-color) 12%, var(--color-bg-secondary));
   border-radius: 999px;
   padding: 0.1em 0.45em;
   font-weight: 500;

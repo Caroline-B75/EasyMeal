@@ -44,8 +44,9 @@
 
           .form-group
             = f.label :category, "Rayon", class: "form-label"
+            -# Libellés côté Ingredient : GroceryItem duplique l'enum, pas les traductions
             = f.select :category,
-                       GroceryItem.categories.keys.map { |k| [Ingredient.human_attribute_name("category.#{k}"), k] },
+                       GroceryItem.categories.keys.map { |k| [Ingredient.enum_label(:category, k), k] },
                        { prompt: "Rayon…" },
                        class: "form-select"
 

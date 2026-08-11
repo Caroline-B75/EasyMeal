@@ -3,6 +3,9 @@
 class Ingredient < ApplicationRecord
   # === Concerns ===
   include AttributeCleaner
+  # Libellés français des enums (rayon, groupe d'unités) : Ingredient.enum_label,
+  # .enum_options pour les sélecteurs — le français vit dans config/locales/fr.yml
+  include EnumLabels
 
   # === Enums ===
 
@@ -31,8 +34,7 @@ class Ingredient < ApplicationRecord
     autre: 20
   }, prefix: true
 
-  # Groupes d'unités de mesure (libellés dans unit_group_translations,
-  # unité de base associée dans BASE_UNITS)
+  # Groupes d'unités de mesure (unité de base associée dans BASE_UNITS)
   enum :unit_group, {
     mass: 0,
     volume: 1,
@@ -53,19 +55,6 @@ class Ingredient < ApplicationRecord
     "count" => "piece",
     "spoon" => "cac"
   }.freeze
-
-  # Délègue la traduction des enums category et unit_group vers des tables de correspondance
-  def self.human_attribute_name(attr, options = {})
-    if attr.to_s.start_with?("category.")
-      category_key = attr.to_s.sub("category.", "")
-      category_translations[category_key] || category_key.humanize
-    elsif attr.to_s.start_with?("unit_group.")
-      unit_key = attr.to_s.sub("unit_group.", "")
-      unit_group_translations[unit_key] || unit_key.humanize
-    else
-      super
-    end
-  end
 
   # === Associations ===
   has_many :preparations, dependent: :restrict_with_error
@@ -119,45 +108,6 @@ class Ingredient < ApplicationRecord
 
     alias_list = aliases.is_a?(Array) ? aliases.join(", ") : aliases.values.join(", ")
     "#{name} (#{alias_list})"
-  end
-
-  class << self
-    private
-
-    def category_translations
-      {
-        "fruits_legumes" => "Fruits et légumes",
-        "boucherie_viande" => "Boucherie / Viande",
-        "charcuterie_traiteur" => "Charcuterie / Traiteur",
-        "poissonnerie" => "Poissonnerie",
-        "fromagerie_coupe" => "Fromagerie / Coupe",
-        "boulangerie_patisserie" => "Boulangerie / Pâtisserie",
-        "produits_laitiers" => "Produits laitiers",
-        "produits_frais_libre_service" => "Produits frais en libre-service",
-        "glaces_desserts_glaces" => "Glaces et desserts glacés",
-        "legumes_surgeles" => "Légumes surgelés",
-        "viandes_poissons_surgeles" => "Viandes et poissons surgelés",
-        "produits_aperitifs_surgeles" => "Produits apéritifs surgelés",
-        "epicerie_salee" => "Épicerie salée",
-        "epicerie_sucree" => "Épicerie sucrée",
-        "boissons" => "Boissons",
-        "petit_dejeuner" => "Petit-déjeuner",
-        "produits_monde" => "Produits du monde",
-        "hygiene_beaute" => "Hygiène et beauté",
-        "entretien_maison" => "Entretien de la maison",
-        "papeterie_fournitures" => "Papeterie et fournitures",
-        "autre" => "Autre"
-      }
-    end
-
-    def unit_group_translations
-      {
-        "mass" => "Masse (g, kg)",
-        "volume" => "Volume (ml, L)",
-        "count" => "Nombre (pièces)",
-        "spoon" => "Cuillères (càc, càs)"
-      }
-    end
   end
 
   private

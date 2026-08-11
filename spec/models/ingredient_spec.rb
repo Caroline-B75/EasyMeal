@@ -11,6 +11,45 @@ RSpec.describe Ingredient, type: :model do
     end
   end
 
+  describe "libellés d'enum (EnumLabels)" do
+    it "traduit une valeur de rayon" do
+      expect(Ingredient.enum_label(:category, "fruits_legumes")).to eq("Fruits et légumes")
+    end
+
+    it "traduit une valeur de groupe d'unités" do
+      expect(Ingredient.enum_label(:unit_group, "mass")).to eq("Masse (g, kg)")
+    end
+
+    # Les sélecteurs (filtre du catalogue, formulaires) affichent les rayons
+    # dans l'ordre de déclaration de l'enum.
+    it "expose les rayons en couples [libellé, valeur] pour les sélecteurs" do
+      options = Ingredient.enum_options(:category)
+
+      expect(options.first).to eq([ "Fruits et légumes", "fruits_legumes" ])
+      expect(options.map(&:last)).to eq(Ingredient.categories.keys)
+    end
+
+    # Filet de sécurité : sans traduction, enum_label se replie silencieusement
+    # sur la valeur humanisée (« Fruits legumes ») — un français approximatif qui
+    # passerait inaperçu à l'écran. Ces tests cassent dès qu'une clé d'enum arrive
+    # sans son libellé dans config/locales/fr.yml (ou l'inverse).
+    %i[category unit_group].each do |field|
+      it "traduit exactement les valeurs de l'enum #{field}, ni plus ni moins" do
+        enum_name = field.to_s.pluralize
+        translated = I18n.t("activerecord.attributes.ingredient.#{enum_name}").keys.map(&:to_s)
+
+        expect(translated).to match_array(Ingredient.public_send(enum_name).keys)
+      end
+    end
+
+    # GroceryItem duplique l'enum category d'Ingredient sans dupliquer ses
+    # traductions : la liste de courses titre ses rayons via Ingredient.enum_label.
+    # Les rayons restant alignés, le test ci-dessus couvre aussi ce cas.
+    it "partage ses rayons avec ceux de la liste de courses" do
+      expect(GroceryItem.categories.keys).to eq(Ingredient.categories.keys)
+    end
+  end
+
   describe "validation base_unit_matches_unit_group" do
     Ingredient::BASE_UNITS.each do |unit_group, base_unit|
       context "pour le groupe #{unit_group}" do
