@@ -3761,53 +3761,147 @@ button.draft-rail-count:not(:disabled) {
 }
 
 .rf-publish-hint {
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   color: var(--color-success-text);
   margin: 0;
 }
 
-/* === Panneau IA === */
+@media (max-width: 640px) {
+  .rf-publish-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* === Panneau IA ===
+   Le panneau se lit en colonnes, pas en boutons. Chaque ligne est une phrase :
+   ce que l'IA a lu → l'ingrédient du catalogue visé → l'action. Les quatre
+   colonnes sont communes à toutes les lignes et à leurs blocs imbriqués
+   (suggestions floues, repli), qui reprennent la même sous-grille : la colonne
+   d'action tombe donc toujours à la même abscisse, quel que soit l'état de la
+   ligne. C'est cet alignement — et non des boîtes autour des boutons — qui
+   regroupe l'information et rend la liste scannable.
+
+   Deux variables suffisent à le tenir : la largeur de la colonne d'action et
+   celle de la flèche. Aucune valeur en dur ailleurs, sinon l'alignement se
+   défait au premier ajustement. */
 
 .ai-panel {
+  --ai-action-col: 148px;
+  --ai-arrow-col: 16px;
+  --ai-gap: 16px;
+
   margin-bottom: 24px;
   background: var(--color-bg-white);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-input);
+  border-radius: var(--radius-card);
   overflow: hidden;
 }
 
+/* En-tête : le titre, ce qu'il reste à faire, et la consigne. */
+
 .ai-panel__header {
-  padding: 12px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px var(--ai-gap);
+  padding: 16px 20px 14px;
   background: var(--color-bg-secondary);
   border-bottom: 1px solid var(--color-border);
 }
 
 .ai-panel__title {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--color-ink-2);
-  margin: 0 0 2px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+/* L'ambre signe l'origine IA du panneau — le seul accent coloré de la charte,
+   posé sur une icône décorative et non sur une commande. */
+.ai-panel__title-icon {
+  color: var(--color-accent-text);
 }
 
 .ai-panel__count {
-  font-weight: 400;
-  color: var(--color-ink-3);
-  text-transform: none;
-  letter-spacing: 0;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-ink-2);
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-border);
+  padding: 1px 9px;
+  border-radius: 20px;
+}
+
+/* Les deux compteurs d'état, poussés à droite du titre : combien de lignes se
+   règlent d'un clic, combien attendent une décision. Seul le second est ambré —
+   c'est le seul endroit du panneau où le regard doit s'arrêter, et c'est la
+   même couleur que le filet des lignes concernées. */
+.ai-panel__states {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.ai-panel__state {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-ink-2);
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-border);
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.ai-panel__state--todo {
+  color: var(--color-accent-text);
+  background: var(--color-accent-light);
+  border-color: var(--color-accent-border);
 }
 
 .ai-panel__hint {
-  font-size: 12px;
-  color: var(--color-ink-3);
+  flex-basis: 100%;
   margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-ink-3);
+}
+
+/* Intitulés de colonnes : ils nomment ce que la ligne compare avant qu'on en
+   lise une seule. Ils partagent le gabarit de grille des lignes, sans quoi ils
+   désigneraient des colonnes qui n'existent pas. */
+.ai-panel__columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--ai-arrow-col) minmax(0, 1fr) var(--ai-action-col);
+  gap: var(--ai-gap);
+  padding: 9px 20px;
+  background: var(--color-bg-main);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+
+/* Placé explicitement : la colonne de la flèche n'a pas d'intitulé, et un
+   élément vide pour la sauter serait un élément de plus à maintenir. */
+.ai-panel__column-target {
+  grid-column: 3;
 }
 
 /* === Lignes d'ingrédients IA === */
 
-/* Correction : display:flex côté CSS auteur écrase l'attribut HTML hidden
-   sur les éléments d'agent utilisateur. On force display:none ici. */
+/* Correction : display:grid côté CSS auteur écrase l'attribut HTML hidden
+   sur les éléments d'agent utilisateur. On force display:none ici.
+   fuzzyOptions y manquait : « Aucun de ces résultats » masquait bien les
+   suggestions côté JS, mais leur display les rendait quand même — la ligne
+   affichait alors ses suggestions ET son repli, deux jeux d'actions
+   concurrents sur une même décision. */
+[data-ai-panel-target="fuzzyOptions"][hidden],
 [data-ai-panel-target="noMatchFallback"][hidden],
 [data-ai-panel-target="search"][hidden] {
   display: none !important;
@@ -3815,75 +3909,116 @@ button.draft-rail-count:not(:disabled) {
 
 .ai-row {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) var(--ai-arrow-col) minmax(0, 1fr) var(--ai-action-col);
   align-items: center;
-  gap: 16px;
-  padding: 11px 20px;
+  gap: 10px var(--ai-gap);
+  padding: 12px 20px;
   border-bottom: 1px solid var(--color-border-light);
-  min-height: 50px;
-  transition: background 0.12s;
+  min-height: 62px;
+  transition: background var(--transition-fast);
 }
 
 .ai-row:last-child {
   border-bottom: none;
 }
 
+/* Le survol n'a rien à dire sur une ligne déjà ajoutée, dont le fond porte
+   justement l'information — et il l'emporterait en spécificité. */
+.ai-row:not(.ai-row--done):hover {
+  background: var(--color-bg-main);
+}
+
+/* Filet ambre : cette ligne attend une décision (suggestion à départager ou
+   ingrédient absent du catalogue). Les lignes que l'IA a résolues restent
+   muettes — l'ambre ne sert qu'à diriger le regard vers ce qui reste à faire.
+   En ombre interne plutôt qu'en bordure : la ligne garde sa hauteur et son
+   padding quel que soit son état. */
+.ai-row--decide {
+  box-shadow: inset 3px 0 0 var(--color-accent-deep);
+}
+
+/* Ligne ajoutée au formulaire. Déclarée après --decide, à spécificité égale :
+   le vert remplace l'ambre sur une ligne qui portait les deux. */
 .ai-row--done {
   background: var(--color-success-light);
-  opacity: 0.85;
+  box-shadow: inset 3px 0 0 var(--color-success);
 }
 
-/* Colonne gauche : nom + quantité */
+/* Colonne 1 : ce que l'IA a lu dans la recette */
 
-.ai-row__left {
+.ai-row__detected {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
   min-width: 0;
-  overflow: hidden;
 }
 
+/* Le nom détecté se replie plutôt qu'il ne se tronque : c'est lui qu'on compare
+   à la proposition du catalogue, une ellipse en pleine comparaison ferait
+   perdre le seul mot qui tranche. */
 .ai-row__name {
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--font-size-base);
+  font-weight: 600;
   color: var(--color-ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
 }
 
+/* La quantité en pastille, pour qu'elle ne se lise pas comme la fin du nom :
+   « courgettes 600 g » n'est pas un ingrédient. */
 .ai-row__qty {
   flex-shrink: 0;
-  font-size: 11px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
-  color: var(--color-ink-3);
-  background: var(--color-bg-secondary);
-  padding: 2px 7px;
+  color: var(--color-ink-2);
+  background: var(--color-bg-tertiary);
+  padding: 2px 9px;
   border-radius: 20px;
   white-space: nowrap;
 }
 
-/* Colonne droite : action */
+/* Colonne 2 : le sens de lecture de la ligne, rien de plus */
+
+.ai-row__arrow {
+  display: flex;
+  color: var(--color-ink-4);
+}
+
+/* Colonnes 3 et 4 : la cible et l'action.
+   Réunies sous un même parent parce que le contrôleur Stimulus y substitue le
+   badge « Ajouté » d'un seul remplacement. Sa sous-grille reprend exactement
+   les deux dernières colonnes de la ligne. */
 
 .ai-row__right {
-  display: flex;
+  grid-column: 3 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--ai-action-col);
   align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
+  gap: 8px var(--ai-gap);
 }
 
-/* Match exact : "→ Nom" + bouton */
-
-.ai-row__status {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+/* Un seul bouton plein par décision, à la largeur de sa colonne : d'une ligne à
+   l'autre ils forment une colonne franche au lieu d'une mosaïque de tailles. */
+.ai-row__right .btn {
+  width: 100%;
 }
 
-.ai-row__match {
-  font-size: 13px;
-  color: var(--color-ink-3);
-  white-space: nowrap;
+/* La cible et son échappatoire. « Choisir un autre », « Aucun de ces
+   résultats » et « Créer » changent l'ingrédient visé, pas l'action à mener :
+   ils vivent donc sous la cible et jamais dans la colonne des boutons. */
+.ai-row__target {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ai-row__match,
+.ai-row__fuzzy-name {
+  font-size: var(--font-size-base);
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
 }
 
 /* Unité de base de l'ingrédient du catalogue, collée à son nom (match exact,
@@ -3891,107 +4026,83 @@ button.draft-rail-count:not(:disabled) {
    détectée avant de confirmer : « 2 tranches » face à « Jambon blanc (g) »
    prévient les 2 g de jambon que la reprise brute du nombre produirait. */
 .ai-row__unit {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: var(--color-ink-3);
   white-space: nowrap;
 }
 
 /* Aucune conversion possible vers cette unité : la quantité détectée partirait
-   telle quelle. L'unité passe en ambre et porte l'explication en title. */
+   telle quelle. L'unité passe en alerte et porte l'explication en title. */
 .ai-row__unit--mismatch {
   color: var(--color-warning-text);
   background: var(--color-warning-light);
-  padding: 1px 5px;
+  padding: 1px 6px;
   border-radius: 20px;
   cursor: help;
 }
 
-/* Match flou : suggestions empilées verticalement.
-   Même disposition pour le match exact, dont le lien « Choisir un autre »
-   se pose sous le bouton d'ajout. */
+/* Suggestions à départager, et actions de repli : deux blocs qui occupent les
+   deux colonnes de droite et y refont la même sous-grille. Chaque suggestion
+   est une sous-ligne « nom + bouton » — l'alignement remplace la mini-carte
+   qui entourait autrefois chaque bouton. */
 
 .ai-row__fuzzy,
-.ai-row__resolved {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 5px;
+.ai-row__no-match-fallback {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--ai-action-col);
+  align-items: center;
+  gap: 8px var(--ai-gap);
 }
 
 .ai-row__fuzzy-label {
-  font-size: 10px;
+  grid-column: 1 / -1;
+  font-size: var(--font-size-xs);
   font-weight: 600;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-ink-3);
 }
 
-.ai-row__fuzzy-items {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.ai-row__no-match {
+  font-size: var(--font-size-base);
+  color: var(--color-ink-3);
 }
 
-/* Chaque suggestion : nom + "C'est ça" dans une mini-carte */
-
-.ai-row__fuzzy-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-input);
-  padding: 5px 6px 5px 10px;
-}
-
-.ai-row__fuzzy-name {
-  font-size: 13px;
-  color: var(--color-ink);
-  white-space: nowrap;
-}
-
-/* "Aucun de ces résultats" */
-
-.ai-row__none-btn {
+/* Les échappatoires en texte : une seule et même mécanique pour les trois.
+   Ce ne sont pas des boutons — les avoir traitées comme tels, dans trois
+   variantes différentes, est ce qui rendait la colonne de droite illisible. */
+.ai-row__alt-btn {
+  justify-self: start;
+  padding: 2px 0;
   background: none;
   border: none;
-  padding: 1px 0;
-  font-size: 11px;
+  font-family: inherit;
+  font-size: var(--font-size-sm);
   color: var(--color-ink-3);
-  cursor: pointer;
   text-decoration: underline;
-  text-decoration-style: dotted;
-  text-align: right;
+  text-decoration-color: var(--color-border-strong);
+  text-underline-offset: 2px;
+  text-align: left;
+  cursor: pointer;
+  transition: color var(--transition-fast);
 }
 
-.ai-row__none-btn:hover {
-  color: var(--color-ink-2);
-}
-
-/* Introuvable + bouton Créer */
-
-.ai-row__no-match-fallback {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.ai-row__no-match {
-  font-size: 12px;
-  color: var(--color-ink-3);
-  font-style: italic;
+.ai-row__alt-btn:hover {
+  color: var(--color-ink);
+  text-decoration-color: currentColor;
 }
 
 /* Recherche manuelle dans le catalogue : dépliée sous la ligne, sur toute
-   sa largeur (la ligne est une grille à deux colonnes). */
+   sa largeur (la ligne est une grille à quatre colonnes). */
 
 .ai-row__search {
   grid-column: 1 / -1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   margin-top: 4px;
-  padding-top: 10px;
+  padding-top: 12px;
   border-top: 1px dashed var(--color-border);
 }
 
@@ -4000,13 +4111,15 @@ button.draft-rail-count:not(:disabled) {
 .ai-row__search-head {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
+/* 16 px et pas moins : sous cette taille, iOS zoome sur le champ à la mise au
+   point et laisse la page décalée. */
 .ai-row__search-input {
   flex: 1;
   min-width: 0;
-  font-size: 13px;
+  font-size: var(--font-size-base);
 }
 
 .ai-row__search-close {
@@ -4014,10 +4127,9 @@ button.draft-rail-count:not(:disabled) {
 }
 
 .ai-row__search-results {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  max-height: 180px;
+  display: grid;
+  gap: 4px;
+  max-height: 220px;
   overflow-y: auto;
 }
 
@@ -4025,14 +4137,15 @@ button.draft-rail-count:not(:disabled) {
 
 .ai-row__search-item {
   text-align: left;
-  padding: 7px 10px;
-  font-size: 13px;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: var(--font-size-base);
   color: var(--color-ink);
   background: var(--color-bg-white);
   border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-input);
+  border-radius: var(--radius-button);
   cursor: pointer;
-  transition: background 0.12s, border-color 0.12s;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
 }
 
 .ai-row__search-item:hover {
@@ -4042,23 +4155,28 @@ button.draft-rail-count:not(:disabled) {
 
 .ai-row__search-empty {
   margin: 0;
-  padding: 4px 2px;
-  font-size: 12px;
+  padding: 6px 2px;
+  font-size: var(--font-size-sm);
   font-style: italic;
   color: var(--color-ink-3);
 }
 
-/* Badge ✓ Ajouté */
+/* Badge ✓ Ajouté — posé par le contrôleur à la place de la cible et du bouton.
+   Fond blanc et non vert : la ligne entière ayant viré au vert, un badge vert
+   clair s'y dissoudrait. */
 
 .ai-row__done-badge {
+  grid-column: 1 / -1;
+  justify-self: start;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  font-weight: 500;
+  gap: 6px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
   color: var(--color-success-text);
-  background: var(--color-success-light);
-  padding: 4px 12px;
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-success-border);
+  padding: 5px 14px;
   border-radius: 20px;
 }
 
@@ -4067,26 +4185,33 @@ button.draft-rail-count:not(:disabled) {
    formulaire — la ligne disparaît ensuite, le badge est le dernier rappel. */
 .ai-row__done-badge--warn {
   color: var(--color-warning-text);
-  background: var(--color-warning-light);
+  border-color: var(--color-warning-border);
   cursor: help;
 }
 
-/* Mobile */
+/* Mobile : la grille se replie en une colonne. Les intitulés de colonnes et la
+   flèche n'ont alors plus rien à désigner, et les boutons prennent toute la
+   largeur — la cible de touche vaut mieux que l'alignement, qui n'existe plus. */
 
 @media (max-width: 640px) {
+  .ai-panel__columns {
+    display: none;
+  }
+
   .ai-row {
-    grid-template-columns: 1fr;
-    gap: 8px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
   }
 
-  .ai-row__right {
-    justify-content: flex-start;
-    flex-wrap: wrap;
+  .ai-row__arrow {
+    display: none;
   }
 
-  .rf-publish-section {
-    flex-direction: column;
-    align-items: flex-start;
+  .ai-row__right,
+  .ai-row__fuzzy,
+  .ai-row__no-match-fallback {
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

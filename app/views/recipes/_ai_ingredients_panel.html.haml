@@ -1,5 +1,19 @@
 -# Panneau de revue des ingrédients suggérés par l'IA
 -# Affiché dans _form.html.haml juste au-dessus de la section ingrédients
+-#
+-# Chaque ligne se lit de gauche à droite comme une phrase :
+-#   ce que l'IA a lu  →  l'ingrédient du catalogue visé  →  l'action
+-# Les quatre colonnes sont les mêmes d'une ligne à l'autre, quel que soit l'état
+-# de la ligne : l'action principale tombe donc toujours à la même abscisse et la
+-# liste se parcourt en une seule descente de l'œil.
+-#
+-# Deux règles tiennent cette lisibilité, et rien ne doit les contourner :
+-#   - un seul bouton plein par décision, dans la colonne d'action ;
+-#   - les échappatoires (« Choisir un autre », « Aucun de ces résultats »,
+-#     « Créer ») sont des liens texte posés sous la cible, parce qu'elles
+-#     changent l'ingrédient visé et non l'action à mener.
+
+- counts = ai_matches_state_counts(ai_matches)
 
 .ai-panel{ data: { controller: "ai-panel",
                    "ai-panel-search-url-value": search_ingredients_path,
@@ -7,81 +21,101 @@
                    action: "slideout:closed@document->ai-panel#forgetPending" } }
   .ai-panel__header
     %p.ai-panel__title
+      = svg_icon(:sparkle, size: 18, css_class: "ai-panel__title-icon")
       Ingrédients détectés par l'IA
-      %span.ai-panel__count= "(#{ai_matches.size})"
+      %span.ai-panel__count= ai_matches.size
+    .ai-panel__states
+      - if counts[:ready].positive?
+        %span.ai-panel__state
+          = pluralize(counts[:ready], "prêt à ajouter", plural: "prêts à ajouter")
+      - if counts[:todo].positive?
+        %span.ai-panel__state.ai-panel__state--todo #{counts[:todo]} à préciser
     %p.ai-panel__hint
-      Cliquez "Ajouter" pour intégrer chaque ingrédient dans le formulaire ci-dessous.
+      Vérifiez l'ingrédient proposé pour chaque ligne, puis ajoutez-le au formulaire ci-dessous.
+
+  -# Intitulés des colonnes : ils disent ce que la ligne compare avant même
+  -# qu'on lise la première ligne. Repère de lecture, masqué sur mobile où la
+  -# grille se replie en une seule colonne.
+  .ai-panel__columns
+    %span Détecté dans la recette
+    %span.ai-panel__column-target Ingrédient de votre catalogue
 
   - ai_matches.each do |match|
     -# Ce que l'IA a détecté vit sur la ligne : la recherche manuelle et la
     -# création y puisent le même nom et la même quantité, sans les répéter
     -# sur chaque bouton. La quantité reste brute — elle est convertie vers
     -# l'unité de base de l'ingrédient au moment où l'on en choisit un.
-    .ai-row{ data: { "ai-panel-target": "row",
+    - state = ai_match_state(match)
+    .ai-row{ class: ("ai-row--decide" unless state == :ready),
+             data: { "ai-panel-target": "row",
                      "ai-panel-name": match[:ai_name],
                      "ai-panel-quantity": match[:quantity],
                      "ai-panel-unit": match[:unit] } }
-      .ai-row__left
+      .ai-row__detected
         %span.ai-row__name= match[:ai_name]
         - qty = match[:quantity].to_f
         - if qty > 0 || match[:unit].present?
           %span.ai-row__qty= "#{qty == qty.to_i ? qty.to_i : qty} #{match[:unit]}"
 
+      %span.ai-row__arrow= svg_icon("arrow-right", size: 16)
+
+      -# Cible et action réunies sous un même parent : c'est ce bloc que le
+      -# contrôleur Stimulus remplace d'un coup par le badge « Ajouté ».
       .ai-row__right
-        - if match[:exact]
-          -# Match exact : indicateur discret + bouton Ajouter, et la porte de
-          -# sortie si l'IA s'est trompée d'ingrédient.
-          .ai-row__resolved
-            .ai-row__status
-              %span.ai-row__match
-                = match[:exact].name
-                = render "recipes/ai_unit_badge", ingredient: match[:exact], converts: match[:converted]
-              -# converted part en .to_s : un booléen vrai deviendrait un attribut
-              -# nu (data-ai-panel-converted) et un booléen faux disparaîtrait —
-              -# le JS ne saurait plus distinguer les deux cas.
-              %button.btn.btn-primary.btn-sm{
-                type: "button",
-                data: {
-                  action: "click->ai-panel#add",
-                  ai_panel_ingredient_id: match[:exact].id,
-                  ai_panel_ingredient_name: match[:exact].display_name,
-                  ai_panel_base_unit: match[:exact].base_unit,
-                  ai_panel_quantity_base: match[:quantity_base],
-                  ai_panel_converted: match[:converted].to_s
-                }
-              } Ajouter
-            %button.ai-row__none-btn{
+        - case state
+        - when :ready
+          -# Match exact : la cible est acquise, la ligne n'attend qu'un clic.
+          -# La porte de sortie reste là si l'IA s'est trompée d'ingrédient.
+          .ai-row__target
+            %span.ai-row__match
+              = match[:exact].name
+              = render "recipes/ai_unit_badge", ingredient: match[:exact], converts: match[:converted]
+            %button.ai-row__alt-btn{
               type: "button",
               data: { action: "click->ai-panel#openSearch" }
             } Choisir un autre
+          -# converted part en .to_s : un booléen vrai deviendrait un attribut
+          -# nu (data-ai-panel-converted) et un booléen faux disparaîtrait —
+          -# le JS ne saurait plus distinguer les deux cas.
+          %button.btn.btn-primary.btn-md{
+            type: "button",
+            data: {
+              action: "click->ai-panel#add",
+              ai_panel_ingredient_id: match[:exact].id,
+              ai_panel_ingredient_name: match[:exact].display_name,
+              ai_panel_base_unit: match[:exact].base_unit,
+              ai_panel_quantity_base: match[:quantity_base],
+              ai_panel_converted: match[:converted].to_s
+            }
+          } Ajouter
 
-        - elsif match[:fuzzy].any?
-          -# Match flou : suggestions en mini-cartes + lien de rejet
+        - when :confirm
+          -# Match flou : une sous-ligne « nom + bouton » par suggestion, dans
+          -# les mêmes colonnes que le reste. Pas de carte autour du bouton :
+          -# c'est l'alignement qui regroupe, pas une boîte.
           .ai-row__fuzzy{ data: { "ai-panel-target": "fuzzyOptions" } }
             %span.ai-row__fuzzy-label Ressemble à :
-            .ai-row__fuzzy-items
-              - match[:fuzzy].each do |suggestion|
-                - fi = suggestion[:ingredient]
-                .ai-row__fuzzy-item
-                  %span.ai-row__fuzzy-name
-                    = fi.name
-                    = render "recipes/ai_unit_badge", ingredient: fi, converts: suggestion[:converts]
-                  %button.btn.btn-primary.btn-sm{
-                    type: "button",
-                    data: {
-                      action: "click->ai-panel#confirmFuzzy",
-                      ai_panel_ingredient_id: fi.id,
-                      ai_panel_ingredient_name: fi.display_name,
-                      ai_panel_base_unit: fi.base_unit,
-                      ai_panel_unit_group: fi.unit_group,
-                      ai_panel_piece_weight: fi.piece_weight_g,
-                      ai_panel_add_alias_path: add_alias_ingredient_path(fi)
-                    }
-                  } C'est ça
-              %button.ai-row__none-btn{
+            - match[:fuzzy].each do |suggestion|
+              - fi = suggestion[:ingredient]
+              %span.ai-row__fuzzy-name
+                = fi.name
+                = render "recipes/ai_unit_badge", ingredient: fi, converts: suggestion[:converts]
+              %button.btn.btn-primary.btn-md{
                 type: "button",
-                data: { action: "click->ai-panel#rejectFuzzy" }
-              } Aucun de ces résultats
+                data: {
+                  action: "click->ai-panel#confirmFuzzy",
+                  ai_panel_ingredient_id: fi.id,
+                  ai_panel_ingredient_name: fi.display_name,
+                  ai_panel_base_unit: fi.base_unit,
+                  ai_panel_unit_group: fi.unit_group,
+                  ai_panel_piece_weight: fi.piece_weight_g,
+                  ai_panel_add_alias_path: add_alias_ingredient_path(fi)
+                }
+              } C'est ça
+            %button.ai-row__alt-btn{
+              type: "button",
+              data: { action: "click->ai-panel#rejectFuzzy" }
+            } Aucun de ces résultats
 
           -# Repli après rejet : caché par défaut (rendu visible par JS)
           = render "recipes/ai_row_fallback", hidden: true

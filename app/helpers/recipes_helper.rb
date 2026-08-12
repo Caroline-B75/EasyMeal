@@ -101,6 +101,29 @@ module RecipesHelper
     options_for_select(RecipeDraftsController::SORTS.map { |key, label| [ label, key ] }, selected)
   end
 
+  # État d'une ligne du panneau IA — la seule question que se pose l'utilisatrice
+  # devant la liste : est-ce que ça part d'un clic, ou est-ce que j'ai une
+  # décision à prendre ?
+  #   :ready   → le catalogue a un ingrédient certain, il n'y a qu'à l'ajouter
+  #   :confirm → des suggestions à départager
+  #   :missing → rien au catalogue, il faut chercher ou créer
+  # Une seule définition pour la mise en forme de la ligne et pour les compteurs
+  # de l'en-tête : les deux ne peuvent pas diverger.
+  def ai_match_state(match)
+    return :ready if match[:exact]
+
+    match[:fuzzy].any? ? :confirm : :missing
+  end
+
+  # Ce que l'en-tête du panneau annonce : combien de lignes se règlent d'un clic,
+  # combien attendent une décision. :confirm et :missing sont comptées ensemble —
+  # elles demandent la même chose à l'utilisatrice, s'y attarder n'aiderait pas.
+  def ai_matches_state_counts(matches)
+    ready = matches.count { |match| ai_match_state(match) == :ready }
+
+    { ready: ready, todo: matches.size - ready }
+  end
+
   # Retourne le texte formaté du temps de préparation
   def format_prep_time(minutes)
     return "Non renseigné" if minutes.blank? || minutes.zero?
