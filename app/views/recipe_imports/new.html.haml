@@ -69,6 +69,8 @@
               data: { "import-source-target": "previewImg" } }
           .import-file-preview__info
             %span.import-file-preview__name{ data: { "import-source-target": "previewName" } }
+            -# Poids après réduction navigateur : la preuve que la photo est allégée.
+            %span.import-file-preview__size{ data: { "import-source-target": "previewSize" } }
             %button.import-file-preview__change{ type: "button",
                 data: { action: "click->import-source#clearPhoto" } } Changer de photo
 

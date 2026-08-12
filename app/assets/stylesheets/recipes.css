@@ -4522,6 +4522,12 @@ button.draft-rail-count:not(:disabled) {
   word-break: break-word;
 }
 
+/* Poids du fichier réellement envoyé : une information de service, discrète. */
+.import-file-preview__size {
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-4);
+}
+
 .import-file-preview__change {
   background: none;
   border: none;

@@ -32,6 +32,14 @@ RSpec.describe "Recipe imports (import IA)", type: :request do
       expect(response.body).to include("paste@document-&gt;import-source#paste")
     end
 
+    # La photo est réduite dans le navigateur avant l'envoi : l'aperçu annonce le
+    # poids du fichier réellement transmis, via une cible que la vue doit fournir.
+    it "réserve dans l'aperçu la place du poids du fichier envoyé" do
+      get new_recipe_import_path
+
+      expect(response.body).to include('data-import-source-target="previewSize"')
+    end
+
     # Sur mobile, capture forcerait l'appareil photo et interdirait la galerie :
     # le sélecteur natif propose déjà les deux.
     it "laisse le champ photo ouvert à la galerie comme à l'appareil photo" do
