@@ -57,13 +57,18 @@
                   data: { turbo_frame: "recipes_list", recipe_filter_target: "form" } do |f|
 
         -# ── Barre de recherche (icône intégrée dans le champ) ──
+        -# La recherche part d'elle-même pendant la frappe (debounce), comme les
+        -# autres filtres partent à leur changement : Entrée et la loupe ne font
+        -# que devancer l'attente.
         .filters-search-row
           .search-field-wrapper
             = f.search_field :query,
                              value: params[:query],
                              placeholder: "Rechercher...",
-                             class: "search-input"
-            %button.search-inline-btn{ type: "submit", title: "Rechercher", "aria-label": "Rechercher" }
+                             class: "search-input",
+                             data: { action: "input->recipe-filter#submitDebounced keydown.enter->recipe-filter#submit" }
+            %button.search-inline-btn{ type: "submit", title: "Rechercher", "aria-label": "Rechercher",
+                                       data: { action: "click->recipe-filter#submit" } }
               = svg_icon(:search, size: 16)
 
         -# ── Filtres empilés verticalement ──

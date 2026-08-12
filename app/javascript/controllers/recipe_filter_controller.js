@@ -6,11 +6,23 @@ import { Controller } from "@hotwired/stimulus"
 // - Badges supprimables pour chaque filtre actif
 // - Loader pendant le rechargement du Turbo Frame
 // - Mobile : drawer latéral ouvert par bouton flottant
+//
+// Le formulaire vit hors du turbo-frame qu'il recharge : il n'est jamais
+// re-rendu, donc le focus et le curseur restent dans le champ pendant la frappe.
 export default class extends Controller {
   static targets = ["form", "loader", "results", "sidebar", "backdrop", "mobileTrigger"]
 
+  // Attente avant de soumettre pendant la frappe : assez longue pour ne pas
+  // partir à chaque lettre, assez courte pour que la liste suive la saisie
+  // (même réglage que les filtres d'ingrédients, cf. filter_form_controller).
+  static values = { delay: { type: Number, default: 300 } }
+
   connect() {
     this.hideLoader()
+  }
+
+  disconnect() {
+    clearTimeout(this.debounceTimer)
   }
 
   // ── Sidebar mobile : ouvrir ──
@@ -51,15 +63,23 @@ export default class extends Controller {
     this.submit()
   }
 
-  // Soumettre le formulaire avec loader
+  // Soumission immédiate : sélecteurs, cases à cocher, badges, touche Entrée.
   submit(event) {
     if (event) event.preventDefault()
+
+    clearTimeout(this.debounceTimer)
 
     if (this.hasFormTarget) {
       this.showLoader()
       this.formTarget.requestSubmit()
       this.waitForFrameLoad()
     }
+  }
+
+  // Soumission différée pendant la frappe, une frappe chassant la précédente.
+  submitDebounced() {
+    clearTimeout(this.debounceTimer)
+    this.debounceTimer = setTimeout(() => this.submit(), this.delayValue)
   }
 
   waitForFrameLoad() {
