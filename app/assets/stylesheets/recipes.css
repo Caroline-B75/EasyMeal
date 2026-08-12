@@ -1132,6 +1132,20 @@
   border-radius: var(--radius-card);
 }
 
+/* Aperçu du fichier qui vient d'être choisi (dépôt, collage ou clic) : à la
+   différence de la vignette Cloudinary déjà recadrée, l'image est brute — on
+   borne sa largeur et on laisse la hauteur suivre pour ne pas la déformer. */
+.photo-preview--chosen {
+  max-width: 200px;
+  height: auto;
+}
+
+/* Sans cette règle, le display: block ci-dessus l'emporterait sur l'attribut
+   hidden et l'aperçu vide s'afficherait avant tout choix. */
+.photo-preview[hidden] {
+  display: none;
+}
+
 /* Les capsules de tags (.tags-grid / .tag-checkbox) ne servent que dans le
    formulaire de recette : leur définition canonique est dans la section
    « Tags — capsules » plus bas, avec le reste des styles .rf-form. */
@@ -4390,6 +4404,13 @@ button.draft-rail-count:not(:disabled) {
   color: var(--color-ink-2);
 }
 
+/* Indice de geste (dépôt, collage) : un cran plus discret que l'aide format. */
+.import-hint--gesture {
+  margin-top: 4px;
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-4);
+}
+
 /* === Zone d'upload photo === */
 
 .import-file-zone {
@@ -4401,8 +4422,12 @@ button.draft-rail-count:not(:disabled) {
   cursor: pointer;
 }
 
+/* Le survol d'un fichier glissé (classe posée par import_source_controller)
+   reprend la mise en avant du survol souris : pendant un drag, :hover ne
+   s'applique pas. */
 .import-file-zone:hover,
-.import-file-zone:focus-within {
+.import-file-zone:focus-within,
+.import-file-zone.is-dragging {
   border-color: var(--color-primary);
   background: var(--color-bg-white);
 }

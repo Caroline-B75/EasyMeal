@@ -12,8 +12,11 @@
 
 .rf-body
   .import-wrapper
+    -# Le collage est écouté sur le document : l'événement paste vise l'élément
+    -# focalisé (souvent le body), jamais le formulaire.
     = form_with url: recipe_imports_path, method: :post, multipart: true,
-        data: { turbo: false, controller: "import-source", action: "submit->import-source#submit" } do |f|
+        data: { turbo: false, controller: "import-source",
+                action: "submit->import-source#submit paste@document->import-source#paste" } do |f|
 
       = hidden_field_tag :source_type, "url", data: { "import-source-target": "sourceType" }
 
@@ -28,7 +31,7 @@
             "aria-selected": "false", "aria-controls": "import-panel-photo",
             data: { "import-source-target": "photoTab", action: "click->import-source#selectPhoto" } }
           = svg_icon(:image, size: 16)
-          Photo de magazine
+          Photo ou capture
 
       -# Section URL
       .import-section{ id: "import-panel-url", role: "tabpanel", "aria-labelledby": "import-tab-url",
@@ -42,12 +45,15 @@
             data: { "import-source-target": "urlInput", action: "input->import-source#clearError" }
         %p.import-hint
           Fonctionne avec Marmiton, 750g, AllRecipes, et la plupart des sites de recettes.
+        %p.import-hint.import-hint--gesture
+          Tu peux aussi coller l'URL directement (Ctrl+V) : l'onglet se choisit tout seul.
 
       -# Section Photo
       .import-section{ id: "import-panel-photo", role: "tabpanel", "aria-labelledby": "import-tab-photo",
           hidden: true, data: { "import-source-target": "photoSection" } }
         %label.form-label{ for: "photo_file" } Photo de la recette
-        .import-file-zone{ data: { "import-source-target": "fileZone" } }
+        .import-file-zone{ data: { "import-source-target": "fileZone",
+            action: "dragover->import-source#dragOver dragleave->import-source#dragLeave drop->import-source#dropPhoto" } }
           = file_field_tag :photo_file,
               id: "photo_file",
               accept: "image/jpeg,image/png,image/webp",
@@ -55,7 +61,7 @@
               data: { "import-source-target": "fileInput", action: "change->import-source#previewPhoto" }
           %label.import-file-label{ for: "photo_file" }
             %span.import-file-label__icon= svg_icon(:camera, size: 32)
-            %span.import-file-label__text Cliquer pour choisir une photo
+            %span.import-file-label__text Dépose une photo ici ou clique pour choisir
 
         -# Aperçu de la photo sélectionnée
         .import-file-preview{ hidden: true, data: { "import-source-target": "preview" } }
@@ -69,6 +75,8 @@
         %p.import-hint
           Formats acceptés : JPG, PNG, WebP.
           %strong Photo nette et bien éclairée recommandée.
+        %p.import-hint.import-hint--gesture
+          Tu peux aussi coller une capture d'écran (Ctrl+V) depuis n'importe où sur cette page.
 
       -# Réassurance + soumission
       .import-actions

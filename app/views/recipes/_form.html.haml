@@ -92,7 +92,10 @@
       .rf-section-label PHOTO
 
       - photo_attached = recipe.persisted? && recipe.photo.attached?
-      .form-group.rf-photo{ data: { controller: "image-preview" } }
+      -# Le collage est écouté sur le document : l'événement paste vise l'élément
+      -# focalisé (souvent le body), jamais la zone photo.
+      .form-group.rf-photo{ data: { controller: "image-preview",
+          action: "paste@document->image-preview#paste" } }
         - if photo_attached
           = image_tag cloudinary_photo_url(recipe.photo, width: 200, height: 150), class: "photo-preview", width: 200, height: 150, loading: "lazy"
           %button.btn.btn-white{ type: "button", data: { image_preview_target: "changeButton", action: "click->image-preview#showUploadField" } }
@@ -104,8 +107,12 @@
           %label.rf-dropzone{ for: "recipe_photo", data: { image_preview_target: "dropzone", action: "dragover->image-preview#dragOver dragleave->image-preview#dragLeave drop->image-preview#dropFile" } }
             = svg_icon(:camera, size: 24, css_class: "rf-dropzone-icon")
             %span.rf-dropzone-title Dépose une photo ici
-            %span.rf-dropzone-hint ou clique pour choisir — JPEG/PNG, 800×600 minimum
+            %span.rf-dropzone-hint ou clique pour choisir, ou colle une capture (Ctrl+V) — JPEG/PNG, 800×600 minimum
           = f.file_field :photo, accept: "image/*", id: "recipe_photo", class: "photo-upload-input sr-only", data: { image_preview_target: "input", action: "change->image-preview#showFilename" }
+          -# Vignette du fichier choisi, lue par le navigateur : rien n'est
+          -# envoyé tant que le formulaire n'est pas soumis.
+          %img.photo-preview.photo-preview--chosen{ hidden: true, alt: "Aperçu de la photo choisie",
+              data: { image_preview_target: "preview" } }
           %p.photo-upload-notice{ data: { image_preview_target: "notice" }, hidden: true }
 
     -# Section : Caractéristiques

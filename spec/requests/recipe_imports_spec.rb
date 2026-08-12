@@ -22,6 +22,23 @@ RSpec.describe "Recipe imports (import IA)", type: :request do
       expect(response.body).to include("import-submit-spinner")
       expect(response.body).to include("Extraire la recette avec l'IA")
     end
+
+    # Le dépôt et le collage vivent dans le contrôleur Stimulus : côté requêtes,
+    # seul leur branchement est vérifiable — c'est lui qui saute si la vue change.
+    it "câble le dépôt de fichier sur la zone photo et le collage sur la page" do
+      get new_recipe_import_path
+
+      expect(response.body).to include("drop-&gt;import-source#dropPhoto")
+      expect(response.body).to include("paste@document-&gt;import-source#paste")
+    end
+
+    # Sur mobile, capture forcerait l'appareil photo et interdirait la galerie :
+    # le sélecteur natif propose déjà les deux.
+    it "laisse le champ photo ouvert à la galerie comme à l'appareil photo" do
+      get new_recipe_import_path
+
+      expect(response.body).not_to include("capture=")
+    end
   end
 
   describe "GET /recipes/:id/edit — revue du brouillon importé" do

@@ -1,8 +1,21 @@
 import { Controller } from "@hotwired/stimulus"
+import { assignFile, acceptsFile, clipboardImage, readImageUrl } from "photo_input"
+
+// Un texte collé n'est pris pour une adresse de recette que s'il ressemble à une
+// URL complète, d'un seul tenant : sinon on laisse le collage au navigateur.
+const HTTP_URL = /^https?:\/\/\S+$/i
+
+// Dépôt et collage n'ont pas le filtre du sélecteur natif : il faut le refuser
+// nous-mêmes, plutôt que d'envoyer un format que l'IA ne saura pas lire.
+const UNSUPPORTED_FILE_ERROR = "Format non accepté : choisis une image JPG, PNG ou WebP."
 
 // Gère le formulaire d'import IA :
 //  - bascule accessible entre les onglets URL et Photo (aria-selected) ;
-//  - aperçu de la photo sélectionnée avant envoi ;
+//  - trois chemins d'entrée pour la photo — clic, glisser-déposer, collage —
+//    qui convergent tous vers le champ fichier puis l'aperçu ;
+//  - collage n'importe où sur la page : une image ouvre l'onglet Photo, une URL
+//    ouvre l'onglet Lien (l'action `paste@document` est détachée par Stimulus
+//    à la déconnexion du contrôleur) ;
 //  - garde anti-envoi à vide + état de chargement visible (spinner) au submit.
 export default class extends Controller {
   static targets = [
@@ -19,7 +32,7 @@ export default class extends Controller {
     this.activateTab("photo")
   }
 
-  // Affiche un aperçu de la photo choisie et masque la zone de dépôt.
+  // Sélection au clic : le fichier est déjà dans le champ, seul l'aperçu manque.
   previewPhoto(event) {
     const file = event.target.files[0]
     if (!file) {
@@ -27,15 +40,58 @@ export default class extends Controller {
       return
     }
 
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      this.previewImgTarget.src = e.target.result
-      this.previewNameTarget.textContent = file.name
-      this.fileZoneTarget.hidden = true
-      this.previewTarget.hidden = false
+    this.showPreview(file)
+  }
+
+  dragOver(event) {
+    // Sans preventDefault, le navigateur ouvre le fichier au lieu de le déposer.
+    event.preventDefault()
+    this.fileZoneTarget.classList.add("is-dragging")
+  }
+
+  dragLeave(event) {
+    // Passer du champ fichier à sa bordure émet un dragleave parasite : l'état
+    // ne retombe que si le curseur quitte vraiment la zone.
+    if (this.fileZoneTarget.contains(event.relatedTarget)) return
+
+    this.fileZoneTarget.classList.remove("is-dragging")
+  }
+
+  dropPhoto(event) {
+    event.preventDefault()
+    this.fileZoneTarget.classList.remove("is-dragging")
+
+    // Sans ce mot, déposer un PDF donnerait l'impression que rien ne s'est passé.
+    if (!this.adoptPhoto(event.dataTransfer.files[0])) {
+      this.showError(UNSUPPORTED_FILE_ERROR)
     }
-    reader.readAsDataURL(file)
-    this.clearError()
+  }
+
+  // Collage global : le presse-papiers dicte l'onglet à ouvrir.
+  paste(event) {
+    const clipboard = event.clipboardData
+    if (!clipboard) return
+
+    // Une image collée n'a de sens nulle part ailleurs : on la prend même si le
+    // curseur est dans le champ URL, où elle ne collerait rien.
+    const image = clipboardImage(event)
+    if (image) {
+      event.preventDefault()
+      this.activateTab("photo")
+      if (!this.adoptPhoto(image)) this.showError(UNSUPPORTED_FILE_ERROR)
+      return
+    }
+
+    // Un texte collé dans un champ de saisie appartient à ce champ.
+    if (this.isEditable(event.target)) return
+
+    const text = clipboard.getData("text").trim()
+    if (!HTTP_URL.test(text)) return
+
+    event.preventDefault()
+    this.activateTab("url")
+    this.urlInputTarget.value = text
+    this.urlInputTarget.focus()
   }
 
   // Réinitialise la sélection de photo et réaffiche la zone de dépôt.
@@ -85,12 +141,42 @@ export default class extends Controller {
     this.clearError()
   }
 
+  // Fichier venu d'un dépôt ou d'un collage : il n'entre dans le formulaire
+  // qu'une fois réinjecté dans le champ fichier. Retourne false si le format
+  // n'est pas accepté.
+  adoptPhoto(file) {
+    if (!acceptsFile(this.fileInputTarget, file)) return false
+
+    assignFile(this.fileInputTarget, file)
+    this.showPreview(file)
+    return true
+  }
+
+  // Aperçu commun aux trois chemins d'entrée : vignette, nom, zone de dépôt
+  // masquée le temps que la photo tienne la place.
+  showPreview(file) {
+    readImageUrl(file).then((url) => {
+      if (!url) return
+
+      this.previewImgTarget.src = url
+      this.previewNameTarget.textContent = file.name
+      this.fileZoneTarget.hidden = true
+      this.previewTarget.hidden = false
+    })
+    this.clearError()
+  }
+
   // Vrai si la source active (URL ou photo) contient une valeur.
   hasSource() {
     if (this.sourceTypeTarget.value === "url") {
       return this.urlInputTarget.value.trim().length > 0
     }
     return this.fileInputTarget.files.length > 0
+  }
+
+  isEditable(element) {
+    return element instanceof HTMLElement &&
+      (element.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(element.tagName))
   }
 
   showError(message) {
