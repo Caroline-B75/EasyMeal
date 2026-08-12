@@ -13,6 +13,7 @@ Rails.application.routes.draw do
   resources :ingredients do
     collection do
       post :quick_create  # Création rapide depuis le formulaire recette
+      get  :search        # Recherche JSON (association manuelle depuis le panneau IA)
     end
     member do
       patch :add_alias    # Ajoute un alias à un ingrédient (confirmation match IA)

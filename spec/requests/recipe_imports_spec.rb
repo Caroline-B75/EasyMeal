@@ -44,6 +44,28 @@ RSpec.describe "Recipe imports (import IA)", type: :request do
                                        "slideout:closed@document-&gt;ai-panel#forgetPending")
     end
 
+    # Sans échappatoire manuelle, un ingrédient non détecté n'a d'autre issue
+    # que la création d'un doublon de celui qui existe déjà au catalogue.
+    it "propose de chercher soi-même l'ingrédient dans le catalogue" do
+      get edit_recipe_path(draft)
+
+      expect(response.body).to include(search_ingredients_path)
+      expect(response.body).to include("ai-panel#openSearch")
+      expect(response.body).to include("ai-panel#searchCatalog")
+      # Sans détection, les actions de repli sont visibles d'emblée : l'attribut
+      # hidden doit être absent, pas rendu à "false" (qui masquerait quand même).
+      expect(response.body).not_to include("hidden='false'", 'hidden="false"')
+    end
+
+    it "propose de changer d'ingrédient même quand la détection est sûre d'elle" do
+      create(:ingredient, name: "farine de blé")
+
+      get edit_recipe_path(draft)
+
+      # La ligne est résolue (bouton Ajouter) mais garde sa porte de sortie
+      expect(response.body).to include("Choisir un autre")
+    end
+
     it "propose d'abandonner l'import, à l'écart des actions du formulaire" do
       get edit_recipe_path(draft)
 

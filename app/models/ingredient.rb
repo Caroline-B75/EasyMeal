@@ -90,14 +90,16 @@ class Ingredient < ApplicationRecord
     where("season_months @> ARRAY[?]::integer[]", month.to_i)
   }
 
-  # Recherche par nom ou alias
+  # Recherche par nom (fragment) ou par alias (exact).
+  # L'alias part en JSON tel quel : le passer par sanitize_sql_like y laisserait
+  # les échappements du LIKE, et `@>` ne trouverait plus jamais rien.
   scope :search, ->(query) {
     return all if query.blank?
 
-    sanitized_query = sanitize_sql_like(query.downcase)
+    normalized = query.to_s.downcase.strip
     where("LOWER(name) LIKE :query OR aliases @> :json_query",
-          query: "%#{sanitized_query}%",
-          json_query: [ "\"#{sanitized_query}\"" ].to_json)
+          query: "%#{sanitize_sql_like(normalized)}%",
+          json_query: [ normalized ].to_json)
   }
 
   # === Méthodes publiques ===

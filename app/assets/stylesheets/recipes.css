@@ -3705,7 +3705,8 @@ button.draft-rail-count:not(:disabled) {
 
 /* Correction : display:flex côté CSS auteur écrase l'attribut HTML hidden
    sur les éléments d'agent utilisateur. On force display:none ici. */
-[data-ai-panel-target="noMatchFallback"][hidden] {
+[data-ai-panel-target="noMatchFallback"][hidden],
+[data-ai-panel-target="search"][hidden] {
   display: none !important;
 }
 
@@ -3782,9 +3783,12 @@ button.draft-rail-count:not(:disabled) {
   white-space: nowrap;
 }
 
-/* Match flou : suggestions empilées verticalement */
+/* Match flou : suggestions empilées verticalement.
+   Même disposition pour le match exact, dont le lien « Choisir un autre »
+   se pose sous le bouton d'ajout. */
 
-.ai-row__fuzzy {
+.ai-row__fuzzy,
+.ai-row__resolved {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -3853,6 +3857,72 @@ button.draft-rail-count:not(:disabled) {
   font-size: 12px;
   color: var(--color-ink-3);
   font-style: italic;
+}
+
+/* Recherche manuelle dans le catalogue : dépliée sous la ligne, sur toute
+   sa largeur (la ligne est une grille à deux colonnes). */
+
+.ai-row__search {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--color-border);
+}
+
+/* Champ + croix de fermeture sur une même ligne */
+
+.ai-row__search-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ai-row__search-input {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+}
+
+.ai-row__search-close {
+  flex-shrink: 0;
+}
+
+.ai-row__search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+/* Chaque résultat : une cible pleine largeur, alignée à gauche comme une liste */
+
+.ai-row__search-item {
+  text-align: left;
+  padding: 7px 10px;
+  font-size: 13px;
+  color: var(--color-ink);
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-input);
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.ai-row__search-item:hover {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border-strong);
+}
+
+.ai-row__search-empty {
+  margin: 0;
+  padding: 4px 2px;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--color-ink-3);
 }
 
 /* Badge ✓ Ajouté */

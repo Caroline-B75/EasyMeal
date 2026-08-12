@@ -457,7 +457,7 @@ une page web avant d'essayer de le lire comme du HTML.
 
 ### Prompt à envoyer
 
-```
+````
 Commence par charger le skill claude-api, puis exécute ce prompt :
 
 **Qualité non négociable** : code simple, refactorisé, DRY, bien commenté, fiable, robuste, zéro code mort, bonnes pratiques Rails/Hotwire/HAML et conventions du projet.
@@ -521,7 +521,7 @@ Demandes :
    d'exemples ne doit pas baisser.
 8. Mets à jour le commentaire d'architecture éventuel : plus aucun parsing
    défensif de fences markdown ne doit subsister.
-```
+````
 
 ### RSpec
 
@@ -557,6 +557,12 @@ produire. Le plafond de tokens élargi règle l'échec des recettes longues.
 ### Commit proposé
 
 `extraction IA : gem anthropic, Claude Sonnet 5 et sorties structurées`
+
+---
+
+---
+
+## PAS DE CLEAR ENTRE LES ETAPES 6 ET 7
 
 ---
 
@@ -766,16 +772,16 @@ magazine pour vérifier « 20 cl ou 25 cl ? ».
 
 ## Récapitulatif
 
-| #   | Étape                                        | Effort | Risque                        |
-| --- | -------------------------------------------- | ------ | ----------------------------- |
-| 1   | Badge lien + cartes élargies                 | 30 min | nul                           |
-| 2   | Glisser-déposer + collage                    | 1 h    | faible (JS uniquement)        |
-| 3   | Redimensionnement photo client               | 1 h    | faible (fallback fichier brut)|
-| 4   | Attente progressive + URL conservée          | 45 min | nul                           |
-| 5   | Robustesse fetch (redirects, taille, type)   | 45 min | faible                        |
-| 6   | Gem anthropic + Sonnet 5 + sorties structurées | 1 h 30 | moyen (cœur de l'import)    |
-| 7   | Suggestions moments / budget / tags          | 1 h 30 | moyen (prompts + mapping)     |
-| 8   | Photo source conservée à la validation       | 1 h    | faible                        |
+| #   | Étape                                          | Effort | Risque                         |
+| --- | ---------------------------------------------- | ------ | ------------------------------ |
+| 1   | Badge lien + cartes élargies                   | 30 min | nul                            |
+| 2   | Glisser-déposer + collage                      | 1 h    | faible (JS uniquement)         |
+| 3   | Redimensionnement photo client                 | 1 h    | faible (fallback fichier brut) |
+| 4   | Attente progressive + URL conservée            | 45 min | nul                            |
+| 5   | Robustesse fetch (redirects, taille, type)     | 45 min | faible                         |
+| 6   | Gem anthropic + Sonnet 5 + sorties structurées | 1 h 30 | moyen (cœur de l'import)       |
+| 7   | Suggestions moments / budget / tags            | 1 h 30 | moyen (prompts + mapping)      |
+| 8   | Photo source conservée à la validation         | 1 h    | faible                         |
 
 Les étapes 1 à 5 sont indépendantes : tu peux t'arrêter, reprendre, ou en sauter
 une. Les étapes 6 et 7 forment un bloc ordonné — et gagnent à venir APRÈS les

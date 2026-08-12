@@ -17,8 +17,12 @@ const UNIT_CONVERSIONS = {
   'pièces':{ group: 'count',  factor: 1 },
 }
 
+// Délai avant d'interroger le catalogue, le temps que la frappe se pose
+const SEARCH_DEBOUNCE_MS = 200
+
 export default class extends Controller {
-  static targets = ["row", "fuzzyOptions", "noMatchFallback"]
+  static targets = ["row", "fuzzyOptions", "noMatchFallback", "search", "searchInput", "searchResults"]
+  static values = { searchUrl: String }
 
   connect() {
     this._onIngredientCreated = this.onIngredientCreated.bind(this)
@@ -27,55 +31,73 @@ export default class extends Controller {
 
   disconnect() {
     document.removeEventListener('easymeal:ingredientCreated', this._onIngredientCreated)
+    clearTimeout(this.searchTimer)
   }
 
-  // Ajoute un ingrédient (match exact) dans le formulaire de préparations
+  // Ajoute un ingrédient (match exact) dans le formulaire de préparations.
+  // Sa quantité est déjà convertie côté serveur, l'ingrédient étant connu.
   add(event) {
     const btn = event.currentTarget
-    const row = btn.closest('[data-ai-panel-target="row"]')
     const { aiPanelIngredientId, aiPanelIngredientName, aiPanelBaseUnit, aiPanelQuantityBase } = btn.dataset
     this.addPreparationRow(aiPanelIngredientId, aiPanelIngredientName, aiPanelBaseUnit, parseFloat(aiPanelQuantityBase) || 1)
-    this.markDone(row)
+    this.markDone(this.rowOf(btn))
   }
 
-  // Confirme un match approximatif : enregistre l'alias puis ajoute au formulaire
+  // Confirme un match approximatif proposé par le serveur
   confirmFuzzy(event) {
-    const btn = event.currentTarget
-    // Capturer la référence à la ligne AVANT l'appel async
-    const row = btn.closest('[data-ai-panel-target="row"]')
-    const { aiPanelIngredientId, aiPanelIngredientName, aiPanelBaseUnit,
-            aiPanelQuantityBase, aiPanelAlias, aiPanelAddAliasPath } = btn.dataset
-
-    btn.disabled = true
-
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
-    fetch(aiPanelAddAliasPath, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
-      body: JSON.stringify({ alias: aiPanelAlias })
-    })
-    .then(() => {
-      this.addPreparationRow(aiPanelIngredientId, aiPanelIngredientName, aiPanelBaseUnit, parseFloat(aiPanelQuantityBase) || 1)
-      this.markDone(row)
-    })
-    .catch(() => { btn.disabled = false })
+    this.associateFromButton(event.currentTarget)
   }
 
-  // Rejette toutes les suggestions floues → affiche le bouton "Créer"
+  // Retient un ingrédient choisi à la main dans le catalogue
+  chooseExisting(event) {
+    this.associateFromButton(event.currentTarget)
+  }
+
+  // Rejette toutes les suggestions floues → affiche les actions de repli
   rejectFuzzy(event) {
-    const row = event.currentTarget.closest('[data-ai-panel-target="row"]')
+    const row = this.rowOf(event.currentTarget)
     const fuzzyOptions = row.querySelector('[data-ai-panel-target="fuzzyOptions"]')
     const noMatchFallback = row.querySelector('[data-ai-panel-target="noMatchFallback"]')
     if (fuzzyOptions) fuzzyOptions.hidden = true
     if (noMatchFallback) noMatchFallback.hidden = false
   }
 
+  // Ouvre la recherche manuelle de la ligne, en refermant celle déjà ouverte
+  // ailleurs : une seule à la fois, donc un seul debounce à gérer.
+  openSearch(event) {
+    const row = this.rowOf(event.currentTarget)
+    const search = row.querySelector('[data-ai-panel-target="search"]')
+    this.searchTargets.forEach((other) => { if (other !== search) other.hidden = true })
+    search.hidden = false
+    // Une seule recherche ouverte, donc un seul bouton à qui rendre le focus
+    this.searchTrigger = event.currentTarget
+
+    const input = search.querySelector('[data-ai-panel-target="searchInput"]')
+    input.focus()
+    input.select()
+    this.runSearch(row)
+  }
+
+  // Referme la recherche sans rien choisir (croix ou Échap) et rend le focus au
+  // bouton qui l'avait ouverte, sinon il resterait dans le vide.
+  closeSearch(event) {
+    const search = this.rowOf(event.currentTarget)?.querySelector('[data-ai-panel-target="search"]')
+    if (search) search.hidden = true
+    clearTimeout(this.searchTimer)
+    this.searchTrigger?.focus()
+    this.searchTrigger = null
+  }
+
+  // Interroge le catalogue après une pause dans la frappe
+  searchCatalog(event) {
+    const row = this.rowOf(event.currentTarget)
+    clearTimeout(this.searchTimer)
+    this.searchTimer = setTimeout(() => this.runSearch(row), SEARCH_DEBOUNCE_MS)
+  }
+
   // Ouvre le slideout pour créer un ingrédient, pré-remplit le nom IA
   openCreate(event) {
-    const btn = event.currentTarget
-    this.pendingRow = btn.closest('[data-ai-panel-target="row"]')
-    this.pendingQuantity = parseFloat(btn.dataset.aiPanelQuantityBase) || 1
-    this.pendingUnit = btn.dataset.aiPanelUnit || null
+    this.pendingRow = this.rowOf(event.currentTarget)
 
     // Passe par slideout#open plutôt que d'ouvrir le panneau à la main : c'est
     // lui, et lui seul, qui remet le formulaire à neuf. Sans ça, la deuxième
@@ -85,7 +107,7 @@ export default class extends Controller {
 
     // Après la réinitialisation seulement : le champ vient d'être recréé.
     const nameInput = document.querySelector('#quick-ingredient-form input[name="ingredient[name]"]')
-    if (nameInput) nameInput.value = btn.dataset.aiPanelName || ''
+    if (nameInput) nameInput.value = this.pendingRow.dataset.aiPanelName || ''
   }
 
   // Réagit à la création d'un ingrédient via le slideout (si ouvert depuis le panneau IA)
@@ -98,12 +120,7 @@ export default class extends Controller {
 
     const { id, displayName, baseUnit, unitGroup } = event.detail
 
-    // Convertir la quantité IA vers la base_unit du nouvel ingrédient (ex: 1 kg → 1000 g)
-    const rawQty = this.pendingQuantity || 1
-    const converted = this.convertQuantity(rawQty, this.pendingUnit, unitGroup)
-    const finalQty = converted !== null ? converted : rawQty
-
-    this.addPreparationRow(id, displayName, baseUnit, finalQty)
+    this.addPreparationRow(id, displayName, baseUnit, this.quantityFor(this.pendingRow, unitGroup))
     this.markDone(this.pendingRow)
     this.forgetPending()
   }
@@ -113,8 +130,99 @@ export default class extends Controller {
   // serait posé avec la quantité de la ligne abandonnée.
   forgetPending() {
     this.pendingRow = null
-    this.pendingQuantity = null
-    this.pendingUnit = null
+  }
+
+  // === Association d'une ligne à un ingrédient existant ===
+
+  // Suggestion confirmée et choix manuel suivent le même chemin : les deux
+  // boutons portent les mêmes données, seule leur provenance diffère.
+  associateFromButton(btn) {
+    const row = this.rowOf(btn)
+    const { aiPanelIngredientId, aiPanelIngredientName, aiPanelBaseUnit,
+            aiPanelUnitGroup, aiPanelAddAliasPath } = btn.dataset
+
+    btn.disabled = true
+
+    this.rememberAlias(aiPanelAddAliasPath, row.dataset.aiPanelName)
+      .then(() => {
+        this.addPreparationRow(aiPanelIngredientId, aiPanelIngredientName, aiPanelBaseUnit,
+                               this.quantityFor(row, aiPanelUnitGroup))
+        this.markDone(row)
+      })
+      .catch(() => { btn.disabled = false })
+  }
+
+  // Mémorise le nom détecté par l'IA comme alias de l'ingrédient retenu : le
+  // prochain import qui parlera de « brin de thym » retrouvera « Thym frais »
+  // tout seul, sans reposer la question.
+  rememberAlias(path, alias) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
+    return fetch(path, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+      body: JSON.stringify({ alias })
+    })
+  }
+
+  // === Recherche dans le catalogue ===
+
+  runSearch(row) {
+    const input = row.querySelector('[data-ai-panel-target="searchInput"]')
+    const results = row.querySelector('[data-ai-panel-target="searchResults"]')
+    // Une frappe rapide enchaîne les requêtes : seule la dernière lancée compte,
+    // les réponses arrivées dans le désordre sont ignorées.
+    const requestId = (this.searchRequestId || 0) + 1
+    this.searchRequestId = requestId
+
+    const url = `${this.searchUrlValue}?q=${encodeURIComponent(input.value.trim())}`
+    fetch(url, { headers: { 'Accept': 'application/json' } })
+      .then((response) => response.json())
+      .then((ingredients) => {
+        if (requestId === this.searchRequestId) this.renderResults(results, ingredients)
+      })
+      .catch(() => this.renderMessage(results, 'Recherche indisponible'))
+  }
+
+  renderResults(container, ingredients) {
+    if (ingredients.length === 0) {
+      this.renderMessage(container, 'Aucun ingrédient ne correspond')
+      return
+    }
+
+    // textContent et non innerHTML : les noms viennent de la base
+    container.replaceChildren(...ingredients.map((ingredient) => {
+      const button = document.createElement('button')
+      button.type = 'button'
+      button.className = 'ai-row__search-item'
+      button.textContent = ingredient.name
+      Object.assign(button.dataset, {
+        action: 'click->ai-panel#chooseExisting',
+        aiPanelIngredientId: ingredient.id,
+        aiPanelIngredientName: ingredient.name,
+        aiPanelBaseUnit: ingredient.base_unit,
+        aiPanelUnitGroup: ingredient.unit_group,
+        aiPanelAddAliasPath: ingredient.add_alias_path
+      })
+      return button
+    }))
+  }
+
+  renderMessage(container, text) {
+    const message = document.createElement('p')
+    message.className = 'ai-row__search-empty'
+    message.textContent = text
+    container.replaceChildren(message)
+  }
+
+  // === Pose de la ligne dans le formulaire ===
+
+  // La quantité détectée est brute (« 1 kg ») : on la convertit vers l'unité de
+  // base de l'ingrédient retenu. Unités incompatibles (« 1 brin » vers des
+  // grammes) → on garde le nombre tel quel, à ajuster à la main.
+  quantityFor(row, unitGroup) {
+    const quantity = parseFloat(row.dataset.aiPanelQuantity) || 1
+    const converted = this.convertQuantity(quantity, row.dataset.aiPanelUnit, unitGroup)
+    return converted !== null ? converted : quantity
   }
 
   // Convertit qty depuis fromUnit vers le group de l'ingrédient cible.
@@ -124,6 +232,10 @@ export default class extends Controller {
     const conv = UNIT_CONVERSIONS[(fromUnit || '').toLowerCase().trim()]
     if (!conv || conv.group !== toGroup) return null
     return Math.round(qty * conv.factor * 1000) / 1000
+  }
+
+  rowOf(element) {
+    return element.closest('[data-ai-panel-target="row"]')
   }
 
   // Clone le template nested-form, configure ingrédient + quantité, appende au container
@@ -161,6 +273,10 @@ export default class extends Controller {
   markDone(row) {
     if (!row) return
     row.classList.add('ai-row--done')
+
+    const search = row.querySelector('[data-ai-panel-target="search"]')
+    if (search) search.hidden = true
+
     const rightSide = row.querySelector('.ai-row__right')
     if (rightSide) rightSide.innerHTML = '<span class="ai-row__done-badge">✓ Ajouté</span>'
   }

@@ -2,6 +2,7 @@
 -# Affiché dans _form.html.haml juste au-dessus de la section ingrédients
 
 .ai-panel{ data: { controller: "ai-panel",
+                   "ai-panel-search-url-value": search_ingredients_path,
                    action: "slideout:closed@document->ai-panel#forgetPending" } }
   .ai-panel__header
     %p.ai-panel__title
@@ -11,7 +12,14 @@
       Cliquez "Ajouter" pour intégrer chaque ingrédient dans le formulaire ci-dessous.
 
   - ai_matches.each do |match|
-    .ai-row{ data: { "ai-panel-target": "row" } }
+    -# Ce que l'IA a détecté vit sur la ligne : la recherche manuelle et la
+    -# création y puisent le même nom et la même quantité, sans les répéter
+    -# sur chaque bouton. La quantité reste brute — elle est convertie vers
+    -# l'unité de base de l'ingrédient au moment où l'on en choisit un.
+    .ai-row{ data: { "ai-panel-target": "row",
+                     "ai-panel-name": match[:ai_name],
+                     "ai-panel-quantity": match[:quantity],
+                     "ai-panel-unit": match[:unit] } }
       .ai-row__left
         %span.ai-row__name= match[:ai_name]
         - qty = match[:quantity].to_f
@@ -20,19 +28,25 @@
 
       .ai-row__right
         - if match[:exact]
-          -# Match exact : indicateur discret + bouton Ajouter
-          .ai-row__status
-            %span.ai-row__match= match[:exact].name
-            %button.btn.btn-primary.btn-sm{
+          -# Match exact : indicateur discret + bouton Ajouter, et la porte de
+          -# sortie si l'IA s'est trompée d'ingrédient.
+          .ai-row__resolved
+            .ai-row__status
+              %span.ai-row__match= match[:exact].name
+              %button.btn.btn-primary.btn-sm{
+                type: "button",
+                data: {
+                  action: "click->ai-panel#add",
+                  ai_panel_ingredient_id: match[:exact].id,
+                  ai_panel_ingredient_name: match[:exact].display_name,
+                  ai_panel_base_unit: match[:exact].base_unit,
+                  ai_panel_quantity_base: match[:quantity_base]
+                }
+              } Ajouter
+            %button.ai-row__none-btn{
               type: "button",
-              data: {
-                action: "click->ai-panel#add",
-                ai_panel_ingredient_id: match[:exact].id,
-                ai_panel_ingredient_name: match[:exact].display_name,
-                ai_panel_base_unit: match[:exact].base_unit,
-                ai_panel_quantity_base: match[:quantity_base]
-              }
-            } Ajouter
+              data: { action: "click->ai-panel#openSearch" }
+            } Choisir un autre
 
         - elsif match[:fuzzy].any?
           -# Match flou : suggestions en mini-cartes + lien de rejet
@@ -49,8 +63,7 @@
                       ai_panel_ingredient_id: fi.id,
                       ai_panel_ingredient_name: fi.display_name,
                       ai_panel_base_unit: fi.base_unit,
-                      ai_panel_quantity_base: match[:quantity_base],
-                      ai_panel_alias: match[:ai_name],
+                      ai_panel_unit_group: fi.unit_group,
                       ai_panel_add_alias_path: add_alias_ingredient_path(fi)
                     }
                   } C'est ça
@@ -59,29 +72,32 @@
                 data: { action: "click->ai-panel#rejectFuzzy" }
               } Aucun de ces résultats
 
-          -# Fallback après rejet : caché par défaut (rendu visible par JS)
-          .ai-row__no-match-fallback{ data: { "ai-panel-target": "noMatchFallback" }, hidden: true }
-            %span.ai-row__no-match Introuvable dans la base
-            %button.btn.btn-secondary.btn-sm{
-              type: "button",
-              data: {
-                action: "click->ai-panel#openCreate",
-                ai_panel_name: match[:ai_name],
-                ai_panel_unit: match[:unit],
-                ai_panel_quantity_base: match[:quantity_base]
-              }
-            } Créer
+          -# Repli après rejet : caché par défaut (rendu visible par JS)
+          = render "recipes/ai_row_fallback", hidden: true
 
         - else
-          -# Aucun match : bouton Créer directement
-          .ai-row__status
-            %span.ai-row__no-match Introuvable
-            %button.btn.btn-secondary.btn-sm{
-              type: "button",
-              data: {
-                action: "click->ai-panel#openCreate",
-                ai_panel_name: match[:ai_name],
-                ai_panel_unit: match[:unit],
-                ai_panel_quantity_base: match[:quantity_base]
-              }
-            } Créer
+          -# Aucun match : chercher soi-même ou créer, directement
+          = render "recipes/ai_row_fallback", hidden: false
+
+      -# Recherche manuelle dans le catalogue : dépliée à la demande, elle occupe
+      -# toute la largeur de la ligne. Choisir un ingrédient ici enregistre le nom
+      -# détecté comme alias — le prochain import le retrouvera tout seul.
+      .ai-row__search{ data: { "ai-panel-target": "search" }, hidden: true }
+        -# Le champ et sa porte de sortie : la croix referme la zone quand on
+        -# change d'avis ou qu'aucun ingrédient du catalogue ne convient.
+        .ai-row__search-head
+          %input.form-input.ai-row__search-input{
+            type: "search",
+            value: match[:ai_name],
+            placeholder: "Rechercher un ingrédient…",
+            autocomplete: "off",
+            data: { "ai-panel-target": "searchInput",
+                    action: "input->ai-panel#searchCatalog keydown.esc->ai-panel#closeSearch" }
+          }
+          %button.icon-btn.icon-btn--quiet.ai-row__search-close{
+            type: "button",
+            "aria-label": "Fermer la recherche",
+            data: { action: "click->ai-panel#closeSearch" }
+          }
+            = svg_icon(:x, size: 16)
+        .ai-row__search-results{ data: { "ai-panel-target": "searchResults" } }

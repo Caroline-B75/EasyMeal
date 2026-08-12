@@ -1,6 +1,9 @@
 # Gestion des ingrédients
 # Index visible par tous (pour l'auto-complétion), CRUD réservé aux admins
 class IngredientsController < ApplicationController
+  # Nombre de propositions renvoyées par la recherche JSON du panneau IA
+  SEARCH_LIMIT = 10
+
   before_action :authenticate_user!
   before_action :set_ingredient, only: [ :show, :edit, :update, :destroy, :add_alias ]
   before_action :authorize_ingredient, only: [ :show, :edit, :update, :destroy ]
@@ -46,8 +49,20 @@ class IngredientsController < ApplicationController
     return render json: { error: "Alias vide" }, status: :bad_request if alias_name.blank?
 
     existing = Array(@ingredient.aliases)
-    @ingredient.update(aliases: existing + [alias_name]) unless existing.include?(alias_name)
+    @ingredient.update(aliases: existing + [ alias_name ]) if learnable_alias?(alias_name, existing)
     render json: { ok: true }
+  end
+
+  # GET /ingredients/search?q=thym
+  # Recherche JSON dans le catalogue (nom ou alias). Alimente l'association
+  # manuelle d'une ligne du panneau IA, quand la détection n'a rien proposé
+  # d'utilisable — sans obliger à créer un doublon de l'ingrédient existant.
+  def search
+    authorize Ingredient, :index?
+    # Même réduction que le matcher : « brin de thym » cherche « thym ».
+    query   = IngredientMatcherService.strip_quantifier(params[:q].to_s.strip.downcase)
+    results = policy_scope(Ingredient).search(query).alphabetical.limit(SEARCH_LIMIT)
+    render json: results.map { |ingredient| search_result_json(ingredient) }
   end
 
   # POST /ingredients/quick_create
@@ -103,6 +118,29 @@ class IngredientsController < ApplicationController
 
   def authorize_ingredient
     authorize @ingredient
+  end
+
+  # Un alias déjà connu n'est pas réécrit, et il ne doit jamais usurper le nom
+  # d'un autre ingrédient : la détection ne saurait plus lequel des deux
+  # désigner. Dans ce cas l'association reste valable pour la recette en cours,
+  # elle n'est simplement pas apprise.
+  def learnable_alias?(alias_name, existing)
+    return false if existing.include?(alias_name)
+
+    !Ingredient.where.not(id: @ingredient.id).exists?([ "LOWER(name) = ?", alias_name ])
+  end
+
+  # Tout ce dont le panneau IA a besoin pour poser la ligne : le libellé, l'unité
+  # de base, le groupe d'unités (pour convertir la quantité détectée) et la route
+  # d'apprentissage de l'alias — les URLs restent construites côté Rails.
+  def search_result_json(ingredient)
+    {
+      id: ingredient.id,
+      name: ingredient.display_name,
+      base_unit: ingredient.base_unit,
+      unit_group: ingredient.unit_group,
+      add_alias_path: add_alias_ingredient_path(ingredient)
+    }
   end
 
   def render_quick_create_success

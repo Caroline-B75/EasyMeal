@@ -1,0 +1,10 @@
+-# Actions de repli d'une ligne du panneau IA : chercher soi-même l'ingrédient
+-# dans le catalogue, ou le créer. Masqué derrière les suggestions floues
+-# (révélé par « Aucun de ces résultats »), visible d'emblée sans détection.
+-# Les données détectées sont lues sur la ligne, pas répétées sur les boutons.
+.ai-row__no-match-fallback{ data: { "ai-panel-target": "noMatchFallback" }, hidden: hidden }
+  %span.ai-row__no-match Introuvable
+  %button.btn.btn-white.btn-sm{ type: "button",
+                                data: { action: "click->ai-panel#openSearch" } } Chercher
+  %button.btn.btn-secondary.btn-sm{ type: "button",
+                                    data: { action: "click->ai-panel#openCreate" } } Créer

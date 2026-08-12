@@ -50,11 +50,19 @@ L'IA (Claude Sonnet API) extrait les données structurées. L'admin valide, comp
 
 ### Matching d'ingrédients : fuzzy via trigram PostgreSQL
 - **Index existant** : `gin_trgm_ops` sur `ingredients.name` — déjà en place
-- **Seuil de match** : à définir lors du codage (ex: similarité > 0.4)
+- **Seuils retenus** : `similarity > 0.3` sur la chaîne entière (fautes de frappe),
+  `word_similarity > 0.6` par mots — c'est elle qui rapproche « thym » de « Thym frais »
+- **Nom réduit** : les quantificateurs de tête (« brin de », « gousse d'ail ») sont
+  retirés avant la recherche ; comptés dans la similarité, ils la faisaient tomber
+  sous le seuil et masquaient des correspondances évidentes
+- **Alias relus** : `IngredientMatcherService` cherche l'exact sur le nom *et* sur les
+  alias — sans quoi les associations confirmées à la main ne serviraient jamais
 - **Comportement** :
-  - Match exact → lien automatique
+  - Match exact → lien automatique, avec « Choisir un autre » si l'IA s'est trompée
   - Match approximatif → affiché à l'admin pour confirmation ou rejet
-  - Aucun match → bouton "Créer" → sidebar `quick_create`
+  - Aucun match → « Chercher » (recherche manuelle dans le catalogue, `GET /ingredients/search`)
+    ou « Créer » → sidebar `quick_create`
+  - Toute association manuelle enregistre le nom IA en alias : l'import suivant la retrouve seul
 
 ### Conversion d'unités : service dédié avec table exhaustive
 - **Cas automatiques** (même `unit_group`) :
