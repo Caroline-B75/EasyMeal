@@ -46,9 +46,10 @@ class RecipeDraftsController < ApplicationController
     @sort == "ready" ? ready + todo : todo + ready
   end
 
-  # Précharge les préparations (calcul de complétude) et le blob photo (mini-photo Cloudinary)
-  # pour éviter les requêtes N+1 sur la liste.
+  # Précharge les préparations (calcul de complétude) et les deux blobs que la
+  # vignette peut servir — photo de présentation, sinon page photographiée à
+  # l'import — pour éviter les requêtes N+1 sur la liste.
   def draft_scope
-    Recipe.draft.includes(:preparations, photo_attachment: :blob)
+    Recipe.draft.includes(:preparations, photo_attachment: :blob, source_photo_attachment: :blob)
   end
 end

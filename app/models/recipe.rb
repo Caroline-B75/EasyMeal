@@ -26,6 +26,13 @@ class Recipe < ApplicationRecord
   # Photo de la recette via ActiveStorage
   has_one_attached :photo
 
+  # Page photographiée à l'import IA, conservée comme pièce de référence du
+  # brouillon : pendant la validation, elle permet de relire une quantité
+  # douteuse. Ce n'est pas une photo du plat — elle ne remplace jamais `photo`,
+  # seule image du catalogue. Aucune migration : ActiveStorage range les deux
+  # pièces jointes dans active_storage_attachments, distinguées par leur nom.
+  has_one_attached :source_photo
+
   # Nom de remplacement attribué à un brouillon dont l'IA n'a pas extrait de titre.
   # Sert aussi de sentinelle pour détecter un titre encore à compléter (cf. draft_missing_fields).
   PLACEHOLDER_NAME = "Recette sans titre".freeze

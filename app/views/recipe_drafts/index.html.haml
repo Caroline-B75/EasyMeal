@@ -36,10 +36,13 @@
       - @recipes.each do |recipe|
         - missing = recipe.draft_missing_fields
         .draft-card{ class: missing.empty? ? "draft-card--ready" : "draft-card--todo" }
-          -# Mini-photo (ou placeholder si aucune photo importée)
+          -# Mini-photo : la photo de présentation, à défaut la page photographiée
+          -# à l'import (un import photo se reconnaît d'un coup d'œil), à défaut
+          -# un placeholder.
           .draft-card__thumb
-            - if recipe.photo.attached?
-              = image_tag cloudinary_photo_url(recipe.photo, width: 120, height: 120, crop: :fill),
+            - thumbnail = draft_thumbnail_photo(recipe)
+            - if thumbnail
+              = image_tag cloudinary_photo_url(thumbnail, width: 120, height: 120, crop: :fill),
                   class: "draft-card__thumb-img", alt: recipe.name, width: 56, height: 56, loading: "lazy"
             - else
               %span.draft-card__thumb-empty{ title: "Aucune photo" }

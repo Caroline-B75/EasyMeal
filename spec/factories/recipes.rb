@@ -23,6 +23,19 @@ FactoryBot.define do
       end
     end
 
+    # Brouillon importé par photo dont la page photographiée a été conservée.
+    # Le contenu du fichier n'a aucune importance : rien ne le décode, seule sa
+    # clé de blob sert à composer les URL Cloudinary.
+    trait :with_source_photo do
+      after(:build) do |recipe|
+        recipe.source_photo.attach(
+          io: StringIO.new("page de magazine"),
+          filename: "magazine.jpg",
+          content_type: "image/jpeg"
+        )
+      end
+    end
+
     # Recette DE SAISON ce mois-ci : son unique ingrédient l'est (une recette
     # est de saison dès qu'un de ses ingrédients l'est). La factory ingredient
     # ne renseignant pas season_months, :with_ingredient donne le pendant

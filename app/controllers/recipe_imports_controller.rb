@@ -52,7 +52,7 @@ class RecipeImportsController < ApplicationController
       raise Recipes::ExtractionError, "Veuillez saisir une URL" if params[:source_url].blank?
       Recipes::ExtractorService.from_url(params[:source_url].strip)
     when "photo"
-      file = params[:photo_file]
+      file = photo_file
       raise Recipes::ExtractionError, "Veuillez choisir une image" if file.blank?
       base64 = Base64.strict_encode64(file.read)
       Recipes::ExtractorService.from_photo(base64, media_type: file.content_type)
@@ -61,13 +61,19 @@ class RecipeImportsController < ApplicationController
     end
   end
 
+  # Fichier soumis par l'onglet Photo — nil pour un import par lien, même si un
+  # champ fichier traînait dans les paramètres.
+  def photo_file
+    params[:photo_file] if params[:source_type] == "photo"
+  end
+
   # Le brouillon arrive pré-coché : l'IA propose difficulté, régime, moments,
   # budget et tags, l'utilisatrice confirme ou corrige au formulaire de
   # validation. Chaque suggestion repasse par le vocabulaire connu — le schéma
   # de sortie l'y contraint déjà, mais un import n'a pas à faire confiance à ce
   # qu'on lui rend.
   def build_draft_recipe(data)
-    Recipe.new(
+    recipe = Recipe.new(
       status:            :draft,
       source_type:       params[:source_type],
       source_url:        params[:source_url].presence,
@@ -85,6 +91,14 @@ class RecipeImportsController < ApplicationController
       appliance:         data["appliance"],
       instructions:      data["instructions"]
     )
+
+    # La page photographiée reste attachée au brouillon comme pièce de
+    # référence pour la validation (jamais comme photo du plat). On attache
+    # l'UploadedFile lui-même plutôt que son contenu : ActiveStorage rouvre le
+    # fichier temporaire, que l'encodage base64 vient de lire jusqu'au bout.
+    recipe.source_photo.attach(photo_file) if photo_file.present?
+
+    recipe
   end
 
   # Retourne la valeur uniquement si elle appartient à l'enum, nil sinon.

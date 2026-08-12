@@ -17,6 +17,18 @@ module RecipesHelper
   # le badge de la liste des brouillons et le bandeau du formulaire de validation.
   SOURCE_LINK_TITLE = "Ouvrir la page d'origine dans un nouvel onglet".freeze
 
+  # Son équivalent pour un import photo, dont la source consultable est la page
+  # photographiée conservée avec le brouillon.
+  SOURCE_PHOTO_LINK_TITLE = "Ouvrir la photo importée en grand dans un nouvel onglet".freeze
+
+  # Côté de la vignette de source, en pixels d'affichage.
+  SOURCE_PHOTO_THUMB_SIZE = 44
+
+  # Borne de l'image ouverte en grand. Le redimensionnement navigateur plafonne
+  # déjà les imports à 1600 px et crop: :limit n'agrandit jamais : la photo
+  # s'ouvre donc telle qu'elle a été envoyée.
+  SOURCE_PHOTO_FULL_SIZE = 1600
+
   # Badge de source d'un brouillon importé (liste des imports).
   # Quand l'import vient d'un lien dont l'URL est connue, le badge devient un
   # vrai lien : pendant la validation, un clic rouvre la page d'origine pour
@@ -33,17 +45,53 @@ module RecipesHelper
     link_to content, recipe.source_url, **source_link_options("badge badge--source badge--source-link")
   end
 
-  # La même page d'origine, mais adresse en toutes lettres : bandeau de référence
-  # posé en tête du formulaire de validation d'un brouillon.
+  # Contenu du bandeau « Source de l'import » posé en tête du formulaire de
+  # validation : l'adresse de la page d'origine pour un import par lien, la page
+  # photographiée en vignette cliquable pour un import photo. nil quand la
+  # source n'a pas été conservée (imports antérieurs) — le bandeau disparaît
+  # alors plutôt que de rester vide.
+  def draft_source_reference(recipe)
+    return draft_source_url_link(recipe) if recipe.imported_from_link?
+
+    draft_source_photo_link(recipe) if recipe.source_photo.attached?
+  end
+
+  # La page d'origine, adresse en toutes lettres.
   def draft_source_url_link(recipe)
     link_to recipe.source_url, recipe.source_url, **source_link_options("rf-source__link")
   end
 
-  # Politique commune des liens sortants vers la page d'origine : nouvel onglet
-  # (le formulaire en cours de saisie ne doit jamais être remplacé), rel de
-  # sécurité, et infobulle qui annonce l'ouverture.
-  def source_link_options(css_class)
-    { class: css_class, target: "_blank", rel: "noopener noreferrer", title: SOURCE_LINK_TITLE }
+  # La page photographiée à l'import, en vignette cliquable qui l'ouvre en
+  # grand — c'est là qu'on relit « 20 cl ou 25 cl ? » sans quitter le formulaire.
+  def draft_source_photo_link(recipe)
+    photo = recipe.source_photo
+    thumbnail = image_tag cloudinary_photo_url(photo, width: SOURCE_PHOTO_THUMB_SIZE,
+                                                      height: SOURCE_PHOTO_THUMB_SIZE, crop: :fill),
+                          srcset: cloudinary_photo_srcset(photo, width: SOURCE_PHOTO_THUMB_SIZE,
+                                                                 height: SOURCE_PHOTO_THUMB_SIZE),
+                          class: "rf-source__thumb-img", alt: "Photo importée",
+                          width: SOURCE_PHOTO_THUMB_SIZE, height: SOURCE_PHOTO_THUMB_SIZE, loading: "lazy"
+
+    link_to thumbnail,
+            cloudinary_photo_url(photo, width: SOURCE_PHOTO_FULL_SIZE, height: SOURCE_PHOTO_FULL_SIZE),
+            **source_link_options("rf-source__thumb", title: SOURCE_PHOTO_LINK_TITLE)
+  end
+
+  # Politique commune des liens sortants vers la source d'un import : nouvel
+  # onglet (le formulaire en cours de saisie ne doit jamais être remplacé), rel
+  # de sécurité, et infobulle qui annonce ce qui s'ouvre.
+  def source_link_options(css_class, title: SOURCE_LINK_TITLE)
+    { class: css_class, target: "_blank", rel: "noopener noreferrer", title: title }
+  end
+
+  # Vignette d'une carte de brouillon : la photo de présentation, à défaut la
+  # page photographiée à l'import — un import photo se reconnaît ainsi d'un coup
+  # d'œil dans la liste. nil quand aucune des deux n'est attachée : la carte
+  # affiche alors son placeholder.
+  def draft_thumbnail_photo(recipe)
+    return recipe.photo if recipe.photo.attached?
+
+    recipe.source_photo if recipe.source_photo.attached?
   end
 
   # Options du sélecteur de tri de la liste des brouillons. La liste des tris

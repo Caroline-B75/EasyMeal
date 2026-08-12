@@ -78,6 +78,25 @@ RSpec.describe "Recipe drafts (recettes importées)", type: :request do
       expect(response.body).not_to include("badge--source-link")
     end
 
+    # Sans photo de présentation, la vignette montre la page photographiée à
+    # l'import : un import photo se reconnaît d'un coup d'œil dans la liste.
+    it "montre la photo importée en vignette à défaut de photo de présentation" do
+      draft = create(:recipe, :with_source_photo, status: :draft, source_type: "photo")
+
+      get recipe_drafts_path
+
+      expect(response.body).to include("draft-card__thumb-img")
+      expect(response.body).to include(draft.source_photo.blob.key)
+    end
+
+    it "retombe sur le placeholder quand aucune photo n'est disponible" do
+      create(:recipe, status: :draft, source_type: "url")
+
+      get recipe_drafts_path
+
+      expect(response.body).to include("draft-card__thumb-empty")
+    end
+
     # Vieil import par lien dont l'URL d'origine n'a pas été conservée : le badge
     # doit rester un simple libellé plutôt qu'un lien vers nulle part.
     it "laisse le badge d'un import par lien sans source_url non cliquable" do
@@ -156,6 +175,17 @@ RSpec.describe "Recipe drafts (recettes importées)", type: :request do
 
       expect(response).to redirect_to(recipe_drafts_path)
       expect(flash[:notice]).to eq("Brouillon supprimé.")
+    end
+
+    # La pièce de référence n'a de sens qu'avec son brouillon : ActiveStorage
+    # l'emporte avec lui (dependent: :purge_later par défaut).
+    it "emporte la photo importée avec le brouillon supprimé" do
+      draft = create(:recipe, :with_source_photo, status: :draft, source_type: "photo")
+
+      expect { delete recipe_draft_path(draft) }
+        .to change(ActiveStorage::Attachment, :count).by(-1)
+
+      expect(response).to redirect_to(recipe_drafts_path)
     end
 
     # La route ne voit que les brouillons (Recipe.draft.find) : une recette

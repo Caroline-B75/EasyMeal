@@ -138,12 +138,39 @@ RSpec.describe "Recipe imports (import IA)", type: :request do
       expect(response.body).to include('target="_blank"')
     end
 
-    it "n'affiche pas de rappel de source sur un import photo" do
+    # Même geste pour un import photo : la page photographiée est la source à
+    # confronter, en vignette cliquable là où un lien affiche son adresse.
+    it "rappelle la page photographiée d'un import photo en tête de formulaire" do
+      photo_draft = create(:recipe, :with_source_photo, status: :draft,
+                                                        source_type: "photo", source_url: nil)
+
+      get edit_recipe_path(photo_draft)
+
+      expect(response.body).to include("rf-source")
+      expect(response.body).to include("rf-source__thumb")
+      # La vignette ouvre l'image en grand, hors de la saisie en cours.
+      expect(response.body).to include(photo_draft.source_photo.blob.key)
+      expect(response.body).to include('target="_blank"')
+    end
+
+    # Import photo antérieur à la conservation de la page photographiée : il n'y
+    # a plus rien à montrer, le bandeau doit disparaître plutôt que rester vide.
+    it "n'affiche pas de rappel de source quand la photo importée n'a pas été conservée" do
       photo_draft = create(:recipe, status: :draft, source_type: "photo", source_url: nil)
 
       get edit_recipe_path(photo_draft)
 
       expect(response.body).not_to include("rf-source")
+    end
+
+    # La photo importée est une pièce de référence du brouillon, pas une photo
+    # du plat : elle ne doit jamais s'inviter dans la fiche publique.
+    it "ne montre pas la photo importée sur une recette publiée" do
+      published = create(:recipe, :with_ingredient, :with_source_photo, source_type: "photo")
+
+      get recipe_path(published)
+
+      expect(response.body).not_to include(published.source_photo.blob.key)
     end
   end
 
@@ -198,6 +225,32 @@ RSpec.describe "Recipe imports (import IA)", type: :request do
         default_servings: 6, diet: "vegetarien"
       )
       expect(response).to redirect_to(edit_recipe_path(recipe))
+    end
+
+    # La page photographiée survit à l'extraction : c'est elle qu'on relit
+    # pendant la validation quand une quantité paraît douteuse. Elle ne devient
+    # pas pour autant la photo du plat.
+    it "conserve la photo importée comme pièce de référence du brouillon" do
+      allow(Recipes::ExtractorService).to receive(:from_photo).and_return("name" => "Paella")
+
+      post recipe_imports_path, params: {
+        source_type: "photo",
+        photo_file: Rack::Test::UploadedFile.new(StringIO.new("photo"), "image/jpeg",
+                                                 original_filename: "magazine.jpg")
+      }
+
+      recipe = Recipe.last
+      expect(recipe.source_photo).to be_attached
+      expect(recipe.source_photo.filename.to_s).to eq("magazine.jpg")
+      expect(recipe.photo).not_to be_attached
+    end
+
+    it "n'attache aucune photo de source à un import par lien" do
+      allow(Recipes::ExtractorService).to receive(:from_url).and_return("name" => "Tarte")
+
+      post recipe_imports_path, params: { source_type: "url", source_url: "https://exemple.fr/tarte" }
+
+      expect(Recipe.last.source_photo).not_to be_attached
     end
 
     # L'IA ne se contente plus d'extraire ce qui est écrit : elle classe, et le
