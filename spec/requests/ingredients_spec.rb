@@ -79,7 +79,9 @@ RSpec.describe "Ingredients", type: :request do
   # existant plutôt que d'en créer un doublon.
   describe "GET /ingredients/search" do
     it "renvoie les ingrédients correspondants avec la route d'apprentissage de l'alias" do
-      thym = create(:ingredient, name: "Thym frais")
+      # Le poids unitaire fait partie du contrat : c'est lui qui permet au
+      # panneau de convertir « 2 tranches » avant de poser la ligne.
+      thym = create(:ingredient, name: "Thym frais", piece_weight_g: 2)
       create(:ingredient, name: "Persil")
 
       get search_ingredients_path(q: "thym")
@@ -87,7 +89,8 @@ RSpec.describe "Ingredients", type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body).to eq([
         { "id" => thym.id, "name" => "Thym frais", "base_unit" => "g",
-          "unit_group" => "mass", "add_alias_path" => add_alias_ingredient_path(thym) }
+          "unit_group" => "mass", "piece_weight_g" => "2.0",
+          "add_alias_path" => add_alias_ingredient_path(thym) }
       ])
     end
 

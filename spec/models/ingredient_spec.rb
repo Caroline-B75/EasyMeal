@@ -69,4 +69,42 @@ RSpec.describe Ingredient, type: :model do
       end
     end
   end
+
+  # Le poids d'une pièce fait le pont entre la recette qui compte et le
+  # catalogue qui pèse (voir UnitConversionService).
+  describe "validation du poids unitaire" do
+    it "est facultatif" do
+      expect(build(:ingredient, piece_weight_g: nil)).to be_valid
+    end
+
+    it "accepte un poids sur un ingrédient en masse" do
+      expect(build(:ingredient, unit_group: :mass, base_unit: "g", piece_weight_g: 300)).to be_valid
+    end
+
+    it "accepte un poids sur un ingrédient en pièces" do
+      expect(build(:ingredient, unit_group: :count, base_unit: "piece", piece_weight_g: 50)).to be_valid
+    end
+
+    it "refuse un poids nul ou négatif" do
+      ingredient = build(:ingredient, piece_weight_g: 0)
+
+      expect(ingredient).not_to be_valid
+      expect(ingredient.errors[:piece_weight_g]).to include("doit être supérieur à 0")
+    end
+
+    # Ailleurs, il resterait en base sans jamais servir : aucune conversion ne
+    # relie un volume ou une cuillère à un décompte.
+    %i[volume spoon].each do |unit_group|
+      it "refuse un poids sur un ingrédient en #{unit_group}" do
+        ingredient = build(:ingredient,
+                           unit_group: unit_group,
+                           base_unit: Ingredient::BASE_UNITS[unit_group.to_s],
+                           piece_weight_g: 100)
+
+        expect(ingredient).not_to be_valid
+        expect(ingredient.errors[:piece_weight_g])
+          .to include("ne s'applique qu'aux ingrédients en masse ou en pièces")
+      end
+    end
+  end
 end

@@ -34,17 +34,28 @@ data.each do |category, items|
     unit = item.fetch("unit")
     base_unit = BASE_UNIT_FOR.fetch(unit) { raise "Unité inconnue '#{unit}' pour #{item['name']}" }
 
-    ingredient = Ingredient.find_or_initialize_by(name: item.fetch("name"))
+    # Recherche insensible à la casse, comme la validation d'unicité du modèle :
+    # un ingrédient créé à la volée depuis une recette (« mangue » en minuscules)
+    # doit être repris et renommé sous sa forme canonique. Un find_or_initialize_by
+    # sur le nom exact en ferait un second enregistrement, aussitôt refusé par
+    # cette validation — et la seed entière échouait.
+    name = item.fetch("name")
+    ingredient = Ingredient.find_by("LOWER(name) = ?", name.downcase) || Ingredient.new
     was_new = ingredient.new_record?
 
     ingredient.assign_attributes(
+      name:          name,
       category:      category,
       unit_group:    unit,
       base_unit:     base_unit,
       # Normalise comme AttributeCleaner (tri + uniq) pour que le YAML puisse être
       # écrit dans un ordre naturel (ex. hiver [12,1,2,3]) sans casser l'idempotence.
       season_months: Array(item["season"]).map(&:to_i).uniq.sort,
-      aliases:       item["aliases"] || []
+      aliases:       item["aliases"] || [],
+      # Absent = aucune conversion pièce ↔ masse pour cet ingrédient (voir
+      # UnitConversionService). Un nil explicite, et non un défaut à 0 : re-seeder
+      # doit pouvoir retirer un poids devenu faux.
+      piece_weight_g: item["weight"]
     )
 
     if ingredient.changed?

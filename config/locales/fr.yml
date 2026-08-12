@@ -205,13 +205,17 @@ fr:
 
   # Moments du repas — vocabulaire partagé par Recipe#meal_types (array)
   # et MenuRecipe#meal_type (valeur unique), via le concern MealTypes.
-  # Ordonnés comme la journée se déroule.
+  # D'abord les cinq moments de la journée dans l'ordre, puis les moments d'un
+  # repas, qui ne se rangent pas sur cette ligne du temps.
   meal_types:
     breakfast: Petit-déjeuner
     lunch: Déjeuner
     snack: Goûter
     apero: Apéro
     dinner: Dîner
+    starter: Entrée
+    salad: Salade
+    dessert: Dessert
 
   # Même vocabulaire au pluriel : on commande DES petits-déjeuners et on titre
   # une section avec cette forme (MealTypes.plural_label).
@@ -221,6 +225,9 @@ fr:
     snack: Goûters
     apero: Apéros
     dinner: Dîners
+    starter: Entrées
+    salad: Salades
+    dessert: Desserts
 
   # Libellés des sélecteurs de moment des cartes de repas (MealTypes.compact_label) :
   # ils partagent la largeur d'une carte avec le sélecteur de jour, où
@@ -231,6 +238,9 @@ fr:
     snack: Goûter
     apero: Apéro
     dinner: Dîner
+    starter: Entrée
+    salad: Salade
+    dessert: Dessert
 
   # Formes courtes et accordées de la barre de résumé du formulaire de menu :
   # « 7 petits-déjs · 2 déjs · 1 apéro » (MealTypes.short_label).
@@ -250,6 +260,15 @@ fr:
     dinner:
       one: dîner
       other: dîners
+    starter:
+      one: entrée
+      other: entrées
+    salad:
+      one: salade
+      other: salades
+    dessert:
+      one: dessert
+      other: desserts
 
   # Régimes alimentaires — vocabulaire partagé par Recipe#diet, Menu#diet et
   # User#default_diet (mêmes clés d'enum). Comme les moments du repas, le
@@ -275,6 +294,15 @@ fr:
   menus:
     draft:
       missing_meals: "Il manque %{meals} pour compléter ce menu."
+
+  # Panneau « Ingrédients détectés par l'IA ». Cette phrase-là vit ici parce
+  # qu'elle est dite deux fois : par la vue pour les suggestions rendues côté
+  # serveur, par le contrôleur Stimulus pour celles qu'il pose lui-même après
+  # une recherche. Les autres textes du panneau n'existent que dans le JS et y
+  # restent.
+  recipes:
+    ai_panel:
+      unit_mismatch: "L'unité détectée ne se convertit pas dans celle de cet ingrédient : le nombre sera repris tel quel, à vérifier."
 
   errors:
     messages:

@@ -1,6 +1,9 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Table de conversion identique à UnitConversionService côté Ruby
+// Table de conversion identique à UnitConversionService côté Ruby.
+// L'absence d'unité y est une entrée à part entière : « 3 oeufs » se compte.
+const NO_UNIT = { group: 'count', factor: 1 }
+
 const UNIT_CONVERSIONS = {
   g:       { group: 'mass',   factor: 1 },
   kg:      { group: 'mass',   factor: 1000 },
@@ -20,9 +23,14 @@ const UNIT_CONVERSIONS = {
 // Délai avant d'interroger le catalogue, le temps que la frappe se pose
 const SEARCH_DEBOUNCE_MS = 200
 
+// Même arrondi que côté Ruby : les quantités de base vivent au millième
+const round3 = (value) => Math.round(value * 1000) / 1000
+
 export default class extends Controller {
   static targets = ["row", "fuzzyOptions", "noMatchFallback", "search", "searchInput", "searchResults"]
-  static values = { searchUrl: String }
+  // mismatchTitle vient du serveur : la même phrase habille les suggestions
+  // rendues en HAML et celles que ce contrôleur pose après une recherche.
+  static values = { searchUrl: String, mismatchTitle: String }
 
   connect() {
     this._onIngredientCreated = this.onIngredientCreated.bind(this)
@@ -35,12 +43,14 @@ export default class extends Controller {
   }
 
   // Ajoute un ingrédient (match exact) dans le formulaire de préparations.
-  // Sa quantité est déjà convertie côté serveur, l'ingrédient étant connu.
+  // Sa quantité est déjà convertie côté serveur, l'ingrédient étant connu — y
+  // compris le verdict de cette conversion, que le badge de fin reprend.
   add(event) {
     const btn = event.currentTarget
-    const { aiPanelIngredientId, aiPanelIngredientName, aiPanelBaseUnit, aiPanelQuantityBase } = btn.dataset
+    const { aiPanelIngredientId, aiPanelIngredientName, aiPanelBaseUnit,
+            aiPanelQuantityBase, aiPanelConverted } = btn.dataset
     this.addPreparationRow(aiPanelIngredientId, aiPanelIngredientName, aiPanelBaseUnit, parseFloat(aiPanelQuantityBase) || 1)
-    this.markDone(this.rowOf(btn))
+    this.markDone(this.rowOf(btn), aiPanelConverted === 'true')
   }
 
   // Confirme un match approximatif proposé par le serveur
@@ -118,10 +128,11 @@ export default class extends Controller {
     // présélectionner l'ingrédient dans la ligne vide du formulaire.
     event.preventDefault()
 
-    const { id, displayName, baseUnit, unitGroup } = event.detail
+    const { id, displayName, baseUnit, unitGroup, pieceWeight } = event.detail
 
-    this.addPreparationRow(id, displayName, baseUnit, this.quantityFor(this.pendingRow, unitGroup))
-    this.markDone(this.pendingRow)
+    const quantity = this.quantityFor(this.pendingRow, unitGroup, pieceWeight)
+    this.addPreparationRow(id, displayName, baseUnit, quantity.value)
+    this.markDone(this.pendingRow, quantity.converted)
     this.forgetPending()
   }
 
@@ -139,15 +150,16 @@ export default class extends Controller {
   associateFromButton(btn) {
     const row = this.rowOf(btn)
     const { aiPanelIngredientId, aiPanelIngredientName, aiPanelBaseUnit,
-            aiPanelUnitGroup, aiPanelAddAliasPath } = btn.dataset
+            aiPanelUnitGroup, aiPanelPieceWeight, aiPanelAddAliasPath } = btn.dataset
 
     btn.disabled = true
 
     this.rememberAlias(aiPanelAddAliasPath, row.dataset.aiPanelName)
       .then(() => {
+        const quantity = this.quantityFor(row, aiPanelUnitGroup, aiPanelPieceWeight)
         this.addPreparationRow(aiPanelIngredientId, aiPanelIngredientName, aiPanelBaseUnit,
-                               this.quantityFor(row, aiPanelUnitGroup))
-        this.markDone(row)
+                               quantity.value)
+        this.markDone(row, quantity.converted)
       })
       .catch(() => { btn.disabled = false })
   }
@@ -178,33 +190,49 @@ export default class extends Controller {
     fetch(url, { headers: { 'Accept': 'application/json' } })
       .then((response) => response.json())
       .then((ingredients) => {
-        if (requestId === this.searchRequestId) this.renderResults(results, ingredients)
+        if (requestId === this.searchRequestId) this.renderResults(row, results, ingredients)
       })
       .catch(() => this.renderMessage(results, 'Recherche indisponible'))
   }
 
-  renderResults(container, ingredients) {
+  renderResults(row, container, ingredients) {
     if (ingredients.length === 0) {
       this.renderMessage(container, 'Aucun ingrédient ne correspond')
       return
     }
 
-    // textContent et non innerHTML : les noms viennent de la base
+    // append de nœuds et non innerHTML : les noms viennent de la base
     container.replaceChildren(...ingredients.map((ingredient) => {
       const button = document.createElement('button')
       button.type = 'button'
       button.className = 'ai-row__search-item'
-      button.textContent = ingredient.name
+      button.append(`${ingredient.name} `, this.unitBadge(row, ingredient))
       Object.assign(button.dataset, {
         action: 'click->ai-panel#chooseExisting',
         aiPanelIngredientId: ingredient.id,
         aiPanelIngredientName: ingredient.name,
         aiPanelBaseUnit: ingredient.base_unit,
         aiPanelUnitGroup: ingredient.unit_group,
+        aiPanelPieceWeight: ingredient.piece_weight_g ?? '',
         aiPanelAddAliasPath: ingredient.add_alias_path
       })
       return button
     }))
+  }
+
+  // Pendant JS du partial recipes/_ai_unit_badge : l'unité de base suit le nom,
+  // et passe en alerte quand la quantité détectée sur la ligne ne sait pas la
+  // rejoindre. Même classe, même phrase, des deux côtés.
+  unitBadge(row, ingredient) {
+    const badge = document.createElement('span')
+    badge.textContent = `(${ingredient.base_unit})`
+
+    const converts = this.convertQuantity(1, row.dataset.aiPanelUnit,
+                                          ingredient.unit_group, ingredient.piece_weight_g) !== null
+    badge.className = converts ? 'ai-row__unit' : 'ai-row__unit ai-row__unit--mismatch'
+    if (!converts) badge.title = this.mismatchTitleValue
+
+    return badge
   }
 
   renderMessage(container, text) {
@@ -216,22 +244,42 @@ export default class extends Controller {
 
   // === Pose de la ligne dans le formulaire ===
 
-  // La quantité détectée est brute (« 1 kg ») : on la convertit vers l'unité de
-  // base de l'ingrédient retenu. Unités incompatibles (« 1 brin » vers des
-  // grammes) → on garde le nombre tel quel, à ajuster à la main.
-  quantityFor(row, unitGroup) {
+  // La quantité détectée est brute (« 1 kg », « 2 tranches ») : on la convertit
+  // vers l'unité de base de l'ingrédient retenu. Conversion impossible → on
+  // garde le nombre tel quel et on le signale : { value, converted }.
+  quantityFor(row, unitGroup, pieceWeight) {
     const quantity = parseFloat(row.dataset.aiPanelQuantity) || 1
-    const converted = this.convertQuantity(quantity, row.dataset.aiPanelUnit, unitGroup)
-    return converted !== null ? converted : quantity
+    const converted = this.convertQuantity(quantity, row.dataset.aiPanelUnit, unitGroup, pieceWeight)
+    return converted !== null
+      ? { value: converted, converted: true }
+      : { value: quantity, converted: false }
   }
 
   // Convertit qty depuis fromUnit vers le group de l'ingrédient cible.
   // Retourne null si la conversion est impossible (unités incompatibles).
-  convertQuantity(qty, fromUnit, toGroup) {
-    if (!fromUnit) return null
-    const conv = UNIT_CONVERSIONS[(fromUnit || '').toLowerCase().trim()]
-    if (!conv || conv.group !== toGroup) return null
-    return Math.round(qty * conv.factor * 1000) / 1000
+  convertQuantity(qty, fromUnit, toGroup, pieceWeight) {
+    const conv = (fromUnit || '').trim() === ''
+      ? NO_UNIT
+      : UNIT_CONVERSIONS[fromUnit.toLowerCase().trim()]
+    if (!conv) return null
+
+    const amount = qty * conv.factor
+    if (conv.group === toGroup) return round3(amount)
+
+    return this.bridgeByPieceWeight(amount, conv.group, toGroup, pieceWeight)
+  }
+
+  // Pont pièce ↔ masse par le poids unitaire de l'ingrédient, mirroir de
+  // UnitConversionService.bridge_by_piece_weight : « 2 tranches » de jambon
+  // deviennent 80 g si le catalogue sait qu'une tranche pèse 40 g, et rien du
+  // tout s'il l'ignore.
+  bridgeByPieceWeight(amount, fromGroup, toGroup, pieceWeight) {
+    const weight = parseFloat(pieceWeight)
+    if (!(weight > 0)) return null
+
+    if (fromGroup === 'count' && toGroup === 'mass') return round3(amount * weight)
+    if (fromGroup === 'mass' && toGroup === 'count') return round3(amount / weight)
+    return null
   }
 
   rowOf(element) {
@@ -269,8 +317,10 @@ export default class extends Controller {
     if (select) select.dispatchEvent(new Event('change', { bubbles: true }))
   }
 
-  // Remplace le contenu droit de la ligne par le badge "✓ Ajouté"
-  markDone(row) {
+  // Remplace le contenu droit de la ligne par le badge "✓ Ajouté". Une quantité
+  // que la conversion n'a pas su traduire est posée telle quelle dans le
+  // formulaire : le badge le dit, sinon l'écart disparaîtrait avec la ligne.
+  markDone(row, converted = true) {
     if (!row) return
     row.classList.add('ai-row--done')
 
@@ -278,6 +328,12 @@ export default class extends Controller {
     if (search) search.hidden = true
 
     const rightSide = row.querySelector('.ai-row__right')
-    if (rightSide) rightSide.innerHTML = '<span class="ai-row__done-badge">✓ Ajouté</span>'
+    if (!rightSide) return
+
+    const badge = document.createElement('span')
+    badge.className = converted ? 'ai-row__done-badge' : 'ai-row__done-badge ai-row__done-badge--warn'
+    badge.textContent = converted ? '✓ Ajouté' : '✓ Ajouté — quantité à vérifier'
+    if (!converted) badge.title = this.mismatchTitleValue
+    rightSide.replaceChildren(badge)
   }
 }

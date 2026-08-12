@@ -1,0 +1,7 @@
+-# L'unité de base de l'ingrédient du catalogue, collée à son nom. C'est la
+-# comparaison avec l'unité détectée à gauche de la ligne qui évite d'ajouter
+-# 2 g de jambon là où la recette disait 2 tranches ; quand la conversion ne
+-# sait pas franchir cet écart, l'unité passe en alerte et l'explique.
+-# Le pendant JS de ce partial vit dans ai_panel_controller#unitBadge.
+- attributes = converts ? {} : { class: "ai-row__unit--mismatch", title: t("recipes.ai_panel.unit_mismatch") }
+%span.ai-row__unit{ attributes }= "(#{ingredient.base_unit})"

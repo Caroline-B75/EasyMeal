@@ -131,14 +131,16 @@ class IngredientsController < ApplicationController
   end
 
   # Tout ce dont le panneau IA a besoin pour poser la ligne : le libellé, l'unité
-  # de base, le groupe d'unités (pour convertir la quantité détectée) et la route
-  # d'apprentissage de l'alias — les URLs restent construites côté Rails.
+  # de base, le groupe d'unités et le poids unitaire (qui, ensemble, convertissent
+  # la quantité détectée) et la route d'apprentissage de l'alias — les URLs
+  # restent construites côté Rails.
   def search_result_json(ingredient)
     {
       id: ingredient.id,
       name: ingredient.display_name,
       base_unit: ingredient.base_unit,
       unit_group: ingredient.unit_group,
+      piece_weight_g: ingredient.piece_weight_g,
       add_alias_path: add_alias_ingredient_path(ingredient)
     }
   end
@@ -176,6 +178,7 @@ class IngredientsController < ApplicationController
       :category,
       :unit_group,
       :base_unit,
+      :piece_weight_g,
       season_months: [],
       aliases: []
     )

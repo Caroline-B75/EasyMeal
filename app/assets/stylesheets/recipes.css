@@ -3886,6 +3886,26 @@ button.draft-rail-count:not(:disabled) {
   white-space: nowrap;
 }
 
+/* Unité de base de l'ingrédient du catalogue, collée à son nom (match exact,
+   suggestion floue, résultat de recherche). C'est elle qu'on compare à l'unité
+   détectée avant de confirmer : « 2 tranches » face à « Jambon blanc (g) »
+   prévient les 2 g de jambon que la reprise brute du nombre produirait. */
+.ai-row__unit {
+  font-size: 11px;
+  color: var(--color-ink-3);
+  white-space: nowrap;
+}
+
+/* Aucune conversion possible vers cette unité : la quantité détectée partirait
+   telle quelle. L'unité passe en ambre et porte l'explication en title. */
+.ai-row__unit--mismatch {
+  color: var(--color-warning-text);
+  background: var(--color-warning-light);
+  padding: 1px 5px;
+  border-radius: 20px;
+  cursor: help;
+}
+
 /* Match flou : suggestions empilées verticalement.
    Même disposition pour le match exact, dont le lien « Choisir un autre »
    se pose sous le bouton d'ajout. */
@@ -4040,6 +4060,15 @@ button.draft-rail-count:not(:disabled) {
   background: var(--color-success-light);
   padding: 4px 12px;
   border-radius: 20px;
+}
+
+/* Ligne posée avec une quantité que la conversion n'a pas su traduire : elle
+   est bien ajoutée (d'où le ✓), mais le nombre reste à revoir dans le
+   formulaire — la ligne disparaît ensuite, le badge est le dernier rappel. */
+.ai-row__done-badge--warn {
+  color: var(--color-warning-text);
+  background: var(--color-warning-light);
+  cursor: help;
 }
 
 /* Mobile */

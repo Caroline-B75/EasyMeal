@@ -10,6 +10,10 @@ class RecipesController < ApplicationController
   # Recettes par page du catalogue
   PER_PAGE = 20
 
+  # Suggestions proposées quand la détection IA hésite : au-delà de deux, la
+  # ligne cesse d'être un choix et redevient une liste à parcourir.
+  AI_FUZZY_SUGGESTIONS = 2
+
   before_action :authenticate_user!, except: [ :index, :show ]
   before_action :authorize_recipe, only: [ :show, :edit, :update, :destroy, :publish ]
 
@@ -132,24 +136,42 @@ class RecipesController < ApplicationController
   # Calcule les correspondances IA pour chaque ingrédient suggéré (recette brouillon)
   def compute_ai_matches
     ingredients_data = recipe.ai_raw_data&.fetch("ingredients", []) || []
-    ingredients_data.map do |ing|
-      name    = ing["name"].to_s
-      qty     = ing["quantity"].to_f
-      unit    = ing["unit"].to_s.presence
-      matches = IngredientMatcherService.match(name)
-      quantity_base = if matches[:exact]
-        UnitConversionService.convert(quantity: qty, from_unit: unit, ingredient: matches[:exact]) || qty
-      else
-        qty
-      end
-      {
-        ai_name:       name,
-        quantity:      qty,
-        unit:          unit,
-        quantity_base: quantity_base.round(2),
-        exact:         matches[:exact],
-        fuzzy:         matches[:fuzzy]
-      }
+    ingredients_data.map { |ing| ai_match_for(ing) }
+  end
+
+  # Une ligne du panneau : ce que l'IA a détecté, l'ingrédient du catalogue qui
+  # lui correspond (ou les suggestions à départager), et surtout si la quantité
+  # détectée sait rejoindre l'unité de base de chaque candidat — c'est ce
+  # dernier point qui déclenche l'avertissement à l'écran.
+  def ai_match_for(ingredient_data)
+    name    = ingredient_data["name"].to_s
+    qty     = ingredient_data["quantity"].to_f
+    unit    = ingredient_data["unit"].to_s.presence
+    matches = IngredientMatcherService.match(name)
+    exact   = matches[:exact]
+
+    # Conversion impossible → la quantité brute part quand même dans le
+    # formulaire, à ajuster : mieux vaut un nombre à corriger qu'un champ vide.
+    converted = exact && UnitConversionService.convert(quantity: qty, from_unit: unit, ingredient: exact)
+
+    {
+      ai_name:       name,
+      quantity:      qty,
+      unit:          unit,
+      quantity_base: (converted || qty).round(2),
+      converted:     converted.present?,
+      exact:         exact,
+      fuzzy:         suggestions_for(matches[:fuzzy], unit)
+    }
+  end
+
+  # Les suggestions à départager, chacune accompagnée de sa compatibilité avec
+  # l'unité détectée. Le découpage vit ici et non dans la vue : elle ne fait que
+  # dérouler ce que le contrôleur a préparé.
+  def suggestions_for(fuzzy_matches, unit)
+    fuzzy_matches.first(AI_FUZZY_SUGGESTIONS).map do |ingredient|
+      { ingredient: ingredient,
+        converts:   UnitConversionService.compatible?(from_unit: unit, ingredient: ingredient) }
     end
   end
 

@@ -45,6 +45,16 @@
               error_class: "has-error"
 
   .form-group
+    = f.input :piece_weight_g,
+              label: "Poids d'une pièce (g)",
+              hint: "Facultatif — fait le pont quand une recette compte ce que le catalogue pèse (1 aubergine ≈ 300 g). Ingrédients en masse ou en pièces uniquement.",
+              placeholder: "Ex: 300",
+              input_html: { class: "form-input", step: "0.01", min: "0.01" },
+              label_html: { class: "form-label" },
+              hint_html: { class: "form-hint" },
+              error_class: "has-error"
+
+  .form-group
     %label.form-label Alias (synonymes)
     %small.form-hint Noms alternatifs pour faciliter ta recherche
     = text_field_tag "ingredient[aliases]", 

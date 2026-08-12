@@ -8,8 +8,11 @@ RSpec.describe MenuRecipe, type: :model do
   let(:recipe) { create(:recipe, :with_ingredient, meal_types: %w[breakfast]) }
 
   describe "MEAL_TYPES" do
-    it "couvre les cinq moments, dans l'ordre de la journée" do
-      expect(described_class::MEAL_TYPES).to eq(%w[breakfast lunch snack apero dinner])
+    # equal et non eq : c'est la constante partagée elle-même qu'on veut ici,
+    # pas une seconde liste qui lui ressemblerait aujourd'hui. Son contenu est
+    # décrit une seule fois, dans le spec du concern MealTypes.
+    it "reprend le vocabulaire partagé sans en redéfinir un second" do
+      expect(described_class::MEAL_TYPES).to equal(MealTypes::MEAL_TYPES)
     end
   end
 

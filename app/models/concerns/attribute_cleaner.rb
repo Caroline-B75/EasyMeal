@@ -19,9 +19,20 @@ module AttributeCleaner
 
   # Nettoie les attributs qui nécessitent une normalisation
   def clean_attributes
+    clean_name if respond_to?(:name) && name_changed?
     clean_aliases if respond_to?(:aliases) && aliases_changed?
     clean_season_months if respond_to?(:season_months) && season_months_changed?
     clean_meal_types if respond_to?(:meal_types) && meal_types_changed?
+  end
+
+  # Un nom saisi à la main arrive avec ce que le clavier a laissé : une espace
+  # finale, un double espace au milieu. L'unicité, elle, compare des chaînes —
+  # « Persil frais » et « Persil frais » cohabitaient donc en base, et le
+  # catalogue portait deux lignes pour un seul ingrédient. squish plutôt que
+  # strip : les espaces du milieu comptent autant que celles des bords.
+  # Un nom devenu vide repasse à nil, pour que la validation de présence le voie.
+  def clean_name
+    self.name = name&.squish.presence
   end
 
   # Convertit aliases en tableau propre via la table de dispatch ALIASES_NORMALIZERS.

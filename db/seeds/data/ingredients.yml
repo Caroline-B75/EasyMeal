@@ -7,6 +7,11 @@
 #   - name:    Nom affiché (clé naturelle, unique). Obligatoire.
 #     unit:    Groupe d'unités — mass | volume | count | spoon. Obligatoire.
 #              La base_unit en est dérivée (mass→g, volume→ml, count→piece, spoon→cac).
+#     weight:  Poids d'UNE pièce en grammes (facultatif). Fait le pont quand une
+#              recette compte ce que le catalogue pèse : « 2 tranches de jambon »
+#              → 80 g si weight vaut 40. À ne renseigner que là où la pièce a un
+#              sens (une aubergine, une tranche, une gousse) et sur les
+#              ingrédients en mass ou en count — ailleurs, l'omettre.
 #     season:  Mois de disponibilité/saison [1..12] (défaut : [] = non saisonnier).
 #     aliases: Synonymes en MINUSCULES (défaut : []). Servent au matching de
 #              l'import IA et à la recherche : inclure surtout pluriels + synonymes.
@@ -18,26 +23,30 @@
 # ─────────────────────────────────────────────────────────────────────────────
 fruits_legumes:
   # --- Légumes ---
-  - { name: "Tomate", unit: mass, season: [6, 7, 8, 9], aliases: ["tomates", "tomate ronde", "tomate grappe"] }
-  - { name: "Tomate cerise", unit: mass, season: [6, 7, 8, 9], aliases: ["tomates cerises"] }
-  - { name: "Carotte", unit: mass, season: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], aliases: ["carottes"] }
-  - { name: "Pomme de terre", unit: mass, season: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], aliases: ["pommes de terre", "patate", "patates"] }
-  - { name: "Oignon", unit: count, season: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], aliases: ["oignons", "oignon jaune"] }
-  - { name: "Oignon rouge", unit: count, season: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], aliases: ["oignons rouges"] }
-  - { name: "Oignon nouveau", unit: count, season: [3, 4, 5, 6], aliases: ["oignons nouveaux", "oignon frais", "cébette", "ciboule"] }
-  - { name: "Échalote", unit: count, season: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], aliases: ["échalotes"] }
-  - { name: "Gousse d'ail", unit: count, season: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], aliases: ["ail", "gousses d'ail", "ail émincé"] }
-  - { name: "Tête d'ail", unit: count, season: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], aliases: ["têtes d'ail", "ail en tête"] }
-  - { name: "Poireau", unit: mass, season: [1, 2, 3, 4, 9, 10, 11, 12], aliases: ["poireaux"] }
-  - { name: "Courgette", unit: mass, season: [5, 6, 7, 8, 9], aliases: ["courgettes"] }
-  - { name: "Aubergine", unit: mass, season: [6, 7, 8, 9], aliases: ["aubergines"] }
-  - { name: "Poivron", unit: count, season: [6, 7, 8, 9], aliases: ["poivrons"] }
-  - { name: "Poivron rouge", unit: count, season: [6, 7, 8, 9], aliases: ["poivrons rouges"] }
-  - { name: "Poivron vert", unit: count, season: [6, 7, 8, 9], aliases: ["poivrons verts"] }
-  - { name: "Poivron jaune", unit: count, season: [6, 7, 8, 9], aliases: ["poivrons jaunes"] }
-  - { name: "Piment frais", unit: count, season: [7, 8, 9], aliases: ["piments frais", "piment fort", "piment oiseau"] }
-  - { name: "Salade verte", unit: count, season: [4, 5, 6, 7, 8, 9], aliases: ["laitue", "salade", "batavia", "feuille de chêne"] }
-  - { name: "Salade frisée", unit: count, season: [1, 2, 3, 9, 10, 11, 12], aliases: ["frisée", "scarole", "chicorée"] }
+  - { name: "Tomate", unit: mass, weight: 120, season: [6, 7, 8, 9], aliases: ["tomates", "tomate ronde", "tomate grappe"] }
+  - { name: "Tomate cerise", unit: mass, weight: 10, season: [6, 7, 8, 9], aliases: ["tomates cerises"] }
+  - { name: "Carotte", unit: mass, weight: 80, season: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], aliases: ["carottes"] }
+  - { name: "Pomme de terre", unit: mass, weight: 150, season: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], aliases: ["pommes de terre", "patate", "patates"] }
+  # Les variétés à chair ferme tiennent à la cuisson là où les autres se défont :
+  # c'est cette différence-là qui compte en cuisine, pas le nom de la variété.
+  # Elles se retrouvent donc toutes ici, par leurs alias.
+  - { name: "Pomme de terre à chair ferme", unit: mass, weight: 100, season: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], aliases: ["pommes de terre à chair ferme", "belle de fontenay", "charlotte", "ratte", "grenaille"] }
+  - { name: "Oignon", unit: count, weight: 110, season: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], aliases: ["oignons", "oignon jaune"] }
+  - { name: "Oignon rouge", unit: count, weight: 110, season: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], aliases: ["oignons rouges"] }
+  - { name: "Oignon nouveau", unit: count, weight: 30, season: [3, 4, 5, 6], aliases: ["oignons nouveaux", "oignon frais", "cébette", "ciboule"] }
+  - { name: "Échalote", unit: count, weight: 25, season: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], aliases: ["échalotes"] }
+  - { name: "Gousse d'ail", unit: count, weight: 5, season: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], aliases: ["ail", "gousses d'ail", "ail émincé"] }
+  - { name: "Tête d'ail", unit: count, weight: 50, season: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], aliases: ["têtes d'ail", "ail en tête"] }
+  - { name: "Poireau", unit: mass, weight: 200, season: [1, 2, 3, 4, 9, 10, 11, 12], aliases: ["poireaux"] }
+  - { name: "Courgette", unit: mass, weight: 250, season: [5, 6, 7, 8, 9], aliases: ["courgettes"] }
+  - { name: "Aubergine", unit: mass, weight: 300, season: [6, 7, 8, 9], aliases: ["aubergines"] }
+  - { name: "Poivron", unit: count, weight: 150, season: [6, 7, 8, 9], aliases: ["poivrons"] }
+  - { name: "Poivron rouge", unit: count, weight: 150, season: [6, 7, 8, 9], aliases: ["poivrons rouges"] }
+  - { name: "Poivron vert", unit: count, weight: 150, season: [6, 7, 8, 9], aliases: ["poivrons verts"] }
+  - { name: "Poivron jaune", unit: count, weight: 150, season: [6, 7, 8, 9], aliases: ["poivrons jaunes"] }
+  - { name: "Piment frais", unit: count, weight: 10, season: [7, 8, 9], aliases: ["piments frais", "piment fort", "piment oiseau"] }
+  - { name: "Salade verte", unit: count, weight: 300, season: [4, 5, 6, 7, 8, 9], aliases: ["laitue", "salade", "batavia", "feuille de chêne"] }
+  - { name: "Salade frisée", unit: count, weight: 300, season: [1, 2, 3, 9, 10, 11, 12], aliases: ["frisée", "scarole", "chicorée"] }
   - { name: "Mâche", unit: mass, season: [1, 2, 3, 10, 11, 12], aliases: [] }
   - { name: "Roquette", unit: mass, season: [4, 5, 6, 7, 8, 9], aliases: ["roquettes"] }
   - { name: "Cresson", unit: mass, season: [3, 4, 5, 6, 9, 10], aliases: ["cressons"] }
@@ -48,49 +57,49 @@ fruits_legumes:
   - { name: "Haricot beurre", unit: mass, season: [6, 7, 8, 9], aliases: ["haricots beurre"] }
   - { name: "Petits pois", unit: mass, season: [4, 5, 6], aliases: ["petit pois", "pois"] }
   - { name: "Fève", unit: mass, season: [4, 5, 6], aliases: ["fèves"] }
-  - { name: "Brocoli", unit: mass, season: [1, 2, 3, 9, 10, 11, 12], aliases: ["brocolis"] }
-  - { name: "Chou-fleur", unit: mass, season: [1, 2, 3, 9, 10, 11, 12], aliases: ["choux-fleurs"] }
-  - { name: "Chou vert", unit: mass, season: [1, 2, 3, 10, 11, 12], aliases: ["chou frisé", "choux verts", "chou"] }
-  - { name: "Chou rouge", unit: mass, season: [1, 2, 9, 10, 11, 12], aliases: ["choux rouges"] }
-  - { name: "Chou de Bruxelles", unit: mass, season: [1, 2, 10, 11, 12], aliases: ["choux de Bruxelles"] }
-  - { name: "Chou chinois", unit: mass, season: [9, 10, 11, 12], aliases: ["pak choï", "pak choi", "bok choy"] }
-  - { name: "Chou-rave", unit: mass, season: [5, 6, 7, 8, 9, 10], aliases: ["choux-raves"] }
-  - { name: "Endive", unit: mass, season: [1, 2, 3, 11, 12], aliases: ["endives", "chicon", "chicons"] }
-  - { name: "Fenouil", unit: mass, season: [6, 7, 8, 9, 10], aliases: ["fenouils"] }
-  - { name: "Céleri branche", unit: mass, season: [7, 8, 9, 10, 11], aliases: ["céleri", "céleri-branche"] }
-  - { name: "Céleri-rave", unit: mass, season: [1, 2, 10, 11, 12], aliases: ["céleri rave", "céleri boule"] }
-  - { name: "Navet", unit: mass, season: [1, 2, 3, 10, 11, 12], aliases: ["navets"] }
-  - { name: "Radis", unit: count, season: [3, 4, 5, 6], aliases: ["botte de radis", "radis rose"] }
-  - { name: "Radis noir", unit: mass, season: [1, 2, 10, 11, 12], aliases: ["radis noirs"] }
-  - { name: "Betterave", unit: mass, season: [1, 2, 9, 10, 11, 12], aliases: ["betteraves", "betterave rouge", "betterave cuite"] }
-  - { name: "Panais", unit: mass, season: [1, 2, 10, 11, 12], aliases: [] }
+  - { name: "Brocoli", unit: mass, weight: 500, season: [1, 2, 3, 9, 10, 11, 12], aliases: ["brocolis"] }
+  - { name: "Chou-fleur", unit: mass, weight: 800, season: [1, 2, 3, 9, 10, 11, 12], aliases: ["choux-fleurs"] }
+  - { name: "Chou vert", unit: mass, weight: 900, season: [1, 2, 3, 10, 11, 12], aliases: ["chou frisé", "choux verts", "chou"] }
+  - { name: "Chou rouge", unit: mass, weight: 900, season: [1, 2, 9, 10, 11, 12], aliases: ["choux rouges"] }
+  - { name: "Chou de Bruxelles", unit: mass, weight: 15, season: [1, 2, 10, 11, 12], aliases: ["choux de Bruxelles"] }
+  - { name: "Chou chinois", unit: mass, weight: 600, season: [9, 10, 11, 12], aliases: ["pak choï", "pak choi", "bok choy"] }
+  - { name: "Chou-rave", unit: mass, weight: 300, season: [5, 6, 7, 8, 9, 10], aliases: ["choux-raves"] }
+  - { name: "Endive", unit: mass, weight: 120, season: [1, 2, 3, 11, 12], aliases: ["endives", "chicon", "chicons"] }
+  - { name: "Fenouil", unit: mass, weight: 300, season: [6, 7, 8, 9, 10], aliases: ["fenouils"] }
+  - { name: "Céleri branche", unit: mass, weight: 60, season: [7, 8, 9, 10, 11], aliases: ["céleri", "céleri-branche"] }
+  - { name: "Céleri-rave", unit: mass, weight: 800, season: [1, 2, 10, 11, 12], aliases: ["céleri rave", "céleri boule"] }
+  - { name: "Navet", unit: mass, weight: 100, season: [1, 2, 3, 10, 11, 12], aliases: ["navets"] }
+  - { name: "Radis", unit: count, weight: 10, season: [3, 4, 5, 6], aliases: ["botte de radis", "radis rose"] }
+  - { name: "Radis noir", unit: mass, weight: 300, season: [1, 2, 10, 11, 12], aliases: ["radis noirs"] }
+  - { name: "Betterave", unit: mass, weight: 150, season: [1, 2, 9, 10, 11, 12], aliases: ["betteraves", "betterave rouge", "betterave cuite"] }
+  - { name: "Panais", unit: mass, weight: 130, season: [1, 2, 10, 11, 12], aliases: [] }
   - { name: "Topinambour", unit: mass, season: [1, 2, 10, 11, 12], aliases: ["topinambours"] }
-  - { name: "Rutabaga", unit: mass, season: [1, 2, 10, 11, 12], aliases: ["rutabagas"] }
+  - { name: "Rutabaga", unit: mass, weight: 700, season: [1, 2, 10, 11, 12], aliases: ["rutabagas"] }
   - { name: "Salsifis", unit: mass, season: [1, 2, 10, 11, 12], aliases: [] }
   - { name: "Potiron", unit: mass, season: [9, 10, 11, 12], aliases: ["citrouille", "courge"] }
-  - { name: "Potimarron", unit: mass, season: [9, 10, 11, 12], aliases: ["potimarrons"] }
-  - { name: "Courge butternut", unit: mass, season: [9, 10, 11, 12], aliases: ["butternut", "doubeurre"] }
-  - { name: "Patate douce", unit: mass, season: [9, 10, 11, 12], aliases: ["patates douces"] }
-  - { name: "Concombre", unit: count, season: [5, 6, 7, 8], aliases: ["concombres"] }
-  - { name: "Maïs", unit: count, season: [8, 9, 10], aliases: ["épi de maïs", "maïs doux", "épis de maïs"] }
-  - { name: "Artichaut", unit: count, season: [5, 6, 7, 8, 9], aliases: ["artichauts"] }
-  - { name: "Asperge", unit: mass, season: [4, 5, 6], aliases: ["asperges", "asperge verte", "asperge blanche"] }
-  - { name: "Champignon de Paris", unit: mass, season: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], aliases: ["champignons de Paris", "champignon blanc"] }
-  - { name: "Champignon", unit: mass, season: [9, 10, 11], aliases: ["champignons"] }
+  - { name: "Potimarron", unit: mass, weight: 1200, season: [9, 10, 11, 12], aliases: ["potimarrons"] }
+  - { name: "Courge butternut", unit: mass, weight: 1000, season: [9, 10, 11, 12], aliases: ["butternut", "doubeurre"] }
+  - { name: "Patate douce", unit: mass, weight: 250, season: [9, 10, 11, 12], aliases: ["patates douces"] }
+  - { name: "Concombre", unit: count, weight: 400, season: [5, 6, 7, 8], aliases: ["concombres"] }
+  - { name: "Maïs", unit: count, weight: 300, season: [8, 9, 10], aliases: ["épi de maïs", "maïs doux", "épis de maïs"] }
+  - { name: "Artichaut", unit: count, weight: 400, season: [5, 6, 7, 8, 9], aliases: ["artichauts"] }
+  - { name: "Asperge", unit: mass, weight: 25, season: [4, 5, 6], aliases: ["asperges", "asperge verte", "asperge blanche"] }
+  - { name: "Champignon de Paris", unit: mass, weight: 20, season: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], aliases: ["champignons de Paris", "champignon blanc"] }
+  - { name: "Champignon", unit: mass, weight: 20, season: [9, 10, 11], aliases: ["champignons"] }
   - { name: "Girolle", unit: mass, season: [7, 8, 9, 10], aliases: ["girolles", "chanterelle", "chanterelles"] }
   - { name: "Cèpe", unit: mass, season: [9, 10, 11], aliases: ["cèpes"] }
   - { name: "Pleurote", unit: mass, season: [], aliases: ["pleurotes"] }
   - { name: "Shiitaké", unit: mass, season: [], aliases: ["shiitakés", "shiitake", "champignon shiitaké"] }
-  - { name: "Gingembre frais", unit: mass, season: [], aliases: ["gingembre", "racine de gingembre"] }
+  - { name: "Gingembre frais", unit: mass, weight: 20, season: [], aliases: ["gingembre", "racine de gingembre"] }
   # --- Fruits ---
-  - { name: "Pomme", unit: count, season: [1, 2, 3, 8, 9, 10, 11, 12], aliases: ["pommes"] }
-  - { name: "Poire", unit: count, season: [1, 8, 9, 10, 11, 12], aliases: ["poires"] }
-  - { name: "Banane", unit: count, season: [], aliases: ["bananes"] }
-  - { name: "Orange", unit: count, season: [12, 1, 2, 3], aliases: ["oranges"] }
-  - { name: "Clémentine", unit: count, season: [11, 12, 1], aliases: ["clémentines", "mandarine", "mandarines"] }
-  - { name: "Citron", unit: count, season: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], aliases: ["citrons", "citron jaune"] }
-  - { name: "Citron vert", unit: count, season: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], aliases: ["citrons verts", "lime", "limes"] }
-  - { name: "Pamplemousse", unit: count, season: [12, 1, 2, 3], aliases: ["pamplemousses", "pomelo"] }
+  - { name: "Pomme", unit: count, weight: 150, season: [1, 2, 3, 8, 9, 10, 11, 12], aliases: ["pommes"] }
+  - { name: "Poire", unit: count, weight: 150, season: [1, 8, 9, 10, 11, 12], aliases: ["poires"] }
+  - { name: "Banane", unit: count, weight: 120, season: [], aliases: ["bananes"] }
+  - { name: "Orange", unit: count, weight: 200, season: [12, 1, 2, 3], aliases: ["oranges"] }
+  - { name: "Clémentine", unit: count, weight: 70, season: [11, 12, 1], aliases: ["clémentines", "mandarine", "mandarines"] }
+  - { name: "Citron", unit: count, weight: 100, season: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], aliases: ["citrons", "citron jaune"] }
+  - { name: "Citron vert", unit: count, weight: 70, season: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], aliases: ["citrons verts", "lime", "limes"] }
+  - { name: "Pamplemousse", unit: count, weight: 400, season: [12, 1, 2, 3], aliases: ["pamplemousses", "pomelo"] }
   - { name: "Fraise", unit: mass, season: [5, 6, 7], aliases: ["fraises"] }
   - { name: "Framboise", unit: mass, season: [6, 7, 8], aliases: ["framboises"] }
   - { name: "Myrtille", unit: mass, season: [7, 8], aliases: ["myrtilles"] }
@@ -98,25 +107,25 @@ fruits_legumes:
   - { name: "Groseille", unit: mass, season: [7, 8], aliases: ["groseilles"] }
   - { name: "Cassis", unit: mass, season: [7, 8], aliases: [] }
   - { name: "Cerise", unit: mass, season: [6, 7], aliases: ["cerises"] }
-  - { name: "Abricot", unit: count, season: [6, 7, 8], aliases: ["abricots"] }
-  - { name: "Pêche", unit: count, season: [6, 7, 8, 9], aliases: ["pêches"] }
-  - { name: "Nectarine", unit: count, season: [6, 7, 8, 9], aliases: ["nectarines", "brugnon", "brugnons"] }
-  - { name: "Prune", unit: count, season: [7, 8, 9], aliases: ["prunes", "quetsche", "mirabelle", "mirabelles"] }
+  - { name: "Abricot", unit: count, weight: 50, season: [6, 7, 8], aliases: ["abricots"] }
+  - { name: "Pêche", unit: count, weight: 150, season: [6, 7, 8, 9], aliases: ["pêches"] }
+  - { name: "Nectarine", unit: count, weight: 150, season: [6, 7, 8, 9], aliases: ["nectarines", "brugnon", "brugnons"] }
+  - { name: "Prune", unit: count, weight: 50, season: [7, 8, 9], aliases: ["prunes", "quetsche", "mirabelle", "mirabelles"] }
   - { name: "Raisin", unit: mass, season: [8, 9, 10], aliases: ["raisins", "grappe de raisin"] }
-  - { name: "Melon", unit: count, season: [6, 7, 8, 9], aliases: ["melons"] }
-  - { name: "Pastèque", unit: count, season: [7, 8], aliases: ["pastèques"] }
-  - { name: "Kiwi", unit: count, season: [11, 12, 1, 2, 3], aliases: ["kiwis"] }
-  - { name: "Ananas", unit: count, season: [], aliases: [] }
-  - { name: "Mangue", unit: count, season: [], aliases: ["mangues"] }
-  - { name: "Papaye", unit: count, season: [], aliases: ["papayes"] }
-  - { name: "Avocat", unit: count, season: [], aliases: ["avocats"] }
-  - { name: "Figue", unit: count, season: [8, 9], aliases: ["figues"] }
-  - { name: "Grenade", unit: count, season: [10, 11, 12], aliases: ["grenades"] }
-  - { name: "Coing", unit: count, season: [10, 11], aliases: ["coings"] }
-  - { name: "Kaki", unit: count, season: [10, 11, 12], aliases: ["kakis", "plaquemine"] }
-  - { name: "Fruit de la passion", unit: count, season: [], aliases: ["fruits de la passion", "maracuja"] }
+  - { name: "Melon", unit: count, weight: 1000, season: [6, 7, 8, 9], aliases: ["melons"] }
+  - { name: "Pastèque", unit: count, weight: 4000, season: [7, 8], aliases: ["pastèques"] }
+  - { name: "Kiwi", unit: count, weight: 90, season: [11, 12, 1, 2, 3], aliases: ["kiwis"] }
+  - { name: "Ananas", unit: count, weight: 1200, season: [], aliases: [] }
+  - { name: "Mangue", unit: count, weight: 350, season: [], aliases: ["mangues"] }
+  - { name: "Papaye", unit: count, weight: 600, season: [], aliases: ["papayes"] }
+  - { name: "Avocat", unit: count, weight: 200, season: [], aliases: ["avocats"] }
+  - { name: "Figue", unit: count, weight: 60, season: [8, 9], aliases: ["figues"] }
+  - { name: "Grenade", unit: count, weight: 300, season: [10, 11, 12], aliases: ["grenades"] }
+  - { name: "Coing", unit: count, weight: 250, season: [10, 11], aliases: ["coings"] }
+  - { name: "Kaki", unit: count, weight: 200, season: [10, 11, 12], aliases: ["kakis", "plaquemine"] }
+  - { name: "Fruit de la passion", unit: count, weight: 50, season: [], aliases: ["fruits de la passion", "maracuja"] }
   - { name: "Litchi", unit: mass, season: [12, 1], aliases: ["litchis"] }
-  - { name: "Rhubarbe", unit: mass, season: [4, 5, 6], aliases: [] }
+  - { name: "Rhubarbe", unit: mass, weight: 100, season: [4, 5, 6], aliases: [] }
   # --- Herbes fraîches (rayon fruits & légumes) ---
   - { name: "Persil frais", unit: mass, season: [], aliases: ["persil", "bouquet de persil", "persil plat", "persil frisé"] }
   - { name: "Basilic frais", unit: mass, season: [5, 6, 7, 8, 9], aliases: ["basilic"] }
@@ -129,23 +138,26 @@ fruits_legumes:
   - { name: "Marjolaine", unit: mass, season: [], aliases: [] }
   - { name: "Citronnelle", unit: mass, season: [], aliases: ["tige de citronnelle"] }
   - { name: "Thym frais", unit: mass, season: [], aliases: ["thym"] }
+  - { name: "Thym citron", unit: mass, season: [], aliases: ["thym-citron", "thym citronné"] }
   - { name: "Romarin frais", unit: mass, season: [], aliases: ["romarin"] }
   - { name: "Sauge", unit: mass, season: [], aliases: [] }
 
 # ─────────────────────────────────────────────────────────────────────────────
 boucherie_viande:
   - { name: "Bœuf haché", unit: mass, aliases: ["viande hachée de bœuf", "steak haché", "haché de bœuf"] }
-  - { name: "Steak de bœuf", unit: mass, aliases: ["steaks de bœuf", "bavette", "entrecôte", "faux-filet"] }
+  - { name: "Steak de bœuf", unit: mass, weight: 150, aliases: ["steaks de bœuf", "bavette", "entrecôte", "faux-filet"] }
   - { name: "Rôti de bœuf", unit: mass, aliases: [] }
   - { name: "Bourguignon", unit: mass, aliases: ["bœuf à mijoter", "paleron", "gîte"] }
-  - { name: "Jarret", unit: mass, aliases: ["jarret de bœuf", "jarret de porc", "jarret de veau"] }
-  - { name: "Poulet entier", unit: mass, aliases: ["poulet"] }
-  - { name: "Blanc de poulet", unit: mass, aliases: ["filet de poulet", "escalope de poulet", "blancs de poulet", "aiguillettes de poulet"] }
-  - { name: "Cuisse de poulet", unit: mass, aliases: ["cuisses de poulet", "pilon de poulet", "haut de cuisse"] }
+  # « jarret de veau » appartient à Osso buco, qui est exactement cette découpe :
+  # le laisser ici aussi rendait le choix du matcher arbitraire entre les deux.
+  - { name: "Jarret", unit: mass, aliases: ["jarret de bœuf", "jarret de porc"] }
+  - { name: "Poulet entier", unit: mass, weight: 1500, aliases: ["poulet"] }
+  - { name: "Blanc de poulet", unit: mass, weight: 150, aliases: ["filet de poulet", "escalope de poulet", "blancs de poulet", "aiguillettes de poulet"] }
+  - { name: "Cuisse de poulet", unit: mass, weight: 200, aliases: ["cuisses de poulet", "pilon de poulet", "haut de cuisse"] }
   - { name: "Foies de volaille", unit: mass, aliases: ["foie de volaille", "foies de poulet"] }
   - { name: "Porc haché", unit: mass, aliases: ["haché de porc"] }
-  - { name: "Côte de porc", unit: mass, aliases: ["côtes de porc"] }
-  - { name: "Filet mignon de porc", unit: mass, aliases: ["filet mignon"] }
+  - { name: "Côte de porc", unit: mass, weight: 150, aliases: ["côtes de porc"] }
+  - { name: "Filet mignon de porc", unit: mass, weight: 500, aliases: ["filet mignon"] }
   - { name: "Rôti de porc", unit: mass, aliases: [] }
   - { name: "Échine de porc", unit: mass, aliases: ["échine"] }
   - { name: "Travers de porc", unit: mass, aliases: ["ribs", "spare ribs", "travers"] }
@@ -156,22 +168,22 @@ boucherie_viande:
   - { name: "Dinde", unit: mass, aliases: ["escalope de dinde", "blanc de dinde", "filet de dinde"] }
   - { name: "Canard", unit: mass, aliases: ["magret de canard", "cuisse de canard", "confit de canard"] }
   - { name: "Pintade", unit: mass, aliases: [] }
-  - { name: "Caille", unit: count, aliases: ["cailles"] }
+  - { name: "Caille", unit: count, weight: 200, aliases: ["cailles"] }
   - { name: "Poule", unit: mass, aliases: ["poule à bouillir", "poule au pot"] }
   - { name: "Lapin", unit: mass, aliases: [] }
-  - { name: "Merguez", unit: count, aliases: [] }
-  - { name: "Saucisse de Toulouse", unit: mass, aliases: [] }
+  - { name: "Merguez", unit: count, weight: 60, aliases: [] }
+  - { name: "Saucisse de Toulouse", unit: mass, weight: 120, aliases: [] }
 
 # ─────────────────────────────────────────────────────────────────────────────
 charcuterie_traiteur:
-  - { name: "Jambon blanc", unit: count, aliases: ["jambon cuit", "tranche de jambon", "jambon"] }
-  - { name: "Jambon de dinde", unit: count, aliases: ["jambon de volaille", "blanc de dinde en tranches"] }
-  - { name: "Jambon cru", unit: mass, aliases: ["jambon sec", "jambon de Parme", "serrano"] }
+  - { name: "Jambon blanc", unit: count, weight: 40, aliases: ["jambon cuit", "tranche de jambon", "jambon"] }
+  - { name: "Jambon de dinde", unit: count, weight: 40, aliases: ["jambon de volaille", "blanc de dinde en tranches"] }
+  - { name: "Jambon cru", unit: mass, weight: 20, aliases: ["jambon sec", "jambon de Parme", "serrano"] }
   - { name: "Lardons", unit: mass, aliases: ["lardon", "lardons fumés", "lardons nature"] }
-  - { name: "Bacon", unit: mass, aliases: ["tranches de bacon"] }
-  - { name: "Saucisse", unit: count, aliases: ["saucisses"] }
-  - { name: "Knacki", unit: count, aliases: ["saucisse de Strasbourg", "saucisses de Strasbourg", "saucisse de Francfort", "knackis"] }
-  - { name: "Chorizo", unit: mass, aliases: [] }
+  - { name: "Bacon", unit: mass, weight: 15, aliases: ["tranches de bacon"] }
+  - { name: "Saucisse", unit: count, weight: 100, aliases: ["saucisses"] }
+  - { name: "Knacki", unit: count, weight: 40, aliases: ["saucisse de Strasbourg", "saucisses de Strasbourg", "saucisse de Francfort", "knackis"] }
+  - { name: "Chorizo", unit: mass, weight: 5, aliases: [] }
   - { name: "Saucisson", unit: mass, aliases: ["saucisson sec"] }
   - { name: "Mortadelle", unit: mass, aliases: [] }
   - { name: "Coppa", unit: mass, aliases: [] }
@@ -179,35 +191,35 @@ charcuterie_traiteur:
   - { name: "Foie gras", unit: mass, aliases: ["foie gras de canard"] }
   - { name: "Rillettes", unit: mass, aliases: [] }
   - { name: "Boudin noir", unit: mass, aliases: [] }
-  - { name: "Boudin blanc", unit: count, aliases: ["boudins blancs"] }
+  - { name: "Boudin blanc", unit: count, weight: 120, aliases: ["boudins blancs"] }
   - { name: "Andouille", unit: mass, aliases: ["andouillette"] }
 
 # ─────────────────────────────────────────────────────────────────────────────
 poissonnerie:
-  - { name: "Saumon", unit: mass, aliases: ["pavé de saumon", "filet de saumon", "darne de saumon"] }
+  - { name: "Saumon", unit: mass, weight: 150, aliases: ["pavé de saumon", "filet de saumon", "darne de saumon"] }
   - { name: "Saumon fumé", unit: mass, aliases: ["tranches de saumon fumé"] }
   - { name: "Truite fumée", unit: mass, aliases: ["tranches de truite fumée"] }
-  - { name: "Cabillaud", unit: mass, aliases: ["dos de cabillaud", "morue", "filet de cabillaud"] }
-  - { name: "Colin", unit: mass, aliases: ["lieu", "merlu", "filet de colin"] }
+  - { name: "Cabillaud", unit: mass, weight: 150, aliases: ["dos de cabillaud", "morue", "filet de cabillaud"] }
+  - { name: "Colin", unit: mass, weight: 150, aliases: ["lieu", "merlu", "filet de colin"] }
   - { name: "Haddock", unit: mass, aliases: ["églefin fumé", "aiglefin"] }
   - { name: "Lotte", unit: mass, aliases: ["queue de lotte", "baudroie"] }
-  - { name: "Thon", unit: mass, aliases: ["steak de thon", "thon frais"] }
-  - { name: "Dorade", unit: count, aliases: ["daurade", "filet de dorade"] }
-  - { name: "Bar", unit: count, aliases: ["loup", "filet de bar"] }
-  - { name: "Sole", unit: count, aliases: ["filet de sole"] }
-  - { name: "Truite", unit: count, aliases: ["filet de truite"] }
-  - { name: "Rouget", unit: count, aliases: ["rougets", "rouget barbet"] }
-  - { name: "Sardine", unit: mass, aliases: ["sardines"] }
-  - { name: "Maquereau", unit: mass, aliases: ["maquereaux", "filet de maquereau"] }
-  - { name: "Crevettes", unit: mass, aliases: ["crevette", "gambas"] }
-  - { name: "Langoustines", unit: mass, aliases: ["langoustine", "scampi"] }
+  - { name: "Thon", unit: mass, weight: 150, aliases: ["steak de thon", "thon frais"] }
+  - { name: "Dorade", unit: count, weight: 400, aliases: ["daurade", "filet de dorade"] }
+  - { name: "Bar", unit: count, weight: 400, aliases: ["loup", "filet de bar"] }
+  - { name: "Sole", unit: count, weight: 300, aliases: ["filet de sole"] }
+  - { name: "Truite", unit: count, weight: 250, aliases: ["filet de truite"] }
+  - { name: "Rouget", unit: count, weight: 150, aliases: ["rougets", "rouget barbet"] }
+  - { name: "Sardine", unit: mass, weight: 80, aliases: ["sardines"] }
+  - { name: "Maquereau", unit: mass, weight: 250, aliases: ["maquereaux", "filet de maquereau"] }
+  - { name: "Crevettes", unit: mass, weight: 10, aliases: ["crevette", "gambas"] }
+  - { name: "Langoustines", unit: mass, weight: 30, aliases: ["langoustine", "scampi"] }
   - { name: "Moules", unit: mass, aliases: ["moule"] }
-  - { name: "Noix de Saint-Jacques", unit: mass, aliases: ["saint-jacques", "coquille saint-jacques"] }
+  - { name: "Noix de Saint-Jacques", unit: mass, weight: 20, aliases: ["saint-jacques", "coquille saint-jacques"] }
   - { name: "Crabe", unit: mass, aliases: ["tourteau", "chair de crabe"] }
-  - { name: "Homard", unit: count, aliases: ["homards", "langouste"] }
+  - { name: "Homard", unit: count, weight: 500, aliases: ["homards", "langouste"] }
   - { name: "Calamar", unit: mass, aliases: ["calamars", "encornet", "seiche"] }
   - { name: "Poulpe", unit: mass, aliases: ["poulpes", "pieuvre"] }
-  - { name: "Huîtres", unit: count, aliases: ["huître"] }
+  - { name: "Huîtres", unit: count, weight: 30, aliases: ["huître"] }
 
 # ─────────────────────────────────────────────────────────────────────────────
 fromagerie_coupe:
@@ -217,37 +229,38 @@ fromagerie_coupe:
   - { name: "Comté", unit: mass, aliases: [] }
   - { name: "Parmesan", unit: mass, aliases: ["parmesan râpé", "parmigiano"] }
   - { name: "Pecorino", unit: mass, aliases: ["pecorino romano"] }
-  - { name: "Mozzarella", unit: mass, aliases: ["boule de mozzarella", "mozzarella di bufala"] }
-  - { name: "Burrata", unit: count, aliases: [] }
-  - { name: "Chèvre", unit: mass, aliases: ["fromage de chèvre", "bûche de chèvre", "crottin de chèvre"] }
+  - { name: "Mozzarella", unit: mass, weight: 125, aliases: ["boule de mozzarella", "mozzarella di bufala"] }
+  - { name: "Burrata", unit: count, weight: 125, aliases: [] }
+  - { name: "Chèvre", unit: mass, weight: 60, aliases: ["fromage de chèvre", "bûche de chèvre", "crottin de chèvre"] }
   - { name: "Feta", unit: mass, aliases: [] }
+  - { name: "Halloumi", unit: mass, aliases: ["fromage halloumi", "halloumis"] }
   - { name: "Ricotta", unit: mass, aliases: [] }
   - { name: "Mascarpone", unit: mass, aliases: [] }
   - { name: "Fromage à tartiner", unit: mass, aliases: ["st môret", "philadelphia", "fromage frais à tartiner", "carré frais"] }
   - { name: "Roquefort", unit: mass, aliases: [] }
   - { name: "Bleu", unit: mass, aliases: ["gorgonzola", "bleu d'Auvergne", "bleu des Causses", "fromage bleu"] }
   - { name: "Brie", unit: mass, aliases: [] }
-  - { name: "Camembert", unit: count, aliases: [] }
-  - { name: "Munster", unit: count, aliases: [] }
-  - { name: "Reblochon", unit: count, aliases: [] }
+  - { name: "Camembert", unit: count, weight: 250, aliases: [] }
+  - { name: "Munster", unit: count, weight: 200, aliases: [] }
+  - { name: "Reblochon", unit: count, weight: 450, aliases: [] }
   - { name: "Saint-Nectaire", unit: mass, aliases: ["saint nectaire"] }
   - { name: "Tomme", unit: mass, aliases: ["tomme de Savoie"] }
   - { name: "Raclette", unit: mass, aliases: ["fromage à raclette", "tranches de raclette"] }
   - { name: "Cheddar", unit: mass, aliases: ["cheddar râpé"] }
   - { name: "Gouda", unit: mass, aliases: [] }
-  - { name: "Boursin", unit: count, aliases: ["fromage ail et fines herbes"] }
+  - { name: "Boursin", unit: count, weight: 150, aliases: ["fromage ail et fines herbes"] }
 
 # ─────────────────────────────────────────────────────────────────────────────
 boulangerie_patisserie:
-  - { name: "Pain", unit: mass, aliases: ["baguette", "pain de campagne"] }
+  - { name: "Pain", unit: mass, weight: 250, aliases: ["baguette", "pain de campagne"] }
   - { name: "Pain complet", unit: mass, aliases: ["pain aux céréales", "pain intégral"] }
-  - { name: "Pain de mie", unit: count, aliases: ["tranche de pain de mie", "tranches de pain de mie"] }
+  - { name: "Pain de mie", unit: count, weight: 25, aliases: ["tranche de pain de mie", "tranches de pain de mie"] }
   - { name: "Pain à burger", unit: count, aliases: ["buns", "pain hamburger", "bun"] }
   - { name: "Pain pita", unit: count, aliases: ["pita", "pitas", "pain libanais"] }
   - { name: "Naan", unit: count, aliases: ["naans"] }
   - { name: "Croissant", unit: count, aliases: ["croissants"] }
   - { name: "Brioche", unit: mass, aliases: [] }
-  - { name: "Biscotte", unit: count, aliases: ["biscottes"] }
+  - { name: "Biscotte", unit: count, weight: 10, aliases: ["biscottes"] }
   - { name: "Chapelure", unit: mass, aliases: ["panure"] }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -263,13 +276,13 @@ produits_laitiers:
   - { name: "Beurre demi-sel", unit: mass, aliases: [] }
   - { name: "Ghee", unit: mass, aliases: ["beurre clarifié"] }
   - { name: "Margarine", unit: mass, aliases: [] }
-  - { name: "Yaourt nature", unit: count, aliases: ["yaourts nature", "yaourt"] }
-  - { name: "Yaourt grec", unit: count, aliases: ["yaourt à la grecque"] }
-  - { name: "Yaourt aux fruits", unit: count, aliases: ["yaourts aux fruits"] }
+  - { name: "Yaourt nature", unit: count, weight: 125, aliases: ["yaourts nature", "yaourt"] }
+  - { name: "Yaourt grec", unit: count, weight: 125, aliases: ["yaourt à la grecque"] }
+  - { name: "Yaourt aux fruits", unit: count, weight: 125, aliases: ["yaourts aux fruits"] }
   - { name: "Skyr", unit: mass, aliases: [] }
   - { name: "Fromage blanc", unit: mass, aliases: [] }
-  - { name: "Petit-suisse", unit: count, aliases: ["petits-suisses"] }
-  - { name: "Œuf", unit: count, aliases: ["œufs", "oeuf", "oeufs"] }
+  - { name: "Petit-suisse", unit: count, weight: 60, aliases: ["petits-suisses"] }
+  - { name: "Œuf", unit: count, weight: 50, aliases: ["œufs", "oeuf", "oeufs"] }
   - { name: "Lait de coco", unit: volume, aliases: ["crème de coco"] }
   - { name: "Lait de soja", unit: volume, aliases: ["boisson au soja", "lait végétal"] }
   - { name: "Lait d'amande", unit: volume, aliases: ["boisson à l'amande"] }
@@ -278,19 +291,19 @@ produits_laitiers:
 
 # ─────────────────────────────────────────────────────────────────────────────
 produits_frais_libre_service:
-  - { name: "Pâte feuilletée", unit: count, aliases: ["pâtes feuilletées"] }
-  - { name: "Pâte brisée", unit: count, aliases: [] }
-  - { name: "Pâte sablée", unit: count, aliases: [] }
-  - { name: "Pâte à pizza", unit: count, aliases: ["pâtes à pizza"] }
+  - { name: "Pâte feuilletée", unit: count, weight: 250, aliases: ["pâtes feuilletées"] }
+  - { name: "Pâte brisée", unit: count, weight: 250, aliases: [] }
+  - { name: "Pâte sablée", unit: count, weight: 250, aliases: [] }
+  - { name: "Pâte à pizza", unit: count, weight: 260, aliases: ["pâtes à pizza"] }
   - { name: "Gnocchi", unit: mass, aliases: ["gnocchis"] }
   - { name: "Raviolis frais", unit: mass, aliases: ["ravioli", "tortellini", "tortellinis"] }
   - { name: "Tofu", unit: mass, aliases: ["tofu ferme", "tofu nature"] }
   - { name: "Tofu soyeux", unit: mass, aliases: [] }
   - { name: "Tempeh", unit: mass, aliases: [] }
   - { name: "Seitan", unit: mass, aliases: [] }
-  - { name: "Steak végétal", unit: count, aliases: ["galette végétale", "steak de soja", "steaks végétaux"] }
-  - { name: "Falafel", unit: count, aliases: ["falafels"] }
-  - { name: "Surimi", unit: mass, aliases: ["bâtonnets de surimi"] }
+  - { name: "Steak végétal", unit: count, weight: 100, aliases: ["galette végétale", "steak de soja", "steaks végétaux"] }
+  - { name: "Falafel", unit: count, weight: 25, aliases: ["falafels"] }
+  - { name: "Surimi", unit: mass, weight: 20, aliases: ["bâtonnets de surimi"] }
   - { name: "Houmous", unit: mass, aliases: ["hummus"] }
   - { name: "Guacamole", unit: mass, aliases: [] }
   - { name: "Tzatziki", unit: mass, aliases: [] }
@@ -319,18 +332,18 @@ legumes_surgeles:
 
 # ─────────────────────────────────────────────────────────────────────────────
 viandes_poissons_surgeles:
-  - { name: "Poisson pané", unit: count, aliases: ["poissons panés"] }
+  - { name: "Poisson pané", unit: count, weight: 100, aliases: ["poissons panés"] }
   - { name: "Filet de poisson surgelé", unit: mass, aliases: ["filets de poisson surgelés"] }
   - { name: "Crevettes surgelées", unit: mass, aliases: [] }
   - { name: "Gambas surgelées", unit: mass, aliases: [] }
-  - { name: "Nuggets de poulet", unit: mass, aliases: ["nuggets"] }
-  - { name: "Cordon bleu", unit: count, aliases: ["cordons bleus"] }
-  - { name: "Steak haché surgelé", unit: count, aliases: ["steaks hachés surgelés", "haché surgelé"] }
+  - { name: "Nuggets de poulet", unit: mass, weight: 20, aliases: ["nuggets"] }
+  - { name: "Cordon bleu", unit: count, weight: 120, aliases: ["cordons bleus"] }
+  - { name: "Steak haché surgelé", unit: count, weight: 100, aliases: ["steaks hachés surgelés", "haché surgelé"] }
 
 # ─────────────────────────────────────────────────────────────────────────────
 produits_aperitifs_surgeles:
-  - { name: "Mini-pizza", unit: count, aliases: ["mini-pizzas"] }
-  - { name: "Feuilleté apéritif", unit: count, aliases: ["feuilletés apéritifs", "mini-quiche"] }
+  - { name: "Mini-pizza", unit: count, weight: 40, aliases: ["mini-pizzas"] }
+  - { name: "Feuilleté apéritif", unit: count, weight: 15, aliases: ["feuilletés apéritifs", "mini-quiche"] }
 
 # ─────────────────────────────────────────────────────────────────────────────
 epicerie_salee:
@@ -340,14 +353,15 @@ epicerie_salee:
   - { name: "Penne", unit: mass, aliases: ["pennes"] }
   - { name: "Tagliatelles", unit: mass, aliases: ["tagliatelle"] }
   - { name: "Macaroni", unit: mass, aliases: ["macaronis", "coquillettes"] }
-  - { name: "Lasagnes", unit: mass, aliases: ["feuilles de lasagne", "plaques de lasagne"] }
+  - { name: "Orzo", unit: mass, aliases: ["risoni", "pâtes orzo", "langue d'oiseau"] }
+  - { name: "Lasagnes", unit: mass, weight: 15, aliases: ["feuilles de lasagne", "plaques de lasagne"] }
   - { name: "Riz", unit: mass, aliases: ["riz long"] }
   - { name: "Riz basmati", unit: mass, aliases: [] }
   - { name: "Riz thaï", unit: mass, aliases: ["riz jasmin", "riz thai", "riz parfumé"] }
   - { name: "Riz complet", unit: mass, aliases: ["riz brun"] }
   - { name: "Riz rond", unit: mass, aliases: ["riz à risotto", "riz arborio", "riz à dessert"] }
   - { name: "Quinoa", unit: mass, aliases: [] }
-  - { name: "Boulgour", unit: mass, aliases: ["boulghour"] }
+  - { name: "Boulgour", unit: mass, aliases: ["boulghour", "boulgour concassé", "blé concassé"] }
   - { name: "Couscous", unit: mass, aliases: ["semoule", "graine de couscous"] }
   - { name: "Polenta", unit: mass, aliases: [] }
   - { name: "Épeautre", unit: mass, aliases: ["petit épeautre"] }
@@ -364,8 +378,9 @@ epicerie_salee:
   - { name: "Farine", unit: mass, aliases: ["farine de blé", "farine t45", "farine t55"] }
   - { name: "Farine complète", unit: mass, aliases: ["farine intégrale"] }
   - { name: "Farine de pois chiche", unit: mass, aliases: [] }
+  - { name: "Farine de sarrasin", unit: mass, aliases: ["farine de blé noir"] }
   - { name: "Fécule de maïs", unit: mass, aliases: ["maïzena"] }
-  - { name: "Levure de boulanger", unit: count, aliases: ["levure fraîche", "levure sèche de boulanger"] }
+  - { name: "Levure de boulanger", unit: count, weight: 8, aliases: ["levure fraîche", "levure sèche de boulanger"] }
   # --- Huiles et vinaigres ---
   - { name: "Huile d'olive", unit: volume, aliases: [] }
   - { name: "Huile de tournesol", unit: volume, aliases: ["huile"] }
@@ -378,16 +393,16 @@ epicerie_salee:
   - { name: "Vinaigre de cidre", unit: volume, aliases: [] }
   - { name: "Vinaigre de riz", unit: volume, aliases: [] }
   # --- Conserves ---
-  - { name: "Tomate concassée", unit: mass, aliases: ["tomates concassées", "tomates concassées en conserve", "pulpe de tomate"] }
+  - { name: "Tomate concassée", unit: mass, weight: 400, aliases: ["tomates concassées", "tomates concassées en conserve", "pulpe de tomate"] }
   - { name: "Coulis de tomate", unit: mass, aliases: ["sauce tomate", "purée de tomate"] }
   - { name: "Concentré de tomate", unit: mass, aliases: ["double concentré de tomate"] }
-  - { name: "Thon en boîte", unit: mass, aliases: ["thon en conserve", "boîte de thon"] }
-  - { name: "Maïs en boîte", unit: mass, aliases: ["maïs en conserve", "boîte de maïs"] }
-  - { name: "Sardines en boîte", unit: mass, aliases: ["sardines en conserve"] }
-  - { name: "Anchois", unit: mass, aliases: ["filets d'anchois", "anchois à l'huile"] }
+  - { name: "Thon en boîte", unit: mass, weight: 140, aliases: ["thon en conserve", "boîte de thon"] }
+  - { name: "Maïs en boîte", unit: mass, weight: 285, aliases: ["maïs en conserve", "boîte de maïs"] }
+  - { name: "Sardines en boîte", unit: mass, weight: 120, aliases: ["sardines en conserve"] }
+  - { name: "Anchois", unit: mass, weight: 5, aliases: ["filets d'anchois", "anchois à l'huile"] }
   - { name: "Cœurs de palmier", unit: mass, aliases: ["cœur de palmier"] }
-  - { name: "Cornichons", unit: mass, aliases: ["cornichon"] }
-  - { name: "Olives", unit: mass, aliases: ["olive", "olives noires", "olives vertes"] }
+  - { name: "Cornichons", unit: mass, weight: 15, aliases: ["cornichon"] }
+  - { name: "Olives", unit: mass, weight: 4, aliases: ["olive", "olives noires", "olives vertes"] }
   - { name: "Câpres", unit: mass, aliases: ["câpre"] }
   # --- Condiments et sauces ---
   - { name: "Moutarde", unit: spoon, aliases: ["moutarde de Dijon"] }
@@ -453,7 +468,7 @@ epicerie_sucree:
   - { name: "Sucre roux", unit: mass, aliases: ["cassonade", "vergeoise"] }
   - { name: "Sucre glace", unit: mass, aliases: [] }
   - { name: "Sucre complet", unit: mass, aliases: ["rapadura", "muscovado"] }
-  - { name: "Sucre vanillé", unit: count, aliases: ["sachet de sucre vanillé", "sachets de sucre vanillé"] }
+  - { name: "Sucre vanillé", unit: count, weight: 7.5, aliases: ["sachet de sucre vanillé", "sachets de sucre vanillé"] }
   - { name: "Gousse de vanille", unit: count, aliases: ["vanille", "gousses de vanille"] }
   - { name: "Extrait de vanille", unit: spoon, aliases: ["arôme vanille"] }
   - { name: "Eau de fleur d'oranger", unit: spoon, aliases: ["fleur d'oranger"] }
@@ -463,36 +478,36 @@ epicerie_sucree:
   - { name: "Confiture", unit: spoon, aliases: ["gelée"] }
   - { name: "Compote de pommes", unit: mass, aliases: ["compote", "compote de pomme"] }
   - { name: "Pâte à tartiner", unit: spoon, aliases: ["nutella"] }
-  - { name: "Chocolat noir", unit: mass, aliases: ["chocolat pâtissier", "tablette de chocolat noir"] }
+  - { name: "Chocolat noir", unit: mass, weight: 200, aliases: ["chocolat pâtissier", "tablette de chocolat noir"] }
   - { name: "Chocolat au lait", unit: mass, aliases: [] }
   - { name: "Chocolat blanc", unit: mass, aliases: [] }
   - { name: "Pépites de chocolat", unit: mass, aliases: ["pépite de chocolat"] }
   - { name: "Cacao en poudre", unit: spoon, aliases: ["cacao", "cacao amer"] }
-  - { name: "Levure chimique", unit: count, aliases: ["sachet de levure", "sachets de levure", "poudre à lever"] }
+  - { name: "Levure chimique", unit: count, weight: 11, aliases: ["sachet de levure", "sachets de levure", "poudre à lever"] }
   - { name: "Bicarbonate", unit: spoon, aliases: ["bicarbonate de soude", "bicarbonate alimentaire"] }
-  - { name: "Gélatine", unit: count, aliases: ["feuille de gélatine", "feuilles de gélatine"] }
+  - { name: "Gélatine", unit: count, weight: 2, aliases: ["feuille de gélatine", "feuilles de gélatine"] }
   - { name: "Agar-agar", unit: spoon, aliases: ["agar agar"] }
   - { name: "Poudre à flan", unit: count, aliases: ["préparation pour flan", "flan pâtissier"] }
   - { name: "Amande en poudre", unit: mass, aliases: ["poudre d'amande", "amandes en poudre"] }
   - { name: "Pâte d'amande", unit: mass, aliases: [] }
   - { name: "Pralin", unit: mass, aliases: ["pralin en poudre"] }
   - { name: "Amandes", unit: mass, aliases: ["amande", "amandes effilées"] }
-  - { name: "Noix", unit: mass, aliases: ["cerneaux de noix"] }
+  - { name: "Noix", unit: mass, weight: 10, aliases: ["cerneaux de noix"] }
   - { name: "Noisettes", unit: mass, aliases: ["noisette"] }
   - { name: "Noix de cajou", unit: mass, aliases: ["cajou"] }
   - { name: "Pignons de pin", unit: mass, aliases: ["pignon de pin", "pignons"] }
   - { name: "Graines de pavot", unit: spoon, aliases: ["pavot"] }
   - { name: "Raisins secs", unit: mass, aliases: ["raisin sec"] }
-  - { name: "Dattes", unit: mass, aliases: ["datte", "dattes dénoyautées"] }
-  - { name: "Abricots secs", unit: mass, aliases: ["abricot sec"] }
-  - { name: "Pruneaux", unit: mass, aliases: ["pruneau", "pruneaux dénoyautés"] }
-  - { name: "Figues séchées", unit: mass, aliases: ["figue séchée", "figues sèches"] }
+  - { name: "Dattes", unit: mass, weight: 8, aliases: ["datte", "dattes dénoyautées"] }
+  - { name: "Abricots secs", unit: mass, weight: 8, aliases: ["abricot sec"] }
+  - { name: "Pruneaux", unit: mass, weight: 10, aliases: ["pruneau", "pruneaux dénoyautés"] }
+  - { name: "Figues séchées", unit: mass, weight: 15, aliases: ["figue séchée", "figues sèches"] }
   - { name: "Cranberries séchées", unit: mass, aliases: ["cranberries", "canneberges", "canneberges séchées"] }
   - { name: "Noix de coco râpée", unit: mass, aliases: ["coco râpée"] }
   - { name: "Fruits confits", unit: mass, aliases: [] }
-  - { name: "Speculoos", unit: mass, aliases: ["spéculoos", "biscuits spéculoos"] }
-  - { name: "Biscuits à la cuillère", unit: mass, aliases: ["boudoirs", "biscuit à la cuillère"] }
-  - { name: "Biscuits sablés", unit: mass, aliases: ["petits-beurre", "sablés"] }
+  - { name: "Speculoos", unit: mass, weight: 6, aliases: ["spéculoos", "biscuits spéculoos"] }
+  - { name: "Biscuits à la cuillère", unit: mass, weight: 8, aliases: ["boudoirs", "biscuit à la cuillère"] }
+  - { name: "Biscuits sablés", unit: mass, weight: 10, aliases: ["petits-beurre", "sablés"] }
 
 # ─────────────────────────────────────────────────────────────────────────────
 boissons:
@@ -523,8 +538,8 @@ petit_dejeuner:
   - { name: "Céréales", unit: mass, aliases: ["céréale", "corn flakes"] }
   - { name: "Muesli", unit: mass, aliases: ["granola"] }
   - { name: "Flocons d'avoine", unit: mass, aliases: ["avoine", "porridge"] }
-  - { name: "Cracottes", unit: count, aliases: ["pain suédois", "cracotte", "tartines craquantes"] }
-  - { name: "Pain d'épices", unit: mass, aliases: [] }
+  - { name: "Cracottes", unit: count, weight: 10, aliases: ["pain suédois", "cracotte", "tartines craquantes"] }
+  - { name: "Pain d'épices", unit: mass, weight: 30, aliases: [] }
   - { name: "Beurre de cacahuète", unit: spoon, aliases: ["purée de cacahuète"] }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -543,11 +558,11 @@ produits_monde:
   - { name: "Nouilles chinoises", unit: mass, aliases: ["nouilles", "nouilles udon", "nouilles soba"] }
   - { name: "Nouilles de riz", unit: mass, aliases: ["vermicelles de riz"] }
   - { name: "Riz gluant", unit: mass, aliases: ["riz collant"] }
-  - { name: "Galette de riz", unit: count, aliases: ["galettes de riz", "feuille de riz"] }
-  - { name: "Feuilles de brick", unit: count, aliases: ["feuille de brick", "pâte à brick"] }
-  - { name: "Nori", unit: count, aliases: ["feuille de nori", "feuilles de nori", "algue nori", "algues"] }
-  - { name: "Tortilla", unit: count, aliases: ["tortillas", "wrap", "galette de blé"] }
-  - { name: "Taco", unit: count, aliases: ["tacos", "coque à taco"] }
+  - { name: "Galette de riz", unit: count, weight: 10, aliases: ["galettes de riz", "feuille de riz"] }
+  - { name: "Feuilles de brick", unit: count, weight: 15, aliases: ["feuille de brick", "pâte à brick"] }
+  - { name: "Nori", unit: count, weight: 3, aliases: ["feuille de nori", "feuilles de nori", "algue nori", "algues"] }
+  - { name: "Tortilla", unit: count, weight: 50, aliases: ["tortillas", "wrap", "galette de blé"] }
+  - { name: "Taco", unit: count, weight: 15, aliases: ["tacos", "coque à taco"] }
   - { name: "Semoule fine", unit: mass, aliases: ["semoule de blé fine"] }
 
 # ─────────────────────────────────────────────────────────────────────────────

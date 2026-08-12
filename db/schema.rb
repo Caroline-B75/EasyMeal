@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_08_100004) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_12_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "plpgsql"
@@ -83,6 +83,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_08_100004) do
     t.jsonb "aliases", default: {}
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "piece_weight_g", precision: 8, scale: 2
     t.index ["aliases"], name: "index_ingredients_on_aliases", using: :gin
     t.index ["category"], name: "index_ingredients_on_category"
     t.index ["name"], name: "index_ingredients_on_name", unique: true

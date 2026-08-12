@@ -25,6 +25,12 @@
         %span Options avancées
 
       .optional-fields-content
+        -# Renseigné ici, le poids unitaire sert immédiatement : c'est le
+        -# panneau d'import qui vient d'ouvrir ce formulaire, et il posera la
+        -# quantité détectée en la convertissant.
+        .form-group
+          = f.input :piece_weight_g, label: "Poids d'une pièce (g)", hint: "Ex: 300 pour une aubergine, 40 pour une tranche de jambon", input_html: { class: "form-input", step: "0.01", min: "0.01" }, label_html: { class: "form-label" }, hint_html: { class: "form-hint" }, error_class: "has-error"
+
         .form-group
           %label.form-label Alias (synonymes)
           %small.form-hint Noms alternatifs (séparés par des virgules)

@@ -74,6 +74,14 @@ class Ingredient < ApplicationRecord
   # Validation du format de base_unit selon le unit_group
   validate :base_unit_matches_unit_group
 
+  # Poids d'une pièce, facultatif : il ne se renseigne que là où l'ingrédient se
+  # dit dans les deux langues (une aubergine pèse 300 g), et sert alors de pont
+  # entre les recettes qui comptent et le catalogue qui pèse.
+  validates :piece_weight_g,
+            numericality: { greater_than: 0, message: "doit être supérieur à 0" },
+            allow_nil: true
+  validate :piece_weight_only_for_countable_or_weighable
+
   # Validation des season_months (doivent être entre 1 et 12)
   validate :valid_season_months
 
@@ -122,6 +130,15 @@ class Ingredient < ApplicationRecord
     return if base_unit == expected_unit
 
     errors.add(:base_unit, "doit être #{expected_unit} pour le groupe #{unit_group}")
+  end
+
+  # Le poids d'une pièce ne relie que la masse et le compte. Sur un ingrédient
+  # en ml ou en cuillères, il n'aurait aucun sens à la conversion — mieux vaut
+  # le refuser à la saisie que le laisser dormir dans la base sans effet.
+  def piece_weight_only_for_countable_or_weighable
+    return if piece_weight_g.blank? || unit_group_mass? || unit_group_count?
+
+    errors.add(:piece_weight_g, "ne s'applique qu'aux ingrédients en masse ou en pièces")
   end
 
   # Valide que tous les season_months sont entre 1 et 12

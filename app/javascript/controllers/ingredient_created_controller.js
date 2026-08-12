@@ -8,7 +8,10 @@ export default class extends Controller {
     name: String,
     displayName: String,
     baseUnit: String,
-    unitGroup: String
+    unitGroup: String,
+    // Absent quand l'ingrédient n'a pas de poids unitaire : Stimulus rend alors
+    // 0, que le panneau IA lit comme « pas de pont pièce ↔ masse ».
+    pieceWeight: Number
   }
 
   connect() {
@@ -27,7 +30,8 @@ export default class extends Controller {
         name: this.nameValue,
         displayName: this.displayNameValue,
         baseUnit: this.baseUnitValue,
-        unitGroup: this.unitGroupValue
+        unitGroup: this.unitGroupValue,
+        pieceWeight: this.pieceWeightValue
       }
     }))
 

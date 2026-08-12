@@ -19,7 +19,7 @@ TAGS_BY_TYPE = {
                         "libanaise", "indienne", "chinoise", "japonaise", "thaïlandaise",
                         "coréenne", "vietnamienne", "mexicaine", "américaine" ],
   occasion:           [ "apéritif", "entrée", "plat", "dessert", "goûter", "brunch",
-                        "pique-nique", "petit-déjeuner", "salade" ],
+                        "petit-déjeuner", "salade" ],
   methode_cuisson:    [ "four", "poêle", "vapeur", "barbecue", "sans cuisson" ]
 }.freeze
 

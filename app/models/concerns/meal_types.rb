@@ -7,8 +7,14 @@
 #                                   — une quiche vit au déjeuner ET au dîner.
 # - MenuRecipe#meal_type (string) : un repas planifié occupe UN moment précis.
 #
-# La liste est ordonnée comme la journée se déroule : c'est cet ordre qui pilote
-# l'affichage (chips du formulaire recette, steppers du formulaire de menu).
+# La liste est ordonnée, et c'est cet ordre qui pilote l'affichage (chips du
+# formulaire recette, steppers du formulaire de menu, sections du brouillon).
+# Elle se lit en deux temps :
+#
+# 1. les cinq moments de la journée, dans l'ordre où elle se déroule ;
+# 2. ce qui ne se range pas sur cette ligne du temps — les moments d'un repas
+#    (entrée, salade, dessert). Ils viennent après, entre eux dans l'ordre du
+#    service.
 #
 # Les libellés sont exposés sur le module lui-même (MealTypes.label & co) et
 # nulle part ailleurs : un seul chemin d'appel, quel que soit l'appelant —
@@ -16,7 +22,7 @@
 module MealTypes
   extend ActiveSupport::Concern
 
-  MEAL_TYPES = %w[breakfast lunch snack apero dinner].freeze
+  MEAL_TYPES = %w[breakfast lunch snack apero dinner starter salad dessert].freeze
 
   # Libellé français au singulier — « Petit-déjeuner ».
   # @param meal_type [String, Symbol, nil]
@@ -67,7 +73,10 @@ module MealTypes
     "lunch"     => "sun",
     "snack"     => "coffee",
     "apero"     => "glass",
-    "dinner"    => "moon"
+    "dinner"    => "moon",
+    "starter"   => "plate",
+    "salad"     => "salad",
+    "dessert"   => "ice-cream"
   }.freeze
   private_constant :ICONS
 

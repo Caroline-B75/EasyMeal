@@ -35,8 +35,12 @@ RSpec.describe "Répartition des repas du brouillon", type: :request do
       steppers = settings_panel.css("[role='group']").to_h do |group|
         [ group["aria-label"], group.at_css(".mc-stepper-val").text ]
       end
-      expect(steppers).to eq("Petits-déjeuners" => "0", "Déjeuners" => "0", "Goûters" => "0",
-                             "Apéros" => "0", "Dîners" => "2")
+      # Un stepper par moment, dans l'ordre du vocabulaire : la liste est
+      # dérivée de MealTypes plutôt que recopiée, pour que ce test décrive la
+      # règle et non l'inventaire du jour.
+      expect(steppers.keys).to eq(MealTypes::MEAL_TYPES.map { |type| MealTypes.plural_label(type) })
+      expect(steppers["Dîners"]).to eq("2")
+      expect(steppers.values.count("0")).to eq(MealTypes::MEAL_TYPES.size - 1)
     end
 
     it "désactive le « − » d'un moment absent du menu, jamais le « + »" do

@@ -8,8 +8,29 @@ require "rails_helper"
 # pour toute l'application.
 RSpec.describe MealTypes do
   describe "MEAL_TYPES" do
-    it "suit le déroulé de la journée" do
-      expect(described_class::MEAL_TYPES).to eq(%w[breakfast lunch snack apero dinner])
+    it "range les moments de la journée avant ceux qui n'y tiennent pas" do
+      expect(described_class::MEAL_TYPES)
+        .to eq(%w[breakfast lunch snack apero dinner starter salad dessert])
+    end
+  end
+
+  # Filets de sécurité : ajouter un moment sans lui donner ses quatre libellés
+  # le laisserait s'afficher en anglais humanisé (« Starter »), et sans icône il
+  # tomberait sur le repli générique. Ces tests cassent dans les deux cas.
+  describe "complétude du vocabulaire" do
+    %w[meal_types meal_types_plural meal_types_compact meal_types_short].each do |scope|
+      it "traduit exactement les moments dans #{scope}, ni plus ni moins" do
+        expect(I18n.t(scope).keys.map(&:to_s)).to match_array(described_class::MEAL_TYPES)
+      end
+    end
+
+    it "nomme pour chaque moment une icône réellement dessinée" do
+      icons = described_class::MEAL_TYPES.map { |meal_type| described_class.icon(meal_type) }
+
+      expect(icons).to all(be_in(ApplicationHelper::FEATHER_ICONS.keys))
+      # « utensils » est le repli des moments inconnus : le voir ici signalerait
+      # un moment oublié dans la table ICONS.
+      expect(icons).not_to include("utensils")
     end
   end
 
