@@ -63,7 +63,20 @@ RSpec.describe Recipes::ExtractorService do
     end
   end
 
-  # Recette telle que le service la reconstruit depuis schema_recipe.
+  # Classement rendu par l'IA — ce que le schema.org ne dit jamais.
+  let(:classification) do
+    {
+      "difficulty" => "facile",
+      "diet"       => "vegetarien",
+      "price"      => "economique",
+      "meal_types" => [ "lunch", "dinner" ],
+      "tags"       => [ "de saison" ],
+      "ingredients" => []
+    }
+  end
+
+  # Recette telle que le service la reconstruit depuis schema_recipe, une fois
+  # l'IA passée.
   let(:extracted_recipe) do
     {
       "name"               => "Tarte aux poireaux",
@@ -72,11 +85,13 @@ RSpec.describe Recipes::ExtractorService do
       "prep_time_minutes"  => 20,
       "cook_time_minutes"  => 40,
       "total_time_minutes" => 60,
-      "difficulty"         => nil,
-      "diet"               => "omnivore",
       "appliance"          => nil,
       "instructions"       => "1. Préchauffer le four.\n2. Enfourner 40 minutes.",
-      "suggested_tags"     => [ "Plat principal", "Tarte" ],
+      "difficulty"         => "facile",
+      "diet"               => "vegetarien",
+      "price"              => "economique",
+      "meal_types"         => [ "lunch", "dinner" ],
+      "tags"               => [ "de saison" ],
       "ingredients"        => []
     }
   end
@@ -84,14 +99,16 @@ RSpec.describe Recipes::ExtractorService do
   # ── from_url : chemin schema.org ────────────────────────────────────────
 
   describe ".from_url avec du schema.org" do
-    it "reconstruit toute la recette depuis le schema.org, sans solliciter l'IA" do
+    it "reconstruit les faits depuis le schema.org et complète avec le classement de l'IA" do
       stub_page(page_with_json_ld(schema_recipe))
+      stub_claude(classification)
 
       expect(described_class.from_url(url)).to eq(extracted_recipe)
-      expect(claude_calls).to be_empty
     end
 
-    it "confie les ingrédients bruts à l'IA et retourne sa structuration" do
+    # Le site publie déjà les faits : l'IA n'est appelée qu'une fois, pour les
+    # deux choses qu'il ne dit pas — les ingrédients découpés et le classement.
+    it "confie les ingrédients bruts et le classement à un seul appel" do
       schema     = schema_recipe.merge("recipeIngredient" => [ "200 g de farine", "", "3 oeufs" ])
       structured = [
         { "name" => "farine", "quantity" => 200, "unit" => "g" },
@@ -99,12 +116,32 @@ RSpec.describe Recipes::ExtractorService do
       ]
       stub_page(page_with_json_ld(schema))
       # Le schéma de sortie enveloppe le tableau sous la clé "ingredients".
-      stub_claude("ingredients" => structured)
+      stub_claude(classification.merge("ingredients" => structured))
 
       expect(described_class.from_url(url)["ingredients"]).to eq(structured)
-      # Les ingrédients vides sont retirés avant d'être soumis à l'IA.
-      expect(claude_calls.last)
-        .to eq(Recipes::ClaudePrompts.ingredients_request([ "200 g de farine", "3 oeufs" ]))
+      expect(claude_calls.size).to eq(1)
+      # Les ingrédients vides sont retirés avant d'être soumis à l'IA, et ce que
+      # le site dit déjà de la recette part avec eux pour la faire classer.
+      expect(claude_calls.last).to eq(Recipes::ClaudePrompts.schema_org_request(
+        name:         "Tarte aux poireaux",
+        description:  "Une tarte salée de saison",
+        categories:   [ "Plat principal", "Tarte" ],
+        instructions: "1. Préchauffer le four.\n2. Enfourner 40 minutes.",
+        ingredients:  [ "200 g de farine", "3 oeufs" ]
+      ))
+    end
+
+    # Le classement est une suggestion, pas une fatalité : si l'IA n'aboutit
+    # pas, l'import reste utilisable et l'utilisatrice coche elle-même.
+    it "laisse le classement vide quand l'IA échoue" do
+      stub_page(page_with_json_ld(schema_recipe))
+      stub_claude_failure
+
+      expect(described_class.from_url(url)).to eq(
+        extracted_recipe.merge(
+          "difficulty" => nil, "diet" => nil, "price" => nil, "meal_types" => [], "tags" => []
+        )
+      )
     end
   end
 

@@ -61,6 +61,11 @@ class RecipeImportsController < ApplicationController
     end
   end
 
+  # Le brouillon arrive pré-coché : l'IA propose difficulté, régime, moments,
+  # budget et tags, l'utilisatrice confirme ou corrige au formulaire de
+  # validation. Chaque suggestion repasse par le vocabulaire connu — le schéma
+  # de sortie l'y contraint déjà, mais un import n'a pas à faire confiance à ce
+  # qu'on lui rend.
   def build_draft_recipe(data)
     Recipe.new(
       status:            :draft,
@@ -74,6 +79,9 @@ class RecipeImportsController < ApplicationController
       cook_time_minutes: data["cook_time_minutes"],
       difficulty:        valid_enum(Recipe.difficulties, data["difficulty"]),
       diet:              valid_enum(Recipe.diets, data["diet"]) || "omnivore",
+      price:             valid_enum(Recipe.prices, data["price"]),
+      meal_types:        known_meal_types(data["meal_types"]),
+      tags:              catalog_tags(data["tags"]),
       appliance:         data["appliance"],
       instructions:      data["instructions"]
     )
@@ -82,5 +90,21 @@ class RecipeImportsController < ApplicationController
   # Retourne la valeur uniquement si elle appartient à l'enum, nil sinon.
   def valid_enum(enum_hash, value)
     enum_hash.key?(value) ? value : nil
+  end
+
+  # Moments retenus, rangés dans l'ordre où la journée se déroule ; un moment
+  # inconnu est écarté plutôt que de faire échouer la création du brouillon
+  # (HasMealTypes valide le vocabulaire, brouillons compris).
+  def known_meal_types(suggested)
+    MealTypes::MEAL_TYPES & Array(suggested).map(&:to_s)
+  end
+
+  # Tags du catalogue portant l'un des noms suggérés, insensible à la casse.
+  # Aucun tag n'est créé : un nom inconnu est ignoré silencieusement.
+  def catalog_tags(names)
+    names = Array(names).filter_map { |name| name.to_s.strip.downcase.presence }
+    return [] if names.empty?
+
+    Tag.where("LOWER(name) IN (?)", names)
   end
 end

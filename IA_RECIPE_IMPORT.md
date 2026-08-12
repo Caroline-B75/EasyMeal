@@ -163,7 +163,9 @@ structurées) et la réponse s'y conforme par construction.
   "diet": "omnivore",
   "appliance": "four",
   "instructions": "1. Préchauffer le four à 180°C.\n2. Faire revenir les lardons...",
-  "suggested_tags": ["entrée", "rapide", "fromage"],
+  "price": "moyen",
+  "meal_types": ["lunch", "dinner"],
+  "tags": ["rapide", "de saison"],
   "ingredients": [
     { "name": "lardons fumés", "quantity": 200, "unit": "g" },
     { "name": "crème fraîche épaisse", "quantity": 20, "unit": "cl" },
@@ -172,9 +174,13 @@ structurées) et la réponse s'y conforme par construction.
 }
 ```
 
-**Règles portées par le schéma** (l'IA ne peut littéralement pas y déroger) :
+**Règles portées par le schéma** (l'IA ne peut littéralement pas y déroger) —
+le vocabulaire est lu sur les modèles, jamais recopié dans le prompt :
 - `difficulty` : uniquement `"facile"`, `"moyen"`, `"difficile"` ou `null`
 - `diet` : uniquement `"omnivore"`, `"vegetarien"`, `"vegan"`, `"pescetarien"`
+- `price` : uniquement `"economique"`, `"moyen"`, `"cher"` ou `null`
+- `meal_types` : uniquement les moments de `MealTypes::MEAL_TYPES`
+- `tags` : uniquement des noms de tags existant en base (champ absent si le catalogue est vide)
 - `unit` : uniquement g, kg, ml, cl, L, càc, càs ou `null`
 
 **Règles portées par le prompt** (ce que le schéma ne peut pas dire) :
@@ -182,14 +188,21 @@ structurées) et la réponse s'y conforme par construction.
 - `prep_time_minutes` / `cook_time_minutes` : `null` si non renseignés séparément
 - `unit` : `null` quand l'ingrédient se compte en pièces
 - `instructions` : texte complet des étapes, numérotées, séparées par `\n`
-- `suggested_tags` : suggestions basées sur le contenu (type de plat, cuisine, régime...)
-- Ne jamais inventer d'information absente de la source
+- **Extraction** — ne jamais inventer d'information absente de la source
+- **Classement** (`diet`, `meal_types`, `price`, `difficulty`, `tags`) — au contraire, trancher
+  même quand la source ne le dit pas : régime le plus restrictif applicable, tous les moments
+  plausibles, budget d'après le coût des ingrédients, 0 à 4 tags du catalogue
+
+Les valeurs de classement arrivent **pré-cochées** dans le formulaire de validation ;
+la validation humaine reste le garde-fou.
 
 **Pour l'import photo** : l'image est envoyée en base64 dans la requête vision Claude.
 
 **Pour l'import URL** :
 1. Tenter d'abord le parsing `schema.org/Recipe` (JSON-LD dans le HTML) — gratuit et déterministe
-2. Si absent → envoyer le texte extrait de la page à Claude pour structuration
+2. Si présent → un seul appel à Claude pour ce que le site ne dit pas : les ingrédients
+   en texte libre à découper, et le classement de la recette
+3. Si absent → envoyer le texte extrait de la page à Claude pour structuration complète
 
 ---
 

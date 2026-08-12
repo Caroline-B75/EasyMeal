@@ -199,5 +199,31 @@ RSpec.describe "Recipe imports (import IA)", type: :request do
       )
       expect(response).to redirect_to(edit_recipe_path(recipe))
     end
+
+    # L'IA ne se contente plus d'extraire ce qui est écrit : elle classe, et le
+    # formulaire de validation arrive pré-coché. Le vocabulaire reste fermé —
+    # un moment inconnu est écarté, un tag absent du catalogue n'est pas créé.
+    it "pré-coche les moments, le budget et les tags suggérés par l'IA" do
+      saison = create(:tag, name: "de saison")
+
+      allow(Recipes::ExtractorService).to receive(:from_url).and_return(
+        "name"       => "Quiche aux poireaux",
+        "diet"       => "vegetarien",
+        "price"      => "economique",
+        "meal_types" => [ "dinner", "lunch", "brunch" ],
+        "tags"       => [ "De Saison", "tag inexistant" ]
+      )
+
+      post recipe_imports_path, params: { source_type: "url", source_url: "https://exemple.fr/quiche" }
+
+      recipe = Recipe.last
+      expect(recipe).to have_attributes(diet: "vegetarien", price: "economique")
+      # Rangés dans l'ordre où la journée se déroule, « brunch » écarté.
+      expect(recipe.meal_types).to eq([ "lunch", "dinner" ])
+      # Le tag est retrouvé malgré la casse ; le nom inconnu est ignoré.
+      expect(recipe.tags).to eq([ saison ])
+      # Et la liste des brouillons ne réclame plus le moment du repas.
+      expect(recipe.draft_missing_fields).not_to include("Moment du repas")
+    end
   end
 end

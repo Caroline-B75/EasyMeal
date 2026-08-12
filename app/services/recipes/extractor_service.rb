@@ -6,8 +6,9 @@ module Recipes
   #
   # Le trajet d'une URL : PageFetcher rapporte la page, SchemaOrgParser la lit,
   # et l'IA n'est sollicitée que pour ce que la page ne dit pas de façon
-  # structurée — les ingrédients en texte libre, ou la recette entière quand le
-  # site ne publie aucun schema.org. Le dialogue avec l'IA se joue à deux :
+  # structurée — les ingrédients en texte libre et le classement de la recette,
+  # ou la recette entière quand le site ne publie aucun schema.org. Le dialogue
+  # avec l'IA se joue à deux :
   # ClaudePrompts écrit la demande, ClaudeClient la poste.
   class ExtractorService
     # ── Interface publique ──────────────────────────────────────────
@@ -37,8 +38,12 @@ module Recipes
 
     private
 
+    # Ce que l'IA ajoute à une page qui publie déjà ses faits : des ingrédients
+    # structurés, et un classement (moments, budget, difficulté, régime, tags)
+    # qu'aucun schema.org ne donne.
+    CLASSIFICATION_KEYS = %w[difficulty diet price meal_types tags].freeze
+
     # Construit le hash de retour à partir des données schema.org.
-    # Les ingrédients (chaînes brutes) sont les seuls à passer par l'IA.
     def extract_from_schema(schema)
       base = {
         "name"               => schema["name"]&.strip,
@@ -47,32 +52,50 @@ module Recipes
         "prep_time_minutes"  => SchemaOrgParser.parse_iso_duration(schema["prepTime"]),
         "cook_time_minutes"  => SchemaOrgParser.parse_iso_duration(schema["cookTime"]),
         "total_time_minutes" => SchemaOrgParser.parse_iso_duration(schema["totalTime"]),
-        "difficulty"         => nil,
-        "diet"               => "omnivore",
         "appliance"          => nil,
         "instructions"       => SchemaOrgParser.format_instructions(schema["recipeInstructions"]),
-        "suggested_tags"     => SchemaOrgParser.parse_categories(schema["recipeCategory"]),
+        # Valeurs de repli du classement : elles restent en place si l'IA échoue.
+        "difficulty"         => nil,
+        "diet"               => nil,
+        "price"              => nil,
+        "meal_types"         => [],
+        "tags"               => [],
         "ingredients"        => []
       }
 
-      raw_ingredients = Array.wrap(schema["recipeIngredient"]).reject(&:blank?)
-      base["ingredients"] = raw_ingredients.any? ? structure_ingredients(raw_ingredients) : []
-      base
+      base.merge(structure_and_classify(base, schema))
     end
 
-    # Demande à l'IA de découper "200 g de farine" en nom, quantité et unité.
-    # La racine d'un schéma étant un objet, le tableau attendu arrive sous la
-    # clé "ingredients" : on le déballe ici.
+    # Un seul appel à l'IA pour les deux manques de la page : « 200 g de farine »
+    # à découper en nom, quantité et unité, et la recette à classer.
     #
     # Un échec dégrade l'import, il ne l'interrompt pas : toute réponse
-    # inexploitable — ou absente — laisse place aux chaînes d'origine.
-    def structure_ingredients(raw_ingredients)
-      answer     = ClaudeClient.call(ClaudePrompts.ingredients_request(raw_ingredients))
-      structured = answer["ingredients"] if answer.is_a?(Hash)
+    # inexploitable — ou absente — laisse place aux chaînes d'origine et à un
+    # classement vide, que l'utilisatrice complétera à la validation.
+    def structure_and_classify(base, schema)
+      raw_ingredients = Array.wrap(schema["recipeIngredient"]).reject(&:blank?)
+
+      answer = ClaudeClient.call(ClaudePrompts.schema_org_request(
+        name:         base["name"],
+        description:  base["description"],
+        categories:   SchemaOrgParser.parse_categories(schema["recipeCategory"]),
+        instructions: base["instructions"],
+        ingredients:  raw_ingredients
+      ))
+      return { "ingredients" => raw_ingredients_fallback(raw_ingredients) } unless answer.is_a?(Hash)
+
+      answer.slice(*CLASSIFICATION_KEYS)
+            .merge("ingredients" => structured_ingredients(answer, raw_ingredients))
+    rescue ExtractionError
+      { "ingredients" => raw_ingredients_fallback(raw_ingredients) }
+    end
+
+    # La racine d'un schéma étant un objet, le tableau attendu arrive sous la
+    # clé "ingredients" : on le déballe ici.
+    def structured_ingredients(answer, raw_ingredients)
+      structured = answer["ingredients"]
 
       structured.is_a?(Array) ? structured : raw_ingredients_fallback(raw_ingredients)
-    rescue ExtractionError
-      raw_ingredients_fallback(raw_ingredients)
     end
 
     # Repli : la chaîne d'origine devient le nom de l'ingrédient, que
