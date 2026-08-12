@@ -47,6 +47,24 @@ RSpec.describe "Recipe imports (import IA)", type: :request do
 
       expect(response.body).not_to include("capture=")
     end
+
+    # Bout de chaîne du retour d'échec : le contrôleur renvoie l'URL dans la
+    # redirection, la vue doit la remettre dans le champ.
+    it "pré-remplit le champ URL quand elle revient d'un échec d'extraction" do
+      get new_recipe_import_path(source_url: "https://exemple.fr/tarte")
+
+      expect(response.body).to include('value="https://exemple.fr/tarte"')
+    end
+
+    # L'attente remplace le libellé du bouton par des messages d'étape
+    # successifs : sans région live sur CE conteneur, un lecteur d'écran
+    # n'annoncerait que le premier.
+    it "annonce les messages d'étape de l'attente aux lecteurs d'écran" do
+      get new_recipe_import_path
+
+      label_tag = response.body[/<span[^>]*submitLabel[^>]*>/]
+      expect(label_tag).to include('aria-live="polite"')
+    end
   end
 
   describe "GET /recipes/:id/edit — revue du brouillon importé" do
@@ -132,15 +150,37 @@ RSpec.describe "Recipe imports (import IA)", type: :request do
   describe "POST /recipe_imports" do
     # Un échec d'extraction doit ramener au formulaire avec le motif : c'est le
     # chemin que les erreurs de ExtractorService court-circuitaient en 500 tant
-    # qu'elles remontaient en NameError plutôt qu'en ExtractionError.
-    it "renvoie au formulaire avec le motif quand l'extraction échoue" do
+    # qu'elles remontaient en NameError plutôt qu'en ExtractionError. Et après
+    # 15 à 30 s d'attente, l'URL saisie repart avec la redirection : la faire
+    # retaper serait la punition de trop.
+    it "renvoie au formulaire avec le motif et l'URL saisie quand l'extraction échoue" do
       allow(Recipes::ExtractorService).to receive(:from_url)
         .and_raise(Recipes::ExtractionError, "URL inaccessible (code 404)")
 
       post recipe_imports_path, params: { source_type: "url", source_url: "https://exemple.fr/tarte" }
 
-      expect(response).to redirect_to(new_recipe_import_path)
+      expect(response).to redirect_to(new_recipe_import_path(source_url: "https://exemple.fr/tarte"))
       expect(flash[:alert]).to eq("Extraction échouée : URL inaccessible (code 404)")
+    end
+
+    # Un champ fichier ne peut pas être re-rempli par le navigateur : là où
+    # l'URL revient toute seule, la photo doit être redemandée explicitement.
+    it "invite à rechoisir la photo quand l'extraction d'un import photo échoue" do
+      allow(Recipes::ExtractorService).to receive(:from_photo)
+        .and_raise(Recipes::ExtractionError, "Aucun texte de recette reconnu")
+
+      # Le contenu du fichier n'a pas d'importance : le contrôleur ne fait que
+      # l'encoder en base64 avant de le passer au service, ici simulé.
+      post recipe_imports_path, params: {
+        source_type: "photo",
+        photo_file: Rack::Test::UploadedFile.new(StringIO.new("photo"), "image/jpeg",
+                                                 original_filename: "magazine.jpg")
+      }
+
+      expect(response).to redirect_to(new_recipe_import_path)
+      expect(flash[:alert]).to eq(
+        "Extraction échouée : Aucun texte de recette reconnu — choisis à nouveau la photo."
+      )
     end
 
     it "crée un brouillon et ouvre le formulaire de review quand l'extraction réussit" do

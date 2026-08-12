@@ -16,6 +16,13 @@ const UNSUPPORTED_FILE_ERROR = "Format non accepté : choisis une image JPG, PNG
 const MAX_FILE_BYTES = 20 * 1024 * 1024
 const OVERSIZED_FILE_ERROR = "Photo trop lourde (20 Mo maximum) : choisis une image plus légère."
 
+// Étapes traversées pendant l'extraction, dans leur ordre réel. Le serveur ne
+// sait pas dire où il en est : plutôt qu'une fausse progression chiffrée, on
+// annonce ce qui se passe. Seule la première étape dépend de la source.
+const FIRST_STEP = { url: "Lecture de la page…", photo: "Lecture de la photo…" }
+const NEXT_STEPS = [ "Extraction par l'IA…", "Encore quelques secondes…" ]
+const STEP_DURATION_MS = 5500
+
 // Poids lisible du fichier qui partira vraiment : c'est la réassurance que la
 // réduction a bien eu lieu. Base 1000, comme l'explorateur de fichiers.
 function formatFileSize(bytes) {
@@ -31,13 +38,18 @@ function formatFileSize(bytes) {
 //  - collage n'importe où sur la page : une image ouvre l'onglet Photo, une URL
 //    ouvre l'onglet Lien (l'action `paste@document` est détachée par Stimulus
 //    à la déconnexion du contrôleur) ;
-//  - garde anti-envoi à vide + état de chargement visible (spinner) au submit.
+//  - garde anti-envoi à vide + attente habitée au submit (spinner et messages
+//    d'étape qui défilent).
 export default class extends Controller {
   static targets = [
     "urlSection", "photoSection", "sourceType", "urlTab", "photoTab",
     "urlInput", "fileInput", "fileZone", "preview", "previewImg", "previewName",
     "previewSize", "submitBtn", "submitLabel", "spinner", "error"
   ]
+
+  disconnect() {
+    this.stopStepMessages()
+  }
 
   selectUrl() {
     this.activateTab("url")
@@ -137,7 +149,27 @@ export default class extends Controller {
 
     this.submitBtnTarget.disabled = true
     this.spinnerTarget.hidden = false
-    this.submitLabelTarget.textContent = "Extraction en cours… (15 à 30 s)"
+    this.startStepMessages()
+  }
+
+  // Fait défiler les étapes de l'extraction, puis s'arrête sur la dernière : la
+  // page navigue dès la réponse du serveur, il n'y a rien de plus à annoncer.
+  startStepMessages() {
+    const firstStep = this.sourceTypeTarget.value === "url" ? FIRST_STEP.url : FIRST_STEP.photo
+    const steps = [ firstStep, ...NEXT_STEPS ]
+    let index = 0
+
+    this.submitLabelTarget.textContent = steps[index]
+    this.stepTimer = setInterval(() => {
+      index += 1
+      this.submitLabelTarget.textContent = steps[index]
+      if (index === steps.length - 1) this.stopStepMessages()
+    }, STEP_DURATION_MS)
+  }
+
+  stopStepMessages() {
+    clearInterval(this.stepTimer)
+    this.stepTimer = null
   }
 
   // Bascule l'onglet actif et met à jour l'état ARIA + les sections visibles.

@@ -18,14 +18,29 @@ class RecipeImportsController < ApplicationController
       redirect_to edit_recipe_path(recipe),
         notice: "Recette extraite ! Complétez et validez avant de publier."
     else
-      redirect_to new_recipe_import_path,
-        alert: "Impossible de créer le brouillon : #{recipe.errors.full_messages.to_sentence}"
+      back_to_form "Impossible de créer le brouillon : #{recipe.errors.full_messages.to_sentence}"
     end
   rescue Recipes::ExtractionError => e
-    redirect_to new_recipe_import_path, alert: "Extraction échouée : #{e.message}"
+    back_to_form "Extraction échouée : #{e.message}"
   end
 
   private
+
+  # Retour au formulaire d'import après un échec. L'extraction dure 15 à 30 s :
+  # faire ressaisir la source serait la punition de trop. L'URL repart donc dans
+  # la redirection (la vue la relit via params[:source_url] et pré-remplit le
+  # champ) ; un champ fichier, lui, ne peut pas être re-rempli par le navigateur,
+  # alors on dit franchement ce qui reste à faire.
+  def back_to_form(reason)
+    case params[:source_type]
+    when "url"
+      redirect_to new_recipe_import_path(source_url: params[:source_url].presence), alert: reason
+    when "photo"
+      redirect_to new_recipe_import_path, alert: "#{reason} — choisis à nouveau la photo."
+    else
+      redirect_to new_recipe_import_path, alert: reason
+    end
+  end
 
   def authorize_import
     authorize :recipe_import

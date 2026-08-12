@@ -92,7 +92,11 @@
             data: { "import-source-target": "submitBtn" } }
           %span.import-submit-spinner{ "aria-hidden": "true", hidden: true,
               data: { "import-source-target": "spinner" } }
-          %span.import-submit-label{ data: { "import-source-target": "submitLabel" } } Extraire la recette avec l'IA
+          -# aria-live : pendant l'attente, le libellé devient un fil d'étapes
+          -# ("Lecture de la page…", puis l'IA) — chaque changement doit être
+          -# annoncé aux lecteurs d'écran, le bouton étant alors désactivé.
+          %span.import-submit-label{ "aria-live": "polite",
+              data: { "import-source-target": "submitLabel" } } Extraire la recette avec l'IA
 
         %p.import-notice
           = svg_icon(:clock, size: 14)
