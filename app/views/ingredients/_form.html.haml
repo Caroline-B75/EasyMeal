@@ -62,15 +62,8 @@
                      class: "form-input", 
                      placeholder: "Ex: tomate, tomate fraîche (séparés par des virgules)"
 
-  .form-group
-    %label.form-label Mois de saison
-    %small.form-hint Coche les mois où cet ingrédient est de saison
-    = hidden_field_tag "ingredient[season_months][]", ""
-    .months-grid
-      - (1..12).each do |month|
-        %label.month-checkbox
-          = check_box_tag "ingredient[season_months][]", month, ingredient.season_months.include?(month), id: "ingredient_season_months_#{month}"
-          %span= Date::ABBR_MONTHNAMES[month]
+  = render "ingredients/season_months", ingredient: ingredient, id_prefix: "ingredient",
+                                        hint: "Coche les mois où cet ingrédient est de saison"
 
   .form-actions
     = f.submit ingredient.new_record? ? "Créer l'ingrédient" : "Mettre à jour", class: "btn btn-primary"

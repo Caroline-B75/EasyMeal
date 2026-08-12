@@ -5,17 +5,17 @@
 -# qui réinitialise le formulaire de création d'ingrédient avant de l'afficher.
 .recipe-form-wrapper{ data: { controller: "slideout",
                               action: "ai-panel:openIngredientForm->slideout#open" } }
-  -# Pense-bête de validation : la source de l'import reste à un clic pour
-  -# confronter ce que l'IA a extrait (une quantité, une étape sautée) — la page
-  -# d'origine pour un lien, la page photographiée pour un import photo.
-  -# Nouvel onglet obligatoire — la saisie en cours ne doit pas être perdue.
-  - source_reference = draft_source_reference(recipe) if recipe.persisted? && recipe.draft?
-  - if source_reference
+  -# Pense-bête de validation : la page d'origine reste à un clic pour confronter
+  -# ce que l'IA a extrait (une quantité, une étape sautée). Nouvel onglet
+  -# obligatoire — la saisie en cours ne doit pas être perdue.
+  -# Un import photo n'a pas d'adresse à rappeler : sa source est une image, tenue
+  -# sous les yeux dans la visionneuse latérale (recipes/_source_viewer).
+  - if recipe.persisted? && recipe.draft? && recipe.imported_from_link?
     .rf-source
       %span.rf-source__label
         = svg_icon(draft_source_icon(recipe.source_type), size: 13)
         Source de l'import
-      = source_reference
+      = draft_source_url_link(recipe)
 
   -# novalidate : la validation native du navigateur s'arrêterait au premier champ
   -# `required` (le nom) et n'afficherait qu'une bulle éphémère, alors que le

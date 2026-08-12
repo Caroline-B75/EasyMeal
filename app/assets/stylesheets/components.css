@@ -729,18 +729,6 @@
   gap: 1rem;
 }
 
-/* Grille des mois compacte */
-.months-grid-compact {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.5rem;
-}
-
-.months-grid-compact .month-checkbox {
-  font-size: var(--font-size-sm);
-  padding: 0.375rem 0.5rem;
-}
-
 /* Bouton créer un ingrédient */
 .preparations-actions {
   display: flex;
@@ -993,7 +981,13 @@ input[type="radio"] {
 /* Grille de checkboxes (pour les mois) */
 .months-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  /* Le nombre de colonnes suit la largeur du conteneur (formulaire pleine page
+     ou slideout de 480 px), pas celle du viewport : une colonne ne descend
+     jamais sous 5rem et ne dépasse jamais un sixième de la ligne, ce qui donne
+     6 colonnes au large, 4 dans le slideout et 3 sur mobile — sans media query,
+     donc sans risque de débordement dans un conteneur étroit. */
+  grid-template-columns: repeat(auto-fill, minmax(max(5rem, (100% - 5 * 0.5rem) / 6), 1fr));
+  gap: 0.5rem;
   padding: 0.75rem;
   background: var(--color-bg-main);
   border-radius: var(--radius-card-compact);
@@ -1044,16 +1038,6 @@ input[type="radio"] {
 
   .form-actions .btn {
     width: 100%;
-  }
-
-  .months-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (min-width: 768px) and (max-width: 1024px) {
-  .months-grid {
-    grid-template-columns: repeat(4, 1fr);
   }
 }
 

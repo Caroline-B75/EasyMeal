@@ -138,29 +138,37 @@ RSpec.describe "Recipe imports (import IA)", type: :request do
       expect(response.body).to include('target="_blank"')
     end
 
-    # Même geste pour un import photo : la page photographiée est la source à
-    # confronter, en vignette cliquable là où un lien affiche son adresse.
-    it "rappelle la page photographiée d'un import photo en tête de formulaire" do
+    # Un import photo se valide en recopiant une page : elle prend une colonne à
+    # elle, tenue sous les yeux pendant toute la saisie, au lieu du rappel
+    # d'adresse qui suffit à un import par lien.
+    it "montre la page photographiée dans la visionneuse latérale" do
       photo_draft = create(:recipe, :with_source_photo, status: :draft,
                                                         source_type: "photo", source_url: nil)
 
       get edit_recipe_path(photo_draft)
 
-      expect(response.body).to include("rf-source")
-      expect(response.body).to include("rf-source__thumb")
-      # La vignette ouvre l'image en grand, hors de la saisie en cours.
+      expect(response.body).to include("rf-viewer")
       expect(response.body).to include(photo_draft.source_photo.blob.key)
+      # Zoom et déplacement vivent dans le contrôleur Stimulus : côté requêtes,
+      # seul leur branchement est vérifiable — c'est lui qui saute si la vue change.
+      expect(response.body).to include('data-controller="source-viewer"')
+      expect(response.body).to include('data-source-viewer-target="image"')
+      expect(response.body).to include("source-viewer#wheelZoom")
+      # L'image reste ouvrable en plein écran, hors de la saisie en cours.
       expect(response.body).to include('target="_blank"')
+      # Pas de bandeau d'adresse : un import photo n'a pas d'URL à rappeler.
+      expect(response.body).not_to include("rf-source__label")
     end
 
-    # Import photo antérieur à la conservation de la page photographiée : il n'y
-    # a plus rien à montrer, le bandeau doit disparaître plutôt que rester vide.
+    # Import photo antérieur à la conservation de la page photographiée : il n'y a
+    # plus rien à montrer, ni bandeau ni visionneuse vide.
     it "n'affiche pas de rappel de source quand la photo importée n'a pas été conservée" do
       photo_draft = create(:recipe, status: :draft, source_type: "photo", source_url: nil)
 
       get edit_recipe_path(photo_draft)
 
-      expect(response.body).not_to include("rf-source")
+      expect(response.body).not_to include("rf-source__label")
+      expect(response.body).not_to include("rf-viewer")
     end
 
     # La photo importée est une pièce de référence du brouillon, pas une photo

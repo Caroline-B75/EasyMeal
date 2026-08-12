@@ -1,8 +1,16 @@
 -# Page d'édition / validation de brouillon IA (admin only)
 - content_for :title, @recipe.draft? ? "Valider #{@recipe.name}" : "Modifier #{@recipe.name}"
 
+-# Valider un import photo, c'est recopier une page : cette page est la pièce à
+-# confronter champ par champ, du nom jusqu'au dernier ingrédient. Elle prend donc
+-# une colonne à elle, collée au défilement, au lieu d'une vignette qu'il faudrait
+-# ouvrir à chaque doute. Les imports par lien s'en passent : leur source garde le
+-# rappel d'adresse en tête de formulaire, et un site de recettes refuse presque
+-# toujours d'être affiché en cadre.
+- source_viewer = @recipe.draft? && @recipe.source_photo.attached?
+
 .rf-hero
-  .rf-hero-inner
+  .rf-hero-inner{ class: ("rf-hero-inner--split" if source_viewer) }
     .rf-kicker
       %span.rf-kicker-line
       = @recipe.draft? ? "VALIDATION" : "MODIFICATION"
@@ -10,5 +18,16 @@
     - if @recipe.draft?
       %span.badge.badge--draft Importée
 
-.rf-body
-  = render "form", recipe: @recipe
+-# La mise en page à deux colonnes n'existe que s'il y a une source à montrer.
+-# Envelopper le formulaire dans la grille en toutes circonstances le rétrécissait
+-# partout ailleurs (import par lien, recette publiée) : .rf-body se dimensionne
+-# sur son contenu — ses marges automatiques absorbent l'espace libre du flex de
+-# .main-content — et une grille n'y contribue pas la largeur que le formulaire
+-# seul y contribue. D'où les deux branches, et le seul render répété du fichier.
+.rf-body{ class: ("rf-body--split" if source_viewer) }
+  - if source_viewer
+    .rf-split{ data: { controller: "source-viewer" } }
+      .rf-split__main= render "form", recipe: @recipe
+      = render "recipes/source_viewer", recipe: @recipe
+  - else
+    = render "form", recipe: @recipe

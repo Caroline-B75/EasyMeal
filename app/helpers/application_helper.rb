@@ -138,6 +138,8 @@ module ApplicationHelper
     "chevron-left"  => '<polyline points="15 18 9 12 15 6"/>',
     "chevron-down"  => '<polyline points="6 9 12 15 18 9"/>',
     "plus"          => '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+    "minus"         => '<line x1="5" y1="12" x2="19" y2="12"/>',
+    "maximize"      => '<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>',
     "list"          => '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>',
     "upload"        => '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
     "share"         => '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>',
@@ -207,6 +209,13 @@ module ApplicationHelper
     # (title / aria-label). Évite une double lecture par les lecteurs d'écran.
     attrs << 'aria-hidden="true"'
     "<svg #{attrs.join(' ')}>#{body}</svg>".html_safe
+  end
+
+  # Libellé abrégé d'un mois (1..12), pris dans la locale — et non dans
+  # Date::ABBR_MONTHNAMES, qui est en anglais. Capitalisé car les mois s'affichent
+  # en tête de case à cocher ou d'étiquette, comme les jours de `short_day_names`.
+  def month_abbr(month)
+    I18n.t("date.abbr_month_names")[month].capitalize
   end
 
   # Initiales de l'utilisateur (avatar) — ex. "Caroline Belmas" → "CB".

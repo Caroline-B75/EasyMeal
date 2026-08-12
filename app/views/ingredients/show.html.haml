@@ -32,7 +32,7 @@
           .detail-value
             .season-months
               - @ingredient.season_months.sort.each do |month|
-                %span.month-tag= Date::ABBR_MONTHNAMES[month]
+                %span.month-tag= month_abbr(month)
 
     .show-actions
       - if policy(@ingredient).edit?

@@ -1,0 +1,66 @@
+-# Visionneuse de la page photographiée à l'import — la source qu'on recopie dans
+-# le formulaire d'à côté. Une image tenue dans 380 px ne se lit pas : ce qui la
+-# rend utile, c'est de pouvoir l'agrandir et s'y déplacer (molette, glisser,
+-# double-clic), comme sur une carte. Elle se replie quand le formulaire a besoin
+-# de toute la largeur, et repasse en superposition sur les écrans trop étroits
+-# pour deux colonnes — la languette la rappelle dans les deux cas.
+- photo_url = draft_source_photo_url(recipe)
+
+%button.rf-viewer-handle{ type: "button", title: "Afficher la source de l'import",
+                          data: { action: "source-viewer#open" } }
+  = svg_icon("chevron-left", size: 15)
+  = svg_icon(:image, size: 16)
+
+-# Écran étroit : l'aside devient le voile de la superposition, d'où le clic qui
+-# la referme. Échap fait de même, comme sur tout panneau modal du projet.
+%aside.rf-viewer{ "aria-label": "Source de l'import",
+                  data: { action: "click->source-viewer#closeOnOverlay keydown@window->source-viewer#closeOnEscape resize@window->source-viewer#adjustToScreen" } }
+  .rf-viewer__inner
+    -# Tout ce qui se commande tient dans l'en-tête : c'est la seule bande de la
+    -# colonne dont on soit sûr qu'elle est visible sans avoir défilé. « Source »
+    -# suffit à cette largeur — le panneau est nommé en entier pour les lecteurs
+    -# d'écran par l'aria-label de l'aside.
+    .rf-viewer__head
+      %span.rf-viewer__label
+        = svg_icon(:image, size: 13)
+        Source
+
+      .rf-viewer__zoom
+        %button.icon-btn.icon-btn--quiet{ type: "button", title: "Réduire", "aria-label": "Réduire",
+                                          data: { action: "source-viewer#zoomOut" } }
+          = svg_icon(:minus, size: 16)
+        -# Le niveau de zoom est aussi le bouton qui le remet à sa valeur d'origine :
+        -# c'est là que le regard va chercher l'information, autant y mettre l'action.
+        -# `!=` pour laisser passer l'espace insécable qui précède le signe %,
+        -# écrit en entité pour rester visible à la relecture — c'est aussi ce que
+        -# rend le contrôleur à chaque cran de zoom.
+        %button.rf-viewer__level{ type: "button", title: "Revenir à la taille d'origine",
+                                  "aria-label": "Revenir à la taille d'origine",
+                                  data: { action: "source-viewer#reset",
+                                          source_viewer_target: "level" } }
+          != "100&nbsp;%"
+        %button.icon-btn.icon-btn--quiet{ type: "button", title: "Agrandir", "aria-label": "Agrandir",
+                                          data: { action: "source-viewer#zoomIn" } }
+          = svg_icon(:plus, size: 16)
+
+      -# Un vrai plein écran, ou un second écran : ce que la colonne ne peut pas
+      -# offrir. La saisie en cours reste dans son onglet.
+      = link_to svg_icon(:maximize, size: 15), photo_url,
+                **source_link_options("icon-btn icon-btn--quiet",
+                                      title: "Ouvrir la photo importée dans un nouvel onglet")
+      %button.icon-btn.icon-btn--quiet{ type: "button", title: "Masquer la source",
+                                        "aria-label": "Masquer la source",
+                                        data: { action: "source-viewer#close" } }
+        = svg_icon(:x, size: 16)
+
+    -# Le cadre porte les gestes ; l'image, elle, ne fait que suivre la
+    -# transformation calculée par le contrôleur.
+    .rf-viewer__frame{ data: { source_viewer_target: "frame",
+                               action: "wheel->source-viewer#wheelZoom dblclick->source-viewer#toggleZoom pointerdown->source-viewer#startPan pointermove->source-viewer#pan pointerup->source-viewer#endPan pointercancel->source-viewer#endPan" } }
+      -# loading: lazy — sur les écrans étroits la visionneuse est masquée au
+      -# chargement : l'image ne descend qu'à l'ouverture du panneau.
+      -# draggable: false — sans quoi glisser l'image la décollerait au lieu de la
+      -# déplacer dans son cadre (le contrôleur, lui, ne peut pas l'en empêcher
+      -# sans supprimer du même coup le double-clic).
+      = image_tag photo_url, class: "rf-viewer__img", alt: "Page photographiée à l'import",
+                  loading: "lazy", draggable: false, data: { source_viewer_target: "image" }
