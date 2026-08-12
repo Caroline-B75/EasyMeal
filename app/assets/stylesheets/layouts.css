@@ -131,6 +131,29 @@
   text-decoration: none;
 }
 
+/* Compteur porté par le lien « Import » (admin) : nombre de recettes
+   importées en attente de validation. Partagé par le header et son miroir
+   dans le menu déroulant mobile. */
+.nav-badge {
+  display: inline-block;
+  min-width: 18px;
+  padding: 1px 6px;
+  border-radius: var(--radius-badge);
+  background: var(--color-accent-light);
+  color: var(--color-accent-text);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.45;
+  text-align: center;
+}
+
+/* Dans le header le lien est inline : l'espacement du badge n'est pas porté
+   par le gap flex du menu déroulant, il faut le poser ici. */
+.header-nav-link .nav-badge {
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
 .btn-signup {
   background: var(--color-primary);
   color: var(--color-bg-white);

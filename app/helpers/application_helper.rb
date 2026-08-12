@@ -56,6 +56,9 @@ module ApplicationHelper
                 when :menus   then controller_name == "menus" && action_name == "index"
                 when :current, :draft then target_menu.present? && current_page?(menu_path(target_menu))
                 when :grocery then target_menu.present? && current_page?(grocery_menu_path(target_menu))
+                # L'import IA est un parcours en deux temps : le formulaire
+                # (recipe_imports) puis la liste des brouillons (recipe_drafts).
+                when :drafts  then controller_name.in?(%w[recipe_drafts recipe_imports])
                 when :users   then controller_name == "users"
                 else false
                 end

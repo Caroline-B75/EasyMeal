@@ -76,6 +76,12 @@
             = link_to "Recettes", recipes_path, class: header_nav_class(:recipes)
             - if active_menu
               = link_to "Courses", grocery_menu_path(active_menu), class: header_nav_class(:grocery, active_menu)
+            -# Import IA (admin) : le badge compte les brouillons en attente de validation
+            - if current_user.admin?
+              = link_to recipe_drafts_path, class: header_nav_class(:drafts) do
+                Import
+                - if admin_draft_count > 0
+                  %span.nav-badge= admin_draft_count
 
           -# Menu utilisateur (avatar desktop / hamburger mobile)
           .user-menu
@@ -114,16 +120,17 @@
                 = link_to "Recettes", recipes_path, class: "dropdown-link"
                 - if active_menu
                   = link_to "Courses", grocery_menu_path(active_menu), class: "dropdown-link"
+                - if current_user.admin?
+                  = link_to recipe_drafts_path, class: "dropdown-link dropdown-link--admin" do
+                    Import
+                    - if admin_draft_count > 0
+                      %span.nav-badge= admin_draft_count
                 .dropdown-divider
 
               .dropdown-links
                 = link_to "Mes menus", menus_path, class: "dropdown-link"
                 = link_to "Préférences", preferences_profile_path, class: "dropdown-link"
-                - if current_user&.admin?
-                  = link_to recipe_drafts_path, class: "dropdown-link dropdown-link--admin" do
-                    = "Recettes importées"
-                    - if admin_draft_count > 0
-                      %span.nav-badge= admin_draft_count
+                - if current_user.admin?
                   = link_to "Utilisateurs", users_path, class: "dropdown-link dropdown-link--admin"
                 = link_to "Me déconnecter", destroy_user_session_path, data: { turbo_method: :delete }, class: "dropdown-link logout"
     - else
