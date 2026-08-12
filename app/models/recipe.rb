@@ -189,6 +189,14 @@ class Recipe < ApplicationRecord
     draft_missing_fields.empty?
   end
 
+  # Import par lien dont la page d'origine reste consultable : la liste des
+  # brouillons en fait un badge cliquable, le formulaire de validation un lien
+  # de référence. Les vieux imports enregistrés sans source_url retombent sur
+  # un affichage sans lien.
+  def imported_from_link?
+    source_type == "url" && source_url.present?
+  end
+
   # Vérifie si la recette est de saison pour un mois donné
   # Utilise le champ season_months (integer[]) de chaque ingrédient
   def seasonal_for_month?(month)

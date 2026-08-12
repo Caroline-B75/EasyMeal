@@ -13,6 +13,46 @@ module RecipesHelper
     source_type == "photo" ? :image : :link
   end
 
+  # Infobulle des deux portes d'entrée vers la page d'origine d'un import :
+  # le badge de la liste des brouillons et le bandeau du formulaire de validation.
+  SOURCE_LINK_TITLE = "Ouvrir la page d'origine dans un nouvel onglet".freeze
+
+  # Badge de source d'un brouillon importé (liste des imports).
+  # Quand l'import vient d'un lien dont l'URL est connue, le badge devient un
+  # vrai lien : pendant la validation, un clic rouvre la page d'origine pour
+  # comparer. Les autres cas — import photo, ou vieux brouillon URL sans
+  # source_url — gardent un simple libellé.
+  def draft_source_badge(recipe)
+    content = safe_join([
+      svg_icon(draft_source_icon(recipe.source_type), size: 11),
+      draft_source_label(recipe.source_type)
+    ])
+
+    return content_tag(:span, content, class: "badge badge--source") unless recipe.imported_from_link?
+
+    link_to content, recipe.source_url, **source_link_options("badge badge--source badge--source-link")
+  end
+
+  # La même page d'origine, mais adresse en toutes lettres : bandeau de référence
+  # posé en tête du formulaire de validation d'un brouillon.
+  def draft_source_url_link(recipe)
+    link_to recipe.source_url, recipe.source_url, **source_link_options("rf-source__link")
+  end
+
+  # Politique commune des liens sortants vers la page d'origine : nouvel onglet
+  # (le formulaire en cours de saisie ne doit jamais être remplacé), rel de
+  # sécurité, et infobulle qui annonce l'ouverture.
+  def source_link_options(css_class)
+    { class: css_class, target: "_blank", rel: "noopener noreferrer", title: SOURCE_LINK_TITLE }
+  end
+
+  # Options du sélecteur de tri de la liste des brouillons. La liste des tris
+  # vit dans RecipeDraftsController::SORTS, qui les applique : la vue l'affiche
+  # sans jamais recopier ni les clés ni les libellés.
+  def draft_sort_options(selected)
+    options_for_select(RecipeDraftsController::SORTS.map { |key, label| [ label, key ] }, selected)
+  end
+
   # Retourne le texte formaté du temps de préparation
   def format_prep_time(minutes)
     return "Non renseigné" if minutes.blank? || minutes.zero?

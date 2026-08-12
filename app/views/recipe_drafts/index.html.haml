@@ -1,18 +1,30 @@
 - content_for :title, "Recettes importées"
 
+-# Colonne élargie (--wide) : les cartes de brouillon alignent nom, statut et
+-# actions sur une ligne — 820 px les serrait. Le hero suit pour rester aligné.
 .rf-hero
-  .rf-hero-inner
+  .rf-hero-inner.rf-hero-inner--wide
     .rf-kicker
       %span.rf-kicker-line
       ADMIN
     %h1.rf-hero-title Recettes importées
 
-.rf-body
+.rf-body.rf-body--wide
   .draft-toolbar
     %p.draft-toolbar__count
       = pluralize(@recipes.size, "recette en attente de validation", "recettes en attente de validation")
-    = link_to new_recipe_import_path, class: "btn btn-primary btn-sm" do
-      ＋ Importer une recette
+    .draft-toolbar__actions
+      -# Tri sans bouton d'envoi : filter-form soumet au changement du sélecteur.
+      -# Masqué tant qu'il n'y a rien à trier.
+      - if @recipes.any?
+        = form_with url: recipe_drafts_path, method: :get, class: "draft-sort",
+                    data: { controller: "filter-form" } do |f|
+          = f.label :sort, "Trier par", class: "draft-sort__label"
+          = f.select :sort, draft_sort_options(@sort), {},
+                     class: "filter-select",
+                     data: { action: "change->filter-form#submit" }
+      = link_to new_recipe_import_path, class: "btn btn-primary btn-sm" do
+        ＋ Importer une recette
 
   - if @recipes.empty?
     .draft-empty
@@ -36,11 +48,11 @@
           .draft-card__main
             %h2.draft-card__name= recipe.name
             .draft-card__meta
+              -# Badge de source : cliquable vers la page d'origine si l'import
+              -# vient d'un lien (le séparateur suit le badge, pas la date).
               - if recipe.source_type
-                %span.badge.badge--source
-                  = svg_icon(draft_source_icon(recipe.source_type), size: 11)
-                  = draft_source_label(recipe.source_type)
-              %span.draft-card__sep ·
+                = draft_source_badge(recipe)
+                %span.draft-card__sep ·
               %span.draft-card__date= l(recipe.created_at.to_date, format: :long)
 
             -# Statut de complétude : prêt à valider, ou champs restant à compléter
@@ -58,7 +70,10 @@
                     %li.draft-missing__item= field
 
           .draft-card__actions
-            = link_to "Compléter / Valider", edit_recipe_path(recipe), class: "btn btn-primary btn-sm"
+            -# Le libellé suit le même signal que le statut ci-dessus : il reste
+            -# des champs à saisir, ou le brouillon n'attend plus que sa validation.
+            - action_label = missing.empty? ? "Valider" : "Compléter"
+            = link_to action_label, edit_recipe_path(recipe), class: "btn btn-primary btn-sm"
             = button_to "Supprimer",
                 recipe_draft_path(recipe),
                 method: :delete,

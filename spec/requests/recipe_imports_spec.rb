@@ -81,6 +81,27 @@ RSpec.describe "Recipe imports (import IA)", type: :request do
 
       expect(response.body).not_to include("rf-discard")
     end
+
+    # Comparer le formulaire à la source est le geste central de la validation :
+    # la page d'origine doit rester à un clic, sans quitter la saisie en cours.
+    it "rappelle la page d'origine d'un import par lien en tête de formulaire" do
+      link_draft = create(:recipe, status: :draft, source_type: "url",
+                                   source_url: "https://exemple.test/tarte-aux-pommes")
+
+      get edit_recipe_path(link_draft)
+
+      expect(response.body).to include("rf-source")
+      expect(response.body).to include('href="https://exemple.test/tarte-aux-pommes"')
+      expect(response.body).to include('target="_blank"')
+    end
+
+    it "n'affiche pas de rappel de source sur un import photo" do
+      photo_draft = create(:recipe, status: :draft, source_type: "photo", source_url: nil)
+
+      get edit_recipe_path(photo_draft)
+
+      expect(response.body).not_to include("rf-source")
+    end
   end
 
   describe "POST /recipe_imports" do

@@ -2633,6 +2633,15 @@ button.draft-rail-count:not(:disabled) {
   padding: 20px 28px 32px;
 }
 
+/* Variante large, réservée aux pages en liste (brouillons IA) : 820 px est la
+   bonne mesure pour lire un formulaire, trop étroit pour une carte qui aligne
+   nom, statut et actions. Hero et body partagent la valeur pour rester alignés. */
+
+.rf-hero-inner--wide,
+.rf-body--wide {
+  max-width: 1080px;
+}
+
 /* === Formulaire === */
 
 .rf-form {
@@ -3442,6 +3451,49 @@ button.draft-rail-count:not(:disabled) {
   margin-top: 4px;
 }
 
+/* Source d'un import IA : rappel posé en tête du formulaire de validation pour
+   rouvrir la page d'origine et confronter ce que l'IA a extrait. Pense-bête et
+   pas bandeau — il ne doit pas repousser le premier champ vers le bas. */
+
+.rf-source {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-bottom: 16px;
+  padding: 9px 14px;
+  background: var(--color-info-light);
+  border: 1px solid var(--color-info-border);
+  border-radius: var(--radius-input);
+}
+
+.rf-source__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-info-text);
+}
+
+/* L'adresse occupe la place restante et se tronque plutôt que de casser la
+   ligne ; sous 240px disponibles elle passe à la ligne (base flex) au lieu de
+   se réduire à trois caractères. Soulignée d'emblée pour se lire comme un lien
+   — le survol en assombrit l'encre via la règle globale des liens texte. */
+.rf-source__link {
+  flex: 1 1 240px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--color-info-text);
+  text-decoration: underline;
+}
+
 /* Abandon d'un import IA : action destructive tenue à distance des actions du
    formulaire, sous une séparation nette — on ne supprime pas un import d'un
    clic voisin de « Publier ». */
@@ -3634,7 +3686,7 @@ button.draft-rail-count:not(:disabled) {
   align-items: center;
   gap: 4px;
   background: var(--color-info-light);
-  color: #1D4ED8;
+  color: var(--color-info-text);
   border: 1px solid var(--color-info-border);
   font-size: 11px;
   font-weight: 600;
@@ -3642,6 +3694,19 @@ button.draft-rail-count:not(:disabled) {
   border-radius: 20px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+/* Badge de source cliquable (import par lien) : il ouvre la page d'origine.
+   Le survol renforce la bordure et souligne le libellé — la pastille garde sa
+   forme et sa couleur. Sélecteur doublé (.badge.badge--source-link) pour passer
+   devant la règle globale a:not([class*="btn"]):hover, qui repeindrait le
+   libellé en encre sombre. */
+
+.badge.badge--source-link:hover,
+.badge.badge--source-link:focus-visible {
+  color: var(--color-info-text);
+  border-color: var(--color-info);
+  text-decoration: underline;
 }
 
 /* === Section publication === */
@@ -3977,6 +4042,51 @@ button.draft-rail-count:not(:disabled) {
   margin: 0;
 }
 
+/* Côté droit de la barre : tri puis import. Le wrap évite que les deux se
+   chevauchent sur les écrans étroits. */
+
+/* align-items: stretch (et non center) : le sélecteur de tri prend la hauteur
+   de la ligne, donc celle du bouton d'import voisin — le plus haut des deux.
+   Aucune hauteur codée en dur à retoucher si le bouton change de taille. */
+
+.draft-toolbar__actions {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+}
+
+/* Tri de la liste — formulaire sans bouton d'envoi (filter-form le soumet au
+   changement du sélecteur), donc libellé et sélecteur suffisent. Il relaie la
+   hauteur de la ligne à ses deux enfants. */
+
+.draft-sort {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  margin: 0;
+}
+
+/* Étiré comme le sélecteur : son texte se recentre lui-même. */
+.draft-sort__label {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: var(--color-ink-3);
+  white-space: nowrap;
+}
+
+/* .filter-select passe en pleine largeur sous 768px — c'est la règle des
+   filtres du catalogue d'ingrédients, qui s'empilent en colonne. Ici le
+   sélecteur reste en ligne avec son libellé : il se dimensionne sur son
+   contenu, et c'est la barre d'outils qui gère l'empilement. */
+@media (max-width: 767px) {
+  .draft-sort .filter-select {
+    width: auto;
+    min-width: 0;
+  }
+}
+
 /* État vide */
 
 .draft-empty {
@@ -4030,14 +4140,19 @@ button.draft-rail-count:not(:disabled) {
   min-width: 0;
 }
 
+/* Nom sur 2 lignes maximum : un titre long respire au lieu d'être coupé net,
+   l'ellipsis du line-clamp ne servant que de garde-fou au-delà. */
+
 .draft-card__name {
   font-size: 15px;
   font-weight: 600;
   color: var(--color-ink);
   margin: 0 0 5px 0;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .draft-card__meta {
@@ -4056,10 +4171,18 @@ button.draft-rail-count:not(:disabled) {
   color: var(--color-ink-3);
 }
 
-/* Partie droite : actions */
+/* Partie droite : actions.
+   Grille à colonnes égales plutôt que flex : les deux boutons font la même
+   largeur quel que soit leur libellé (« Compléter » ou « Valider » selon la
+   complétude du brouillon), donc la colonne d'actions ne bouge plus d'une carte
+   à l'autre. La largeur commune se cale sur le plus long des deux libellés en
+   desktop, et sur la moitié de la carte en mobile (.draft-card__actions passe
+   alors en width: 100%). */
 
 .draft-card__actions {
-  display: flex;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
@@ -4068,6 +4191,12 @@ button.draft-rail-count:not(:disabled) {
 /* button_to génère un <form> — on neutralise ses marges */
 .draft-card__actions form {
   margin: 0;
+}
+
+/* C'est le <form> de button_to qui est la colonne de la grille : son bouton
+   doit l'occuper entièrement pour faire la même largeur que le lien voisin. */
+.draft-card__actions .btn {
+  width: 100%;
 }
 
 /* Mini-photo (ou placeholder si aucune photo importée) */
@@ -4169,14 +4298,16 @@ button.draft-rail-count:not(:disabled) {
     gap: 12px;
   }
 
+  /* La barre passe en colonne : tri et import se partagent la ligne du bas. */
+  .draft-toolbar__actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
   .draft-card {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
-  }
-
-  .draft-card__name {
-    white-space: normal;
   }
 
   .draft-card__actions {
