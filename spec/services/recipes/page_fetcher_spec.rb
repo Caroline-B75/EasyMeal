@@ -7,9 +7,10 @@ require "rails_helper"
 # `send` ou indirectement via .from_url. La classe étant maintenant autonome,
 # ils l'appellent directement.
 #
-# Aucun appel réseau réel n'est fait : ni webmock ni vcr ne sont au Gemfile, on
-# intercepte donc Net::HTTP.new pour router chaque connexion vers une réponse
-# simulée (voir #stub_pages).
+# Aucun appel réseau réel n'est fait : Net::HTTP.new est intercepté pour router
+# chaque connexion vers une réponse simulée (voir #stub_pages). Le fetcher lit
+# ses réponses par morceaux (read_body), ce que ce niveau de simulation permet
+# de reproduire — d'où ce choix plutôt que WebMock.
 RSpec.describe Recipes::PageFetcher do
   # Taille des morceaux livrés par la simulation de read_body. Net::HTTP livre
   # le corps par paquets ; on l'imite pour exercer réellement le contrôle de

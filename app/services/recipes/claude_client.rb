@@ -1,57 +1,66 @@
 # frozen_string_literal: true
 
-require "net/http"
 require "json"
 
 module Recipes
-  # Poste des messages à l'API Claude et rend le JSON de sa réponse, déjà analysé.
+  # Poste une demande à l'API Claude et rend le JSON de sa réponse, déjà analysé.
   #
-  # C'est le seul objet de l'import qui parle à api.anthropic.com, et il ne sait
-  # rien des recettes : ce qu'on demande à l'IA est écrit par ClaudePrompts.
-  # Toute panne — clé absente, erreur d'API, réseau muet, réponse illisible —
-  # ressort en ExtractionError, déjà rédigée en français pour l'utilisatrice.
+  # C'est le seul objet de l'import qui parle à l'API Anthropic, et il ne sait
+  # rien des recettes : ce qu'on demande à l'IA — les messages et le schéma de
+  # sortie — est écrit par ClaudePrompts. Toute panne — clé absente, erreur
+  # d'API, réseau muet — ressort en ExtractionError, déjà rédigée en français
+  # pour l'utilisatrice.
+  #
+  # Le format de la réponse n'est plus supplié dans le prompt puis rattrapé à
+  # l'analyse : le schéma part avec la requête (sorties structurées) et l'API
+  # garantit que la réponse s'y conforme. Rien à gratter, rien à deviner.
   #
   # @example
-  #   Recipes::ClaudeClient.call(Recipes::ClaudePrompts.text_messages(text))
+  #   Recipes::ClaudeClient.call(Recipes::ClaudePrompts.text_request(text))
   class ClaudeClient
-    MODEL       = "claude-sonnet-4-6"
-    API_URL     = "https://api.anthropic.com/v1/messages"
-    API_VERSION = "2023-06-01"
-    MAX_TOKENS  = 2048
+    MODEL      = "claude-sonnet-5"
+    MAX_TOKENS = 8192
 
-    OPEN_TIMEOUT = 10
-    READ_TIMEOUT = 60
+    # L'import est synchrone : l'utilisatrice attend devant son formulaire. On
+    # borne donc l'appel, le SDK laissant sinon courir jusqu'à 10 minutes.
+    TIMEOUT = 60
 
-    # Malgré la consigne système, Claude encadre parfois son JSON de balises
-    # markdown : on les retire avant de l'analyser.
-    MARKDOWN_FENCE_OPEN  = /\A```(?:json)?\s*/m
-    MARKDOWN_FENCE_CLOSE = /\s*```\z/m
+    # Nouvelles tentatives du SDK sur les 429 et 5xx (sa valeur par défaut,
+    # écrite ici pour qu'elle se voie) : inutile de réimplémenter un retry.
+    MAX_RETRIES = 2
 
-    # @param messages [Array<Hash>] messages construits par ClaudePrompts
-    # @return [Hash, Array] contenu JSON de la réponse de l'IA
+    # Extraire une recette ne demande pas de raisonnement préalable, et Sonnet 5
+    # réfléchit par défaut : on le désactive pour ne pas rallonger l'attente ni
+    # amputer les 8192 tokens de la réponse — c'est ce plafond qui tronquait les
+    # recettes longues.
+    THINKING = { type: "disabled" }.freeze
+
+    # @param request [Hash] { messages:, schema: } construit par ClaudePrompts
+    # @return [Hash] contenu JSON de la réponse de l'IA, conforme au schéma
     # @raise [ExtractionError] clé manquante, API en erreur, réseau ou réponse illisible
-    def self.call(messages)
-      new(messages).call
+    def self.call(request)
+      new(request).call
     end
 
-    def initialize(messages)
-      @messages = messages
+    def initialize(request)
+      @messages = request.fetch(:messages)
+      @schema   = request.fetch(:schema)
     end
 
     # Les pannes sont traduites ici, au bord de l'objet : l'appelant n'a qu'une
     # seule famille d'erreurs à rattraper.
     def call
-      response = post
-
-      unless response.is_a?(Net::HTTPSuccess)
-        raise ExtractionError, "Erreur API Claude (#{response.code}) : #{api_error_message(response)}"
-      end
-
-      parse_json(answer_text(response))
+      JSON.parse(answer_text(post))
     rescue JSON::ParserError => e
+      # Le schéma garantit un JSON conforme, mais pas qu'il tienne dans
+      # MAX_TOKENS : une recette hors norme peut encore arriver coupée.
       raise ExtractionError, "L'IA n'a pas retourné un JSON valide : #{e.message}"
-    rescue Net::OpenTimeout, Net::ReadTimeout
+    rescue Anthropic::Errors::APIStatusError => e
+      raise ExtractionError, "Erreur API Claude (#{e.status}) : #{api_error_message(e)}"
+    rescue Anthropic::Errors::APITimeoutError
       raise ExtractionError, "L'API Claude n'a pas répondu dans les délais impartis"
+    rescue Anthropic::Errors::APIConnectionError => e
+      raise ExtractionError, "Impossible de joindre l'API Claude : #{e.message}"
     rescue ExtractionError
       raise
     rescue => e
@@ -61,50 +70,42 @@ module Recipes
     private
 
     def post
-      uri  = URI.parse(API_URL)
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl      = true
-      http.open_timeout = OPEN_TIMEOUT
-      http.read_timeout = READ_TIMEOUT
-
-      request = Net::HTTP::Post.new(uri.path, {
-        "Content-Type"      => "application/json",
-        "x-api-key"         => api_key,
-        "anthropic-version" => API_VERSION
-      })
-      request.body = request_body
-
-      http.request(request)
+      client.messages.create(
+        model:           MODEL,
+        max_tokens:      MAX_TOKENS,
+        thinking:        THINKING,
+        system_:         ClaudePrompts::SYSTEM,
+        messages:        @messages,
+        output_config:   { format_: { type: :json_schema, schema: @schema } },
+        # Le délai se pose sur la requête : posé sur le client, le SDK le
+        # remplacerait par le sien au moment de l'appel.
+        request_options: { timeout: TIMEOUT }
+      )
     end
 
-    def request_body
-      {
-        model:      MODEL,
-        max_tokens: MAX_TOKENS,
-        system:     ClaudePrompts::SYSTEM,
-        messages:   @messages
-      }.to_json
+    # Un client neuf par appel : l'import ne poste qu'une requête à la fois, et
+    # la clé est ainsi relue à chaque fois plutôt que figée au démarrage.
+    def client
+      Anthropic::Client.new(api_key: api_key, max_retries: MAX_RETRIES)
     end
 
-    # Réponse de l'API : le contenu utile est le texte du premier bloc.
-    def answer_text(response)
-      JSON.parse(response.body).dig("content", 0, "text").to_s
+    # Le JSON demandé arrive dans le bloc de texte de la réponse.
+    def answer_text(message)
+      message.content.select { |block| block.type == :text }.map(&:text).join
     end
 
-    def parse_json(text)
-      JSON.parse(text.sub(MARKDOWN_FENCE_OPEN, "").sub(MARKDOWN_FENCE_CLOSE, "").strip)
+    # Corps d'erreur de l'API : { "error": { "message": … } }, analysé par le SDK
+    # en clés symboles. Une panne d'infrastructure répond parfois autre chose
+    # (page HTML d'un proxy, corps vide) que le SDK laisse alors non analysé :
+    # le code de statut est tout ce qu'on peut dire d'utile.
+    def api_error_message(error)
+      body = error.body
+      (body.is_a?(Hash) && body.dig(:error, :message).presence) || "réponse inattendue de l'API"
     end
 
-    # Message d'erreur de l'API : normalement { "error": { "message": … } },
-    # mais une panne d'infrastructure peut renvoyer du HTML — on rend alors le
-    # corps tel quel plutôt que de masquer la cause.
-    def api_error_message(response)
-      payload = JSON.parse(response.body)
-      (payload.is_a?(Hash) && payload.dig("error", "message")) || response.body
-    rescue JSON::ParserError
-      response.body
-    end
-
+    # Le SDK lirait ANTHROPIC_API_KEY tout seul, mais irait ensuite chercher
+    # d'autres identifiants sur le poste : on la vérifie donc nous-mêmes, pour
+    # dire franchement ce qui manque.
     def api_key
       key = ENV["ANTHROPIC_API_KEY"]
       raise ExtractionError, "Variable ANTHROPIC_API_KEY manquante dans le fichier .env" if key.blank?

@@ -44,6 +44,9 @@ gem "image_processing", "~> 1.14.0"
 gem "cloudinary", "~> 2.4.3"
 gem "activestorage-cloudinary-service", "~> 0.2.3"
 
+# Extraction IA des recettes (import par lien ou par photo)
+gem "anthropic", "~> 1.61.0"
+
 # Config
 gem "dotenv-rails", "~> 3.2.0"
 
@@ -62,6 +65,9 @@ group :development, :test do
   gem "faker", "~> 3.6.0"
   gem "capybara", "~> 3.40.0"
   gem "selenium-webdriver", "~> 4.40.0"
+  # Simule l'API Claude au niveau HTTP : le SDK officiel est ainsi exercé pour
+  # de vrai (corps de requête envoyé, erreurs typées levées depuis les codes HTTP)
+  gem "webmock", "~> 3.26.2"
   gem "awesome_print", "~> 1.9.2"
   gem "table_print", "~> 1.5.7"
   gem "simplecov", require: false

@@ -147,7 +147,9 @@ end
 
 ## Schéma JSON — extraction Claude API
 
-Prompt à envoyer à Claude Sonnet pour obtenir un JSON strict correspondant au modèle `Recipe` :
+Forme du JSON attendu, correspondant au modèle `Recipe`. Elle n'est plus décrite
+au prompt mais imposée à l'API : le schéma JSON part avec la requête (sorties
+structurées) et la réponse s'y conforme par construction.
 
 ```json
 {
@@ -170,12 +172,15 @@ Prompt à envoyer à Claude Sonnet pour obtenir un JSON strict correspondant au 
 }
 ```
 
-**Règles dans le prompt :**
+**Règles portées par le schéma** (l'IA ne peut littéralement pas y déroger) :
 - `difficulty` : uniquement `"facile"`, `"moyen"`, `"difficile"` ou `null`
 - `diet` : uniquement `"omnivore"`, `"vegetarien"`, `"vegan"`, `"pescetarien"`
+- `unit` : uniquement g, kg, ml, cl, L, càc, càs ou `null`
+
+**Règles portées par le prompt** (ce que le schéma ne peut pas dire) :
 - `total_time_minutes` : rempli uniquement si prep + cook ne sont pas distinguables dans la source
 - `prep_time_minutes` / `cook_time_minutes` : `null` si non renseignés séparément
-- `unit` : utiliser les unités telles qu'écrites dans la recette (g, kg, ml, cl, L, càc, càs, ou null si pièces)
+- `unit` : `null` quand l'ingrédient se compte en pièces
 - `instructions` : texte complet des étapes, numérotées, séparées par `\n`
 - `suggested_tags` : suggestions basées sur le contenu (type de plat, cuisine, régime...)
 - Ne jamais inventer d'information absente de la source

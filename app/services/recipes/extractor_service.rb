@@ -27,12 +27,12 @@ module Recipes
       if schema
         extract_from_schema(schema)
       else
-        ClaudeClient.call(ClaudePrompts.text_messages(SchemaOrgParser.extract_text(html)))
+        ClaudeClient.call(ClaudePrompts.text_request(SchemaOrgParser.extract_text(html)))
       end
     end
 
     def from_photo(image_base64, media_type:)
-      ClaudeClient.call(ClaudePrompts.photo_messages(image_base64, media_type))
+      ClaudeClient.call(ClaudePrompts.photo_request(image_base64, media_type))
     end
 
     private
@@ -61,10 +61,15 @@ module Recipes
     end
 
     # Demande à l'IA de découper "200 g de farine" en nom, quantité et unité.
+    # La racine d'un schéma étant un objet, le tableau attendu arrive sous la
+    # clé "ingredients" : on le déballe ici.
+    #
     # Un échec dégrade l'import, il ne l'interrompt pas : toute réponse
     # inexploitable — ou absente — laisse place aux chaînes d'origine.
     def structure_ingredients(raw_ingredients)
-      structured = ClaudeClient.call(ClaudePrompts.ingredients_messages(raw_ingredients))
+      answer     = ClaudeClient.call(ClaudePrompts.ingredients_request(raw_ingredients))
+      structured = answer["ingredients"] if answer.is_a?(Hash)
+
       structured.is_a?(Array) ? structured : raw_ingredients_fallback(raw_ingredients)
     rescue ExtractionError
       raw_ingredients_fallback(raw_ingredients)

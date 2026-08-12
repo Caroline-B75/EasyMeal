@@ -1,94 +1,120 @@
 # frozen_string_literal: true
 
 require "rails_helper"
+require "webmock/rspec"
 
-# Spec de Recipes::ClaudeClient, extrait d'ExtractorService avec les exemples
-# qui portaient sur le dialogue HTTP avec l'API : ce qu'on envoie, ce qu'on lit
-# de la réponse, et la traduction de chaque panne en ExtractionError française.
+# WebMock scelle le réseau pour toute la suite dès qu'il est chargé ; localhost
+# reste ouvert pour d'éventuels tests de bout en bout.
+WebMock.disable_net_connect!(allow_localhost: true)
+
+# Spec de Recipes::ClaudeClient : ce qu'on envoie à l'API Anthropic, ce qu'on
+# lit de sa réponse, et la traduction de chaque panne en ExtractionError
+# française.
+#
+# Le SDK officiel poste lui-même la requête : on simule donc l'API au niveau
+# HTTP plutôt que les objets du SDK. Le corps réellement envoyé est ainsi
+# vérifiable, et ce sont les réponses simulées qui font lever au SDK ses vraies
+# exceptions typées — c'est bien leur traduction qui est testée ici.
 #
 # RÉGRESSION n°5 — `rescue JSON::ParseError` visait une constante inexistante
 # (la vraie est JSON::ParserError) : toute réponse illisible de l'IA remontait
 # en NameError, donc en 500 puisque le contrôleur ne rattrape qu'ExtractionError.
 # L'exemple correspondant est marqué ci-dessous.
-#
-# Aucun appel réseau réel n'est fait : ni webmock ni vcr ne sont au Gemfile, on
-# intercepte donc Net::HTTP.new pour router chaque connexion vers une réponse
-# simulée (voir #stub_claude).
 RSpec.describe Recipes::ClaudeClient do
-  let(:messages) { [ { role: "user", content: "Bonjour" } ] }
+  let(:endpoint) { "https://api.anthropic.com/v1/messages" }
+
+  let(:schema) do
+    {
+      type:                 "object",
+      properties:           { name: { type: "string" } },
+      required:             [ "name" ],
+      additionalProperties: false
+    }
+  end
+  let(:request) { { messages: [ { role: "user", content: "Bonjour" } ], schema: schema } }
 
   # Requêtes POST reçues par l'API, pour inspecter ce qui est parti.
   let(:claude_requests) { [] }
 
+  # Clé d'API présente par défaut : l'exemple qui teste son absence la remet
+  # à nil localement.
   before do
-    # Clé d'API présente par défaut : l'exemple qui teste son absence la remet
-    # à nil localement.
     allow(ENV).to receive(:[]).and_call_original
     allow(ENV).to receive(:[]).with("ANTHROPIC_API_KEY").and_return("cle-de-test")
-
-    # Réseau scellé par défaut : toute connexion non explicitement simulée par
-    # l'exemple lève une erreur bruyante.
-    stub_claude
   end
 
-  # Intercepte Net::HTTP.new et route la connexion vers une réponse simulée, ou
-  # vers une classe d'exception à lever pour simuler une panne de transport.
-  def stub_claude(response = nil)
-    allow(Net::HTTP).to receive(:new) do
-      connection = instance_double(
-        Net::HTTP, :use_ssl= => nil, :open_timeout= => nil, :read_timeout= => nil
-      )
-
-      allow(connection).to receive(:request) do |request|
-        claude_requests << request
-        raise response if response.is_a?(Class)
-        response || raise("Requête HTTP non simulée dans cet exemple : POST Claude")
-      end
-
-      connection
-    end
+  # Simule l'API Claude ; le bloc dit ce qu'elle répond (`to_return`,
+  # `to_timeout`, `to_raise`). Le `with` sert de mouchard : il enregistre la
+  # requête reçue et l'accepte toujours.
+  def stub_claude
+    yield stub_request(:post, endpoint).with { |request| claude_requests << request }
   end
 
-  # Fabrique une vraie réponse Net::HTTP : c'est sa *classe* qui porte la
-  # famille (succès / erreur) que le client teste par `is_a?`.
-  def http_response(klass, code, body: "")
-    response = klass.new("1.1", code, code)
-    allow(response).to receive(:body).and_return(body)
-    response
-  end
-
-  # Réponse d'API Claude : le client lit content[0].text puis analyse ce texte.
+  # Réponse de l'API : le JSON demandé arrive dans le bloc de texte du message.
   def claude_response(text)
-    http_response(Net::HTTPOK, "200", body: { content: [ { text: text } ] }.to_json)
+    {
+      status:  200,
+      headers: { "Content-Type" => "application/json" },
+      body:    {
+        id:          "msg_test",
+        type:        "message",
+        role:        "assistant",
+        model:       described_class::MODEL,
+        content:     [ { type: "text", text: text } ],
+        stop_reason: "end_turn",
+        usage:       { input_tokens: 10, output_tokens: 20 }
+      }.to_json
+    }
   end
 
-  def claude_error_response(code = "500", message = "overloaded")
-    http_response(Net::HTTPInternalServerError, code, body: { error: { message: message } }.to_json)
+  def claude_error_response(status, message)
+    {
+      status:  status,
+      headers: { "Content-Type" => "application/json" },
+      body:    { type: "error", error: { type: "overloaded_error", message: message } }.to_json
+    }
+  end
+
+  def last_request_body
+    JSON.parse(claude_requests.last.body)
   end
 
   # ── Requête envoyée ─────────────────────────────────────────────────────
 
   describe "requête envoyée" do
-    before { stub_claude(claude_response("{}")) }
+    before { stub_claude { |api| api.to_return(**claude_response("{}")) } }
 
     it "poste les messages reçus avec le modèle, la consigne système et la taille de réponse" do
-      described_class.call(messages)
+      described_class.call(request)
 
-      expect(JSON.parse(claude_requests.last.body)).to eq(
+      expect(last_request_body).to include(
         "model"      => described_class::MODEL,
         "max_tokens" => described_class::MAX_TOKENS,
         "system"     => Recipes::ClaudePrompts::SYSTEM,
-        "messages"   => [ { "role" => "user", "content" => "Bonjour" } ]
+        "messages"   => [ { "role" => "user", "content" => "Bonjour" } ],
+        # L'extraction n'a rien à méditer : réfléchir coûterait de l'attente et
+        # grignoterait les tokens de la réponse.
+        "thinking"   => { "type" => "disabled" }
+      )
+    end
+
+    # Le contrat qui remplace les supplications du prompt : le schéma part avec
+    # la requête, l'API garantit que la réponse s'y conforme.
+    it "impose à l'IA le schéma de sortie reçu" do
+      described_class.call(request)
+
+      expect(last_request_body["output_config"]).to eq(
+        "format" => { "type" => "json_schema", "schema" => schema.deep_stringify_keys }
       )
     end
 
     it "s'authentifie avec la clé du fichier .env et annonce la version d'API" do
-      described_class.call(messages)
+      described_class.call(request)
 
-      request = claude_requests.last
-      expect(request["x-api-key"]).to eq("cle-de-test")
-      expect(request["anthropic-version"]).to eq(described_class::API_VERSION)
-      expect(request["content-type"]).to eq("application/json")
+      headers = claude_requests.last.headers
+      expect(headers["X-Api-Key"]).to eq("cle-de-test")
+      expect(headers["Anthropic-Version"]).to eq("2023-06-01")
+      expect(headers["Content-Type"]).to eq("application/json")
     end
   end
 
@@ -96,26 +122,19 @@ RSpec.describe Recipes::ClaudeClient do
 
   describe "réponse de l'IA" do
     it "rend le JSON produit par l'IA" do
-      stub_claude(claude_response({ "name" => "Soupe de potiron" }.to_json))
+      stub_claude { |api| api.to_return(**claude_response({ "name" => "Soupe de potiron" }.to_json)) }
 
-      expect(described_class.call(messages)).to eq("name" => "Soupe de potiron")
-    end
-
-    # La consigne système interdit les balises markdown, mais l'IA en ajoute
-    # quand même : sans ce nettoyage, toute la réponse serait perdue.
-    it "tolère les balises markdown autour du JSON" do
-      structured = [ { "name" => "farine", "quantity" => 200, "unit" => "g" } ]
-      stub_claude(claude_response("```json\n#{structured.to_json}\n```"))
-
-      expect(described_class.call(messages)).to eq(structured)
+      expect(described_class.call(request)).to eq("name" => "Soupe de potiron")
     end
 
     # RÉGRESSION n°5 — ce message d'erreur était inatteignable tant que le
-    # rescue visait JSON::ParseError.
-    it "signale proprement une réponse non JSON de l'IA" do
-      stub_claude(claude_response("Désolé, je ne peux pas lire cette recette."))
+    # rescue visait JSON::ParseError. Les sorties structurées garantissent un
+    # JSON conforme, mais pas qu'il tienne dans max_tokens : une réponse coupée
+    # reste possible, et ne doit pas finir en 500.
+    it "signale proprement une réponse tronquée de l'IA" do
+      stub_claude { |api| api.to_return(**claude_response('{ "name": "Soupe de po')) }
 
-      expect { described_class.call(messages) }
+      expect { described_class.call(request) }
         .to raise_error(Recipes::ExtractionError, /L'IA n'a pas retourné un JSON valide/)
     end
   end
@@ -123,40 +142,48 @@ RSpec.describe Recipes::ClaudeClient do
   # ── Pannes ──────────────────────────────────────────────────────────────
 
   describe "pannes" do
+    # Le SDK réessaie tout seul les 429 et 5xx : on lui coupe ses tentatives
+    # pour ne pas payer ses temporisations à chaque exemple.
+    before { stub_const("#{described_class}::MAX_RETRIES", 0) }
+
     it "exige la clé ANTHROPIC_API_KEY" do
       allow(ENV).to receive(:[]).with("ANTHROPIC_API_KEY").and_return(nil)
 
-      expect { described_class.call(messages) }
+      expect { described_class.call(request) }
         .to raise_error(Recipes::ExtractionError, /ANTHROPIC_API_KEY manquante/)
-      expect(claude_requests).to be_empty
+      expect(a_request(:post, endpoint)).not_to have_been_made
     end
 
     it "remonte le message d'erreur de l'API Claude" do
-      stub_claude(claude_error_response("529", "overloaded_error"))
+      stub_claude { |api| api.to_return(**claude_error_response(529, "overloaded_error")) }
 
-      expect { described_class.call(messages) }
+      expect { described_class.call(request) }
         .to raise_error(Recipes::ExtractionError, "Erreur API Claude (529) : overloaded_error")
     end
 
-    it "rend le corps brut quand l'erreur de l'API n'est pas du JSON" do
-      stub_claude(http_response(Net::HTTPInternalServerError, "502", body: "<html>Bad Gateway</html>"))
+    # Une panne d'infrastructure répond parfois une page HTML : le message doit
+    # rester lisible plutôt que d'exhiber un corps que le SDK n'a pas analysé.
+    it "s'en tient au code de statut quand l'erreur de l'API n'est pas du JSON" do
+      stub_claude do |api|
+        api.to_return(status: 502, headers: { "Content-Type" => "text/html" }, body: "<html>Bad Gateway</html>")
+      end
 
-      expect { described_class.call(messages) }
-        .to raise_error(Recipes::ExtractionError, /502.*Bad Gateway/m)
+      expect { described_class.call(request) }
+        .to raise_error(Recipes::ExtractionError, "Erreur API Claude (502) : réponse inattendue de l'API")
     end
 
     it "traduit un dépassement de délai de l'API en message dédié" do
-      stub_claude(Net::ReadTimeout)
+      stub_claude(&:to_timeout)
 
-      expect { described_class.call(messages) }
+      expect { described_class.call(request) }
         .to raise_error(Recipes::ExtractionError, "L'API Claude n'a pas répondu dans les délais impartis")
     end
 
-    it "enveloppe toute panne de transport inattendue" do
-      stub_claude(Errno::ECONNRESET)
+    it "signale une API injoignable" do
+      stub_claude { |api| api.to_raise(Errno::ECONNRESET) }
 
-      expect { described_class.call(messages) }
-        .to raise_error(Recipes::ExtractionError, /Erreur inattendue/)
+      expect { described_class.call(request) }
+        .to raise_error(Recipes::ExtractionError, /Impossible de joindre l'API Claude/)
     end
   end
 end

@@ -25,8 +25,9 @@ RSpec.describe Recipes::ExtractorService do
 
   let(:url) { "https://exemple.fr/recette" }
 
-  # Messages soumis à l'IA, un tableau par appel : ClaudeClient étant simulé,
-  # c'est ainsi qu'on inspecte ce que le service lui a confié.
+  # Demandes soumises à l'IA, une par appel ({ messages:, schema: }) :
+  # ClaudeClient étant simulé, c'est ainsi qu'on inspecte ce que le service lui
+  # a confié.
   let(:claude_calls) { [] }
 
   # IA scellée par défaut : tout appel non explicitement simulé par l'exemple
@@ -48,16 +49,16 @@ RSpec.describe Recipes::ExtractorService do
 
   # @param answer [Object] ce que l'IA retourne (déjà analysé par ClaudeClient)
   def stub_claude(answer)
-    allow(Recipes::ClaudeClient).to receive(:call) do |messages|
-      claude_calls << messages
+    allow(Recipes::ClaudeClient).to receive(:call) do |request|
+      claude_calls << request
       answer
     end
   end
 
   # Panne de l'IA : ClaudeClient traduit toutes les siennes en ExtractionError.
   def stub_claude_failure(message = "Erreur API Claude (529) : overloaded_error")
-    allow(Recipes::ClaudeClient).to receive(:call) do |messages|
-      claude_calls << messages
+    allow(Recipes::ClaudeClient).to receive(:call) do |request|
+      claude_calls << request
       raise Recipes::ExtractionError, message
     end
   end
@@ -97,12 +98,13 @@ RSpec.describe Recipes::ExtractorService do
         { "name" => "oeufs", "quantity" => 3, "unit" => nil }
       ]
       stub_page(page_with_json_ld(schema))
-      stub_claude(structured)
+      # Le schéma de sortie enveloppe le tableau sous la clé "ingredients".
+      stub_claude("ingredients" => structured)
 
       expect(described_class.from_url(url)["ingredients"]).to eq(structured)
       # Les ingrédients vides sont retirés avant d'être soumis à l'IA.
       expect(claude_calls.last)
-        .to eq(Recipes::ClaudePrompts.ingredients_messages([ "200 g de farine", "3 oeufs" ]))
+        .to eq(Recipes::ClaudePrompts.ingredients_request([ "200 g de farine", "3 oeufs" ]))
     end
   end
 
@@ -118,7 +120,7 @@ RSpec.describe Recipes::ExtractorService do
 
       expect(described_class.from_url(url)).to eq(ia_result)
 
-      prompt = claude_calls.last.first[:content]
+      prompt = claude_calls.last[:messages].first[:content]
       expect(prompt).to include("Soupe de potiron", "Faire revenir le potiron.")
       # C'est le texte extrait qui part dans le prompt, pas le HTML brut.
       expect(prompt).not_to include("analytics", "Accueil Recettes", "Mentions legales")
@@ -143,13 +145,13 @@ RSpec.describe Recipes::ExtractorService do
 
     it "confie la photo à l'IA avec son media_type et retourne la recette extraite" do
       expect(described_class.from_photo("QUJD", media_type: "image/png")).to eq(ia_result)
-      expect(claude_calls.last).to eq(Recipes::ClaudePrompts.photo_messages("QUJD", "image/png"))
+      expect(claude_calls.last).to eq(Recipes::ClaudePrompts.photo_request("QUJD", "image/png"))
     end
 
     it "utilise le media_type image/jpeg par défaut" do
       described_class.from_photo("QUJD")
 
-      expect(claude_calls.last).to eq(Recipes::ClaudePrompts.photo_messages("QUJD", "image/jpeg"))
+      expect(claude_calls.last).to eq(Recipes::ClaudePrompts.photo_request("QUJD", "image/jpeg"))
     end
   end
 
@@ -176,8 +178,8 @@ RSpec.describe Recipes::ExtractorService do
       expect(described_class.from_url(url)["ingredients"]).to eq(raw_fallback)
     end
 
-    it "garde les chaînes brutes quand l'IA répond autre chose qu'un tableau" do
-      stub_claude("ingredients" => [])
+    it "garde les chaînes brutes quand la réponse ne porte pas de tableau" do
+      stub_claude("recette" => "sans ingrédients")
 
       expect(described_class.from_url(url)["ingredients"]).to eq(raw_fallback)
     end
