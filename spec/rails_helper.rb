@@ -22,6 +22,22 @@ abort("The Rails environment is running in production mode!") if Rails.env.produ
 require 'rspec/rails'
 # Add additional requires below this line. Rails is not loaded until this point!
 
+# Identité Cloudinary propre aux tests, imposée et non héritée du .env.
+#
+# Aucun appel réseau n'a lieu — le stockage est local en test et
+# Cloudinary::Utils ne fait que composer des URL —, mais cette composition exige
+# un cloud_name : sans lui le gem lève CloudinaryException. Le lire dans
+# l'environnement rendait la suite verte sur un poste de développement et rouge
+# en CI, où aucun secret n'existe.
+#
+# On fixe donc des valeurs de test. La suite donne ainsi le même résultat partout,
+# et aucun test ne peut atteindre le vrai compte Cloudinary.
+Cloudinary.config do |cloudinary|
+  cloudinary.cloud_name = "easymeal-test"
+  cloudinary.api_key    = "cle-de-test"
+  cloudinary.api_secret = "secret-de-test"
+end
+
 # Requires supporting ruby files with custom matchers and macros, etc, in
 # spec/support/ and its subdirectories. Files matching `spec/**/*_spec.rb` are
 # run as spec files by default. This means that files in spec/support that end

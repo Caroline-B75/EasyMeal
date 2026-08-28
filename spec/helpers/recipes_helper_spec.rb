@@ -10,10 +10,13 @@ RSpec.describe RecipesHelper, type: :helper do
     context "quand la recette a une photo" do
       let(:recipe) { create(:recipe, :with_ingredient, :with_photo, name: "Tarte aux poireaux") }
 
+      # Le nom du compte est celui imposé par rails_helper, jamais celui du .env :
+      # cet exemple échouerait si l'environnement reprenait la main, ce qui rendait
+      # autrefois la suite verte en local et rouge en CI.
       it "sert une URL Cloudinary et non une variante ActiveStorage" do
         html = helper.recipe_photo_tag(recipe, width: 280, height: 140)
 
-        expect(html).to include("res.cloudinary.com")
+        expect(html).to include("res.cloudinary.com/easymeal-test/")
         expect(html).not_to include("active_storage")
       end
 
