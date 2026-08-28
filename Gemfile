@@ -21,7 +21,7 @@ gem "haml-rails", "~> 3.0.0"
 gem "stimulus-rails", "~> 1.3.4"
 
 # Auth & Policy
-gem "devise", "~> 4.9.4"
+gem "devise", "~> 5.0.4"
 gem "pundit", "~> 2.5.2"
 
 # Recherche & pagination
