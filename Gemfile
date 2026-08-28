@@ -3,7 +3,7 @@ source "https://rubygems.org"
 ruby "3.3.7"
 
 # Core Rails
-gem "rails", "~> 7.2.3"
+gem "rails", "~> 8.1.3"
 gem "pg", "~> 1.6.3"
 gem "puma", "~> 7.2.0"
 gem "sprockets-rails", "~> 3.5.2"
@@ -47,7 +47,6 @@ gem "dotenv-rails", "~> 3.2.0"
 
 # Dev qualité
 gem "bootsnap", "~> 1.21.1", require: false
-gem "annotate", "~> 3.2.0", group: [ :development ]
 gem "bundler-audit", "~> 0.9.3", require: false, group: [ :development, :test ]
 
 group :development, :test do
