@@ -67,10 +67,16 @@ Rails.application.configure do
   # want to log everything, set the level to "debug".
   config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
 
-  config.cache_store = :redis_cache_store, {
-    url: ENV.fetch("REDIS_URL", "redis://localhost:6379/1"),
-    expires_in: 1.hour
-  }
+  # Cache en mémoire du process web. Il ne sert qu'à deux choses — la liste des
+  # tags du catalogue (Recipes::CatalogQuery) et les cartes de recettes du
+  # catalogue —, pour lesquelles un cache local suffit : l'application tourne
+  # dans un seul conteneur. Redis coûtait une ligne de facture et une dépendance
+  # pour ça.
+  #
+  # Contreparties assumées : le cache repart à vide à chaque déploiement, et il
+  # cesserait d'être partagé si l'application passait un jour à plusieurs
+  # conteneurs. C'est le moment de repasser à un cache externe si cela arrive.
+  config.cache_store = :memory_store, { size: 32.megabytes, expires_in: 1.hour }
 
   # Jobs de fond : GoodJob les stocke en PostgreSQL — la base qu'on a déjà — et
   # le mode :async les exécute dans des threads de ce même process web. Donc

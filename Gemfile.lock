@@ -374,7 +374,6 @@ GEM
       erb
       psych (>= 4.0.0)
       tsort
-    redis (4.8.1)
     reek (6.5.0)
       dry-schema (~> 1.13)
       logger (~> 1.6)
@@ -543,7 +542,6 @@ DEPENDENCIES
   bundler-audit (~> 0.9.3)
   capybara (~> 3.40.0)
   cloudinary (~> 2.4.3)
-  connection_pool (~> 2.5)
   debug (~> 1.11.1)
   devise (~> 4.9.4)
   dotenv-rails (~> 3.2.0)
@@ -561,7 +559,6 @@ DEPENDENCIES
   rails (~> 7.2.3)
   rails_best_practices (~> 1.23)
   ransack (~> 4.4.1)
-  redis (~> 4.8.1)
   rspec-rails (~> 8.0.2)
   rubocop-rails-omakase (~> 1.1.0)
   rubycritic (~> 4.9)

@@ -1,9 +1,19 @@
 name: CI
 
 on:
-  pull_request:
+  # Sur toutes les branches, et non seulement sur main : le travail se fait sur
+  # des branches de fonctionnalité (`ia`…) et doit être contrôlé là. Avec un
+  # filtre sur main, rien ne se déclenchait tant qu'aucune pull request n'était
+  # ouverte — la CI ne tournait donc jamais.
   push:
-    branches: [ main ]
+  pull_request:
+
+# Une nouvelle poussée sur la même branche annule le contrôle en cours : seul le
+# dernier état du code compte, et les minutes GitHub ne sont pas dépensées deux
+# fois pour un état déjà dépassé.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   scan_ruby:
@@ -56,16 +66,24 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    # services:
-    #  redis:
-    #    image: redis
-    #    ports:
-    #      - 6379:6379
-    #    options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
-    steps:
-      - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y google-chrome-stable curl libjemalloc2
+    # Le runner GitHub embarque PostgreSQL mais ne le démarre pas : sans ce
+    # service, db:test:prepare échoue avant le premier exemple. Version alignée
+    # sur le poste de développement (14), pour tester ce qu'on exécute vraiment.
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
+    steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -75,16 +93,17 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
+      # RSpec, et non `rails test` : tout le projet est testé dans spec/, alors
+      # que test/ ne contient que le squelette généré par Rails. La suite n'a
+      # besoin d'aucun secret — ni clé Anthropic, ni compte Cloudinary : les
+      # specs les simulent (vérifié en la faisant tourner sans .env).
       - name: Run tests
         env:
           RAILS_ENV: test
-          # REDIS_URL: redis://localhost:6379/0
-        run: bin/rails db:test:prepare test test:system
-
-      - name: Keep screenshots from failed system tests
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: screenshots
-          path: ${{ github.workspace }}/tmp/screenshots
-          if-no-files-found: ignore
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        run: |
+          bin/rails db:test:prepare
+          bundle exec rspec
