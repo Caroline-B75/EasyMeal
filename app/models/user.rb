@@ -20,6 +20,11 @@ class User < ApplicationRecord
   has_many :favorite_recipes, dependent: :destroy
   has_many :reviews, dependent: :destroy
 
+  # Les imports IA lancés par cette utilisatrice. Détruire le compte n'emporte
+  # que les tentatives, jamais les brouillons obtenus : ils appartiennent au
+  # catalogue, et le job a déjà transféré la photo de source au brouillon.
+  has_many :recipe_imports, dependent: :destroy
+
   # === Validations ===
   validates :email, presence: true
   validates :username, presence: true, uniqueness: true

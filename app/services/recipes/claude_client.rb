@@ -35,7 +35,8 @@ module Recipes
     # recettes longues.
     THINKING = { type: "disabled" }.freeze
 
-    # @param request [Hash] { messages:, schema: } construit par ClaudePrompts
+    # @param request [Hash] { messages:, schema:, system: } construit par un
+    #   objet de prompt (Recipes::ClaudePrompts, Ingredients::DensityPrompt)
     # @return [Hash] contenu JSON de la réponse de l'IA, conforme au schéma
     # @raise [ExtractionError] clé manquante, API en erreur, réseau ou réponse illisible
     def self.call(request)
@@ -45,6 +46,9 @@ module Recipes
     def initialize(request)
       @messages = request.fetch(:messages)
       @schema   = request.fetch(:schema)
+      # Consigne système propre à la demande quand elle en porte une : toutes ne
+      # parlent pas d'extraire une recette.
+      @system   = request.fetch(:system, ClaudePrompts::SYSTEM)
     end
 
     # Les pannes sont traduites ici, au bord de l'objet : l'appelant n'a qu'une
@@ -74,7 +78,7 @@ module Recipes
         model:           MODEL,
         max_tokens:      MAX_TOKENS,
         thinking:        THINKING,
-        system_:         ClaudePrompts::SYSTEM,
+        system_:         @system,
         messages:        @messages,
         output_config:   { format_: { type: :json_schema, schema: @schema } },
         # Le délai se pose sur la requête : posé sur le client, le SDK le

@@ -44,6 +44,12 @@ gem "image_processing", "~> 1.14.0"
 gem "cloudinary", "~> 2.4.3"
 gem "activestorage-cloudinary-service", "~> 0.2.3"
 
+# Jobs de fond, stockés en PostgreSQL. En mode :async, ils s'exécutent dans des
+# threads du process web : aucun worker à héberger, donc aucun coût en plus, et
+# aucune dépendance à Redis. C'est ce qui sort l'extraction IA du cycle de la
+# requête HTTP, dont les routeurs d'hébergeurs coupent le fil vers 30 s.
+gem "good_job", "~> 4.9"
+
 # Extraction IA des recettes (import par lien ou par photo)
 gem "anthropic", "~> 1.61.0"
 

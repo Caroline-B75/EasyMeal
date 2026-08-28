@@ -11,6 +11,9 @@
 
   .form-group.preparation-ingredient{ class: field_error_class(f.object, :ingredient_id) }
     = f.label :ingredient_id, "Ingrédient", class: "form-label sr-only"
+    -# Chaque option porte l'unité de base de son ingrédient et le groupe d'unités
+    -# dont elle vient : c'est là que le contrôleur Stimulus lit quelles unités
+    -# proposer quand on change d'ingrédient.
     %select.form-select{ name: f.object_name + "[ingredient_id]",
                          id: f.field_id(:ingredient_id),
                          data: { ingredient_unit_target: "select", action: "change->ingredient-unit#updateUnit" } }
@@ -18,21 +21,35 @@
       - Ingredient.alphabetical.each do |ingredient|
         %option{ value: ingredient.id,
                  selected: f.object.ingredient_id == ingredient.id,
-                 data: { unit: ingredient.base_unit } }
+                 data: { unit: ingredient.base_unit, unit_group: ingredient.unit_group } }
           = ingredient.display_name
     = field_errors(f.object, :ingredient_id)
 
   .form-group.preparation-quantity{ class: field_error_class(f.object, :quantity_base) }
     = f.label :quantity_base, "Quantité", class: "form-label sr-only"
-    -# Quantité et unité de base partagent un seul cadre (.rf-unit-field, commun
-    -# aux durées du formulaire) : l'unité est un simple suffixe en lecture
-    -# seule, elle suit l'ingrédient sélectionné.
-    - base_unit = f.object.ingredient&.base_unit
+    -# Quantité et unité partagent un seul cadre (.rf-unit-field, commun aux
+    -# durées du formulaire). Ce qui se saisit ici, c'est la quantité telle que la
+    -# recette l'écrit — « 3 càs » — et non la quantité de base : le champ soumis
+    -# (quantity_base, caché) est recalculé par ingredient-unit à chaque frappe et
+    -# à chaque changement d'unité. Sans ce sélecteur, corriger une unité mal lue
+    -# par l'IA demandait de refaire la conversion de tête.
+    -# Le rendu serveur ouvre sur l'unité de base de l'ingrédient ; le contrôleur
+    -# Stimulus reprend la main dès qu'on change d'ingrédient (mêmes unités, même
+    -# ordre — elles viennent de la même table Ruby).
+    - unit_options = Units.select_options(f.object.ingredient&.unit_group).presence || [ [ "—", "" ] ]
     .rf-unit-field
-      = f.number_field :quantity_base, class: "form-input", step: "0.01", min: "0.01", placeholder: "Qté"
-      %span.rf-unit-suffix{ class: ("text-muted" if base_unit.blank?),
-                            data: { ingredient_unit_target: "display" } }
-        = base_unit.presence || "—"
+      = f.hidden_field :quantity_base, id: nil, data: { ingredient_unit_target: "base" }
+      %input.form-input{ type: "number", step: "0.01", min: "0.01", placeholder: "Qté",
+                         id: f.field_id(:quantity_base), value: f.object.quantity_base,
+                         data: { ingredient_unit_target: "quantity",
+                                 action: "input->ingredient-unit#recompute" } }
+      -# Un seul choix possible (les pièces, ou aucun ingrédient) : le sélecteur
+      -# passe inerte et se lit alors comme le simple suffixe qu'il est.
+      %select.rf-unit-select{ "aria-label": "Unité de la quantité",
+                              disabled: unit_options.one?,
+                              data: { ingredient_unit_target: "unit",
+                                      action: "change->ingredient-unit#recompute" } }
+        = options_for_select(unit_options, f.object.ingredient&.base_unit)
     = field_errors(f.object, :quantity_base)
 
   .preparation-remove

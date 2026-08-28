@@ -65,4 +65,10 @@ Rails.application.configure do
 
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
+
+  # Les jobs sont mis en file sans être exécutés : une spec vérifie soit la mise
+  # en file, soit le travail lui-même (perform_enqueued_jobs), jamais les deux
+  # par accident. L'adaptateur :async par défaut les lancerait dans des threads,
+  # source de tests intermittents.
+  config.active_job.queue_adapter = :test
 end

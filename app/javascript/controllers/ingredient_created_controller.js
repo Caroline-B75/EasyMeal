@@ -9,9 +9,13 @@ export default class extends Controller {
     displayName: String,
     baseUnit: String,
     unitGroup: String,
-    // Absent quand l'ingrédient n'a pas de poids unitaire : Stimulus rend alors
-    // 0, que le panneau IA lit comme « pas de pont pièce ↔ masse ».
-    pieceWeight: Number
+    // Absents quand l'ingrédient ne porte pas ce coefficient : Stimulus rend
+    // alors 0, que le panneau IA lit comme « pas de pont » — de pièce à masse
+    // pour le poids unitaire, de volume à masse pour la densité.
+    pieceWeight: Number,
+    density: Number,
+    // « ai » quand la densité n'est qu'une estimation : le panneau le signale.
+    densitySource: String
   }
 
   connect() {
@@ -31,7 +35,9 @@ export default class extends Controller {
         displayName: this.displayNameValue,
         baseUnit: this.baseUnitValue,
         unitGroup: this.unitGroupValue,
-        pieceWeight: this.pieceWeightValue
+        pieceWeight: this.pieceWeightValue,
+        density: this.densityValue,
+        densitySource: this.densitySourceValue
       }
     }))
 
@@ -46,10 +52,13 @@ export default class extends Controller {
 
     selects.forEach(select => {
       if (!select.querySelector(`option[value="${this.idValue}"]`)) {
+        // Mêmes données que les options rendues par le serveur : l'unité de base
+        // et le groupe d'unités, dont ingredient-unit tire les unités saisissables.
         const option = document.createElement('option')
         option.value = this.idValue
         option.textContent = this.displayNameValue
         option.dataset.unit = this.baseUnitValue
+        option.dataset.unitGroup = this.unitGroupValue
 
         // Insertion alphabétique
         const existingOptions = Array.from(select.querySelectorAll('option'))

@@ -92,9 +92,10 @@
             data: { "import-source-target": "submitBtn" } }
           %span.import-submit-spinner{ "aria-hidden": "true", hidden: true,
               data: { "import-source-target": "spinner" } }
-          -# aria-live : pendant l'attente, le libellé devient un fil d'étapes
-          -# ("Lecture de la page…", puis l'IA) — chaque changement doit être
-          -# annoncé aux lecteurs d'écran, le bouton étant alors désactivé.
+          -# aria-live : au clic, le libellé passe à « Envoi en cours… » et le
+          -# bouton se désactive — le changement doit être annoncé aux lecteurs
+          -# d'écran. Les étapes de l'extraction, elles, se suivent ensuite sur
+          -# la page d'attente.
           %span.import-submit-label{ "aria-live": "polite",
               data: { "import-source-target": "submitLabel" } } Extraire la recette avec l'IA
 

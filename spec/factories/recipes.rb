@@ -23,6 +23,19 @@ FactoryBot.define do
       end
     end
 
+    # Recette illustrée. Comme pour :with_source_photo, le contenu du fichier
+    # n'a aucune importance : seule la clé du blob sert à composer les URL
+    # Cloudinary.
+    trait :with_photo do
+      after(:build) do |recipe|
+        recipe.photo.attach(
+          io: StringIO.new("photo du plat"),
+          filename: "plat.jpg",
+          content_type: "image/jpeg"
+        )
+      end
+    end
+
     # Brouillon importé par photo dont la page photographiée a été conservée.
     # Le contenu du fichier n'a aucune importance : rien ne le décode, seule sa
     # clé de blob sert à composer les URL Cloudinary.

@@ -19,6 +19,13 @@ class Recipe < ApplicationRecord
   has_many :favorited_by_users, through: :favorite_recipes, source: :user
   has_many :reviews, dependent: :destroy
 
+  # Les tentatives d'import qui ont produit cette recette. Une seule en
+  # pratique, mais la colonne recipe_id n'est pas unique : has_many garantit
+  # qu'aucune trace ne reste accrochée derrière la clé étrangère. Un import
+  # perd son objet en même temps que sa recette — sa page d'attente n'aurait
+  # plus où emmener — il part donc avec elle plutôt que de survivre orphelin.
+  has_many :recipe_imports, dependent: :destroy
+
   # Menus contenant cette recette
   has_many :menu_recipes, dependent: :destroy
   has_many :menus, through: :menu_recipes

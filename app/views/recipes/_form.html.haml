@@ -24,7 +24,11 @@
   -# et field_errors afficher toutes les erreurs à la fois, sous leur champ.
   -# Les attributs `required` restent en place : ils portent l'information aux
   -# lecteurs d'écran.
-  = form_with model: recipe, class: "rf-form", html: { novalidate: true }, data: { controller: "nested-form form-errors", turbo: false } do |f|
+  -# data-units-table : la table des unités du projet (Units.table), posée une
+  -# fois pour tout le formulaire. Les contrôleurs Stimulus qui convertissent ou
+  -# affichent une unité (ingredient-unit, ai-panel) la lisent là, via le module
+  -# units.js — aucun facteur de conversion n'est recopié en JS.
+  = form_with model: recipe, class: "rf-form", html: { novalidate: true }, data: { controller: "nested-form form-errors", units_table: Units.table.to_json, turbo: false } do |f|
 
     -# Informations générales — section sans intitulé : les libellés des champs
     -# se suffisent. Le nom occupe sa propre ligne, puis les trois valeurs

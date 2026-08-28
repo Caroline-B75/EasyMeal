@@ -8,14 +8,9 @@ require "yaml"
 
 DATA_FILE = Rails.root.join("db/seeds/data/ingredients.yml")
 
-# Unité de base dérivée du groupe d'unités (source unique de vérité,
-# cohérente avec la validation du modèle Ingredient).
-BASE_UNIT_FOR = {
-  "mass"   => "g",
-  "volume" => "ml",
-  "count"  => "piece",
-  "spoon"  => "cac"
-}.freeze
+# Unité de base dérivée du groupe d'unités. La table vit dans Units, avec le
+# reste du vocabulaire des unités : la seed s'y branche au lieu de la recopier.
+BASE_UNIT_FOR = Units::BASE_UNITS
 
 puts "🌱 Création / mise à jour des ingrédients de base..."
 
@@ -55,7 +50,14 @@ data.each do |category, items|
       # Absent = aucune conversion pièce ↔ masse pour cet ingrédient (voir
       # UnitConversionService). Un nil explicite, et non un défaut à 0 : re-seeder
       # doit pouvoir retirer un poids devenu faux.
-      piece_weight_g: item["weight"]
+      piece_weight_g: item["weight"],
+      # Même règle pour la densité, dont la provenance est indissociable (cf. les
+      # validations d'Ingredient) : ce qui est écrit dans le YAML est curaté, donc
+      # réputé vérifié. Re-seeder écrase ainsi une estimation de l'IA par la
+      # valeur curatée — c'est bien le but — et efface la provenance d'une densité
+      # retirée.
+      density_g_per_ml: item["density"],
+      density_source:   (item["density"].present? ? :manual : nil)
     )
 
     if ingredient.changed?

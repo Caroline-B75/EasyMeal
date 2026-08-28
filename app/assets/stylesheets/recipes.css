@@ -2874,10 +2874,48 @@ button.draft-rail-count:not(:disabled) {
   white-space: nowrap;
 }
 
-/* Aucun ingrédient sélectionné : le tiret est plus discret qu'une unité réelle
-   (.text-muted est posée/retirée par ingredient_unit_controller). */
-.rf-unit-suffix.text-muted {
+/* Unité d'une quantité d'ingrédient : un sélecteur qui se lit comme un suffixe.
+   Il partage le cadre du nombre qu'il qualifie (.rf-unit-field), donc pas de
+   bordure ni de fond propres, et il garde la typographie grise des mots du
+   formulaire — l'unité est un mot, la valeur est le nombre. Chevron dessiné
+   plutôt que natif, comme le sélecteur d'ingrédient de la même rangée.
+
+   Il n'apparaît comme un champ que là où il y a un choix : un groupe d'unités
+   qui n'en offre qu'une (les pièces) ou une ligne sans ingrédient le rendent
+   inerte, et il redevient le simple suffixe gris qu'il était. */
+.rf-unit-select {
+  flex-shrink: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  border-radius: 0;
+  padding: 0 26px 0 8px;
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23615B54' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-ink-3);
+  cursor: pointer;
+}
+
+/* Le cadre commun porte déjà le focus (:focus-within) : l'anneau reste discret
+   et vient à l'intérieur, sinon il déborderait du cadre. */
+.rf-unit-select:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+/* opacity : sans elle, Safari délave les sélecteurs désactivés jusqu'à rendre
+   l'unité illisible. */
+.rf-unit-select:disabled {
+  padding-right: 8px;
+  background-image: none;
   color: var(--color-ink-4);
+  cursor: default;
+  opacity: 1;
 }
 
 /* L'input étant sans bordure, l'état d'erreur est porté par le cadre commun. */
@@ -3355,11 +3393,12 @@ button.draft-rail-count:not(:disabled) {
 }
 
 /* Valeur courte : largeur fixe, qui sert aussi de gabarit à la colonne « quantité »
-   de la grille sur écran large. Elle tient la valeur la plus longue plus son
-   unité — au-delà, c'est de l'air qui éloigne inutilement le nombre de la croix. */
+   de la grille sur écran large. Elle tient la valeur la plus longue, plus son
+   unité et le chevron de son sélecteur — au-delà, c'est de l'air qui éloigne
+   inutilement le nombre de la croix. */
 .preparation-quantity {
   grid-area: quantity;
-  width: 112px;
+  width: 148px;
 }
 
 /* Une ligne d'ingrédient et les deux boutons qui closent la liste appartiennent
@@ -4270,6 +4309,22 @@ button.draft-rail-count:not(:disabled) {
   cursor: help;
 }
 
+/* Conversion obtenue par une densité que l'IA a estimée : la quantité est juste
+   à cette estimation près. Ce n'est pas une alerte — le nombre est exploitable —
+   mais ça se signale, en info et non en avertissement, avec la même explication
+   en title. Le tilde dit « à peu près » sans occuper de place. */
+.ai-row__unit--estimated {
+  color: var(--color-info-text);
+  background: var(--color-info-light);
+  padding: 1px 6px;
+  border-radius: 20px;
+  cursor: help;
+}
+
+.ai-row__unit--estimated::before {
+  content: "≈ ";
+}
+
 /* Suggestions à départager, et actions de repli : deux blocs qui occupent les
    deux colonnes de droite et y refont la même sous-grille. Chaque suggestion
    est une sous-ligne « nom + bouton » — l'alignement remplace la mini-carte
@@ -4415,6 +4470,15 @@ button.draft-rail-count:not(:disabled) {
 .ai-row__done-badge--warn {
   color: var(--color-warning-text);
   border-color: var(--color-warning-border);
+  cursor: help;
+}
+
+/* Quantité obtenue par une densité estimée : la ligne est réglée, mais le nombre
+   n'est juste qu'à l'estimation près. Même réserve que le badge d'unité, même
+   registre d'information — et non d'avertissement. */
+.ai-row__done-badge--estimated {
+  color: var(--color-info-text);
+  border-color: var(--color-info-border);
   cursor: help;
 }
 
@@ -5003,6 +5067,52 @@ button.draft-rail-count:not(:disabled) {
 @keyframes import-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* === Page d'attente d'un import === */
+
+/* .rf-body est en fit-content : sans width 100%, ce bloc rétrécirait la page. */
+.import-waiting {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.25rem;
+  padding: 3rem 0;
+}
+
+/* Même animation que le spinner du bouton, mais posé sur fond clair : les
+   couleurs viennent donc de la bordure et de la teinte principale. */
+.import-waiting__spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: import-spin 0.9s linear infinite;
+}
+
+.import-waiting__step {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+.import-waiting__hint {
+  font-size: 14px;
+  color: var(--color-ink-3);
+  max-width: 42ch;
+  margin: 0;
+}
+
+/* Une rotation continue peut gêner : on la ralentit sans la supprimer, le
+   mouvement restant le seul signe que le travail est en cours. */
+@media (prefers-reduced-motion: reduce) {
+  .import-waiting__spinner {
+    animation-duration: 2.4s;
   }
 }
 

@@ -12,6 +12,14 @@
 #              → 80 g si weight vaut 40. À ne renseigner que là où la pièce a un
 #              sens (une aubergine, une tranche, une gousse) et sur les
 #              ingrédients en mass ou en count — ailleurs, l'omettre.
+#     density: Masse d'un millilitre, en g/ml (facultatif). Fait le pont quand une
+#              recette mesure ce que le catalogue pèse : « 1 c. à s. de farine »
+#              → 8,25 g si density vaut 0.55 (une c. à s. fait 15 ml). À
+#              renseigner sur ce qu'on dose vraiment à la cuillère ou au verre
+#              sans le peser — farines, sucres, poudres, sirops. Sans objet sur
+#              les ingrédients en count. Une densité écrite ici est réputée
+#              vérifiée (density_source: manual) ; celles qu'on omet peuvent être
+#              estimées par l'IA à l'import, et sont alors signalées à vérifier.
 #     season:  Mois de disponibilité/saison [1..12] (défaut : [] = non saisonnier).
 #     aliases: Synonymes en MINUSCULES (défaut : []). Servent au matching de
 #              l'import IA et à la recherche : inclure surtout pluriels + synonymes.
@@ -261,18 +269,18 @@ boulangerie_patisserie:
   - { name: "Croissant", unit: count, aliases: ["croissants"] }
   - { name: "Brioche", unit: mass, aliases: [] }
   - { name: "Biscotte", unit: count, weight: 10, aliases: ["biscottes"] }
-  - { name: "Chapelure", unit: mass, aliases: ["panure"] }
+  - { name: "Chapelure", unit: mass, density: 0.4, aliases: ["panure"] }
 
 # ─────────────────────────────────────────────────────────────────────────────
 produits_laitiers:
-  - { name: "Lait entier", unit: volume, aliases: ["lait"] }
-  - { name: "Lait demi-écrémé", unit: volume, aliases: [] }
+  - { name: "Lait entier", unit: volume, density: 1.03, aliases: ["lait"] }
+  - { name: "Lait demi-écrémé", unit: volume, density: 1.03, aliases: [] }
   - { name: "Lait concentré sucré", unit: volume, aliases: ["lait concentré"] }
   - { name: "Lait concentré non sucré", unit: volume, aliases: ["lait évaporé"] }
-  - { name: "Lait en poudre", unit: mass, aliases: ["poudre de lait"] }
+  - { name: "Lait en poudre", unit: mass, density: 0.5, aliases: ["poudre de lait"] }
   - { name: "Crème fraîche épaisse", unit: volume, aliases: ["crème épaisse", "crème fraîche"] }
-  - { name: "Crème fraîche liquide", unit: volume, aliases: ["crème liquide", "crème entière", "crème fleurette"] }
-  - { name: "Beurre", unit: mass, aliases: ["beurre doux"] }
+  - { name: "Crème fraîche liquide", unit: volume, density: 1, aliases: ["crème liquide", "crème entière", "crème fleurette"] }
+  - { name: "Beurre", unit: mass, density: 0.91, aliases: ["beurre doux"] }
   - { name: "Beurre demi-sel", unit: mass, aliases: [] }
   - { name: "Ghee", unit: mass, aliases: ["beurre clarifié"] }
   - { name: "Margarine", unit: mass, aliases: [] }
@@ -355,7 +363,7 @@ epicerie_salee:
   - { name: "Macaroni", unit: mass, aliases: ["macaronis", "coquillettes"] }
   - { name: "Orzo", unit: mass, aliases: ["risoni", "pâtes orzo", "langue d'oiseau"] }
   - { name: "Lasagnes", unit: mass, weight: 15, aliases: ["feuilles de lasagne", "plaques de lasagne"] }
-  - { name: "Riz", unit: mass, aliases: ["riz long"] }
+  - { name: "Riz", unit: mass, density: 0.85, aliases: ["riz long"] }
   - { name: "Riz basmati", unit: mass, aliases: [] }
   - { name: "Riz thaï", unit: mass, aliases: ["riz jasmin", "riz thai", "riz parfumé"] }
   - { name: "Riz complet", unit: mass, aliases: ["riz brun"] }
@@ -375,20 +383,20 @@ epicerie_salee:
   - { name: "Flageolets", unit: mass, aliases: ["flageolet"] }
   - { name: "Protéines de soja texturées", unit: mass, aliases: ["pst", "soja texturé"] }
   # --- Farines et bases ---
-  - { name: "Farine", unit: mass, aliases: ["farine de blé", "farine t45", "farine t55"] }
-  - { name: "Farine complète", unit: mass, aliases: ["farine intégrale"] }
-  - { name: "Farine de pois chiche", unit: mass, aliases: [] }
-  - { name: "Farine de sarrasin", unit: mass, aliases: ["farine de blé noir"] }
-  - { name: "Fécule de maïs", unit: mass, aliases: ["maïzena"] }
+  - { name: "Farine", unit: mass, density: 0.55, aliases: ["farine de blé", "farine t45", "farine t55"] }
+  - { name: "Farine complète", unit: mass, density: 0.55, aliases: ["farine intégrale"] }
+  - { name: "Farine de pois chiche", unit: mass, density: 0.5, aliases: [] }
+  - { name: "Farine de sarrasin", unit: mass, density: 0.55, aliases: ["farine de blé noir"] }
+  - { name: "Fécule de maïs", unit: mass, density: 0.6, aliases: ["maïzena"] }
   - { name: "Levure de boulanger", unit: count, weight: 8, aliases: ["levure fraîche", "levure sèche de boulanger"] }
   # --- Huiles et vinaigres ---
-  - { name: "Huile d'olive", unit: volume, aliases: [] }
-  - { name: "Huile de tournesol", unit: volume, aliases: ["huile"] }
-  - { name: "Huile de colza", unit: volume, aliases: [] }
-  - { name: "Huile de sésame", unit: volume, aliases: [] }
-  - { name: "Huile d'arachide", unit: volume, aliases: [] }
-  - { name: "Huile de noix", unit: volume, aliases: [] }
-  - { name: "Vinaigre", unit: volume, aliases: ["vinaigre de vin", "vinaigre blanc"] }
+  - { name: "Huile d'olive", unit: volume, density: 0.91, aliases: [] }
+  - { name: "Huile de tournesol", unit: volume, density: 0.92, aliases: ["huile"] }
+  - { name: "Huile de colza", unit: volume, density: 0.92, aliases: [] }
+  - { name: "Huile de sésame", unit: volume, density: 0.92, aliases: [] }
+  - { name: "Huile d'arachide", unit: volume, density: 0.92, aliases: [] }
+  - { name: "Huile de noix", unit: volume, density: 0.92, aliases: [] }
+  - { name: "Vinaigre", unit: volume, density: 1.01, aliases: ["vinaigre de vin", "vinaigre blanc"] }
   - { name: "Vinaigre balsamique", unit: volume, aliases: ["balsamique"] }
   - { name: "Vinaigre de cidre", unit: volume, aliases: [] }
   - { name: "Vinaigre de riz", unit: volume, aliases: [] }
@@ -405,11 +413,11 @@ epicerie_salee:
   - { name: "Olives", unit: mass, weight: 4, aliases: ["olive", "olives noires", "olives vertes"] }
   - { name: "Câpres", unit: mass, aliases: ["câpre"] }
   # --- Condiments et sauces ---
-  - { name: "Moutarde", unit: spoon, aliases: ["moutarde de Dijon"] }
+  - { name: "Moutarde", unit: spoon, density: 1.05, aliases: ["moutarde de Dijon"] }
   - { name: "Mayonnaise", unit: spoon, aliases: ["mayo"] }
   - { name: "Ketchup", unit: spoon, aliases: [] }
   - { name: "Sauce barbecue", unit: spoon, aliases: ["sauce bbq"] }
-  - { name: "Sauce soja", unit: spoon, aliases: ["sauce soja salée", "sauce soja sucrée"] }
+  - { name: "Sauce soja", unit: spoon, density: 1.1, aliases: ["sauce soja salée", "sauce soja sucrée"] }
   - { name: "Sauce nuoc-mâm", unit: spoon, aliases: ["nuoc mam", "sauce poisson"] }
   - { name: "Sauce worcestershire", unit: spoon, aliases: [] }
   - { name: "Harissa", unit: spoon, aliases: [] }
@@ -417,10 +425,10 @@ epicerie_salee:
   - { name: "Tabasco", unit: spoon, aliases: ["sauce tabasco", "sauce pimentée"] }
   - { name: "Tapenade", unit: spoon, aliases: ["tapenade d'olives"] }
   - { name: "Miso", unit: spoon, aliases: ["pâte miso"] }
-  - { name: "Tahini", unit: spoon, aliases: ["purée de sésame", "tahin"] }
+  - { name: "Tahini", unit: spoon, density: 1.05, aliases: ["purée de sésame", "tahin"] }
   # --- Épices et aromates secs ---
-  - { name: "Sel", unit: spoon, aliases: ["sel fin"] }
-  - { name: "Sel de Guérande", unit: spoon, aliases: ["gros sel", "fleur de sel"] }
+  - { name: "Sel", unit: spoon, density: 1.2, aliases: ["sel fin"] }
+  - { name: "Sel de Guérande", unit: spoon, density: 1.2, aliases: ["gros sel", "fleur de sel"] }
   - { name: "Poivre", unit: spoon, aliases: ["poivre moulu"] }
   - { name: "Poivre en grains", unit: spoon, aliases: [] }
   - { name: "Paprika", unit: spoon, aliases: ["paprika fumé"] }
@@ -464,17 +472,17 @@ epicerie_salee:
 
 # ─────────────────────────────────────────────────────────────────────────────
 epicerie_sucree:
-  - { name: "Sucre", unit: mass, aliases: ["sucre blanc", "sucre en poudre", "sucre semoule"] }
-  - { name: "Sucre roux", unit: mass, aliases: ["cassonade", "vergeoise"] }
-  - { name: "Sucre glace", unit: mass, aliases: [] }
-  - { name: "Sucre complet", unit: mass, aliases: ["rapadura", "muscovado"] }
+  - { name: "Sucre", unit: mass, density: 0.85, aliases: ["sucre blanc", "sucre en poudre", "sucre semoule"] }
+  - { name: "Sucre roux", unit: mass, density: 0.8, aliases: ["cassonade", "vergeoise"] }
+  - { name: "Sucre glace", unit: mass, density: 0.56, aliases: [] }
+  - { name: "Sucre complet", unit: mass, density: 0.8, aliases: ["rapadura", "muscovado"] }
   - { name: "Sucre vanillé", unit: count, weight: 7.5, aliases: ["sachet de sucre vanillé", "sachets de sucre vanillé"] }
   - { name: "Gousse de vanille", unit: count, aliases: ["vanille", "gousses de vanille"] }
   - { name: "Extrait de vanille", unit: spoon, aliases: ["arôme vanille"] }
   - { name: "Eau de fleur d'oranger", unit: spoon, aliases: ["fleur d'oranger"] }
-  - { name: "Miel", unit: spoon, aliases: [] }
-  - { name: "Sirop d'érable", unit: spoon, aliases: [] }
-  - { name: "Sirop d'agave", unit: spoon, aliases: [] }
+  - { name: "Miel", unit: spoon, density: 1.42, aliases: [] }
+  - { name: "Sirop d'érable", unit: spoon, density: 1.32, aliases: [] }
+  - { name: "Sirop d'agave", unit: spoon, density: 1.31, aliases: [] }
   - { name: "Confiture", unit: spoon, aliases: ["gelée"] }
   - { name: "Compote de pommes", unit: mass, aliases: ["compote", "compote de pomme"] }
   - { name: "Pâte à tartiner", unit: spoon, aliases: ["nutella"] }
@@ -482,13 +490,13 @@ epicerie_sucree:
   - { name: "Chocolat au lait", unit: mass, aliases: [] }
   - { name: "Chocolat blanc", unit: mass, aliases: [] }
   - { name: "Pépites de chocolat", unit: mass, aliases: ["pépite de chocolat"] }
-  - { name: "Cacao en poudre", unit: spoon, aliases: ["cacao", "cacao amer"] }
+  - { name: "Cacao en poudre", unit: spoon, density: 0.4, aliases: ["cacao", "cacao amer"] }
   - { name: "Levure chimique", unit: count, weight: 11, aliases: ["sachet de levure", "sachets de levure", "poudre à lever"] }
   - { name: "Bicarbonate", unit: spoon, aliases: ["bicarbonate de soude", "bicarbonate alimentaire"] }
   - { name: "Gélatine", unit: count, weight: 2, aliases: ["feuille de gélatine", "feuilles de gélatine"] }
   - { name: "Agar-agar", unit: spoon, aliases: ["agar agar"] }
   - { name: "Poudre à flan", unit: count, aliases: ["préparation pour flan", "flan pâtissier"] }
-  - { name: "Amande en poudre", unit: mass, aliases: ["poudre d'amande", "amandes en poudre"] }
+  - { name: "Amande en poudre", unit: mass, density: 0.45, aliases: ["poudre d'amande", "amandes en poudre"] }
   - { name: "Pâte d'amande", unit: mass, aliases: [] }
   - { name: "Pralin", unit: mass, aliases: ["pralin en poudre"] }
   - { name: "Amandes", unit: mass, aliases: ["amande", "amandes effilées"] }
@@ -540,7 +548,7 @@ petit_dejeuner:
   - { name: "Flocons d'avoine", unit: mass, aliases: ["avoine", "porridge"] }
   - { name: "Cracottes", unit: count, weight: 10, aliases: ["pain suédois", "cracotte", "tartines craquantes"] }
   - { name: "Pain d'épices", unit: mass, weight: 30, aliases: [] }
-  - { name: "Beurre de cacahuète", unit: spoon, aliases: ["purée de cacahuète"] }
+  - { name: "Beurre de cacahuète", unit: spoon, density: 1.05, aliases: ["purée de cacahuète"] }
 
 # ─────────────────────────────────────────────────────────────────────────────
 produits_monde:
@@ -563,7 +571,7 @@ produits_monde:
   - { name: "Nori", unit: count, weight: 3, aliases: ["feuille de nori", "feuilles de nori", "algue nori", "algues"] }
   - { name: "Tortilla", unit: count, weight: 50, aliases: ["tortillas", "wrap", "galette de blé"] }
   - { name: "Taco", unit: count, weight: 15, aliases: ["tacos", "coque à taco"] }
-  - { name: "Semoule fine", unit: mass, aliases: ["semoule de blé fine"] }
+  - { name: "Semoule fine", unit: mass, density: 0.8, aliases: ["semoule de blé fine"] }
 
 # ─────────────────────────────────────────────────────────────────────────────
 papeterie_fournitures:

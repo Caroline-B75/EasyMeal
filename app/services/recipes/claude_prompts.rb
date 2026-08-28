@@ -12,15 +12,18 @@ module Recipes
   # second (sorties structurées), le premier n'a plus à mendier du JSON ni à
   # décrire le format attendu : il ne parle que de cuisine.
   #
-  # Le vocabulaire fermé du classement ne se recopie jamais ici : les moments
-  # viennent de MealTypes, les régimes, difficultés et budgets des enums de
-  # Recipe, et les tags des noms en base. L'IA ne peut donc littéralement pas
-  # proposer une valeur que le formulaire de validation refuserait.
+  # Aucun vocabulaire fermé ne se recopie ici : les moments viennent de
+  # MealTypes, les régimes, difficultés et budgets des enums de Recipe, les tags
+  # des noms en base, et les unités de Units. L'IA ne peut donc littéralement
+  # pas proposer une valeur que le formulaire de validation refuserait.
   #
-  # Tout le français adressé à Claude vit ici, et nulle part ailleurs :
-  # ClaudeClient se charge de l'envoyer sans rien savoir de son contenu. Rien à
-  # porter d'un appel à l'autre, d'où des méthodes de classe plutôt qu'une
-  # instance sans état.
+  # Tout le français adressé à Claude à propos d'une recette vit ici, et nulle
+  # part ailleurs : ClaudeClient se charge de l'envoyer sans rien savoir de son
+  # contenu. Rien à porter d'un appel à l'autre, d'où des méthodes de classe
+  # plutôt qu'une instance sans état.
+  #
+  # La grammaire des schémas de sortie, elle, n'a rien de propre aux recettes :
+  # elle vit dans JsonSchema, partagée avec les autres demandes du projet.
   #
   # @example
   #   Recipes::ClaudeClient.call(Recipes::ClaudePrompts.text_request(page_text))
@@ -29,18 +32,25 @@ module Recipes
     SYSTEM = "Tu es un assistant expert en cuisine. Tu extrais des informations de recettes " \
              "et tu les classes pour un catalogue familial."
 
-    # Unités qu'un ingrédient peut porter. Même table que le panneau
-    # « Ingrédients détectés par l'IA » (ai_panel_controller.js), qui convertit
-    # ensuite vers l'unité de base de l'ingrédient retenu.
-    INGREDIENT_UNITS = %w[g kg ml cl L càc càs].freeze
-
     # Au-delà, les tags cessent de trier : une recette qui porte tout le
     # catalogue ne se distingue plus de ses voisines dans les filtres.
     MAX_TAGS = 4
 
     # Ce que le schéma ne peut pas dire : il impose la forme d'un champ, pas ce
     # qu'il faut y mettre. Ces deux règles-là sont donc restées dans le prompt.
-    UNIT_RULE = "- unit : laissé à null quand l'ingrédient se compte en pièces (3 oeufs)"
+    #
+    # Les cuillères se disent en toutes lettres jusque dans le schéma
+    # (Units::AI_UNITS) et la règle nomme une à une les abréviations qui y
+    # mènent : « càc » et « càs » ne diffèrent que d'une lettre, et le modèle
+    # les confondait — « 3 c. à s. d'huile d'olive » ressortait en « 3 càc ».
+    # Une quantité divisée par trois ne se voit pas à la relecture.
+    UNIT_RULE = <<~RULE.strip
+      - unit : laissé à null quand l'ingrédient se compte en pièces (3 oeufs)
+      - unit : ne jamais confondre les deux cuillères, elles valent trois fois
+        moins l'une que l'autre. « c. à s. », « c à s », « cs », « cuil. à soupe »,
+        « cuillère(s) à soupe » → cuillere_a_soupe. « c. à c. », « c à c », « cc »,
+        « cuil. à café », « cuillère(s) à café », « cuillère(s) à thé » → cuillere_a_cafe
+    RULE
     TIME_RULE = "- total_time_minutes : rempli uniquement si prep_time et cook_time ne sont pas distinguables"
 
     # Règles communes à l'extraction d'un texte et à celle d'une photo. Elles
@@ -205,14 +215,14 @@ module Recipes
 
       # Schéma d'une recette complète : ce que l'API fera respecter à la réponse.
       def recipe_schema(tags)
-        strict_object(
+        JsonSchema.strict_object(
           name:               { type: "string" },
-          description:        nullable("string"),
-          default_servings:   nullable("integer"),
-          prep_time_minutes:  nullable("integer"),
-          cook_time_minutes:  nullable("integer"),
-          total_time_minutes: nullable("integer"),
-          appliance:          nullable("string"),
+          description:        JsonSchema.nullable("string"),
+          default_servings:   JsonSchema.nullable("integer"),
+          prep_time_minutes:  JsonSchema.nullable("integer"),
+          cook_time_minutes:  JsonSchema.nullable("integer"),
+          total_time_minutes: JsonSchema.nullable("integer"),
+          appliance:          JsonSchema.nullable("string"),
           instructions:       { type: "string" },
           ingredients:        ingredients_array,
           **classification_properties(tags)
@@ -222,7 +232,7 @@ module Recipes
       # Chemin schema.org : les faits sont déjà connus, seuls les ingrédients et
       # le classement sont demandés.
       def schema_org_schema(tags)
-        strict_object(ingredients: ingredients_array, **classification_properties(tags))
+        JsonSchema.strict_object(ingredients: ingredients_array, **classification_properties(tags))
       end
 
       # Champs de classement, communs aux trois demandes. Les valeurs sont lues
@@ -232,9 +242,9 @@ module Recipes
       # littéralement pas la produire.
       def classification_properties(tags)
         properties = {
-          difficulty: nullable("string", enum: Recipe.difficulties.keys),
+          difficulty: JsonSchema.nullable("string", enum: Recipe.difficulties.keys),
           diet:       { type: "string", enum: Recipe.diets.keys },
-          price:      nullable("string", enum: Recipe.prices.keys),
+          price:      JsonSchema.nullable("string", enum: Recipe.prices.keys),
           meal_types: { type: "array", items: { type: "string", enum: MealTypes::MEAL_TYPES } }
         }
         # Catalogue vide (nouvelle installation) : pas d'enum possible, donc pas
@@ -246,32 +256,12 @@ module Recipes
       def ingredients_array
         {
           type:  "array",
-          items: strict_object(
+          items: JsonSchema.strict_object(
             name:     { type: "string" },
-            quantity: nullable("number"),
-            unit:     nullable("string", enum: INGREDIENT_UNITS)
+            quantity: JsonSchema.nullable("number"),
+            unit:     JsonSchema.nullable("string", enum: Units::AI_UNITS)
           )
         }
-      end
-
-      # Objet strict, tel que les sorties structurées l'exigent : aucune
-      # propriété en plus, et toutes obligatoires.
-      def strict_object(**properties)
-        {
-          type:                 "object",
-          properties:           properties,
-          required:             properties.keys.map(&:to_s),
-          additionalProperties: false
-        }
-      end
-
-      # Champ facultatif. Toute propriété étant obligatoire, un champ « vide »
-      # se déclare en acceptant null en plus de son type.
-      def nullable(type, enum: nil)
-        value = { type: type }
-        value[:enum] = enum if enum
-
-        { anyOf: [ value, { type: "null" } ] }
       end
     end
   end

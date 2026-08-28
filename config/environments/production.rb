@@ -72,9 +72,17 @@ Rails.application.configure do
     expires_in: 1.hour
   }
 
-  # Use a real queuing backend for Active Job (and separate queues per environment).
-  # config.active_job.queue_adapter = :resque
-  # config.active_job.queue_name_prefix = "easymeal_production"
+  # Jobs de fond : GoodJob les stocke en PostgreSQL — la base qu'on a déjà — et
+  # le mode :async les exécute dans des threads de ce même process web. Donc
+  # aucun worker à héberger (pas de conteneur en plus à payer) et aucune
+  # dépendance à Redis. En contrepartie, un redémarrage peut interrompre un job
+  # en cours : le sien est repris, puisque le RecipeImport garde son état.
+  config.active_job.queue_adapter = :good_job
+  config.good_job.execution_mode = :async
+
+  # Deux threads suffisent à l'usage réel (import IA réservé aux admins) et
+  # laissent la mémoire du conteneur à Puma, qui sert les pages.
+  config.good_job.max_threads = 2
 
   # Disable caching for Action Mailer templates even if Action Controller
   # caching is enabled.

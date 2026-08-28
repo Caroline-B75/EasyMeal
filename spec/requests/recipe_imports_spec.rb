@@ -183,48 +183,57 @@ RSpec.describe "Recipe imports (import IA)", type: :request do
   end
 
   describe "POST /recipe_imports" do
-    # Un échec d'extraction doit ramener au formulaire avec le motif : c'est le
-    # chemin que les erreurs de ExtractorService court-circuitaient en 500 tant
-    # qu'elles remontaient en NameError plutôt qu'en ExtractionError. Et après
-    # 15 à 30 s d'attente, l'URL saisie repart avec la redirection : la faire
-    # retaper serait la punition de trop.
-    it "renvoie au formulaire avec le motif et l'URL saisie quand l'extraction échoue" do
-      allow(Recipes::ExtractorService).to receive(:from_url)
-        .and_raise(Recipes::ExtractionError, "URL inaccessible (code 404)")
+    # La requête ne fait plus que déposer la commande : l'extraction, qui peut
+    # demander jusqu'à 60 s, part dans un job. C'est ce qui la met hors de portée
+    # du routeur de l'hébergeur, lequel abandonne une requête vers 30 s.
+    it "enregistre la commande, la confie au job et emmène à la page d'attente" do
+      expect {
+        post recipe_imports_path,
+             params: { source_type: "url", source_url: "  https://exemple.fr/tarte  " }
+      }.to change(RecipeImport, :count).by(1)
 
-      post recipe_imports_path, params: { source_type: "url", source_url: "https://exemple.fr/tarte" }
-
-      expect(response).to redirect_to(new_recipe_import_path(source_url: "https://exemple.fr/tarte"))
-      expect(flash[:alert]).to eq("Extraction échouée : URL inaccessible (code 404)")
+      import = RecipeImport.last
+      expect(import).to have_attributes(
+        status: "pending", source_type: "url",
+        source_url: "https://exemple.fr/tarte", user: admin
+      )
+      expect(Recipes::ImportJob).to have_been_enqueued.with(import)
+      expect(response).to redirect_to(recipe_import_path(import))
     end
 
-    # Un champ fichier ne peut pas être re-rempli par le navigateur : là où
-    # l'URL revient toute seule, la photo doit être redemandée explicitement.
-    it "invite à rechoisir la photo quand l'extraction d'un import photo échoue" do
-      allow(Recipes::ExtractorService).to receive(:from_photo)
-        .and_raise(Recipes::ExtractionError, "Aucun texte de recette reconnu")
+    it "ne sollicite pas l'IA pendant la requête" do
+      expect(Recipes::ExtractorService).not_to receive(:from_url)
 
-      # Le contenu du fichier n'a pas d'importance : le contrôleur ne fait que
-      # l'encoder en base64 avant de le passer au service, ici simulé.
+      post recipe_imports_path, params: { source_type: "url", source_url: "https://exemple.fr/tarte" }
+    end
+
+    # La photo doit survivre à la fin de la requête : le job la relira plus tard,
+    # quand le fichier temporaire du navigateur aura disparu.
+    it "range la photo sur l'import pour que le job puisse la relire" do
       post recipe_imports_path, params: {
         source_type: "photo",
         photo_file: Rack::Test::UploadedFile.new(StringIO.new("photo"), "image/jpeg",
                                                  original_filename: "magazine.jpg")
       }
 
-      expect(response).to redirect_to(new_recipe_import_path)
-      expect(flash[:alert]).to eq(
-        "Extraction échouée : Aucun texte de recette reconnu — choisis à nouveau la photo."
-      )
+      import = RecipeImport.last
+      expect(import.source_photo).to be_attached
+      expect(import.source_photo.filename.to_s).to eq("magazine.jpg")
     end
+  end
 
+  # Le parcours complet, job déroulé. C'est ici que vivent désormais les
+  # garanties métier de l'import, depuis que le travail a quitté le contrôleur.
+  describe "le parcours complet d'un import" do
     it "crée un brouillon et ouvre le formulaire de review quand l'extraction réussit" do
       allow(Recipes::ExtractorService).to receive(:from_url).and_return(
         "name" => "Tarte aux poireaux", "default_servings" => 6, "diet" => "vegetarien"
       )
 
       expect {
-        post recipe_imports_path, params: { source_type: "url", source_url: "https://exemple.fr/tarte" }
+        perform_enqueued_jobs do
+          post recipe_imports_path, params: { source_type: "url", source_url: "https://exemple.fr/tarte" }
+        end
       }.to change(Recipe, :count).by(1)
 
       recipe = Recipe.last
@@ -232,20 +241,20 @@ RSpec.describe "Recipe imports (import IA)", type: :request do
         status: "draft", source_type: "url", name: "Tarte aux poireaux",
         default_servings: 6, diet: "vegetarien"
       )
+      expect(RecipeImport.last).to have_attributes(status: "succeeded", recipe: recipe)
+
+      # La page d'attente constate la réussite et emmène au formulaire.
+      follow_redirect!
       expect(response).to redirect_to(edit_recipe_path(recipe))
     end
 
     # La page photographiée survit à l'extraction : c'est elle qu'on relit
     # pendant la validation quand une quantité paraît douteuse. Elle ne devient
     # pas pour autant la photo du plat.
-    it "conserve la photo importée comme pièce de référence du brouillon" do
+    it "transmet la photo au brouillon comme pièce de référence" do
       allow(Recipes::ExtractorService).to receive(:from_photo).and_return("name" => "Paella")
 
-      post recipe_imports_path, params: {
-        source_type: "photo",
-        photo_file: Rack::Test::UploadedFile.new(StringIO.new("photo"), "image/jpeg",
-                                                 original_filename: "magazine.jpg")
-      }
+      perform_enqueued_jobs { post_photo_import }
 
       recipe = Recipe.last
       expect(recipe.source_photo).to be_attached
@@ -253,10 +262,25 @@ RSpec.describe "Recipe imports (import IA)", type: :request do
       expect(recipe.photo).not_to be_attached
     end
 
+    # Le fichier change de propriétaire, il n'est pas dupliqué : l'import le
+    # lâche une fois le brouillon écrit. Sans ce transfert, les deux
+    # enregistrements partageraient le même blob et supprimer l'un emporterait
+    # l'image de l'autre.
+    it "laisse le brouillon seul propriétaire du fichier de source" do
+      allow(Recipes::ExtractorService).to receive(:from_photo).and_return("name" => "Paella")
+
+      perform_enqueued_jobs { post_photo_import }
+
+      expect(RecipeImport.last.source_photo).not_to be_attached
+      expect(Recipe.last.source_photo).to be_attached
+    end
+
     it "n'attache aucune photo de source à un import par lien" do
       allow(Recipes::ExtractorService).to receive(:from_url).and_return("name" => "Tarte")
 
-      post recipe_imports_path, params: { source_type: "url", source_url: "https://exemple.fr/tarte" }
+      perform_enqueued_jobs do
+        post recipe_imports_path, params: { source_type: "url", source_url: "https://exemple.fr/tarte" }
+      end
 
       expect(Recipe.last.source_photo).not_to be_attached
     end
@@ -275,7 +299,9 @@ RSpec.describe "Recipe imports (import IA)", type: :request do
         "tags"       => [ "De Saison", "tag inexistant" ]
       )
 
-      post recipe_imports_path, params: { source_type: "url", source_url: "https://exemple.fr/quiche" }
+      perform_enqueued_jobs do
+        post recipe_imports_path, params: { source_type: "url", source_url: "https://exemple.fr/quiche" }
+      end
 
       recipe = Recipe.last
       expect(recipe).to have_attributes(diet: "vegetarien", price: "economique")
@@ -285,6 +311,81 @@ RSpec.describe "Recipe imports (import IA)", type: :request do
       expect(recipe.tags).to eq([ saison ])
       # Et la liste des brouillons ne réclame plus le moment du repas.
       expect(recipe.draft_missing_fields).not_to include("Moment du repas")
+    end
+
+    # Un échec d'extraction doit ramener au formulaire avec le motif : c'est le
+    # chemin que les erreurs de ExtractorService court-circuitaient en 500 tant
+    # qu'elles remontaient en NameError plutôt qu'en ExtractionError. Et l'URL
+    # saisie repart avec la redirection : la faire retaper serait la punition de
+    # trop.
+    it "renvoie au formulaire avec le motif et l'URL saisie quand l'extraction échoue" do
+      allow(Recipes::ExtractorService).to receive(:from_url)
+        .and_raise(Recipes::ExtractionError, "URL inaccessible (code 404)")
+
+      expect {
+        perform_enqueued_jobs do
+          post recipe_imports_path, params: { source_type: "url", source_url: "https://exemple.fr/tarte" }
+        end
+      }.not_to change(Recipe, :count)
+
+      follow_redirect!
+      expect(response).to redirect_to(new_recipe_import_path(source_url: "https://exemple.fr/tarte"))
+      expect(flash[:alert]).to eq("Extraction échouée : URL inaccessible (code 404)")
+    end
+
+    # Un champ fichier ne peut pas être re-rempli par le navigateur : là où
+    # l'URL revient toute seule, la photo doit être redemandée explicitement.
+    it "invite à rechoisir la photo quand l'extraction d'un import photo échoue" do
+      allow(Recipes::ExtractorService).to receive(:from_photo)
+        .and_raise(Recipes::ExtractionError, "Aucun texte de recette reconnu")
+
+      perform_enqueued_jobs { post_photo_import }
+
+      follow_redirect!
+      expect(response).to redirect_to(new_recipe_import_path)
+      expect(flash[:alert]).to eq(
+        "Extraction échouée : Aucun texte de recette reconnu — choisis à nouveau la photo."
+      )
+    end
+
+    # Le contenu du fichier n'a pas d'importance : le job ne fait que l'encoder
+    # en base64 avant de le passer au service, ici simulé.
+    def post_photo_import
+      post recipe_imports_path, params: {
+        source_type: "photo",
+        photo_file: Rack::Test::UploadedFile.new(StringIO.new("photo"), "image/jpeg",
+                                                 original_filename: "magazine.jpg")
+      }
+    end
+  end
+
+  describe "GET /recipe_imports/:id (page d'attente)" do
+    it "fait patienter tant que le job travaille, et revient voir d'elle-même" do
+      import = create(:recipe_import, user: admin)
+
+      get recipe_import_path(import)
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include("Lecture de la page…")
+      expect(response.body).to include('data-controller="import-poller"')
+    end
+
+    # L'étape affichée se règle sur le temps écoulé, côté serveur : un minuteur
+    # dans le navigateur repartirait de zéro à chaque vérification.
+    it "annonce l'étape suivante quand l'attente se prolonge" do
+      import = create(:recipe_import, user: admin, created_at: 20.seconds.ago)
+
+      get recipe_import_path(import)
+
+      expect(response.body).to include("Encore quelques secondes…")
+    end
+
+    it "ne laisse pas suivre l'import de quelqu'un d'autre" do
+      autre = create(:recipe_import, user: create(:user, admin: true))
+
+      get recipe_import_path(autre)
+
+      expect(response).to have_http_status(:not_found)
     end
   end
 end

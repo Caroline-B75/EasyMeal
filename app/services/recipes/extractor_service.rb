@@ -25,15 +25,17 @@ module Recipes
       html   = PageFetcher.call(url)
       schema = SchemaOrgParser.parse_schema_org(html)
 
-      if schema
+      data = if schema
         extract_from_schema(schema)
       else
         ClaudeClient.call(ClaudePrompts.text_request(SchemaOrgParser.extract_text(html)))
       end
+
+      canonical_units(data)
     end
 
     def from_photo(image_base64, media_type:)
-      ClaudeClient.call(ClaudePrompts.photo_request(image_base64, media_type))
+      canonical_units(ClaudeClient.call(ClaudePrompts.photo_request(image_base64, media_type)))
     end
 
     private
@@ -102,6 +104,28 @@ module Recipes
     # l'utilisatrice corrigera au moment de la review.
     def raw_ingredients_fallback(raw_ingredients)
       raw_ingredients.map { |ingredient| { "name" => ingredient, "quantity" => nil, "unit" => nil } }
+    end
+
+    # Le vocabulaire verbeux imposé à l'IA (« cuillere_a_soupe ») rejoint ici les
+    # unités canoniques du projet, une fois pour toutes : ni le brouillon
+    # (ai_raw_data), ni le panneau de revue, ni la conversion n'ont à connaître la
+    # façon dont l'IA parle des cuillères. Le passage est unique parce que les
+    # trois chemins d'extraction se referment ici.
+    #
+    # Une unité que Units ne sait pas lire est laissée telle quelle : la revue la
+    # montrera et signalera qu'elle ne se convertit pas, plutôt que de l'effacer
+    # en silence.
+    def canonical_units(data)
+      ingredients = data.is_a?(Hash) ? data["ingredients"] : nil
+      return data unless ingredients.is_a?(Array)
+
+      data.merge("ingredients" => ingredients.map { |ingredient| canonical_unit(ingredient) })
+    end
+
+    def canonical_unit(ingredient)
+      return ingredient unless ingredient.is_a?(Hash) && ingredient["unit"].present?
+
+      ingredient.merge("unit" => Units.canonical(ingredient["unit"]) || ingredient["unit"])
     end
   end
 end

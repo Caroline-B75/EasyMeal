@@ -89,11 +89,7 @@
               - @active.menu_recipes.each do |mr|
                 = link_to recipe_path(mr.recipe), class: "mi-recipe-card-mini", data: { turbo_prefetch: "false" } do
                   .mi-recipe-card-mini-img
-                    - if mr.recipe.photo.attached?
-                      = image_tag mr.recipe.photo.variant(resize_to_fill: [280, 140]),
-                                 alt: mr.recipe.name, class: "mi-recipe-card-mini-photo", width: 280, height: 140, loading: "lazy"
-                    - else
-                      = image_tag "photo_par_defaut_recette.webp", alt: mr.recipe.name, class: "mi-recipe-card-mini-photo", width: 280, height: 140, loading: "lazy"
+                    = recipe_photo_tag(mr.recipe, width: 280, height: 140, css_class: "mi-recipe-card-mini-photo")
                   .mi-recipe-card-mini-body
                     .mi-recipe-card-mini-name= mr.recipe.name
                     .mi-recipe-card-mini-meta

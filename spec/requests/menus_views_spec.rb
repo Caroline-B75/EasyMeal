@@ -27,6 +27,33 @@ RSpec.describe "Vues menus R3.2bis", type: :request do
     end
   end
 
+  # Les trois cartes de /menus — repas du menu actif, brouillon déplié, historique
+  # — affichent une vignette via recipe_photo_tag, un helper de RecipesHelper
+  # appelé depuis des vues de menus. Ce rendu vérifie qu'il s'y résout et qu'il
+  # sert bien une URL Cloudinary : une variante ActiveStorage exigerait libvips
+  # sur le serveur et casserait les images en production.
+  describe "GET /menus avec des recettes illustrées" do
+    it "sert des vignettes Cloudinary sur le menu actif, le brouillon et l'historique" do
+      illustrated = create(:recipe, :with_ingredient, :with_photo, name: "Tarte aux poireaux")
+
+      %i[active draft archived].each do |status|
+        menu = create(:menu, user: user, status: status)
+        create(:menu_recipe, menu: menu, recipe: illustrated, number_of_people: 1)
+      end
+
+      get menus_path
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).not_to include("active_storage")
+      # Chaque carte sert sa propre définition : ces trois tailles prouvent que
+      # les trois se sont rendues, et pas seulement l'une d'entre elles.
+      expect(response.body).to include('width="280" height="140"')  # repas du menu actif
+      expect(response.body).to include('width="192" height="96"')   # brouillon déplié
+      expect(response.body).to include('width="96" height="48"')    # historique
+      expect(response.body.scan("res.cloudinary.com").count).to be >= 3
+    end
+  end
+
   describe "GET /menus/:id d'un menu actif" do
     it "affiche le bouton « Modifier ce menu »" do
       menu = create(:menu, user: user, status: :active)

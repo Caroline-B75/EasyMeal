@@ -77,6 +77,19 @@ module RecipesHelper
     options_for_select(RecipeDraftsController::SORTS.map { |key, label| [ label, key ] }, selected)
   end
 
+  # Habillage de l'unité de base d'un ingrédient dans le panneau IA. Trois états,
+  # du plus grave au plus discret :
+  #   - la quantité détectée ne sait pas rejoindre cette unité → alerte ;
+  #   - elle la rejoint, mais par une densité que l'IA a estimée → estimation ;
+  #   - elle la rejoint sur des facteurs sûrs → rien à signaler.
+  # Le pendant JS vit dans ai_panel_controller#unitBadge.
+  def ai_unit_badge_attributes(converts:, estimated:)
+    return { class: "ai-row__unit--mismatch", title: t("recipes.ai_panel.unit_mismatch") } unless converts
+    return { class: "ai-row__unit--estimated", title: t("recipes.ai_panel.unit_estimated") } if estimated
+
+    {}
+  end
+
   # État d'une ligne du panneau IA — la seule question que se pose l'utilisatrice
   # devant la liste : est-ce que ça part d'un clic, ou est-ce que j'ai une
   # décision à prendre ?
@@ -241,5 +254,29 @@ module RecipesHelper
     url_1x = cloudinary_photo_url(photo, width: width, height: height, crop: crop)
     url_2x = cloudinary_photo_url(photo, width: width * 2, height: height * 2, crop: crop)
     "#{url_1x} 1x, #{url_2x} 2x"
+  end
+
+  # Image du projet servie aux recettes sans photo.
+  DEFAULT_PHOTO = "photo_par_defaut_recette.webp".freeze
+
+  # Vignette d'une recette : sa photo recadrée en width×height, ou l'image par
+  # défaut du projet quand elle n'en a pas.
+  #
+  # Le recadrage passe par les URL de transformation Cloudinary et non par
+  # .variant() : rien n'est uploadé, et le serveur n'a besoin d'aucune
+  # bibliothèque de traitement d'image (.variant() exigerait libvips installé).
+  #
+  # width/height = taille d'affichage 1x, le srcset 2x suivant pour les écrans à
+  # forte densité. css_class reste optionnel : la boîte est parfois posée par le
+  # conteneur plutôt que par l'image elle-même.
+  def recipe_photo_tag(recipe, width:, height:, css_class: nil)
+    options = { alt: recipe.name, width: width, height: height, loading: "lazy" }
+    options[:class] = css_class if css_class
+
+    return image_tag(DEFAULT_PHOTO, **options) unless recipe.photo.attached?
+
+    image_tag cloudinary_photo_url(recipe.photo, width: width, height: height, crop: :fill),
+              srcset: cloudinary_photo_srcset(recipe.photo, width: width, height: height, crop: :fill),
+              **options
   end
 end

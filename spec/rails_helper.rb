@@ -83,6 +83,18 @@ RSpec.configure do |config|
   # Helpers Devise pour authentifier dans les request specs (sign_in)
   config.include Devise::Test::IntegrationHelpers, type: :request
 
+  # L'adaptateur :test met les jobs en file sans les exécuter (voir
+  # config/environments/test.rb). perform_enqueued_jobs les déroule quand une
+  # spec veut suivre le parcours jusqu'au bout.
+  config.include ActiveJob::TestHelper
+
+  # RSpec n'appelle pas les crochets Minitest d'ActiveJob::TestHelper : sans ce
+  # vidage, la file se reporterait d'un exemple à l'autre.
+  config.before do
+    clear_enqueued_jobs
+    clear_performed_jobs
+  end
+
   # Filter lines from Rails gems in backtraces.
   config.filter_rails_from_backtrace!
   # arbitrary gems may also be filtered via:

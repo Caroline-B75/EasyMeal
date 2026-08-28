@@ -20,6 +20,15 @@
           = Ingredient.enum_label(:unit_group, @ingredient.unit_group)
           = "(#{@ingredient.base_unit})"
 
+      -# Les coefficients qui font les ponts d'unités. Ils n'existent que sur une
+      -# partie du catalogue, d'où la ligne conditionnelle plutôt qu'un « — ».
+      - if conversion_coefficients(@ingredient)
+        .detail-item
+          %span.detail-label Conversions
+          %span.detail-value
+            = conversion_coefficients(@ingredient)
+            = density_to_check_badge(@ingredient)
+
       - if @ingredient.aliases.present?
         .detail-item
           %span.detail-label Alias

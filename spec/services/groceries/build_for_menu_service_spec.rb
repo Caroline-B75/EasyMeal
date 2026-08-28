@@ -122,6 +122,34 @@ RSpec.describe Groceries::BuildForMenuService do
     end
   end
 
+  # Deux recettes peuvent doser le même ingrédient dans deux unités différentes —
+  # « 2 càs d'huile » ici, « 5 ml » là. L'addition reste juste parce qu'une
+  # quantité n'est jamais stockée autrement que dans l'unité de base de son
+  # ingrédient : le sélecteur d'unité du formulaire de recette convertit à la
+  # saisie (Units), il ne laisse pas une unité voyager jusqu'ici.
+  describe ".call — un ingrédient dosé dans deux unités" do
+    it "additionne des cuillerées et des millilitres dans l'unité de base" do
+      huile = create(:ingredient, name: "Huile d'olive", unit_group: :volume, base_unit: "ml")
+      cuillerees = UnitConversionService.convert(quantity: 2, from_unit: "càs", ingredient: huile)
+      millilitres = UnitConversionService.convert(quantity: 5, from_unit: "ml", ingredient: huile)
+
+      menu = menu_with(huile => cuillerees)
+      autre = build(:recipe, default_servings: 1)
+      autre.preparations.build(ingredient: huile, quantity_base: millilitres)
+      autre.save!
+      create(:menu_recipe, menu: menu, recipe: autre, number_of_people: 1)
+
+      described_class.call(menu: menu)
+
+      item = menu.grocery_items.generated.find_by(ingredient: huile)
+      # 2 càs = 30 ml, plus 5 ml
+      expect(item.quantity_base).to eq(35)
+      expect(item.base_unit).to eq("ml")
+      expect(Quantities::HumanizeService.call(quantity: item.quantity_base, unit_group: item.unit_group)[:display])
+        .to eq("35 ml")
+    end
+  end
+
   describe ".call — idempotence" do
     it "deux appels consécutifs sans changement de menu ne modifient rien" do
       menu = menu_with(ingredient => 100)

@@ -42,19 +42,27 @@ class Ingredient < ApplicationRecord
     spoon: 3
   }, prefix: true
 
+  # D'où vient la densité de l'ingrédient. Rien d'autre ne distingue les deux
+  # valeurs qu'un degré de confiance : une densité `manual` a été écrite ou
+  # confirmée par un humain, une densité `ai` n'est qu'une estimation, signalée
+  # « à vérifier » partout où elle sert. Nul quand aucune densité n'est connue.
+  enum :density_source, { manual: 0, ai: 1 }, prefix: :density_source
+
   # === Constantes ===
 
-  # Unité de base attendue pour chaque groupe d'unités.
-  # Source de vérité unique : la validation ci-dessous et le formulaire
-  # (contrôleur Stimulus `ingredient-form`, alimenté par les partials) lisent
-  # tous cette table. Ajouter un groupe d'unités ne demande donc de toucher que
-  # l'enum ci-dessus et cette constante.
-  BASE_UNITS = {
-    "mass" => "g",
-    "volume" => "ml",
-    "count" => "piece",
-    "spoon" => "cac"
-  }.freeze
+  # Unité de base attendue pour chaque groupe d'unités — celle dans laquelle les
+  # quantités sont stockées. Elle est dérivée du vocabulaire des unités (Units),
+  # qui sait aussi les convertir et les écrire : ajouter un groupe d'unités ne
+  # demande donc de toucher que l'enum ci-dessus et la table de Units.
+  #
+  # Le nom reste exposé ici parce que c'est à l'ingrédient qu'on le demande : la
+  # validation ci-dessous et le formulaire (contrôleur Stimulus
+  # `ingredient-form`, alimenté par les partials) lisent cette table.
+  BASE_UNITS = Units::BASE_UNITS
+
+  # Plus lourd que ça, ce n'est plus un aliment : le miel plafonne à 1,45 g/ml,
+  # le sel fin à 1,2. La borne sert surtout de garde-fou à l'estimation par l'IA.
+  MAX_DENSITY = 3
 
   # === Associations ===
   has_many :preparations, dependent: :restrict_with_error
@@ -81,6 +89,18 @@ class Ingredient < ApplicationRecord
             numericality: { greater_than: 0, message: "doit être supérieur à 0" },
             allow_nil: true
   validate :piece_weight_only_for_countable_or_weighable
+
+  # Densité, facultative elle aussi : elle relie ce qu'une recette mesure (un
+  # volume, une cuillère) à ce que le catalogue pèse. Le plafond écarte les
+  # valeurs qui ne peuvent pas être des densités alimentaires — le miel, l'un des
+  # plus lourds, plafonne à 1,45 g/ml — et met ainsi une borne à ce que l'IA peut
+  # écrire en base.
+  validates :density_g_per_ml,
+            numericality: { greater_than: 0, less_than_or_equal_to: MAX_DENSITY,
+                            message: "doit être comprise entre 0 et #{MAX_DENSITY} g/ml" },
+            allow_nil: true
+  validate :density_only_where_it_converts
+  validate :density_source_accompanies_density
 
   # Validation des season_months (doivent être entre 1 et 12)
   validate :valid_season_months
@@ -139,6 +159,28 @@ class Ingredient < ApplicationRecord
     return if piece_weight_g.blank? || unit_group_mass? || unit_group_count?
 
     errors.add(:piece_weight_g, "ne s'applique qu'aux ingrédients en masse ou en pièces")
+  end
+
+  # La densité ne relie que la masse et le volume — les cuillères comprises, une
+  # cuillère étant un volume. Sur un ingrédient qui se compte à la pièce, elle
+  # n'aurait aucun effet à la conversion : autant la refuser que la laisser
+  # dormir en base.
+  def density_only_where_it_converts
+    return if density_g_per_ml.blank? || !unit_group_count?
+
+    errors.add(:density_g_per_ml, "ne s'applique pas aux ingrédients comptés à la pièce")
+  end
+
+  # Une densité sans provenance ne pourrait pas se signaler « à vérifier », et une
+  # provenance sans densité ne désignerait rien : les deux vont ensemble.
+  def density_source_accompanies_density
+    return if density_g_per_ml.blank? == density_source.blank?
+
+    if density_g_per_ml.blank?
+      errors.add(:density_source, "ne se renseigne qu'avec une densité")
+    else
+      errors.add(:density_source, "doit dire d'où vient la densité")
+    end
   end
 
   # Valide que tous les season_months sont entre 1 et 12

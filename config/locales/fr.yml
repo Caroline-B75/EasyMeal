@@ -303,6 +303,12 @@ fr:
   recipes:
     ai_panel:
       unit_mismatch: "L'unité détectée ne se convertit pas dans celle de cet ingrédient : le nombre sera repris tel quel, à vérifier."
+      unit_estimated: "La conversion repose sur une densité estimée par l'IA, pas encore vérifiée : la quantité est approximative."
+
+  # Dite trois fois — pastille du catalogue, fiche, indication du formulaire —
+  # d'où sa place ici plutôt que dans chaque vue.
+  ingredients:
+    density_to_check: "Densité estimée par l'IA : à vérifier. Enregistrer ce formulaire vaut vérification."
 
   errors:
     messages:

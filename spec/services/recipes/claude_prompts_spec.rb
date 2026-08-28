@@ -116,6 +116,17 @@ RSpec.describe Recipes::ClaudePrompts do
       expect(photo).to include(described_class::STRICT_RULES)
     end
 
+    # Le modèle rendait « 3 càc » d'une recette qui disait « 3 c. à s. » : la
+    # règle doit nommer les abréviations, et les nommer avec les jetons que le
+    # schéma attend — sans quoi renommer un jeton laisserait le prompt en parler
+    # dans une langue que l'IA n'a plus le droit d'employer.
+    it "nomme les abréviations des cuillères, avec les jetons du schéma" do
+      spoons = Units::AI_UNITS.grep(/cuillere/)
+
+      expect(spoons.size).to eq(2)
+      expect(described_class::UNIT_RULE).to include(*spoons, "c. à s.", "c. à c.")
+    end
+
     it "impose exactement le même schéma de sortie" do
       expect(described_class.photo_request("QUJD", "image/jpeg")[:schema])
         .to eq(described_class.text_request("Une recette")[:schema])
@@ -198,9 +209,9 @@ RSpec.describe Recipes::ClaudePrompts do
       expect(tags[:items][:enum]).to eq([ "de saison", "rapide" ])
     end
 
-    it "n'autorise que les unités connues du panneau d'ingrédients" do
-      expect(nullable_enum_of(ingredient_schema[:properties][:unit]))
-        .to eq(described_class::INGREDIENT_UNITS)
+    # Le vocabulaire des unités vit dans Units, et lui seul.
+    it "n'autorise que les unités du vocabulaire imposé à l'IA" do
+      expect(nullable_enum_of(ingredient_schema[:properties][:unit])).to eq(Units::AI_UNITS)
     end
 
     def ingredient_schema

@@ -24,11 +24,7 @@
         - menu.menu_recipes.each do |mr|
           .mi-hist-recipe-card
             .mi-hist-recipe-img
-              - if mr.recipe.photo.attached?
-                = image_tag mr.recipe.photo.variant(resize_to_fill: [96, 48]),
-                           alt: mr.recipe.name, class: "mi-hist-recipe-photo", width: 96, height: 48, loading: "lazy"
-              - else
-                = image_tag "photo_par_defaut_recette.webp", alt: mr.recipe.name, class: "mi-hist-recipe-photo", width: 96, height: 48, loading: "lazy"
+              = recipe_photo_tag(mr.recipe, width: 96, height: 48, css_class: "mi-hist-recipe-photo")
             .mi-hist-recipe-body
               .mi-hist-recipe-name= mr.recipe.name
               - total_time = mr.recipe.total_time_minutes

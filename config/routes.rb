@@ -54,8 +54,9 @@ Rails.application.routes.draw do
   # Recettes brouillons (admin only — import IA en attente de validation)
   resources :recipe_drafts, only: [ :index, :destroy ]
 
-  # Import IA de recettes (admin only — URL ou photo)
-  resources :recipe_imports, only: [ :new, :create ]
+  # Import IA de recettes (admin only — URL ou photo). Le show est la page
+  # d'attente : elle suit l'avancement du job d'extraction.
+  resources :recipe_imports, only: [ :new, :create, :show ]
 
   # Gestion des recettes (UC4 - Fiche recette, UC5 - Catalogue)
   resources :recipes do

@@ -16,12 +16,10 @@ const UNSUPPORTED_FILE_ERROR = "Format non accepté : choisis une image JPG, PNG
 const MAX_FILE_BYTES = 20 * 1024 * 1024
 const OVERSIZED_FILE_ERROR = "Photo trop lourde (20 Mo maximum) : choisis une image plus légère."
 
-// Étapes traversées pendant l'extraction, dans leur ordre réel. Le serveur ne
-// sait pas dire où il en est : plutôt qu'une fausse progression chiffrée, on
-// annonce ce qui se passe. Seule la première étape dépend de la source.
-const FIRST_STEP = { url: "Lecture de la page…", photo: "Lecture de la photo…" }
-const NEXT_STEPS = [ "Extraction par l'IA…", "Encore quelques secondes…" ]
-const STEP_DURATION_MS = 5500
+// Ce que dit le bouton une fois cliqué. L'envoi ne dure plus que le temps de
+// déposer la commande — et, pour une photo, de la téléverser : l'extraction se
+// suit ensuite sur la page d'attente, qui annonce ses propres étapes.
+const SUBMIT_LABEL = "Envoi en cours…"
 
 // Poids lisible du fichier qui partira vraiment : c'est la réassurance que la
 // réduction a bien eu lieu. Base 1000, comme l'explorateur de fichiers.
@@ -47,9 +45,6 @@ export default class extends Controller {
     "previewSize", "submitBtn", "submitLabel", "spinner", "error"
   ]
 
-  disconnect() {
-    this.stopStepMessages()
-  }
 
   selectUrl() {
     this.activateTab("url")
@@ -149,27 +144,7 @@ export default class extends Controller {
 
     this.submitBtnTarget.disabled = true
     this.spinnerTarget.hidden = false
-    this.startStepMessages()
-  }
-
-  // Fait défiler les étapes de l'extraction, puis s'arrête sur la dernière : la
-  // page navigue dès la réponse du serveur, il n'y a rien de plus à annoncer.
-  startStepMessages() {
-    const firstStep = this.sourceTypeTarget.value === "url" ? FIRST_STEP.url : FIRST_STEP.photo
-    const steps = [ firstStep, ...NEXT_STEPS ]
-    let index = 0
-
-    this.submitLabelTarget.textContent = steps[index]
-    this.stepTimer = setInterval(() => {
-      index += 1
-      this.submitLabelTarget.textContent = steps[index]
-      if (index === steps.length - 1) this.stopStepMessages()
-    }, STEP_DURATION_MS)
-  }
-
-  stopStepMessages() {
-    clearInterval(this.stepTimer)
-    this.stepTimer = null
+    this.submitLabelTarget.textContent = SUBMIT_LABEL
   }
 
   // Bascule l'onglet actif et met à jour l'état ARIA + les sections visibles.

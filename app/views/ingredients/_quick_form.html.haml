@@ -25,11 +25,16 @@
         %span Options avancées
 
       .optional-fields-content
-        -# Renseigné ici, le poids unitaire sert immédiatement : c'est le
-        -# panneau d'import qui vient d'ouvrir ce formulaire, et il posera la
-        -# quantité détectée en la convertissant.
+        -# Renseignés ici, les deux coefficients de conversion servent
+        -# immédiatement : c'est le panneau d'import qui vient d'ouvrir ce
+        -# formulaire, et il posera la quantité détectée en la convertissant.
+        -# Les laisser vides n'est pas grave — l'import estimera la densité au
+        -# besoin, et la signalera alors comme telle.
         .form-group
           = f.input :piece_weight_g, label: "Poids d'une pièce (g)", hint: "Ex: 300 pour une aubergine, 40 pour une tranche de jambon", input_html: { class: "form-input", step: "0.01", min: "0.01" }, label_html: { class: "form-label" }, hint_html: { class: "form-hint" }, error_class: "has-error"
+
+        .form-group
+          = f.input :density_g_per_ml, label: "Densité (g/ml)", hint: "Ex: 0.55 pour la farine, 1.42 pour le miel — pour peser ce qu'une recette dose à la cuillère", input_html: { class: "form-input", step: "0.01", min: "0.01", max: Ingredient::MAX_DENSITY }, label_html: { class: "form-label" }, hint_html: { class: "form-hint" }, error_class: "has-error"
 
         .form-group
           %label.form-label Alias (synonymes)

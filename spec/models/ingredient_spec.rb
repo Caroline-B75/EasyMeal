@@ -107,4 +107,61 @@ RSpec.describe Ingredient, type: :model do
       end
     end
   end
+
+  # La densité fait le second pont : entre la recette qui mesure et le catalogue
+  # qui pèse (voir UnitConversionService). Une valeur fausse fausserait des
+  # quantités en silence, d'où des bornes et une provenance obligatoire.
+  describe "validation de la densité" do
+    def with_density(density, unit_group: :mass, source: :manual)
+      build(:ingredient, unit_group: unit_group, base_unit: Ingredient::BASE_UNITS[unit_group.to_s],
+                         density_g_per_ml: density, density_source: density && source)
+    end
+
+    it "est facultative" do
+      expect(with_density(nil)).to be_valid
+    end
+
+    %i[mass volume spoon].each do |unit_group|
+      it "accepte une densité sur un ingrédient en #{unit_group}" do
+        expect(with_density(0.55, unit_group: unit_group)).to be_valid
+      end
+    end
+
+    # Elle n'y servirait jamais : rien ne relie un décompte à un volume.
+    it "refuse une densité sur un ingrédient compté à la pièce" do
+      ingredient = with_density(0.55, unit_group: :count)
+
+      expect(ingredient).not_to be_valid
+      expect(ingredient.errors[:density_g_per_ml])
+        .to include("ne s'applique pas aux ingrédients comptés à la pièce")
+    end
+
+    it "refuse une densité nulle ou négative" do
+      expect(with_density(0)).not_to be_valid
+    end
+
+    # Garde-fou de l'estimation par l'IA : au-delà, ce n'est plus un aliment.
+    it "refuse une densité hors des bornes alimentaires" do
+      ingredient = with_density(Ingredient::MAX_DENSITY + 1)
+
+      expect(ingredient).not_to be_valid
+      expect(ingredient.errors[:density_g_per_ml].join)
+        .to include("entre 0 et #{Ingredient::MAX_DENSITY}")
+    end
+
+    # Sans provenance, une estimation ne pourrait pas se signaler « à vérifier ».
+    it "exige de dire d'où vient une densité" do
+      ingredient = build(:ingredient, density_g_per_ml: 0.55, density_source: nil)
+
+      expect(ingredient).not_to be_valid
+      expect(ingredient.errors[:density_source]).to include("doit dire d'où vient la densité")
+    end
+
+    it "refuse une provenance sans densité" do
+      ingredient = build(:ingredient, density_g_per_ml: nil, density_source: :ai)
+
+      expect(ingredient).not_to be_valid
+      expect(ingredient.errors[:density_source]).to include("ne se renseigne qu'avec une densité")
+    end
+  end
 end

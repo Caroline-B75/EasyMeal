@@ -103,6 +103,9 @@ class IngredientsController < ApplicationController
   def apply_filters(scope)
     scope = scope.search(params[:query])          if params[:query].present?
     scope = scope.by_category(params[:category])  if params[:category].present?
+    # Scope engendré par l'enum density_source : les densités estimées par l'IA,
+    # celles qui attendent une vérification.
+    scope = scope.density_source_ai               if params[:to_check] == "true"
     apply_season_filter(scope)
   end
 
@@ -131,9 +134,9 @@ class IngredientsController < ApplicationController
   end
 
   # Tout ce dont le panneau IA a besoin pour poser la ligne : le libellé, l'unité
-  # de base, le groupe d'unités et le poids unitaire (qui, ensemble, convertissent
-  # la quantité détectée) et la route d'apprentissage de l'alias — les URLs
-  # restent construites côté Rails.
+  # de base, le groupe d'unités et les deux coefficients de conversion de
+  # l'ingrédient (qui, ensemble, convertissent la quantité détectée), et la route
+  # d'apprentissage de l'alias — les URLs restent construites côté Rails.
   def search_result_json(ingredient)
     {
       id: ingredient.id,
@@ -141,6 +144,10 @@ class IngredientsController < ApplicationController
       base_unit: ingredient.base_unit,
       unit_group: ingredient.unit_group,
       piece_weight_g: ingredient.piece_weight_g,
+      # Les deux coefficients de conversion de l'ingrédient, et la provenance de
+      # la densité : le panneau IA convertit avec, et signale l'estimation.
+      density_g_per_ml: ingredient.density_g_per_ml,
+      density_source: ingredient.density_source,
       add_alias_path: add_alias_ingredient_path(ingredient)
     }
   end
@@ -172,15 +179,24 @@ class IngredientsController < ApplicationController
   # Paramètres autorisés pour Ingredient
   # Le nettoyage des données (aliases, season_months) est géré automatiquement
   # par le concern AttributeCleaner dans le model
+  # La provenance de la densité n'est jamais soumise par le formulaire : elle est
+  # déduite de qui écrit. Une valeur qui passe par ici a été lue et enregistrée
+  # par un humain — corrigée ou simplement confirmée —, elle est donc `manual` et
+  # cesse de s'afficher « à vérifier ». Seul Ingredients::EstimateDensityJob écrit
+  # `ai`. Un champ vidé efface les deux (cf. les validations d'Ingredient).
   def ingredient_params
-    params.require(:ingredient).permit(
+    attributes = params.require(:ingredient).permit(
       :name,
       :category,
       :unit_group,
       :base_unit,
       :piece_weight_g,
+      :density_g_per_ml,
       season_months: [],
       aliases: []
     )
+    return attributes unless attributes.key?(:density_g_per_ml)
+
+    attributes.merge(density_source: attributes[:density_g_per_ml].present? ? :manual : nil)
   end
 end

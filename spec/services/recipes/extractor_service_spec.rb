@@ -192,6 +192,43 @@ RSpec.describe Recipes::ExtractorService do
     end
   end
 
+  # ── Unités : le vocabulaire de l'IA rejoint celui du projet ─────────────
+
+  # L'IA répond dans un vocabulaire verbeux, voulu ainsi pour qu'elle ne
+  # confonde plus la cuillère à soupe et la cuillère à café. Le brouillon, lui,
+  # ne doit connaître que les unités canoniques : la traduction se fait ici,
+  # quel que soit le chemin d'extraction.
+  describe "normalisation des unités" do
+    let(:ia_result) do
+      { "name" => "Frittata",
+        "ingredients" => [
+          { "name" => "huile d'olive", "quantity" => 3, "unit" => "cuillere_a_soupe" },
+          { "name" => "crème", "quantity" => 3, "unit" => "cl" },
+          { "name" => "oeufs", "quantity" => 8, "unit" => nil },
+          { "name" => "jambon", "quantity" => 2, "unit" => "tranches" }
+        ] }
+    end
+
+    before { stub_claude(ia_result) }
+
+    it "ramène les unités de l'IA aux unités canoniques, sur une photo" do
+      units = described_class.from_photo("QUJD")["ingredients"].map { |i| i["unit"] }
+
+      # « tranches » n'est pas une unité : elle reste telle quelle pour que la
+      # revue la montre et signale qu'elle ne se convertit pas.
+      expect(units).to eq([ "cas", "cl", nil, "tranches" ])
+    end
+
+    it "en fait autant pour une page sans schema.org" do
+      stub_page("<html><body>Une recette</body></html>")
+      allow(Recipes::SchemaOrgParser).to receive(:parse_schema_org).and_return(nil)
+
+      units = described_class.from_url(url)["ingredients"].map { |i| i["unit"] }
+
+      expect(units).to eq([ "cas", "cl", nil, "tranches" ])
+    end
+  end
+
   # ── Structuration des ingrédients : le repli ────────────────────────────
 
   describe "repli sur les ingrédients bruts" do

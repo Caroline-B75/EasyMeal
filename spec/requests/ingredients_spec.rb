@@ -77,11 +77,102 @@ RSpec.describe "Ingredients", type: :request do
 
   # Recherche JSON du panneau IA : associer une ligne détectée à un ingrédient
   # existant plutôt que d'en créer un doublon.
+  # Une densité estimée par l'IA pèse sur les quantités de la liste de courses :
+  # elle se signale dans le catalogue, et se retrouve d'un filtre.
+  describe "GET /ingredients — densités à vérifier" do
+    let!(:estimee) do
+      create(:ingredient, name: "Tahini", unit_group: :spoon, base_unit: "cac",
+                          density_g_per_ml: 1.05, density_source: :ai)
+    end
+    let!(:verifiee) do
+      create(:ingredient, name: "Farine", unit_group: :mass, base_unit: "g",
+                          density_g_per_ml: 0.55, density_source: :manual)
+    end
+
+    it "signale d'une pastille les densités estimées, et elles seules" do
+      get ingredients_path
+
+      expect(response.body).to include("densité à vérifier")
+      expect(response.body).to include(ERB::Util.html_escape(I18n.t("ingredients.density_to_check")))
+      # Une seule pastille : celle de l'ingrédient estimé
+      expect(response.body.scan("densité à vérifier").size).to eq(1)
+    end
+
+    it "les rassemble sur demande" do
+      get ingredients_path(to_check: "true")
+
+      expect(response.body).to include(estimee.name)
+      expect(response.body).not_to include(verifiee.name)
+    end
+
+    it "compte ce filtre parmi ceux qu'on peut effacer" do
+      get ingredients_path(to_check: "true")
+
+      expect(response.body).to include("Effacer les filtres")
+      expect(response.body).not_to match(/btn btn-link hidden[^>]*>\s*Effacer/)
+    end
+  end
+
+  # Le formulaire est le seul chemin par lequel une densité devient « vérifiée ».
+  describe "PATCH /ingredients/:id — vérification d'une densité" do
+    let(:admin) { create(:user, admin: true) }
+    let(:farine) do
+      create(:ingredient, name: "Farine", unit_group: :mass, base_unit: "g",
+                          density_g_per_ml: 0.55, density_source: :ai)
+    end
+
+    before { sign_in admin }
+
+    it "propose le champ de densité et rappelle qu'elle est à vérifier" do
+      get edit_ingredient_path(farine)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("Densité (g/ml)")
+      expect(response.body).to include(ERB::Util.html_escape(I18n.t("ingredients.density_to_check")))
+    end
+
+    it "montre les coefficients de conversion sur la fiche" do
+      get ingredient_path(farine)
+
+      expect(response.body).to include("Conversions", "0,55 g/ml")
+    end
+
+    it "tient une densité enregistrée par un humain pour vérifiée" do
+      patch ingredient_path(farine), params: { ingredient: { density_g_per_ml: "0.6" } }
+
+      expect(farine.reload).to have_attributes(density_g_per_ml: 0.6, density_source: "manual")
+    end
+
+    # Même sans correction : avoir lu la valeur et enregistré vaut vérification.
+    it "vaut vérification même quand la valeur ne change pas" do
+      patch ingredient_path(farine), params: { ingredient: { density_g_per_ml: "0.55" } }
+
+      expect(farine.reload.density_source).to eq("manual")
+    end
+
+    it "efface la provenance avec la densité" do
+      patch ingredient_path(farine), params: { ingredient: { density_g_per_ml: "" } }
+
+      expect(farine.reload).to have_attributes(density_g_per_ml: nil, density_source: nil)
+    end
+
+    # Un formulaire qui ne parle pas de densité ne doit pas en changer la
+    # provenance : l'ajout d'un alias n'est pas une vérification.
+    it "laisse la provenance intacte quand le formulaire ne porte pas la densité" do
+      patch ingredient_path(farine), params: { ingredient: { name: "Farine T55" } }
+
+      expect(farine.reload).to have_attributes(name: "Farine T55", density_source: "ai")
+    end
+  end
+
   describe "GET /ingredients/search" do
     it "renvoie les ingrédients correspondants avec la route d'apprentissage de l'alias" do
-      # Le poids unitaire fait partie du contrat : c'est lui qui permet au
-      # panneau de convertir « 2 tranches » avant de poser la ligne.
-      thym = create(:ingredient, name: "Thym frais", piece_weight_g: 2)
+      # Les deux coefficients de conversion font partie du contrat : ce sont eux
+      # qui permettent au panneau de convertir « 2 tranches » ou « 1 càs » avant
+      # de poser la ligne, et la provenance de la densité de signaler une
+      # estimation.
+      thym = create(:ingredient, name: "Thym frais", piece_weight_g: 2,
+                                 density_g_per_ml: 0.4, density_source: :ai)
       create(:ingredient, name: "Persil")
 
       get search_ingredients_path(q: "thym")
@@ -90,6 +181,7 @@ RSpec.describe "Ingredients", type: :request do
       expect(response.parsed_body).to eq([
         { "id" => thym.id, "name" => "Thym frais", "base_unit" => "g",
           "unit_group" => "mass", "piece_weight_g" => "2.0",
+          "density_g_per_ml" => "0.4", "density_source" => "ai",
           "add_alias_path" => add_alias_ingredient_path(thym) }
       ])
     end

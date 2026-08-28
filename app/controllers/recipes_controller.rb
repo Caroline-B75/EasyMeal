@@ -54,8 +54,7 @@ class RecipesController < ApplicationController
   # GET /recipes/:id/edit
   # Formulaire d'édition (admin only)
   def edit
-    recipe.ensure_preparation_form_ready
-    @ai_matches = compute_ai_matches if recipe.draft?
+    prepare_edit_form
   end
 
   # PATCH /recipes/:id/publish
@@ -78,6 +77,8 @@ class RecipesController < ApplicationController
     if @recipe.save
       redirect_to @recipe, notice: "Recette créée avec succès."
     else
+      # Sans ça, un formulaire refusé revient sans sa ligne d'ingrédient vide.
+      @recipe.ensure_preparation_form_ready
       render :new, status: :unprocessable_entity
     end
   end
@@ -86,16 +87,22 @@ class RecipesController < ApplicationController
   # Mise à jour d'une recette (admin only).
   # Si _publish=1 est soumis (bouton "Publier"), sauvegarde ET publie en une seule requête.
   def update
-    attrs = recipe_params
-    attrs = attrs.merge(status: :published) if params[:_publish].present?
+    publishing = params[:_publish].present?
+    attrs = publishing ? recipe_params.merge(status: :published) : recipe_params
 
     if recipe.update(attrs)
-      if recipe.published? && params[:_publish].present?
+      if publishing
         redirect_to recipe, notice: "Recette publiée et visible dans le catalogue !"
       else
         redirect_to edit_recipe_path(recipe), notice: "Brouillon sauvegardé."
       end
     else
+      # Une publication refusée laisse la recette en brouillon en base, mais
+      # l'objet en mémoire porte déjà `status: published` : sans ce retour en
+      # arrière, le formulaire ré-affiché se croirait publié et perdrait tout ce
+      # qui n'appartient qu'au brouillon — panneau IA, rappel de la source.
+      recipe.restore_attributes([ :status ]) if publishing
+      prepare_edit_form
       render :edit, status: :unprocessable_entity
     end
   end
@@ -108,6 +115,15 @@ class RecipesController < ApplicationController
   end
 
   private
+
+  # Tout ce dont le formulaire d'édition a besoin en plus de la recette
+  # elle-même. Emprunté aussi bien par GET /edit que par le ré-affichage qui
+  # suit une validation refusée : c'est ce second chemin qui, oublié, faisait
+  # disparaître le panneau IA au premier message d'erreur.
+  def prepare_edit_form
+    recipe.ensure_preparation_form_ready
+    @ai_matches = compute_ai_matches if recipe.draft?
+  end
 
   # Accès mémoïsé à la recette courante
   def recipe
@@ -144,11 +160,17 @@ class RecipesController < ApplicationController
   # détectée sait rejoindre l'unité de base de chaque candidat — c'est ce
   # dernier point qui déclenche l'avertissement à l'écran.
   def ai_match_for(ingredient_data)
-    name    = ingredient_data["name"].to_s
-    qty     = ingredient_data["quantity"].to_f
-    unit    = ingredient_data["unit"].to_s.presence
-    matches = IngredientMatcherService.match(name)
-    exact   = matches[:exact]
+    name = ingredient_data["name"].to_s
+    qty  = ingredient_data["quantity"].to_f
+    # Unité canonique plutôt que l'écriture de l'IA : c'est sous cette forme que
+    # le contrôleur Stimulus la retrouvera dans la table des unités, et les
+    # brouillons d'avant la normalisation à l'extraction portent encore « càs ».
+    # Une unité illisible est conservée telle quelle : elle ne se convertira pas,
+    # et c'est justement ce que la ligne doit montrer.
+    raw_unit = ingredient_data["unit"].to_s.presence
+    unit     = Units.canonical(raw_unit) || raw_unit
+    matches  = IngredientMatcherService.match(name)
+    exact    = matches[:exact]
 
     # Conversion impossible → la quantité brute part quand même dans le
     # formulaire, à ajuster : mieux vaut un nombre à corriger qu'un champ vide.
@@ -160,6 +182,9 @@ class RecipesController < ApplicationController
       unit:          unit,
       quantity_base: (converted || qty).round(2),
       converted:     converted.present?,
+      # Conversion obtenue grâce à une densité que l'IA a estimée : la quantité
+      # n'est juste qu'à cette estimation près, et la ligne doit le dire.
+      estimated:     exact.present? && UnitConversionService.estimated?(from_unit: unit, ingredient: exact),
       exact:         exact,
       fuzzy:         suggestions_for(matches[:fuzzy], unit)
     }
@@ -171,7 +196,8 @@ class RecipesController < ApplicationController
   def suggestions_for(fuzzy_matches, unit)
     fuzzy_matches.first(AI_FUZZY_SUGGESTIONS).map do |ingredient|
       { ingredient: ingredient,
-        converts:   UnitConversionService.compatible?(from_unit: unit, ingredient: ingredient) }
+        converts:   UnitConversionService.compatible?(from_unit: unit, ingredient: ingredient),
+        estimated:  UnitConversionService.estimated?(from_unit: unit, ingredient: ingredient) }
     end
   end
 

@@ -188,6 +188,18 @@ RSpec.describe "Recipe drafts (recettes importées)", type: :request do
       expect(response).to redirect_to(recipe_drafts_path)
     end
 
+    # Un brouillon vient toujours d'un import, et la clé étrangère de celui-ci
+    # bloquait la suppression : la trace de l'import part avec le brouillon.
+    it "emporte l'import qui a produit le brouillon" do
+      draft = create(:recipe, status: :draft)
+      create(:recipe_import, recipe: draft, status: :succeeded)
+
+      expect { delete recipe_draft_path(draft) }.to change(RecipeImport, :count).by(-1)
+
+      expect(response).to redirect_to(recipe_drafts_path)
+      expect(flash[:notice]).to eq("Brouillon supprimé.")
+    end
+
     # La route ne voit que les brouillons (Recipe.draft.find) : une recette
     # publiée n'est pas supprimable par ce chemin, même par un admin.
     it "refuse de supprimer une recette publiée" do

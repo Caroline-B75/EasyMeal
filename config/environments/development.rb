@@ -55,6 +55,11 @@ Rails.application.configure do
   # Highlight code that enqueued background job in logs.
   config.active_job.verbose_enqueue_logs = true
 
+  # Même moteur de jobs qu'en production : un import se comporte ici exactement
+  # comme en ligne, page d'attente comprise.
+  config.active_job.queue_adapter = :good_job
+  config.good_job.execution_mode = :async
+
   # Suppress logger output for asset requests.
   config.assets.quiet = true
 

@@ -54,6 +54,20 @@
               hint_html: { class: "form-hint" },
               error_class: "has-error"
 
+  -# Second coefficient de conversion, symétrique du précédent. Quand la valeur
+  -# affichée vient de l'IA, l'indication le dit et rappelle qu'enregistrer vaut
+  -# vérification : le formulaire est le seul endroit d'où sort une densité
+  -# `manual` (cf. IngredientsController#ingredient_params).
+  .form-group
+    = f.input :density_g_per_ml,
+              label: "Densité (g/ml)",
+              hint: density_field_hint(ingredient),
+              placeholder: "Ex: 0.55",
+              input_html: { class: "form-input", step: "0.01", min: "0.01", max: Ingredient::MAX_DENSITY },
+              label_html: { class: "form-label" },
+              hint_html: { class: "form-hint" },
+              error_class: "has-error"
+
   .form-group
     %label.form-label Alias (synonymes)
     %small.form-hint Noms alternatifs pour faciliter ta recherche
