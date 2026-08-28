@@ -1329,9 +1329,18 @@
   background: var(--color-primary);
 }
 
+/* Largeur de la colonne de droite — partagée par la photo du hero et par la
+   sidebar ingrédients. Ce sont deux grilles distinctes empilées : seule une
+   valeur commune garantit que leurs bords restent alignés, à toutes les
+   largeurs. Ne redéclarer que la variable, jamais la largeur en dur. */
+.rs-hero-inner,
+.rs-body {
+  --rs-aside-width: 340px;
+  grid-template-columns: 1fr var(--rs-aside-width);
+}
+
 .rs-hero-inner {
   display: grid;
-  grid-template-columns: 1fr 340px;
   max-width: 1400px;
   margin: 0 auto;
 }
@@ -1574,7 +1583,6 @@
 
 .rs-body {
   display: grid;
-  grid-template-columns: 1fr 280px;
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
@@ -2256,16 +2264,13 @@
 
 /* Tablette (768px – 1024px) */
 @media (min-width: 768px) and (max-width: 1024px) {
-  .rs-hero-inner {
-    grid-template-columns: 1fr 260px;
+  .rs-hero-inner,
+  .rs-body {
+    --rs-aside-width: 260px;
   }
 
   .rs-hero-content {
     padding: 24px 20px;
-  }
-
-  .rs-body {
-    grid-template-columns: 1fr 240px;
   }
 
   .rs-main {
