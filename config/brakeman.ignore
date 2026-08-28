@@ -1,0 +1,29 @@
+{
+  "ignored_warnings": [
+    {
+      "fingerprint": "6dd6367677f10a49aaf704aa2bfb58e3e8b61aa16d941ca62d7e0495609a5e27",
+      "check_name": "PermitAttributes",
+      "message": "Potentially dangerous key allowed for mass assignment",
+      "file": "app/controllers/users_controller.rb",
+      "line": 54,
+      "note": "Faux positif : l'action est reservee aux administrateurs. UsersController appelle `authorize @user || User` en before_action, et UserPolicy#update? exige `user&.admin?` — une utilisatrice ordinaire ne peut donc pas atteindre cette action, et encore moins se promouvoir. Brakeman ne sait pas lire les policies Pundit. La ligne `permitted_params[:admin] = true if @user == current_user` va d'ailleurs dans le sens de la securite : elle empeche un administrateur de se retirer ses propres droits et de verrouiller l'acces pour tout le monde. A revoir si l'autorisation de cette action change."
+    },
+    {
+      "fingerprint": "e47ca49cf168cd85320bcd916b43800d44cf52af0d5b9d781de9069ba2efef7a",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/menus/show.html.haml",
+      "line": 20,
+      "note": "Faux positif : la valeur inseree dans l'attribut class vient de MenusHelper#menu_status_badge_class, qui ne peut retourner que l'un de quatre litteraux ecrits en dur ('badge badge-draft', 'badge badge-active', 'badge badge-archived', 'badge'). Aucune donnee saisie par un utilisateur n'atteint la sortie. Brakeman signale seulement qu'un attribut de modele traverse un helper qu'il ne sait pas suivre."
+    },
+    {
+      "fingerprint": "f5efeea532faa73fecf688e27bb75f95ab03fb76c12aa49188ff0b22af66ae19",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/tags/edit.html.haml",
+      "line": 15,
+      "note": "Faux positif : meme motif que menus/show.html.haml. La valeur vient d'ApplicationHelper#field_error_class, qui ne retourne que 'has-error' ou une chaine vide. Aucune donnee saisie n'atteint la sortie."
+    }
+  ],
+  "brakeman_version": "8.0.6"
+}

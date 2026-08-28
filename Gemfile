@@ -52,7 +52,7 @@ gem "bundler-audit", "~> 0.9.3", require: false, group: [ :development, :test ]
 
 group :development, :test do
   gem "debug", "~> 1.11.1", platforms: %i[mri windows], require: "debug/prelude"
-  gem "brakeman", "~> 7.1.2", require: false
+  gem "brakeman", "~> 8.0", require: false
   gem "rubocop-rails-omakase", "~> 1.1.0", require: false
   gem "rspec-rails", "~> 8.0.2"
   # Formateur qui transforme chaque échec en annotation GitHub : le nom du test et
