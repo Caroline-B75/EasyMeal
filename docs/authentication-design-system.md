@@ -35,17 +35,15 @@ Ce document explique le système d'authentification moderne implémenté pour Ea
 ```
 app/
 ├── views/
-│   ├── devise/
-│   │   ├── registrations/
-│   │   │   └── new.html.erb          # Page d'inscription
-│   │   ├── sessions/
-│   │   │   └── new.html.erb          # Page de connexion
-│   │   ├── passwords/
-│   │   │   └── new.html.erb          # Mot de passe oublié
-│   │   └── shared/
-│   │       └── _links.html.erb       # Liens de navigation
-│   └── shared/
-│       └── _form_field.html.erb      # Composant de champ réutilisable
+│   └── devise/
+│       ├── registrations/
+│       │   └── new.html.erb          # Page d'inscription
+│       ├── sessions/
+│       │   └── new.html.erb          # Page de connexion
+│       ├── passwords/
+│       │   └── new.html.erb          # Mot de passe oublié
+│       └── shared/
+│           └── _links.html.erb       # Liens de navigation
 ├── assets/
 │   └── stylesheets/
 │       └── authentication.css        # Styles pour l'authentification
@@ -129,21 +127,6 @@ Les traductions sont configurées dans :
   <div class="form-group form-group-half">...</div>
   <div class="form-group form-group-half">...</div>
 </div>
-```
-
-## 🔄 Composants Réutilisables
-
-### Champ de Formulaire Personnalisé
-
-```erb
-<%= render 'shared/form_field',
-    form: f,
-    field: :email,
-    type: :email_field,
-    required: true,
-    placeholder: 'votre.email@exemple.com',
-    autocomplete: 'email',
-    label: 'Email' %>
 ```
 
 ## 📱 Responsive Design

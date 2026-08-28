@@ -57,7 +57,8 @@ class GroceryItemsController < ApplicationController
 
   # Paramètres pour la création d'un item manuel
   def grocery_item_create_params
-    permitted = params.require(:grocery_item).permit(:name, :quantity_base, :base_unit, :unit_group, :category, :ingredient_id)
+    permitted = params.require(:grocery_item).permit(:name, :quantity_base, :base_unit, :unit_group,
+                                                     :category, :ingredient_id)
     permitted[:quantity_base] = 1       if permitted[:quantity_base].blank?
     permitted[:base_unit]     = "piece" if permitted[:base_unit].blank?
     permitted

@@ -121,17 +121,15 @@ easymeal/
 │
 ├── app/
 │   ├── views/
-│   │   ├── devise/
-│   │   │   ├── registrations/
-│   │   │   │   └── new.html.erb          ← Page d'inscription ✨
-│   │   │   ├── sessions/
-│   │   │   │   └── new.html.erb          ← Page de connexion ✨
-│   │   │   ├── passwords/
-│   │   │   │   └── new.html.erb          ← Mot de passe oublié ✨
-│   │   │   └── shared/
-│   │   │       └── _links.html.erb       ← Navigation ✨
-│   │   └── shared/
-│   │       └── _form_field.html.erb      ← Composant réutilisable ✨
+│   │   └── devise/
+│   │       ├── registrations/
+│   │       │   └── new.html.erb          ← Page d'inscription ✨
+│   │       ├── sessions/
+│   │       │   └── new.html.erb          ← Page de connexion ✨
+│   │       ├── passwords/
+│   │       │   └── new.html.erb          ← Mot de passe oublié ✨
+│   │       └── shared/
+│   │           └── _links.html.erb       ← Navigation ✨
 │   │
 │   ├── assets/stylesheets/
 │   │   ├── authentication.css            ← Design system (400+ lignes) ✨

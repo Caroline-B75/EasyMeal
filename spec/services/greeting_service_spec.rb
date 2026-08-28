@@ -22,7 +22,7 @@ RSpec.describe GreetingService do
         "Tes ajustements attendent validation avant de rafraîchir les courses."
       ]
 
-      allow(service).to receive(:greeting_pairs).and_return([expected_pair])
+      allow(service).to receive(:greeting_pairs).and_return([ expected_pair ])
 
       greeting = service.random_greeting
 

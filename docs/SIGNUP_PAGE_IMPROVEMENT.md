@@ -59,20 +59,7 @@ Le formulaire d'inscription comprend maintenant :
 - ✅ Dégradé d'arrière-plan animé
 - ✅ Typography moderne et hiérarchisée
 
-### 5. **Composants Réutilisables**
-
-Créé un partial réutilisable pour les champs de formulaire :
-
-```erb
-<%= render 'shared/form_field',
-    form: f,
-    field: :email,
-    type: :email_field,
-    required: true,
-    placeholder: 'Email' %>
-```
-
-### 6. **Configuration Technique**
+### 5. **Configuration Technique**
 
 #### ✅ Application Controller
 
@@ -117,9 +104,6 @@ app/views/devise/
 │   └── new.html.erb                    ✨ Mot de passe oublié
 └── shared/
     └── _links.html.erb                 ✨ Liens de navigation
-
-app/views/shared/
-└── _form_field.html.erb                ✨ Composant réutilisable
 
 app/assets/stylesheets/
 └── authentication.css                  ✨ Design system complet

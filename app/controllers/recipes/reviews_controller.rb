@@ -19,30 +19,7 @@ module Recipes
 
       # `persisted?` ne suffit pas : sur un avis déjà existant que l'on remet à
       # jour, l'enregistrement reste persisté même si la sauvegarde a échoué.
-      if @review.errors.empty?
-        respond_to do |format|
-          format.turbo_stream do
-            render turbo_stream: [
-              turbo_stream.update("review-form-container", ""),
-              turbo_stream.prepend("reviews-list", partial: "recipes/review_card",
-locals: { review: @review, current_user: current_user })
-            ]
-          end
-          format.html { redirect_to @recipe, notice: "Ton avis a été enregistré 🌟" }
-        end
-      else
-        respond_to do |format|
-          # On réaffiche le formulaire avec les erreurs et la saisie conservée
-          # (sans ce ré-rendu, le commentaire tapé serait perdu).
-          format.turbo_stream do
-            render turbo_stream: turbo_stream.update("review-form-container",
-                                                     partial: "recipes/review_form",
-                                                     locals: { recipe: @recipe, review: @review }),
-                   status: :unprocessable_content
-          end
-          format.html { redirect_to @recipe, alert: @review.errors.full_messages.to_sentence }
-        end
-      end
+      @review.errors.empty? ? render_saved_review : render_review_errors
     end
 
     # DELETE /recipes/:recipe_id/reviews/:id
@@ -66,6 +43,35 @@ locals: { review: @review, current_user: current_user })
     end
 
     private
+
+    # Avis enregistré : le formulaire se vide et la carte du nouvel avis se pose
+    # en tête de la liste.
+    def render_saved_review
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: [
+            turbo_stream.update("review-form-container", ""),
+            turbo_stream.prepend("reviews-list", partial: "recipes/review_card",
+                                                 locals: { review: @review, current_user: current_user })
+          ]
+        end
+        format.html { redirect_to @recipe, notice: "Ton avis a été enregistré 🌟" }
+      end
+    end
+
+    # Échec : on réaffiche le formulaire avec ses erreurs et la saisie conservée
+    # (sans ce ré-rendu, le commentaire tapé serait perdu).
+    def render_review_errors
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.update("review-form-container",
+                                                   partial: "recipes/review_form",
+                                                   locals: { recipe: @recipe, review: @review }),
+                 status: :unprocessable_content
+        end
+        format.html { redirect_to @recipe, alert: @review.errors.full_messages.to_sentence }
+      end
+    end
 
     def set_recipe
       @recipe = Recipe.find(params[:recipe_id])

@@ -119,7 +119,7 @@ class Recipe < ApplicationRecord
   # Ex : compatible_with(:vegetarien) inclut aussi les recettes vegan
   # À utiliser TOUJOURS à la place de .where(diet: ...) pour les pools de menu
   scope :compatible_with, ->(diet) {
-    where(diet: DIET_COMPATIBILITY.fetch(diet.to_s, [diet.to_s]))
+    where(diet: DIET_COMPATIBILITY.fetch(diet.to_s, [ diet.to_s ]))
   }
 
   # Filtrer par régime exact (usage catalogue/filtre UI uniquement)

@@ -2,7 +2,7 @@
 # Génère une barre de navigation contextuelle (back-link ou breadcrumb)
 module ContextBarHelper
   # Génère un lien retour simple
-  # 
+  #
   # @param path [String] URL de destination
   # @param label [String] Texte du lien (ex: "Retour aux recettes")
   # @param variant [Symbol] Variante CSS (:default, :narrow, :fluid, :compact, :borderless)
@@ -17,7 +17,7 @@ module ContextBarHelper
   end
 
   # Génère un fil d'Ariane hiérarchique
-  # 
+  #
   # @param crumbs [Array<Hash>] Liste des crumbs avec :label et :path (sauf le dernier)
   # @param variant [Symbol] Variante CSS (:default, :narrow, :fluid, :compact, :borderless)
   # @return [String] HTML du context bar
@@ -43,12 +43,12 @@ module ContextBarHelper
   def context_bar_classes(variant)
     base = "context-bar"
     modifier = case variant
-               when :narrow then "context-bar--narrow"
-               when :fluid then "context-bar--fluid"
-               when :compact then "context-bar--compact"
-               when :borderless then "context-bar--borderless"
-               else nil
-               end
-    [base, modifier].compact.join(" ")
+    when :narrow then "context-bar--narrow"
+    when :fluid then "context-bar--fluid"
+    when :compact then "context-bar--compact"
+    when :borderless then "context-bar--borderless"
+    else nil
+    end
+    [ base, modifier ].compact.join(" ")
   end
 end

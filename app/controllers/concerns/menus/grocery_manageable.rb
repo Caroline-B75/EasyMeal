@@ -28,6 +28,5 @@ module Menus
         format.html { redirect_to grocery_menu_path(@menu), notice: "Liste de courses régénérée." }
       end
     end
-
   end
 end

@@ -105,7 +105,7 @@ class GreetingService
     subtexts = CONTEXT_SUBTEXTS.fetch(@context, CONTEXT_SUBTEXTS[:planning])
 
     GREETING_TEXTS.each_with_index.map do |text_template, index|
-      [text_template, subtexts[index % subtexts.size]]
+      [ text_template, subtexts[index % subtexts.size] ]
     end
   end
 

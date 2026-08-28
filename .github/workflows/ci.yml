@@ -29,8 +29,16 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
+      # --ensure-ignore-notes demande à Brakeman de refuser une alerte écartée
+      # sans justification écrite dans config/brakeman.ignore.
+      #
+      # ⚠️ Vérifié le 28/08/2026 : en 8.0.6 ce drapeau n'échoue pas réellement —
+      # sortie 0 même sur une note vide, et NoMethodError interne quand la clé
+      # « note » est absente. Il est gardé parce qu'il énonce la règle et
+      # prendra effet quand le gem sera corrigé, mais la garantie d'aujourd'hui
+      # reste la relecture du fichier d'exclusions.
       - name: Scan for common Rails security vulnerabilities using static analysis
-        run: bin/brakeman --no-pager
+        run: bin/brakeman --no-pager --ensure-ignore-notes
 
   scan_js:
     runs-on: ubuntu-latest

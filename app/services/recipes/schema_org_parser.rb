@@ -76,6 +76,12 @@ module Recipes
 
       # Numérote les étapes, qu'elles arrivent en Hash, en String, ou seules hors
       # tableau.
+      #
+      # La complexité mesurée (9 pour 7) est celle du case/when multi-types : les
+      # sites publient leurs instructions dans des formes hétérogènes, et c'est
+      # précisément ce que cette méthode absorbe en neuf lignes. Même
+      # justification que clean_aliases dans attribute_cleaner.rb.
+      # rubocop:disable Metrics/CyclomaticComplexity
       def format_instructions(data)
         return "" if data.blank?
         steps = Array.wrap(data).filter_map do |step|
@@ -86,6 +92,7 @@ module Recipes
         end.reject(&:blank?)
         steps.each_with_index.map { |step, i| "#{i + 1}. #{step}" }.join("\n")
       end
+      # rubocop:enable Metrics/CyclomaticComplexity
 
       # Texte lisible de la page, débarrassé de son habillage : c'est le repli
       # quand aucun schema.org n'est publié.

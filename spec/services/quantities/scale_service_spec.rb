@@ -9,7 +9,8 @@ RSpec.describe Quantities::ScaleService do
   end
 
   let(:ingredient_oeufs) do
-    Ingredient.new(id: 2, name: "Œufs", unit_group: "count", base_unit: "pièce", category: "produits_frais_libre_service")
+    Ingredient.new(id: 2, name: "Œufs", unit_group: "count", base_unit: "pièce",
+                   category: "produits_frais_libre_service")
   end
 
   let(:ingredient_huile) do

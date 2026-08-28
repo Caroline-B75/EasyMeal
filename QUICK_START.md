@@ -53,9 +53,6 @@ app/views/devise/sessions/new.html.erb
 app/views/devise/passwords/new.html.erb
 app/views/devise/shared/_links.html.erb
 
-✨ COMPOSANTS
-app/views/shared/_form_field.html.erb
-
 ✨ STYLES
 app/assets/stylesheets/authentication.css (400+ lignes)
 app/assets/stylesheets/global.css

@@ -17,21 +17,7 @@ class TagsController < ApplicationController
     success = @tag.save
 
     respond_to do |format|
-      format.turbo_stream do
-        if success
-          # Liste rafraîchie (le tag apparaît dans son groupe) + formulaire vidé
-          render turbo_stream: [
-            turbo_stream.replace("tags_list", partial: "tags/tags_list",
-              locals: { tags: Tag.alphabetical, recipe_counts: recipe_counts_by_tag }),
-            turbo_stream.replace("new_tag_form", partial: "tags/new_tag_form",
-              locals: { tag: Tag.new, autofocus: true })
-          ]
-        else
-          # Formulaire réaffiché avec les erreurs, valeurs saisies conservées
-          render turbo_stream: turbo_stream.replace("new_tag_form", partial: "tags/new_tag_form",
-            locals: { tag: @tag, autofocus: true }), status: :unprocessable_entity
-        end
-      end
+      format.turbo_stream { success ? render_created_tag : render_tag_errors }
       format.html do
         if success
           redirect_to tags_path, notice: "Tag créé avec succès."
@@ -56,10 +42,7 @@ class TagsController < ApplicationController
     success = @tag.update(tag_params)
 
     respond_to do |format|
-      format.turbo_stream do
-        render turbo_stream: turbo_stream.replace("tags_list", partial: "tags/tags_list",
-locals: { tags: Tag.alphabetical, recipe_counts: recipe_counts_by_tag })
-      end
+      format.turbo_stream { render turbo_stream: refreshed_tags_list }
       format.html do
         if success
           redirect_to tags_path, notice: "Tag mis à jour avec succès."
@@ -78,6 +61,32 @@ locals: { tags: Tag.alphabetical, recipe_counts: recipe_counts_by_tag })
   end
 
   private
+
+  # Tag créé : la liste se rafraîchit — il apparaît dans son groupe — et le
+  # formulaire se vide, prêt pour la saisie suivante.
+  def render_created_tag
+    render turbo_stream: [ refreshed_tags_list, tag_form(Tag.new) ]
+  end
+
+  # Échec : seul le formulaire est réaffiché, avec ses erreurs et les valeurs
+  # saisies conservées.
+  def render_tag_errors
+    render turbo_stream: tag_form(@tag), status: :unprocessable_entity
+  end
+
+  # La liste des tags telle qu'elle doit réapparaître après toute modification.
+  # Partagée par la création et la mise à jour, qui la reconstruisaient à
+  # l'identique.
+  def refreshed_tags_list
+    turbo_stream.replace("tags_list", partial: "tags/tags_list",
+                                      locals: { tags: Tag.alphabetical,
+                                                recipe_counts: recipe_counts_by_tag })
+  end
+
+  def tag_form(tag)
+    turbo_stream.replace("new_tag_form", partial: "tags/new_tag_form",
+                                         locals: { tag: tag, autofocus: true })
+  end
 
   def set_tag
     @tag = Tag.find(params[:id])

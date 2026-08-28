@@ -21,6 +21,11 @@ module ApplicationHelper
     GreetingService::Greeting.new(data["text"], data["subtext"])
   end
 
+  # Chaîne de gardes : chaque situation est nommée et testée dans son ordre de
+  # priorité. La complexité mesurée (8 pour 7) vient des `&.` et des retours
+  # anticipés, pas d'un enchevêtrement — découper ne ferait que disperser une
+  # décision qui se lit d'un seul bloc.
+  # rubocop:disable Metrics/CyclomaticComplexity
   def greeting_context(active_menu:, draft:)
     return :grocery_list_ready if active_menu&.grocery_items&.exists?
     return :active_menu_ready if active_menu
@@ -29,6 +34,7 @@ module ApplicationHelper
 
     :planning
   end
+  # rubocop:enable Metrics/CyclomaticComplexity
 
   # Vérifie si on est sur la page d'accueil
   def home_page?
@@ -50,21 +56,30 @@ module ApplicationHelper
   end
 
   # Classe CSS pour les liens de navigation du header (avec état actif)
+  #
+  # Un `when` par section du header, chacun disant comment il se reconnaît
+  # « actif ». La complexité mesurée (11 pour 7) est celle de cette table de
+  # correspondance : elle croît d'une unité par entrée du menu. La remplacer par
+  # un dictionnaire de lambdas satisferait la métrique au prix de la lisibilité —
+  # ici, une section se lit sur une ligne. Même esprit que l'exclusion de
+  # filter_service.rb dans .rubocop.yml : structure volontairement branchée.
+  # rubocop:disable Metrics/CyclomaticComplexity
   def header_nav_class(section, target_menu = nil)
     is_active = case section
-                when :recipes then controller_name == "recipes"
-                when :menus   then controller_name == "menus" && action_name == "index"
-                when :current, :draft then target_menu.present? && current_page?(menu_path(target_menu))
-                when :grocery then target_menu.present? && current_page?(grocery_menu_path(target_menu))
-                # L'import IA est un parcours en deux temps : le formulaire
-                # (recipe_imports) puis la liste des brouillons (recipe_drafts).
-                when :drafts  then controller_name.in?(%w[recipe_drafts recipe_imports])
-                when :users   then controller_name == "users"
-                else false
-                end
+    when :recipes then controller_name == "recipes"
+    when :menus   then controller_name == "menus" && action_name == "index"
+    when :current, :draft then target_menu.present? && current_page?(menu_path(target_menu))
+    when :grocery then target_menu.present? && current_page?(grocery_menu_path(target_menu))
+    # L'import IA est un parcours en deux temps : le formulaire
+    # (recipe_imports) puis la liste des brouillons (recipe_drafts).
+    when :drafts  then controller_name.in?(%w[recipe_drafts recipe_imports])
+    when :users   then controller_name == "users"
+    else false
+    end
 
     "header-nav-link #{'active' if is_active}"
   end
+  # rubocop:enable Metrics/CyclomaticComplexity
 
   # ============================================
   # SYSTÈME DE GESTION D'ERREURS INLINE
@@ -124,7 +139,7 @@ module ApplicationHelper
     style_parts << "width: #{size}; height: #{size}" if size.present?
 
     # Construction des attributs à injecter dans la balise <svg>
-    css_classes = ["svg-icon", css_class].compact.join(" ")
+    css_classes = [ "svg-icon", css_class ].compact.join(" ")
     extra_attrs = " class=\"#{css_classes}\""
     extra_attrs += " style=\"#{style_parts.join('; ')}\"" if style_parts.any?
     extra_attrs += " aria-hidden=\"true\""
@@ -137,6 +152,13 @@ module ApplicationHelper
   # Icônes Feather inline (petits SVG courants sans fichier séparé)
   # Usage : = svg_icon(:edit, size: 13)
   #         = svg_icon(:heart, size: 14, fill: "currentColor")
+  #
+  # Longueur de ligne suspendue sur ce seul dictionnaire : chaque valeur est un
+  # tracé SVG d'un seul tenant (« M11 4H4a2 2 0 0 0-2 2v14… »). Le couper à 120
+  # caractères ne le rendrait pas plus lisible, seulement plus difficile à
+  # comparer d'une icône à l'autre. Même esprit que l'exclusion de db/seeds dans
+  # .rubocop.yml : ce sont des données, pas du code.
+  # rubocop:disable Layout/LineLength
   FEATHER_ICONS = {
     "chevron-left"  => '<polyline points="15 18 9 12 15 6"/>',
     "chevron-down"  => '<polyline points="6 9 12 15 18 9"/>',
@@ -195,6 +217,7 @@ module ApplicationHelper
     "salad"         => '<path d="M3 12a9 9 0 0 0 18 0z"/><path d="M12 12c0-2.8 2.2-5 5-5 0 2.8-2.2 5-5 5z"/><path d="M12 12C9.2 12 7 9.8 7 7c2.8 0 5 2.2 5 5z"/>',
     "ice-cream"     => '<path d="M7.5 10a4.5 4.5 0 0 1 9 0"/><path d="M7.5 10h9l-4.5 11z"/>'
   }.freeze
+  # rubocop:enable Layout/LineLength
 
   # stroke: "none" (avec fill: "currentColor") pour les icônes pleines (silhouettes),
   # par opposition aux icônes Feather au trait (stroke par défaut).
@@ -202,8 +225,9 @@ module ApplicationHelper
     body = FEATHER_ICONS[name.to_s] || ""
     # Classe .svg-icon commune (alignement vertical + flex-shrink) pour un rendu
     # cohérent aussi bien dans du texte que dans un conteneur flex.
-    classes = ["svg-icon", css_class].compact.join(" ")
-    attrs = %w[xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"]
+    classes = [ "svg-icon", css_class ].compact.join(" ")
+    attrs = %w[xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"
+stroke-linejoin="round"]
     attrs << %(stroke="#{ERB::Util.html_escape(stroke)}")
     attrs << %(width="#{size}" height="#{size}") if size
     attrs << %(class="#{ERB::Util.html_escape(classes)}")
@@ -224,7 +248,7 @@ module ApplicationHelper
   # Initiales de l'utilisateur (avatar) — ex. "Caroline Belmas" → "CB".
   # Mutualisé entre l'avatar du header et l'en-tête du menu déroulant.
   def user_initials(user)
-    names = [user.first_name, user.last_name].filter_map { |name| name.presence&.first }
+    names = [ user.first_name, user.last_name ].filter_map { |name| name.presence&.first }
     return names.join.upcase if names.any?
 
     user.email.to_s.first(2).upcase.presence || "?"
