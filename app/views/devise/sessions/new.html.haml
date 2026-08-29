@@ -16,8 +16,8 @@
           = f.input :email, required: false, autofocus: true, input_html: { class: 'form-input', autocomplete: "email", placeholder: "votre.email@exemple.com" }, label_html: { class: 'form-label' }, wrapper_html: { class: 'input-wrapper' }
 
         / Password
-        .form-group
-          = f.input :password, required: false, input_html: { class: 'form-input', autocomplete: "current-password", placeholder: "••••••••" }, label_html: { class: 'form-label' }, wrapper_html: { class: 'input-wrapper' }
+        = render "devise/password_field", f: f, attribute: :password, label: "Mot de passe",
+                 required: false, autocomplete: "current-password"
 
         / Remember Me
         - if devise_mapping.rememberable?

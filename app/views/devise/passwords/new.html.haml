@@ -1,9 +1,10 @@
-- content_for :head do
-  = stylesheet_link_tag "authentication", "data-turbo-track": "reload"
-
+-# authentication.css est déjà inclus dans le bundle global application.css :
+-# pas de stylesheet_link_tag séparé ici (évite un asset data-turbo-track qui
+-# force un rechargement complet lors des visites Turbo — le spinner infini
+-# décrit dans devise/sessions/new).
 .auth-container
   .auth-card
-    .auth-header
+    .auth-header.user-form-header
       %h1.auth-title Mot de passe oublié ?
       %p.auth-subtitle On t'envoie un lien pour réinitialiser ton mot de passe
 

@@ -1,0 +1,37 @@
+-# Nouveau mot de passe, saisi après avoir suivi le lien reçu par courriel.
+-# C'est la dernière étape du parcours « mot de passe oublié » : elle doit donc
+-# ressembler aux précédentes, faute de quoi on doute d'être au bon endroit au
+-# moment précis où l'on s'apprête à taper un secret.
+-#
+-# authentication.css est déjà inclus dans le bundle global application.css :
+-# pas de stylesheet_link_tag séparé ici (évite un asset data-turbo-track qui
+-# force un rechargement complet lors des visites Turbo).
+.auth-container
+  .auth-card
+    .auth-header.user-form-header
+      %h1.auth-title Nouveau mot de passe
+      %p.auth-subtitle Choisis-en un et tu es reparti(e)
+
+    = simple_form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :put, class: 'auth-form' }) do |f|
+      = f.error_notification
+
+      -# Le jeton vient du lien du courriel : c'est lui qui autorise le
+      -# changement, et il n'a de sens que dans ce formulaire.
+      = f.input :reset_password_token, as: :hidden
+
+      .form-fields
+        / Nouveau mot de passe
+        = render "devise/password_field", f: f, attribute: :password, label: "Nouveau mot de passe",
+                 required: true, autocomplete: "new-password", hint: "Minimum 6 caractères", autofocus: true
+
+        / Confirmation
+        = render "devise/password_field", f: f, attribute: :password_confirmation,
+                 label: "Confirme le mot de passe", required: true, autocomplete: "new-password"
+
+      / Submit Button
+      .form-actions
+        = f.button :submit, "Changer mon mot de passe", class: "btn btn-primary btn-large"
+
+    / Footer Links
+    .auth-footer
+      = render "devise/shared/links"

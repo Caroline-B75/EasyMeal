@@ -32,12 +32,12 @@
           = f.input :email, required: true, input_html: { class: 'form-input', autocomplete: "email", placeholder: "votre.email@exemple.com" }, label_html: { class: 'form-label' }, wrapper_html: { class: 'input-wrapper' }
 
         / Password
-        .form-group
-          = f.input :password, required: true, hint: "Minimum 6 caractères", input_html: { class: 'form-input', autocomplete: "new-password", placeholder: "••••••••" }, label_html: { class: 'form-label' }, wrapper_html: { class: 'input-wrapper' }
+        = render "devise/password_field", f: f, attribute: :password, label: "Mot de passe",
+                 required: true, autocomplete: "new-password", hint: "Minimum 6 caractères"
 
         / Password Confirmation
-        .form-group
-          = f.input :password_confirmation, required: true, input_html: { class: 'form-input', autocomplete: "new-password", placeholder: "••••••••" }, label_html: { class: 'form-label' }, wrapper_html: { class: 'input-wrapper' }
+        = render "devise/password_field", f: f, attribute: :password_confirmation,
+                 label: "Confirmation du mot de passe", required: true, autocomplete: "new-password"
 
       / Submit Button
       .form-actions
