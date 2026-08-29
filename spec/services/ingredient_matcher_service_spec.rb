@@ -44,6 +44,37 @@ RSpec.describe IngredientMatcherService do
       expect(described_class.match("pincée de sel")[:exact]).to eq(sel)
     end
 
+    # Ce qu'une IA lit sur une photo ou dans une page web est rarement accentué
+    # comme le catalogue. Sans désaccentuation, l'ingrédient existait mais
+    # repartait en « à préciser » pour un accent manquant.
+    it "trouve l'ingrédient dont le nom n'a pas été accentué" do
+      epinards = create(:ingredient, name: "Épinards")
+
+      expect(described_class.match("epinards")[:exact]).to eq(epinards)
+    end
+
+    it "trouve l'ingrédient malgré une ligature défaite" do
+      boeuf = create(:ingredient, name: "Bœuf haché")
+
+      expect(described_class.match("boeuf hache")[:exact]).to eq(boeuf)
+    end
+
+    it "trouve l'ingrédient par un alias dont les accents diffèrent" do
+      creme = create(:ingredient, name: "Crème fraîche", aliases: [ "crème épaisse" ])
+
+      expect(described_class.match("creme epaisse")[:exact]).to eq(creme)
+    end
+
+    # La colonne aliases a `{}` pour valeur par défaut : un ingrédient créé sans
+    # alias porte donc un objet vide, sur lequel le dépliage JSONB de la
+    # recherche lèverait une erreur s'il n'était pas gardé.
+    it "cherche sans erreur parmi des alias jamais renseignés" do
+      Ingredient.insert_all([ { name: "Sans alias", category: 0, unit_group: 0, base_unit: "g",
+                                created_at: Time.current, updated_at: Time.current } ])
+
+      expect { described_class.match("autre chose") }.not_to raise_error
+    end
+
     # Le cas qui motivait tout : « brin de thym » et « Thym frais » sont trop
     # éloignés pour la similarité globale (0,26 < 0,3) mais le sont beaucoup
     # moins une fois le quantificateur retiré.

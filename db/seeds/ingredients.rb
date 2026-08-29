@@ -16,10 +16,19 @@ puts "🌱 Création / mise à jour des ingrédients de base..."
 
 data = YAML.safe_load_file(DATA_FILE)
 
+# La clé `retired` n'est pas un rayon mais la liste des ingrédients à retirer du
+# catalogue (cf. l'en-tête du YAML) : elle est traitée à part, après les upserts.
+retired_names = Array(data.delete("retired"))
+
 # Garde-fou : détecte les noms dupliqués dans le YAML (name est une clé unique).
 all_names = data.values.flatten.map { |item| item.fetch("name") }
 duplicates = all_names.tally.select { |_name, count| count > 1 }.keys
 raise "Doublons de nom dans #{DATA_FILE.basename} : #{duplicates.join(', ')}" if duplicates.any?
+
+# Second garde-fou : un nom ne peut pas être à la fois servi et retiré — la seed
+# le recréerait à chaque passage, juste après l'avoir supprimé.
+still_served = all_names.map(&:downcase) & retired_names.map(&:downcase)
+raise "Retirés mais toujours servis dans #{DATA_FILE.basename} : #{still_served.join(', ')}" if still_served.any?
 
 created = 0
 updated = 0
@@ -67,8 +76,29 @@ data.each do |category, items|
   end
 end
 
+# Retrait des ingrédients sortis du catalogue. Après les upserts, et pas avant :
+# leurs remplaçants doivent exister en base au moment où on lit l'avertissement.
+#
+# Une ligne de courses garde son nom sans son ingrédient (has_many :nullify), mais
+# une recette ne peut pas perdre le sien : `restrict_with_error` fait échouer le
+# destroy, et la seed se contente alors de signaler. C'est volontaire — arbitrer
+# quelle découpe remplace « Canard » dans une recette existante n'est pas le
+# travail d'une seed.
+removed = 0
+retired_names.each do |name|
+  ingredient = Ingredient.find_by("LOWER(name) = ?", name.downcase)
+  next if ingredient.nil?
+
+  if ingredient.destroy
+    removed += 1
+  else
+    recipes = ingredient.recipes.pluck(:name).first(3)
+    puts "  ⚠️  « #{name} » est encore utilisé (#{recipes.join(', ')}…) : à réaffecter à la main."
+  end
+end
+
 total = Ingredient.count
-puts "\n✅ #{total} ingrédients en base (#{created} créés, #{updated} mis à jour)."
+puts "\n✅ #{total} ingrédients en base (#{created} créés, #{updated} mis à jour, #{removed} retirés)."
 puts "\nRépartition par rayon :"
 Ingredient.group(:category).count.sort_by { |_category, count| -count }.each do |category, count|
   puts "  - #{Ingredient.enum_label(:category, category)} : #{count}"

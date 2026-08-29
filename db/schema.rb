@@ -10,30 +10,31 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_28_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_28_141000) do
   # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
-  enable_extension "plpgsql"
+  enable_extension "unaccent"
 
   create_table "active_storage_attachments", force: :cascade do |t|
-    t.string "name", null: false
-    t.string "record_type", null: false
-    t.bigint "record_id", null: false
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.bigint "record_id", null: false
+    t.string "record_type", null: false
     t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
     t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
   end
 
   create_table "active_storage_blobs", force: :cascade do |t|
-    t.string "key", null: false
-    t.string "filename", null: false
-    t.string "content_type"
-    t.text "metadata"
-    t.string "service_name", null: false
     t.bigint "byte_size", null: false
     t.string "checksum"
+    t.string "content_type"
     t.datetime "created_at", null: false
+    t.string "filename", null: false
+    t.string "key", null: false
+    t.text "metadata"
+    t.string "service_name", null: false
     t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
   end
 
@@ -44,89 +45,89 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_28_120000) do
   end
 
   create_table "favorite_recipes", force: :cascade do |t|
-    t.bigint "user_id", null: false
-    t.bigint "recipe_id", null: false
     t.datetime "created_at", null: false
+    t.bigint "recipe_id", null: false
     t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
     t.index ["recipe_id"], name: "index_favorite_recipes_on_recipe_id"
     t.index ["user_id", "recipe_id"], name: "index_favorite_recipes_on_user_id_and_recipe_id", unique: true
     t.index ["user_id"], name: "index_favorite_recipes_on_user_id"
   end
 
   create_table "good_job_batches", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.text "description"
-    t.jsonb "serialized_properties"
-    t.text "on_finish"
-    t.text "on_success"
-    t.text "on_discard"
-    t.text "callback_queue_name"
     t.integer "callback_priority"
-    t.datetime "enqueued_at"
+    t.text "callback_queue_name"
+    t.datetime "created_at", null: false
+    t.text "description"
     t.datetime "discarded_at"
+    t.datetime "enqueued_at"
     t.datetime "finished_at"
     t.datetime "jobs_finished_at"
+    t.text "on_discard"
+    t.text "on_finish"
+    t.text "on_success"
+    t.jsonb "serialized_properties"
+    t.datetime "updated_at", null: false
   end
 
   create_table "good_job_executions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.uuid "active_job_id", null: false
-    t.text "job_class"
-    t.text "queue_name"
-    t.jsonb "serialized_params"
-    t.datetime "scheduled_at"
-    t.datetime "finished_at"
-    t.text "error"
-    t.integer "error_event", limit: 2
-    t.text "error_backtrace", array: true
-    t.uuid "process_id"
+    t.datetime "created_at", null: false
     t.interval "duration"
+    t.text "error"
+    t.text "error_backtrace", array: true
+    t.integer "error_event", limit: 2
+    t.datetime "finished_at"
+    t.text "job_class"
+    t.uuid "process_id"
+    t.text "queue_name"
+    t.datetime "scheduled_at"
+    t.jsonb "serialized_params"
+    t.datetime "updated_at", null: false
     t.index ["active_job_id", "created_at"], name: "index_good_job_executions_on_active_job_id_and_created_at"
     t.index ["process_id", "created_at"], name: "index_good_job_executions_on_process_id_and_created_at"
   end
 
   create_table "good_job_processes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.jsonb "state"
     t.integer "lock_type", limit: 2
+    t.jsonb "state"
+    t.datetime "updated_at", null: false
   end
 
   create_table "good_job_settings", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.text "key"
+    t.datetime "updated_at", null: false
     t.jsonb "value"
     t.index ["key"], name: "index_good_job_settings_on_key", unique: true
   end
 
   create_table "good_jobs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.text "queue_name"
-    t.integer "priority"
-    t.jsonb "serialized_params"
-    t.datetime "scheduled_at"
-    t.datetime "performed_at"
-    t.datetime "finished_at"
-    t.text "error"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.uuid "active_job_id"
-    t.text "concurrency_key"
-    t.text "cron_key"
-    t.uuid "retried_good_job_id"
-    t.datetime "cron_at"
-    t.uuid "batch_id"
     t.uuid "batch_callback_id"
-    t.boolean "is_discrete"
-    t.integer "executions_count"
-    t.text "job_class"
+    t.uuid "batch_id"
+    t.text "concurrency_key"
+    t.datetime "created_at", null: false
+    t.datetime "cron_at"
+    t.text "cron_key"
+    t.text "error"
     t.integer "error_event", limit: 2
+    t.integer "executions_count"
+    t.datetime "finished_at"
+    t.boolean "is_discrete"
+    t.text "job_class"
     t.text "labels", array: true
-    t.uuid "locked_by_id"
-    t.datetime "locked_at"
     t.integer "lock_type", limit: 2
+    t.datetime "locked_at"
+    t.uuid "locked_by_id"
+    t.datetime "performed_at"
+    t.integer "priority"
+    t.text "queue_name"
+    t.uuid "retried_good_job_id"
+    t.datetime "scheduled_at"
+    t.jsonb "serialized_params"
+    t.datetime "updated_at", null: false
     t.index ["active_job_id", "created_at"], name: "index_good_jobs_on_active_job_id_and_created_at"
     t.index ["batch_callback_id"], name: "index_good_jobs_on_batch_callback_id", where: "(batch_callback_id IS NOT NULL)"
     t.index ["batch_id"], name: "index_good_jobs_on_batch_id", where: "(batch_id IS NOT NULL)"
@@ -154,19 +155,19 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_28_120000) do
   end
 
   create_table "grocery_items", force: :cascade do |t|
-    t.bigint "menu_id", null: false
-    t.bigint "ingredient_id"
-    t.string "name", null: false
-    t.decimal "quantity_base", precision: 10, scale: 3, null: false
-    t.integer "unit_group", null: false
     t.string "base_unit", null: false
     t.integer "category"
     t.boolean "checked", default: false, null: false
-    t.integer "source", default: 0, null: false
-    t.integer "position"
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.bigint "ingredient_id"
+    t.bigint "menu_id", null: false
+    t.string "name", null: false
+    t.integer "position"
     t.decimal "previous_quantity_base", precision: 10, scale: 3
+    t.decimal "quantity_base", precision: 10, scale: 3, null: false
+    t.integer "source", default: 0, null: false
+    t.integer "unit_group", null: false
+    t.datetime "updated_at", null: false
     t.index ["ingredient_id"], name: "index_grocery_items_on_ingredient_id"
     t.index ["menu_id", "category"], name: "index_grocery_items_on_menu_id_and_category"
     t.index ["menu_id", "ingredient_id"], name: "index_grocery_items_on_menu_id_and_ingredient_id"
@@ -175,17 +176,17 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_28_120000) do
   end
 
   create_table "ingredients", force: :cascade do |t|
-    t.string "name", null: false
-    t.integer "category", null: false
-    t.integer "unit_group", null: false
-    t.string "base_unit", null: false
-    t.integer "season_months", default: [], array: true
     t.jsonb "aliases", default: {}
+    t.string "base_unit", null: false
+    t.integer "category", null: false
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.decimal "piece_weight_g", precision: 8, scale: 2
     t.decimal "density_g_per_ml", precision: 6, scale: 3
     t.integer "density_source"
+    t.string "name", null: false
+    t.decimal "piece_weight_g", precision: 8, scale: 2
+    t.integer "season_months", default: [], array: true
+    t.integer "unit_group", null: false
+    t.datetime "updated_at", null: false
     t.index ["aliases"], name: "index_ingredients_on_aliases", using: :gin
     t.index ["category"], name: "index_ingredients_on_category"
     t.index ["name"], name: "index_ingredients_on_name", unique: true
@@ -194,14 +195,14 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_28_120000) do
   end
 
   create_table "menu_recipes", force: :cascade do |t|
-    t.bigint "menu_id", null: false
-    t.bigint "recipe_id", null: false
-    t.integer "number_of_people", null: false
-    t.string "meal_type"
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.integer "position", default: 0, null: false
     t.integer "day_of_week"
+    t.string "meal_type"
+    t.bigint "menu_id", null: false
+    t.integer "number_of_people", null: false
+    t.integer "position", default: 0, null: false
+    t.bigint "recipe_id", null: false
+    t.datetime "updated_at", null: false
     t.index ["menu_id", "position"], name: "index_menu_recipes_on_menu_id_and_position"
     t.index ["menu_id", "recipe_id"], name: "index_menu_recipes_on_menu_id_and_recipe_id"
     t.index ["menu_id"], name: "index_menu_recipes_on_menu_id"
@@ -209,15 +210,15 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_28_120000) do
   end
 
   create_table "menus", force: :cascade do |t|
-    t.string "name", null: false
-    t.bigint "user_id", null: false
-    t.date "start_date"
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.integer "status", default: 0, null: false
-    t.integer "diet"
     t.integer "default_people", default: 2, null: false
+    t.integer "diet"
+    t.string "name", null: false
     t.jsonb "requested_meal_counts", default: {}, null: false
+    t.date "start_date"
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
     t.index ["status"], name: "index_menus_on_status"
     t.index ["user_id", "start_date"], name: "index_menus_on_user_id_and_start_date"
     t.index ["user_id", "status"], name: "index_menus_on_user_id_and_status"
@@ -227,10 +228,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_28_120000) do
   end
 
   create_table "preparations", force: :cascade do |t|
-    t.bigint "recipe_id", null: false
+    t.datetime "created_at", null: false
     t.bigint "ingredient_id", null: false
     t.decimal "quantity_base", precision: 10, scale: 3, null: false
-    t.datetime "created_at", null: false
+    t.bigint "recipe_id", null: false
     t.datetime "updated_at", null: false
     t.index ["ingredient_id"], name: "index_preparations_on_ingredient_id"
     t.index ["recipe_id", "ingredient_id"], name: "index_preparations_on_recipe_id_and_ingredient_id", unique: true
@@ -238,22 +239,22 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_28_120000) do
   end
 
   create_table "recipe_imports", force: :cascade do |t|
-    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.text "error_message"
     t.bigint "recipe_id"
-    t.integer "status", default: 0, null: false
     t.string "source_type", null: false
     t.string "source_url"
-    t.text "error_message"
-    t.datetime "created_at", null: false
+    t.integer "status", default: 0, null: false
     t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
     t.index ["recipe_id"], name: "index_recipe_imports_on_recipe_id"
     t.index ["user_id"], name: "index_recipe_imports_on_user_id"
   end
 
   create_table "recipe_tags", force: :cascade do |t|
+    t.datetime "created_at", null: false
     t.bigint "recipe_id", null: false
     t.bigint "tag_id", null: false
-    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["recipe_id", "tag_id"], name: "index_recipe_tags_on_recipe_id_and_tag_id", unique: true
     t.index ["recipe_id"], name: "index_recipe_tags_on_recipe_id"
@@ -261,23 +262,23 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_28_120000) do
   end
 
   create_table "recipes", force: :cascade do |t|
-    t.string "name", null: false
-    t.text "description"
-    t.text "instructions"
-    t.integer "default_servings", null: false
-    t.integer "prep_time_minutes"
-    t.integer "cook_time_minutes"
-    t.integer "difficulty"
-    t.integer "price"
-    t.integer "diet", null: false
-    t.string "appliance"
-    t.string "source_url"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.integer "status", default: 1, null: false
-    t.string "source_type"
     t.jsonb "ai_raw_data"
+    t.string "appliance"
+    t.integer "cook_time_minutes"
+    t.datetime "created_at", null: false
+    t.integer "default_servings", null: false
+    t.text "description"
+    t.integer "diet", null: false
+    t.integer "difficulty"
+    t.text "instructions"
     t.string "meal_types", default: [], null: false, array: true
+    t.string "name", null: false
+    t.integer "prep_time_minutes"
+    t.integer "price"
+    t.string "source_type"
+    t.string "source_url"
+    t.integer "status", default: 1, null: false
+    t.datetime "updated_at", null: false
     t.index "((COALESCE(prep_time_minutes, 0) + COALESCE(cook_time_minutes, 0)))", name: "index_recipes_on_total_time"
     t.index ["diet"], name: "index_recipes_on_diet"
     t.index ["difficulty"], name: "index_recipes_on_difficulty"
@@ -288,12 +289,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_28_120000) do
   end
 
   create_table "reviews", force: :cascade do |t|
-    t.bigint "user_id", null: false
-    t.bigint "recipe_id", null: false
-    t.integer "rating", null: false
     t.text "content"
     t.datetime "created_at", null: false
+    t.integer "rating", null: false
+    t.bigint "recipe_id", null: false
     t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
     t.index ["rating"], name: "index_reviews_on_rating"
     t.index ["recipe_id"], name: "index_reviews_on_recipe_id"
     t.index ["user_id", "recipe_id"], name: "index_reviews_on_user_id_and_recipe_id", unique: true
@@ -301,31 +302,31 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_28_120000) do
   end
 
   create_table "tags", force: :cascade do |t|
+    t.datetime "created_at", null: false
     t.string "name", null: false
     t.integer "tag_type"
-    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_tags_on_name", unique: true
     t.index ["name"], name: "index_tags_on_name_trgm", opclass: :gin_trgm_ops, using: :gin
   end
 
   create_table "users", force: :cascade do |t|
+    t.boolean "admin", default: false
+    t.datetime "created_at", null: false
+    t.integer "default_diet", default: 0, null: false
+    t.jsonb "default_meal_counts", default: {}, null: false
+    t.integer "default_people", default: 2, null: false
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
-    t.string "reset_password_token"
-    t.datetime "reset_password_sent_at"
+    t.string "first_name"
+    t.string "gender"
+    t.string "last_name"
+    t.boolean "preferences_configured", default: false, null: false
     t.datetime "remember_created_at"
-    t.datetime "created_at", null: false
+    t.datetime "reset_password_sent_at"
+    t.string "reset_password_token"
     t.datetime "updated_at", null: false
     t.string "username"
-    t.string "first_name"
-    t.string "last_name"
-    t.boolean "admin", default: false
-    t.string "gender"
-    t.integer "default_diet", default: 0, null: false
-    t.integer "default_people", default: 2, null: false
-    t.boolean "preferences_configured", default: false, null: false
-    t.jsonb "default_meal_counts", default: {}, null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["username"], name: "index_users_on_username", unique: true

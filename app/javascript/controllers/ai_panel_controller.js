@@ -128,11 +128,14 @@ export default class extends Controller {
     // présélectionner l'ingrédient dans la ligne vide du formulaire.
     event.preventDefault()
 
-    const { id, displayName, baseUnit, unitGroup, pieceWeight, density, densitySource } = event.detail
+    const { id, optionLabel, baseUnit, unitGroup, pieceWeight, density, densitySource } = event.detail
     const ingredient = { unitGroup, pieceWeight, density, densitySource }
 
+    // Seul chemin où l'option n'existe pas encore dans le sélecteur — le
+    // template du formulaire a été rendu avant la création de l'ingrédient :
+    // c'est donc le seul qui ait besoin du libellé complet, unité comprise.
     const quantity = this.quantityFor(this.pendingRow, ingredient)
-    this.addPreparationRow({ id: id, name: displayName, baseUnit: baseUnit, unitGroup: unitGroup,
+    this.addPreparationRow({ id: id, name: optionLabel, baseUnit: baseUnit, unitGroup: unitGroup,
                              row: this.pendingRow, quantityBase: quantity.value })
     this.markDone(this.pendingRow, { converted: quantity.converted, estimated: this.estimatedFor(this.pendingRow, ingredient) })
     this.forgetPending()

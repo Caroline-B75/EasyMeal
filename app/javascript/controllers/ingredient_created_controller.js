@@ -7,6 +7,10 @@ export default class extends Controller {
     id: Number,
     name: String,
     displayName: String,
+    // Libellé de l'option du sélecteur d'ingrédient, unité comprise, composé
+    // par Ingredient#select_label : l'option ajoutée ici doit se lire et se
+    // trier exactement comme celles rendues par le serveur.
+    optionLabel: String,
     baseUnit: String,
     unitGroup: String,
     // Absents quand l'ingrédient ne porte pas ce coefficient : Stimulus rend
@@ -33,6 +37,7 @@ export default class extends Controller {
         id: this.idValue,
         name: this.nameValue,
         displayName: this.displayNameValue,
+        optionLabel: this.optionLabelValue,
         baseUnit: this.baseUnitValue,
         unitGroup: this.unitGroupValue,
         pieceWeight: this.pieceWeightValue,
@@ -56,7 +61,7 @@ export default class extends Controller {
         // et le groupe d'unités, dont ingredient-unit tire les unités saisissables.
         const option = document.createElement('option')
         option.value = this.idValue
-        option.textContent = this.displayNameValue
+        option.textContent = this.optionLabelValue
         option.dataset.unit = this.baseUnitValue
         option.dataset.unitGroup = this.unitGroupValue
 
@@ -66,7 +71,7 @@ export default class extends Controller {
 
         let inserted = false
         for (const existingOption of ingredientOptions) {
-          if (existingOption.textContent.localeCompare(this.displayNameValue, 'fr', { sensitivity: 'base' }) > 0) {
+          if (existingOption.textContent.localeCompare(this.optionLabelValue, 'fr', { sensitivity: 'base' }) > 0) {
             select.insertBefore(option, existingOption)
             inserted = true
             break

@@ -20,7 +20,12 @@ TAGS_BY_TYPE = {
                         "coréenne", "vietnamienne", "mexicaine", "américaine" ],
   occasion:           [ "apéritif", "entrée", "plat", "dessert", "goûter", "brunch",
                         "petit-déjeuner", "salade" ],
-  methode_cuisson:    [ "four", "poêle", "vapeur", "barbecue", "sans cuisson" ]
+  methode_cuisson:    [ "four", "poêle", "vapeur", "barbecue", "sans cuisson" ],
+  # La saison d'une recette n'est pas celle de ses ingrédients : le catalogue
+  # sait déjà filtrer sur les mois de disponibilité (Ingredient#season_months),
+  # mais rien ne dit qu'une soupe se mange en hiver et un gaspacho en été. C'est
+  # ce que ces quatre tags ajoutent — un classement de recette, pas de produit.
+  saison:             [ "printemps", "été", "automne", "hiver" ]
 }.freeze
 
 created = 0

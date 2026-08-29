@@ -3,6 +3,11 @@
 -# Carte disposée en grille (cf. .preparation-fields dans recipes.css) :
 -#   mobile  → ingrédient | croix, puis quantité + unité en dessous
 -#   desktop → ingrédient | quantité + unité | croix, sur une seule ligne
+-#
+-# catalog : ce rendu porte-t-il la liste complète des ingrédients ?
+-#   true  → le modèle de ligne (<template> du nested-form), rendu une seule fois
+-#   false → une ligne déjà remplie, qui n'affiche que son ingrédient et emprunte
+-#           le reste de la liste au modèle, à la connexion d'`ingredient-options`
 .preparation-fields{ data: { nested_form_target: "fields", controller: "ingredient-unit" } }
   -# id rendu explicitement ici : sinon Rails l'émet après le bloc, donc en frère
   -# de la carte, et il survivrait à la suppression de la ligne côté JS.
@@ -13,16 +18,22 @@
     = f.label :ingredient_id, "Ingrédient", class: "form-label sr-only"
     -# Chaque option porte l'unité de base de son ingrédient et le groupe d'unités
     -# dont elle vient : c'est là que le contrôleur Stimulus lit quelles unités
-    -# proposer quand on change d'ingrédient.
+    -# proposer quand on change d'ingrédient. L'unité est aussi écrite dans le
+    -# libellé (Ingredient#select_label) : on la voit avant de choisir, et non
+    -# après, quand le sélecteur d'unité s'est déjà mis à jour.
+    -# Les options ne sont listées que dans le modèle de ligne ; ailleurs, seul
+    -# l'ingrédient déjà choisi est rendu, et `ingredient-options` complète.
+    - options = catalog ? Ingredient.alphabetical : Array(f.object.ingredient)
     %select.form-select{ name: f.object_name + "[ingredient_id]",
                          id: f.field_id(:ingredient_id),
-                         data: { ingredient_unit_target: "select", action: "change->ingredient-unit#updateUnit" } }
+                         data: { ingredient_unit_target: "select", action: "change->ingredient-unit#updateUnit",
+                                 controller: ("ingredient-options" unless catalog) } }
       %option{ value: "" } Choisir un ingrédient...
-      - Ingredient.alphabetical.each do |ingredient|
+      - options.each do |ingredient|
         %option{ value: ingredient.id,
                  selected: f.object.ingredient_id == ingredient.id,
                  data: { unit: ingredient.base_unit, unit_group: ingredient.unit_group } }
-          = ingredient.display_name
+          = ingredient.select_label
     = field_errors(f.object, :ingredient_id)
 
   .form-group.preparation-quantity{ class: field_error_class(f.object, :quantity_base) }

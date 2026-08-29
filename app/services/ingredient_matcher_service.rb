@@ -62,18 +62,25 @@ class IngredientMatcherService
   # Thym frais). Sans cette lecture, cet apprentissage ne servirait à rien.
   # Le nom l'emporte sur l'alias : un ingrédient qui porte réellement ce nom
   # passe devant celui qui l'a seulement appris.
+  #
+  # « Exact » s'entend aux accents près : ce que l'IA lit sur une photo ou dans
+  # une page web est rarement accentué comme le catalogue (cf. Ingredient).
   def self.exact_match(name)
-    Ingredient.where("LOWER(name) = ?", name).first ||
-      Ingredient.where("aliases @> ?", [ name ].to_json).first
+    Ingredient.named_like(name).first || Ingredient.aliased_as(name).first
   end
 
   def self.fuzzy_search(name)
     # connection.quote protège contre l'injection SQL dans le ORDER BY dynamique
     quoted = ActiveRecord::Base.connection.quote(name)
-    score  = "GREATEST(word_similarity(#{quoted}, lower(name)), similarity(lower(name), #{quoted}))"
+    # Désaccentué des deux côtés, comme la recherche exacte : sinon « creme »
+    # et « crème » ne partagent que la moitié de leurs trigrammes et la
+    # similarité chute sous le seuil.
+    score = "GREATEST(word_similarity(unaccent(#{quoted}), unaccent(lower(name))), " \
+            "similarity(unaccent(lower(name)), unaccent(#{quoted})))"
 
     Ingredient
-      .where("word_similarity(?, lower(name)) > ? OR similarity(lower(name), ?) > ?",
+      .where("word_similarity(unaccent(?), unaccent(lower(name))) > ? " \
+             "OR similarity(unaccent(lower(name)), unaccent(?)) > ?",
              name, WORD_THRESHOLD, name, FUZZY_THRESHOLD)
       .order(Arel.sql("#{score} DESC"))
       .limit(3)

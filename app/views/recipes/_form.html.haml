@@ -164,13 +164,18 @@
           - recipe.errors[:base].each do |message|
             %span.field-error= message
 
+      -# Le catalogue complet n'est rendu qu'ici, dans le modèle de ligne : à
+      -# près de 600 ingrédients, le répéter dans chaque ligne pesait 58 Ko par
+      -# ligne, soit un demi-méga sur une recette d'une dizaine d'ingrédients.
+      -# Les lignes déjà remplies n'affichent que leur ingrédient et empruntent
+      -# le reste de la liste à ce modèle (contrôleur `ingredient-options`).
       .preparations-container{ data: { nested_form_target: "container" } }
         %template{ data: { nested_form_target: "template" } }
           = f.fields_for :preparations, Preparation.new, child_index: "NEW_RECORD" do |pf|
-            = render "recipes/preparation_fields", f: pf
+            = render "recipes/preparation_fields", f: pf, catalog: true
 
         = f.fields_for :preparations do |pf|
-          = render "recipes/preparation_fields", f: pf
+          = render "recipes/preparation_fields", f: pf, catalog: false
 
       .preparations-actions
         -# Ajout d'une ligne : volontairement pas un bouton plein — l'aplat

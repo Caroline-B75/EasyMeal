@@ -36,17 +36,18 @@ class GroceryItem < ApplicationRecord
     produits_frais_libre_service: 7,
     glaces_desserts_glaces: 8,
     legumes_surgeles: 9,
-    viandes_poissons_surgeles: 10,
-    produits_aperitifs_surgeles: 11,
-    epicerie_salee: 12,
-    epicerie_sucree: 13,
-    boissons: 14,
-    petit_dejeuner: 15,
-    produits_monde: 16,
-    hygiene_beaute: 17,
-    entretien_maison: 18,
-    papeterie_fournitures: 19,
-    autre: 20
+    fruits_surgeles: 10,
+    viandes_poissons_surgeles: 11,
+    produits_aperitifs_surgeles: 12,
+    epicerie_salee: 13,
+    epicerie_sucree: 14,
+    boissons: 15,
+    petit_dejeuner: 16,
+    produits_monde: 17,
+    hygiene_beaute: 18,
+    entretien_maison: 19,
+    papeterie_fournitures: 20,
+    autre: 21
   }, prefix: true
 
   # === Callbacks ===

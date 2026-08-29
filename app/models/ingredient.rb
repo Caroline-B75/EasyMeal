@@ -21,17 +21,18 @@ class Ingredient < ApplicationRecord
     produits_frais_libre_service: 7,
     glaces_desserts_glaces: 8,
     legumes_surgeles: 9,
-    viandes_poissons_surgeles: 10,
-    produits_aperitifs_surgeles: 11,
-    epicerie_salee: 12,
-    epicerie_sucree: 13,
-    boissons: 14,
-    petit_dejeuner: 15,
-    produits_monde: 16,
-    hygiene_beaute: 17,
-    entretien_maison: 18,
-    papeterie_fournitures: 19,
-    autre: 20
+    fruits_surgeles: 10,
+    viandes_poissons_surgeles: 11,
+    produits_aperitifs_surgeles: 12,
+    epicerie_salee: 13,
+    epicerie_sucree: 14,
+    boissons: 15,
+    petit_dejeuner: 16,
+    produits_monde: 17,
+    hygiene_beaute: 18,
+    entretien_maison: 19,
+    papeterie_fournitures: 20,
+    autre: 21
   }, prefix: true
 
   # Groupes d'unités de mesure (unité de base associée dans BASE_UNITS)
@@ -64,9 +65,38 @@ class Ingredient < ApplicationRecord
   # le sel fin à 1,2. La borne sert surtout de garde-fou à l'estimation par l'IA.
   MAX_DENSITY = 3
 
+  # « L'un de ses alias vaut :alias_query, aux accents et à la casse près. »
+  #
+  # Le containment JSONB (`aliases @> '["…"]'`) comparait des chaînes brutes : il
+  # exigeait donc l'accent exact, et une recette écrite « puree de tomate » ne
+  # retrouvait jamais son alias. Déplier le tableau permet de désaccentuer chaque
+  # alias avant comparaison — au prix de l'index GIN, qui ne sert plus ici ; à
+  # l'échelle du catalogue (quelques centaines de lignes) c'est indolore.
+  #
+  # Le CASE n'est pas de la précaution gratuite : la colonne a `{}` pour valeur
+  # par défaut, et les ingrédients créés sans alias portent donc un OBJET vide,
+  # sur lequel jsonb_array_elements_text lève une erreur.
+  ALIAS_MATCH_SQL = <<~SQL.squish
+    EXISTS (
+      SELECT 1
+      FROM jsonb_array_elements_text(
+             CASE WHEN jsonb_typeof(ingredients.aliases) = 'array'
+                  THEN ingredients.aliases
+                  ELSE '[]'::jsonb END
+           ) AS candidate
+      WHERE unaccent(LOWER(candidate)) = unaccent(LOWER(:alias_query))
+    )
+  SQL
+
   # === Associations ===
   has_many :preparations, dependent: :restrict_with_error
   has_many :recipes, through: :preparations
+  # Une ligne de courses porte déjà son nom, son rayon et son unité (colonnes
+  # recopiées à la génération) : elle survit donc à la disparition de son
+  # ingrédient, et c'est bien ce qu'on veut d'une liste imprimée ou en cours de
+  # courses. Sans ce nullify, la clé étrangère refuserait le retrait d'un
+  # ingrédient sorti du catalogue (cf. la clé `retired` de la seed).
+  has_many :grocery_items, dependent: :nullify
 
   # === Validations ===
 
@@ -118,17 +148,24 @@ class Ingredient < ApplicationRecord
     where("season_months @> ARRAY[?]::integer[]", month.to_i)
   }
 
-  # Recherche par nom (fragment) ou par alias (exact).
-  # L'alias part en JSON tel quel : le passer par sanitize_sql_like y laisserait
-  # les échappements du LIKE, et `@>` ne trouverait plus jamais rien.
+  # Recherche par nom (fragment) ou par alias (exact), à la casse et aux accents
+  # près (cf. ALIAS_MATCH_SQL).
   scope :search, ->(query) {
     return all if query.blank?
 
     normalized = query.to_s.downcase.strip
-    where("LOWER(name) LIKE :query OR aliases @> :json_query",
-          query: "%#{sanitize_sql_like(normalized)}%",
-          json_query: [ normalized ].to_json)
+    where("unaccent(LOWER(name)) LIKE unaccent(:name_query) OR #{ALIAS_MATCH_SQL}",
+          name_query: "%#{sanitize_sql_like(normalized)}%",
+          alias_query: normalized)
   }
+
+  # Porte le même nom, aux accents et à la casse près : « epinards » trouve
+  # « Épinards », « boeuf haché » trouve « Bœuf haché » (unaccent défait aussi
+  # les ligatures).
+  scope :named_like, ->(value) { where("unaccent(LOWER(name)) = unaccent(LOWER(:name_query))", name_query: value) }
+
+  # Compte cette écriture parmi ses alias, aux accents et à la casse près.
+  scope :aliased_as, ->(value) { where(ALIAS_MATCH_SQL, alias_query: value) }
 
   # === Méthodes publiques ===
 
@@ -138,6 +175,17 @@ class Ingredient < ApplicationRecord
 
     alias_list = aliases.is_a?(Array) ? aliases.join(", ") : aliases.values.join(", ")
     "#{name} (#{alias_list})"
+  end
+
+  # Libellé d'une option du sélecteur d'ingrédient : le nom, puis l'unité dans
+  # laquelle cet ingrédient se saisit. Sans elle, on choisissait « Œuf » sans
+  # savoir si la quantité attendue était 2 (pièces) ou 100 (grammes) — la même
+  # information que le badge d'unité du panneau d'import IA, au même endroit.
+  #
+  # Le tiret sépare l'unité de la liste d'alias, elle-même entre parenthèses :
+  # « Tomate (tomates, tomate ronde) — g ».
+  def select_label
+    "#{display_name} — #{Units.label(base_unit)}"
   end
 
   private
