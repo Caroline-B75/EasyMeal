@@ -75,11 +75,14 @@ jobs:
     runs-on: ubuntu-latest
 
     # Le runner GitHub embarque PostgreSQL mais ne le démarre pas : sans ce
-    # service, db:test:prepare échoue avant le premier exemple. Version alignée
-    # sur le poste de développement (14), pour tester ce qu'on exécute vraiment.
+    # service, db:test:prepare échoue avant le premier exemple.
+    #
+    # Version alignée sur la PRODUCTION (Scalingo fournit PostgreSQL 17), et non
+    # sur le poste de développement, resté en 14 : le filet ne sert que s'il
+    # reproduit ce qui tourne en ligne. À revoir si Scalingo change de version.
     services:
       postgres:
-        image: postgres:14
+        image: postgres:17
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
