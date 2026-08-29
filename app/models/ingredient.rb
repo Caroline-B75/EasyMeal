@@ -6,6 +6,9 @@ class Ingredient < ApplicationRecord
   # Libellés français des enums (rayon, groupe d'unités) : Ingredient.enum_label,
   # .enum_options pour les sélecteurs — le français vit dans config/locales/fr.yml
   include EnumLabels
+  # Ce que le catalogue demande à un ingrédient : le compter (recipes_count,
+  # with_recipes_count) et le ranger (sorted_by, SORT_COLUMNS).
+  include IngredientCatalog
 
   # === Enums ===
 
@@ -135,6 +138,14 @@ class Ingredient < ApplicationRecord
   # Validation des season_months (doivent être entre 1 et 12)
   validate :valid_season_months
 
+  # Le groupe d'unités dit comment se lisent toutes les quantités déjà saisies :
+  # `preparations.quantity_base` ne stocke qu'un nombre, jamais son unité. Faire
+  # passer un ingrédient de la masse au compte relirait donc « 200 g de farine »
+  # en « 200 farines » dans chaque recette qui l'emploie, sans conversion ni
+  # trace. Tant qu'aucune recette ne l'utilise le changement est sans effet ;
+  # après, il est refusé (comme la suppression l'est déjà par l'association).
+  validate :unit_group_frozen_once_used, on: :update
+
   # === Scopes ===
 
   scope :by_category, ->(category) { where(category: category) }
@@ -229,6 +240,17 @@ class Ingredient < ApplicationRecord
     else
       errors.add(:density_source, "doit dire d'où vient la densité")
     end
+  end
+
+  # Fige le groupe d'unités — et l'unité de base qui en découle — dès qu'une
+  # recette emploie l'ingrédient (cf. la validation déclarée plus haut).
+  def unit_group_frozen_once_used
+    return unless unit_group_changed? || base_unit_changed?
+    return unless used_in_recipes?
+
+    errors.add(:unit_group,
+               "ne peut plus changer : cet ingrédient est utilisé dans #{recipes_usage_label}, " \
+               "et les quantités déjà saisies deviendraient fausses")
   end
 
   # Valide que tous les season_months sont entre 1 et 12

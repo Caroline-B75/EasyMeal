@@ -183,4 +183,23 @@ RSpec.describe Groceries::BuildForMenuService do
       expect(manual.name).to eq("Éponges")
     end
   end
+
+  # Un ingrédient retiré du catalogue laisse ses lignes de courses derrière lui
+  # (dependent: :nullify) : elles partagent alors toutes la clé nil, et la
+  # réconciliation doit les nettoyer TOUTES — un index par ingrédient n'en aurait
+  # vu qu'une, les autres seraient restées à jamais dans la liste.
+  describe ".call — lignes générées orphelines d'un ingrédient supprimé" do
+    it "détruit toutes les lignes générées dont l'ingrédient a disparu" do
+      menu = menu_with(ingredient => 100)
+      orphelines = Array.new(2) do |i|
+        create(:grocery_item, menu: menu, ingredient: nil, source: :generated,
+                              name: "Disparu #{i}", quantity_base: 50)
+      end
+
+      described_class.call(menu: menu)
+
+      expect(GroceryItem.where(id: orphelines.map(&:id))).to be_empty
+      expect(menu.grocery_items.generated.pluck(:name)).to eq([ "Farine" ])
+    end
+  end
 end

@@ -16,6 +16,11 @@
   .ingredients-filters
     = form_with url: ingredients_path, method: :get, class: "search-form",
                 data: { turbo_frame: "ingredients_list", controller: "filter-form" } do |f|
+      -# Le tri en cours voyage avec les filtres : sans ces champs, filtrer après
+      -# avoir trié ramènerait la liste à l'ordre par défaut.
+      = hidden_field_tag :sort, params[:sort], id: nil
+      = hidden_field_tag :direction, params[:direction], id: nil
+
       .search-group
         = f.text_field :query, value: params[:query],
                        placeholder: "Rechercher un ingrédient...",
@@ -38,32 +43,54 @@
                         "true", nil
           %span Ingrédients de saison
 
-        -# Sans ce filtre, une densité estimée ne se retrouverait qu'au hasard des
-        -# pages : la pastille signale, celui-ci rassemble.
-        %label.season-checkbox
-          = f.check_box :to_check,
-                        { checked: params[:to_check] == "true", data: { action: "change->filter-form#submit" } },
-                        "true", nil
-          %span Densité à vérifier
+        -# Le filtre « densité à vérifier » n'a pas de case ici : il n'aurait rien
+        -# à filtrer 99 % du temps. Il s'ouvre depuis le compteur posé au-dessus
+        -# de la liste, qui ne paraît que lorsqu'il reste quelque chose à vérifier.
+        = hidden_field_tag :to_check, params[:to_check], id: nil
 
         -# Lien plutôt que bouton : effacer les filtres revient à revenir à
         -# l'index nu, ce qu'une navigation fait déjà très bien. Sa visibilité,
         -# elle, suit les filtres en direct — d'où l'état initial rendu ici et
         -# repris ensuite par le contrôleur.
-        = link_to "Effacer les filtres", ingredients_path,
+        -# Effacer les filtres ne défait pas le tri : ce sont deux gestes distincts.
+        = link_to "Effacer les filtres", ingredients_path(sort: params[:sort], direction: params[:direction]),
                   class: "btn btn-link#{' hidden' unless filters_active}",
                   data: { filter_form_target: "clear" }
 
   -# Table des ingrédients
   = turbo_frame_tag "ingredients_list" do
+    -# Densités estimées par l'IA restées sans vérification. Un compteur plutôt
+    -# qu'une case de filtre : il prévient qu'il y a quelque chose à faire au lieu
+    -# d'attendre qu'on pense à le lui demander, et disparaît quand il n'y a rien.
+    -# Un second clic repose le filtre.
+    - if @to_check_count.positive?
+      - to_check_active = params[:to_check] == "true"
+      = link_to density_check_toggle_path, class: "to-check-notice#{' is-active' if to_check_active}" do
+        %span.badge.badge-blue= t("ingredients.densities_to_check", count: @to_check_count)
+        %span.to-check-hint
+          - if to_check_active
+            Revenir au catalogue complet
+          - else
+            Estimées par l'IA : ouvre la fiche pour confirmer ou corriger la valeur.
+
     - if @ingredients.any?
+      -# En dessous de 768 px la table devient une pile de cartes et son thead
+      -# disparaît : les mêmes liens de tri se reposent ici. Le CSS n'en montre
+      -# jamais qu'un des deux jeux à la fois.
+      .sort-bar
+        %span.sort-bar-label Trier :
+        = ingredient_sort_link("name", "Nom")
+        = ingredient_sort_link("category", "Rayon")
+        = ingredient_sort_link("recipes_count", "Recettes")
+
       .table-container
         %table.ingredients-table
           %thead
             %tr
-              %th Nom
-              %th.category-column Rayon
+              %th= ingredient_sort_link("name", "Nom")
+              %th.category-column= ingredient_sort_link("category", "Rayon")
               %th Saison
+              %th.recipes-column= ingredient_sort_link("recipes_count", "Recettes")
               %th.actions-column Actions
           %tbody
             - abbr_month_names = t("date.abbr_month_names")
@@ -88,6 +115,11 @@
                     .season-months
                       - ingredient.season_months.sort.each do |month|
                         %span.month-tag= abbr_month_names[month]
+
+                -# Emploi de l'ingrédient : ce décompte dit du même coup s'il est
+                -# encore libre de partir (suppression) ou de changer d'unité.
+                %td.recipes-cell{ class: ("is-unused" unless ingredient.used_in_recipes?), data: { label: "Recettes" } }
+                  = ingredient.recipes_count
 
                 %td.actions-cell{ data: { label: "Actions" } }
                   - if policy(ingredient).edit?

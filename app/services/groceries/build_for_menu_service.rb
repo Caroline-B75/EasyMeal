@@ -45,19 +45,26 @@ module Groceries
     # Réconcilie les items générés existants avec l'agrégation courante du menu.
     # @param aggregated [Hash<Integer, Hash>] { ingredient_id => { ingredient:, quantity_base: } }
     def reconcile(aggregated)
-      # Chargement unique des items générés existants, indexés par ingredient_id (pas de N+1).
-      # Les items :manual sont exclus par le scope et donc jamais touchés.
-      existing = @menu.grocery_items.generated.index_by(&:ingredient_id)
+      # Chargement unique des items générés existants, groupés par ingredient_id
+      # (pas de N+1). Les items :manual sont exclus par le scope et donc jamais
+      # touchés.
+      #
+      # Groupés, et non indexés : la suppression d'un ingrédient du catalogue met
+      # `ingredient_id` à NULL sur ses lignes de courses (dependent: :nullify).
+      # Plusieurs orphelines partagent alors la clé nil, dont un index_by n'aurait
+      # gardé qu'une — les autres auraient échappé au nettoyage pour toujours.
+      existing = @menu.grocery_items.generated.group_by(&:ingredient_id)
 
       aggregated.each do |ingredient_id, data|
-        item = existing[ingredient_id]
+        # `shift` retire l'item du groupe : ce qui reste après cette boucle
+        # n'appartient plus au menu et se détruit d'un seul geste ci-dessous.
+        item = existing[ingredient_id]&.shift
         item ? update_grocery_item(item, data) : create_grocery_item(data)
       end
 
-      # Ingrédient disparu du menu → supprimer l'item généré correspondant (cas e)
-      existing.each do |ingredient_id, item|
-        item.destroy! unless aggregated.key?(ingredient_id)
-      end
+      # Reste ici tout ce que le menu ne demande plus : ingrédient retiré d'une
+      # recette (cas e), et lignes orphelines d'ingrédients supprimés du catalogue.
+      existing.each_value { |items| items.each(&:destroy!) }
     end
 
     # Agrège les quantités par ingrédient sur tous les repas du menu.

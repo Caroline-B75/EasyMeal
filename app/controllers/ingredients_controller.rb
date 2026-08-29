@@ -11,8 +11,14 @@ class IngredientsController < ApplicationController
   # GET /ingredients
   def index
     authorize Ingredient
-    ingredients = apply_filters(policy_scope(Ingredient).alphabetical)
-    @pagy, @ingredients = pagy(ingredients, items: 20)
+    # with_recipes_count : la colonne « Recettes » du catalogue, comptée en une
+    # seule requête pour toute la page — et triable comme les autres.
+    scope = policy_scope(Ingredient).with_recipes_count.sorted_by(params[:sort], params[:direction])
+    @pagy, @ingredients = pagy(apply_filters(scope), items: 20)
+    # Compté sur tout le catalogue et non sur la page filtrée : ce compteur
+    # prévient qu'il reste des densités estimées à vérifier, il ne décrit pas la
+    # liste affichée.
+    @to_check_count = policy_scope(Ingredient).density_source_ai.count
   end
 
   # GET /ingredients/:id
@@ -89,15 +95,29 @@ class IngredientsController < ApplicationController
   end
 
   # DELETE /ingredients/:id
+  # Un ingrédient employé par une recette est retenu par son association
+  # (dependent: :restrict_with_error) : `destroy` rend false au lieu de lever.
+  # Sans ce test, l'admin lisait « supprimé avec succès » devant un ingrédient
+  # toujours présent dans la liste.
   def destroy
-    @ingredient.destroy
-    redirect_to ingredients_path, notice: "Ingrédient supprimé avec succès."
+    if @ingredient.destroy
+      redirect_to ingredients_path, notice: "Ingrédient supprimé avec succès."
+    else
+      redirect_to ingredients_path, alert: destroy_blocked_message
+    end
   end
 
   private
 
   def set_ingredient
     @ingredient = Ingredient.find(params[:id])
+  end
+
+  # Dire ce qui retient l'ingrédient, pas seulement que la suppression a échoué :
+  # sans le décompte, l'admin ne sait pas par où commencer pour le libérer.
+  def destroy_blocked_message
+    "« #{@ingredient.name} » est utilisé dans #{@ingredient.recipes_usage_label} : " \
+      "retire-le de ces recettes avant de le supprimer."
   end
 
   def apply_filters(scope)

@@ -164,4 +164,120 @@ RSpec.describe Ingredient, type: :model do
       expect(ingredient.errors[:density_source]).to include("ne se renseigne qu'avec une densité")
     end
   end
+
+  # Ce que les recettes déjà écrites imposent à l'ingrédient : elles le retiennent
+  # (ni suppression ni changement d'unité) et se comptent.
+  describe "emploi dans les recettes" do
+    let(:ingredient) { create(:ingredient, name: "Farine", unit_group: :mass, base_unit: "g") }
+
+    # Une recette publiée exige au moins un ingrédient : la préparation part avec.
+    def recipe_using(ingredient, quantity: 100)
+      recipe = build(:recipe, default_servings: 1)
+      recipe.preparations.build(ingredient: ingredient, quantity_base: quantity)
+      recipe.save!
+      recipe
+    end
+
+    describe "#recipes_count" do
+      it "compte les recettes qui emploient l'ingrédient" do
+        2.times { recipe_using(ingredient) }
+
+        expect(ingredient.recipes_count).to eq(2)
+        expect(ingredient).to be_used_in_recipes
+      end
+
+      it "vaut zéro tant qu'aucune recette ne l'emploie" do
+        expect(ingredient.recipes_count).to eq(0)
+        expect(ingredient).not_to be_used_in_recipes
+      end
+
+      # Le catalogue affiche ce décompte sur chaque ligne : with_recipes_count le
+      # ramène avec la requête de liste, plutôt qu'un COUNT par ingrédient.
+      it "est ramené par with_recipes_count avec la requête de liste" do
+        recipe_using(ingredient)
+        loaded = Ingredient.with_recipes_count.find(ingredient.id)
+
+        expect(loaded.attributes).to include("recipes_count" => 1)
+      end
+    end
+
+    describe "#recipes_usage_label" do
+      it "écrit le décompte en français, au singulier comme au pluriel" do
+        recipe_using(ingredient)
+        expect(ingredient.reload.recipes_usage_label).to eq("1 recette")
+
+        recipe_using(ingredient)
+        expect(ingredient.reload.recipes_usage_label).to eq("2 recettes")
+      end
+    end
+
+    describe ".sorted_by" do
+      let!(:sel) { create(:ingredient, name: "Sel") }
+
+      before { 2.times { recipe_using(ingredient) } }
+
+      it "range les ingrédients du plus employé au moins employé" do
+        expect(Ingredient.with_recipes_count.sorted_by("recipes_count", "desc").map(&:name))
+          .to eq([ "Farine", "Sel" ])
+      end
+
+      it "inverse l'ordre à la demande" do
+        expect(Ingredient.with_recipes_count.sorted_by("recipes_count", "asc").map(&:name))
+          .to eq([ "Sel", "Farine" ])
+      end
+
+      # Liste blanche : rien de ce qui vient de l'URL n'entre dans le ORDER BY.
+      # Seule la colonne est écartée — le sens demandé, lui, reste appliqué.
+      it "ignore une colonne inconnue et retombe sur le tri par nom" do
+        expect(Ingredient.sorted_by("aliases; DROP TABLE ingredients", "asc").map(&:name))
+          .to eq([ "Farine", "Sel" ])
+      end
+
+      # Le nom se trie désaccentué, sans quoi « Échalote » partirait après les Z.
+      it "trie les accents à leur place alphabétique" do
+        echalote = create(:ingredient, name: "Échalote")
+
+        expect(Ingredient.sorted_by("name", "asc").map(&:name))
+          .to eq([ echalote.name, "Farine", "Sel" ])
+      end
+    end
+
+    describe "verrou du groupe d'unités" do
+      # quantity_base ne stocke qu'un nombre : changer le groupe d'unités
+      # relirait « 100 g de farine » en « 100 farines » dans chaque recette.
+      it "refuse de changer d'unité dès qu'une recette emploie l'ingrédient" do
+        recipe_using(ingredient)
+
+        ingredient.assign_attributes(unit_group: :count, base_unit: "piece")
+
+        expect(ingredient).not_to be_valid
+        expect(ingredient.errors[:unit_group].join).to include("utilisé dans 1 recette")
+        expect(ingredient.reload.unit_group).to eq("mass")
+      end
+
+      it "laisse changer d'unité tant qu'aucune recette ne l'emploie" do
+        expect(ingredient.update(unit_group: :count, base_unit: "piece")).to be true
+      end
+
+      # Le verrou ne porte que sur l'unité : le reste de la fiche reste éditable.
+      it "laisse modifier les autres attributs d'un ingrédient employé" do
+        recipe_using(ingredient)
+
+        expect(ingredient.update(name: "Farine T55", category: :epicerie_sucree)).to be true
+      end
+    end
+
+    describe "suppression" do
+      it "retient l'ingrédient employé par une recette" do
+        recipe_using(ingredient)
+
+        expect(ingredient.destroy).to be false
+        expect(Ingredient.exists?(ingredient.id)).to be true
+      end
+
+      it "laisse partir un ingrédient qu'aucune recette n'emploie" do
+        expect(ingredient.destroy).to be_truthy
+      end
+    end
+  end
 end

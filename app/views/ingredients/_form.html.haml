@@ -23,12 +23,17 @@
               hint_html: { class: "form-hint" },
               error_class: "has-error"
 
+  -# Le groupe d'unités dit comment se lisent toutes les quantités déjà saisies :
+  -# il se fige dès qu'une recette emploie l'ingrédient (cf. la validation
+  -# `unit_group_frozen_once_used`). Un select désactivé n'étant pas soumis, le
+  -# champ reste alors à sa valeur ; l'indication dit pourquoi il est grisé.
   .form-group
-    = f.input :unit_group, 
+    = f.input :unit_group,
               label: "Groupe d'unités *",
               collection: Ingredient.enum_options(:unit_group),
               prompt: "Sélectionne un groupe",
-              input_html: { class: "form-select", data: { ingredient_form_target: "unitGroup", action: "change->ingredient-form#updateBaseUnit" } },
+              hint: unit_group_lock_hint(ingredient),
+              input_html: { class: "form-select", disabled: ingredient.used_in_recipes?, data: { ingredient_form_target: "unitGroup", action: "change->ingredient-form#updateBaseUnit" } },
               label_html: { class: "form-label" },
               hint_html: { class: "form-hint" },
               error_class: "has-error"

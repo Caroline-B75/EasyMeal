@@ -94,8 +94,9 @@ RSpec.describe "Ingredients", type: :request do
 
       expect(response.body).to include("densité à vérifier")
       expect(response.body).to include(ERB::Util.html_escape(I18n.t("ingredients.density_to_check")))
-      # Une seule pastille : celle de l'ingrédient estimé
-      expect(response.body.scan("densité à vérifier").size).to eq(1)
+      # Une seule pastille de ligne : celle de l'ingrédient estimé (le compteur
+      # posé au-dessus de la liste porte, lui, un décompte — « 1 densité à… »).
+      expect(response.body.scan(">densité à vérifier<").size).to eq(1)
     end
 
     it "les rassemble sur demande" do
@@ -110,6 +111,178 @@ RSpec.describe "Ingredients", type: :request do
 
       expect(response.body).to include("Effacer les filtres")
       expect(response.body).not_to match(/btn btn-link hidden[^>]*>\s*Effacer/)
+    end
+
+    # Le filtre s'ouvre depuis un compteur, pas depuis une case toujours posée :
+    # il prévient qu'il y a quelque chose à vérifier au lieu d'attendre qu'on y
+    # pense, et il ne prend de place que dans ce cas.
+    it "annonce les densités à vérifier et ouvre le filtre" do
+      get ingredients_path
+
+      expect(response.body).to include("1 densité à vérifier")
+      expect(response.body).to include("to_check=true")
+    end
+
+    it "propose de revenir au catalogue une fois le filtre posé" do
+      get ingredients_path(to_check: "true")
+
+      expect(response.body).to include("to-check-notice is-active")
+      expect(response.body).to include("Revenir au catalogue complet")
+    end
+
+    it "ne montre aucun compteur quand toutes les densités sont vérifiées" do
+      estimee.update!(density_source: :manual)
+
+      get ingredients_path
+
+      expect(response.body).not_to include("to-check-notice")
+      expect(response.body).not_to include("à vérifier")
+    end
+  end
+
+  # Tri du catalogue : trois colonnes cliquables, un sens qui bascule au second
+  # clic, et le reste de l'état de la page (filtres, recherche) qui suit.
+  describe "GET /ingredients — tri" do
+    # Position d'un ingrédient dans la page, pour comparer des ordres.
+    def position_of(name)
+      response.body.index(">#{name}<") || raise("« #{name} » absent de la page")
+    end
+
+    before do
+      create(:ingredient, name: "Sel", category: :epicerie_salee)
+      create(:ingredient, name: "Farine", category: :epicerie_sucree)
+    end
+
+    it "range par nom croissant tant qu'aucun tri n'est demandé" do
+      get ingredients_path
+
+      expect(position_of("Farine")).to be < position_of("Sel")
+    end
+
+    it "inverse l'ordre quand le sens descendant est demandé" do
+      get ingredients_path(sort: "name", direction: "desc")
+
+      expect(position_of("Sel")).to be < position_of("Farine")
+    end
+
+    # Le rayon se trie dans l'ordre du magasin (valeur de l'enum), celui qui
+    # range déjà la liste de courses : l'épicerie salée précède la sucrée.
+    it "range par rayon dans l'ordre du magasin" do
+      get ingredients_path(sort: "category", direction: "asc")
+
+      expect(position_of("Sel")).to be < position_of("Farine")
+    end
+
+    it "range par nombre de recettes" do
+      recipe = build(:recipe, default_servings: 1)
+      recipe.preparations.build(ingredient: Ingredient.find_by(name: "Sel"), quantity_base: 5)
+      recipe.save!
+
+      get ingredients_path(sort: "recipes_count", direction: "desc")
+
+      expect(position_of("Sel")).to be < position_of("Farine")
+    end
+
+    it "signale la colonne qui trie et propose de basculer le sens" do
+      get ingredients_path(sort: "category", direction: "asc")
+
+      expect(response.body).to include("sort-link is-active")
+      expect(response.body).to include(ERB::Util.html_escape("▲"))
+      # Le lien de la colonne active repart en sens inverse…
+      expect(response.body).to include("direction=desc&amp;sort=category")
+      # …quand celui d'une autre colonne ouvre toujours en croissant.
+      expect(response.body).to include("direction=asc&amp;sort=recipes_count")
+    end
+
+    it "reconduit les filtres en cours dans les liens de tri" do
+      get ingredients_path(query: "sel", sort: "name", direction: "asc")
+
+      expect(response.body).to include("query=sel")
+    end
+
+    # Rien de ce qui vient de l'URL n'entre dans le ORDER BY.
+    it "ignore un tri inconnu plutôt que d'échouer" do
+      get ingredients_path(sort: "aliases; DROP TABLE ingredients", direction: "asc")
+
+      expect(response).to have_http_status(:ok)
+      expect(position_of("Farine")).to be < position_of("Sel")
+    end
+  end
+
+  # Ce que les recettes imposent à un ingrédient — décompte affiché, unité figée,
+  # suppression refusée — se joue entièrement dans le catalogue.
+  describe "emploi d'un ingrédient dans les recettes" do
+    let(:admin) { create(:user, admin: true) }
+    let(:farine) { create(:ingredient, name: "Farine", unit_group: :mass, base_unit: "g") }
+
+    # Une recette publiée exige au moins un ingrédient : la préparation part avec.
+    def recipe_using(ingredient)
+      recipe = build(:recipe, default_servings: 1)
+      recipe.preparations.build(ingredient: ingredient, quantity_base: 100)
+      recipe.save!
+      recipe
+    end
+
+    before { sign_in admin }
+
+    # La colonne n'affiche que le nombre : l'intitulé de colonne dit déjà de quoi
+    # il s'agit, et l'œil compare des chiffres alignés d'une ligne à l'autre.
+    it "affiche le nombre de recettes qui emploient chaque ingrédient" do
+      recipe_using(farine)
+      create(:ingredient, name: "Sel")
+
+      get ingredients_path
+
+      cells = Nokogiri::HTML(response.body).css("td.recipes-cell")
+      expect(cells.map { |cell| cell.text.strip }).to contain_exactly("1", "0")
+      # Le zéro s'efface : ce sont les ingrédients employés qui doivent ressortir.
+      expect(cells.css(".is-unused").map { |cell| cell.text.strip }).to eq([ "0" ])
+      expect(response.body).not_to include("1 recette")
+    end
+
+    it "verrouille le groupe d'unités d'un ingrédient employé et dit pourquoi" do
+      recipe_using(farine)
+
+      get edit_ingredient_path(farine)
+
+      expect(response.body).to match(/<select[^>]*disabled[^>]*ingredient_unit_group/)
+      expect(response.body).to include("est utilisé dans 1 recette")
+    end
+
+    it "laisse le groupe d'unités ouvert tant qu'aucune recette n'emploie l'ingrédient" do
+      get edit_ingredient_path(farine)
+
+      expect(response.body).not_to match(/<select[^>]*disabled[^>]*ingredient_unit_group/)
+    end
+
+    # Le select désactivé ne protège que l'écran : la validation, elle, protège
+    # les quantités déjà saisies quel que soit le chemin.
+    it "refuse un changement d'unité forcé sur un ingrédient employé" do
+      recipe_using(farine)
+
+      patch ingredient_path(farine), params: { ingredient: { unit_group: "count", base_unit: "piece" } }
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(farine.reload).to have_attributes(unit_group: "mass", base_unit: "g")
+    end
+
+    it "supprime un ingrédient qu'aucune recette n'emploie" do
+      delete ingredient_path(farine)
+
+      expect(flash[:notice]).to eq("Ingrédient supprimé avec succès.")
+      expect(Ingredient.exists?(farine.id)).to be false
+    end
+
+    # Sans ce message, l'admin lisait « supprimé avec succès » devant un
+    # ingrédient toujours présent dans la liste.
+    it "refuse de supprimer un ingrédient employé et dit ce qui le retient" do
+      recipe_using(farine)
+
+      delete ingredient_path(farine)
+
+      expect(Ingredient.exists?(farine.id)).to be true
+      expect(flash[:notice]).to be_nil
+      expect(flash[:alert]).to include("« Farine » est utilisé dans 1 recette")
     end
   end
 

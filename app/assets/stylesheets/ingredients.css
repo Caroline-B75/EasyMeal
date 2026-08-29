@@ -193,6 +193,75 @@
   flex-wrap: wrap;
 }
 
+/* Colonne « Recettes » : un nombre nu, donc une colonne étroite et centrée sous
+   son intitulé. */
+.recipes-column,
+.recipes-cell {
+  width: 7rem;
+  text-align: center;
+}
+
+/* Un ingrédient que personne n'utilise : le zéro s'efface pour laisser l'œil
+   aux décomptes qui, eux, comptent. */
+.recipes-cell.is-unused {
+  color: var(--color-ink-4);
+}
+
+/* En-têtes de colonne cliquables : ils gardent l'allure d'un intitulé de
+   tableau, la flèche seule signalant la colonne qui trie. */
+.sort-link {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sort-link:hover {
+  color: var(--color-ink-3);
+}
+
+/* Ambre : le highlight de la charte, ici pour dire « c'est cette colonne qui
+   range la liste ». */
+.sort-link.is-active {
+  color: var(--color-accent-text);
+}
+
+.sort-arrow {
+  font-size: 0.625em;
+  vertical-align: middle;
+}
+
+/* Compteur des densités estimées : une ligne discrète au-dessus de la liste,
+   qui n'existe que lorsqu'il reste quelque chose à vérifier. */
+.to-check-notice {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.to-check-hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-ink-3);
+}
+
+.to-check-notice:hover .to-check-hint {
+  color: var(--color-ink-2);
+}
+
+/* Filtre posé : le compteur reste, et c'est lui qui ramène au catalogue. */
+.to-check-notice.is-active .to-check-hint {
+  color: var(--color-ink-2);
+  text-decoration: underline;
+}
+
+/* Barre de tri des cartes : réservée aux largeurs où le thead n'existe plus. */
+.sort-bar {
+  display: none;
+}
+
 .actions-column {
   width: 120px;
   text-align: center;
@@ -320,6 +389,21 @@
     width: 100%;
   }
 
+  /* Le thead disparaît avec le tableau (voir plus bas) : la barre de tri prend
+     le relais, seul endroit d'où l'on peut encore ranger la liste. */
+  .sort-bar {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    font-size: var(--font-size-sm);
+  }
+
+  .sort-bar-label {
+    color: var(--color-ink-3);
+  }
+
   /* Table en mode cartes sur mobile */
   .table-container {
     overflow-x: visible;
@@ -422,6 +506,23 @@
     gap: 0.25rem;
   }
 
+  /* LIGNE 5 : emploi dans les recettes. La carte n'a plus de colonnes : ni la
+     largeur fixe ni le centrage du tableau n'ont plus lieu d'être. */
+  .ingredients-table .recipes-cell {
+    order: 6;
+    width: auto;
+    text-align: left;
+    font-size: var(--font-size-xs);
+  }
+
+  /* Un nombre nu ne dirait rien hors de sa colonne : en carte, il reprend
+     l'intitulé que le thead ne porte plus. */
+  .ingredients-table .recipes-cell::before {
+    display: inline !important;
+    content: attr(data-label) " : ";
+    color: var(--color-ink-3);
+  }
+
   .text-muted {
     font-size: var(--font-size-xs);
   }
@@ -466,8 +567,10 @@
     overflow-x: auto;
   }
 
+  /* Largeur plancher sous laquelle les colonnes se compriment plutôt que de
+     scroller — relevée avec l'arrivée de la colonne « Recettes ». */
   .ingredients-table {
-    min-width: 700px;
+    min-width: 820px;
   }
 
   .ingredients-table th,

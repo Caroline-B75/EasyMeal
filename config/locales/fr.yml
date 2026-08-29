@@ -319,6 +319,17 @@ fr:
   # d'où sa place ici plutôt que dans chaque vue.
   ingredients:
     density_to_check: "Densité estimée par l'IA : à vérifier. Enregistrer ce formulaire vaut vérification."
+    # Compteur posé au-dessus du catalogue, visible seulement s'il reste des
+    # estimations sans vérification (il porte aussi le filtre qui les rassemble).
+    densities_to_check:
+      one: "1 densité à vérifier"
+      other: "%{count} densités à vérifier"
+    # Décompte des recettes qui emploient un ingrédient (Ingredient#recipes_usage_label),
+    # dit là où l'emploi retient l'ingrédient : refus de suppression, verrou du
+    # groupe d'unités. La colonne du catalogue, elle, n'affiche que le nombre.
+    recipes_count:
+      one: "1 recette"
+      other: "%{count} recettes"
 
   errors:
     messages:
