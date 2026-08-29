@@ -2,182 +2,185 @@
 
 require "rails_helper"
 
+# Réconciliation intelligente de la liste de courses (R3.2bis).
+# On sépare la « nouvelle » quantité (portée par la préparation de la recette,
+# recalculée par le service) de « l'ancienne » quantité (portée par le GroceryItem
+# généré déjà persisté). scale_factor = number_of_people / default_servings = 1
+# (default_servings 1, number_of_people 1) → la quantité de la préparation est
+# reprise telle quelle.
 RSpec.describe Groceries::BuildForMenuService do
-  # Setup des ingrédients
-  let(:ingredient_pates) do
-    Ingredient.new(id: 1, name: "Pâtes", unit_group: "mass", base_unit: "g", category: "feculents")
+  let(:user) { create(:user) }
+  let(:ingredient) { create(:ingredient, name: "Farine", unit_group: :mass, base_unit: "g") }
+
+  # Construit un menu dont la préparation fixe la NOUVELLE quantité agrégée d'un ingrédient.
+  def menu_with(new_quantities)
+    menu = create(:menu, user: user)
+    # Recette + préparations créées ensemble : une recette publiée exige >= 1 ingrédient.
+    recipe = build(:recipe, default_servings: 1)
+    new_quantities.each do |ing, qty|
+      recipe.preparations.build(ingredient: ing, quantity_base: qty)
+    end
+    recipe.save!
+    create(:menu_recipe, menu: menu, recipe: recipe, number_of_people: 1)
+    menu
   end
 
-  let(:ingredient_tomates) do
-    Ingredient.new(id: 2, name: "Tomates", unit_group: "count", base_unit: "pièce", category: "fruits_legumes")
+  # Crée un item généré « déjà présent » (issu d'une validation précédente).
+  def existing_generated(menu, ing, quantity:, checked:, previous: nil)
+    create(:grocery_item,
+           menu: menu, ingredient: ing, source: :generated,
+           quantity_base: quantity, checked: checked, previous_quantity_base: previous)
   end
 
-  let(:ingredient_huile) do
-    Ingredient.new(id: 3, name: "Huile d'olive", unit_group: "spoon", base_unit: "càc", category: "condiments")
-  end
+  describe ".call — règles de réconciliation" do
+    it "(a) quantité inchangée : conserve la coche et remet previous_quantity_base à nil" do
+      menu = menu_with(ingredient => 100)
+      item = existing_generated(menu, ingredient, quantity: 100, checked: true, previous: 50)
 
-  let(:ingredient_fromage) do
-    Ingredient.new(id: 4, name: "Parmesan", unit_group: "mass", base_unit: "g", category: "cremerie")
-  end
+      described_class.call(menu: menu)
 
-  # Setup des recettes
-  let(:recipe_carbonara) do
-    recipe = Recipe.new(id: 1, name: "Carbonara", default_servings: 4, diet: "omnivore")
-    allow(recipe).to receive(:preparations).and_return([
-      Preparation.new(recipe: recipe, ingredient: ingredient_pates, quantity_base: 400),
-      Preparation.new(recipe: recipe, ingredient: ingredient_fromage, quantity_base: 100)
-    ])
-    recipe
-  end
-
-  let(:recipe_salade) do
-    recipe = Recipe.new(id: 2, name: "Salade de tomates", default_servings: 2, diet: "vegan")
-    allow(recipe).to receive(:preparations).and_return([
-      Preparation.new(recipe: recipe, ingredient: ingredient_tomates, quantity_base: 4),
-      Preparation.new(recipe: recipe, ingredient: ingredient_huile, quantity_base: 2)
-    ])
-    recipe
-  end
-
-  # Setup du menu
-  let(:user) { User.new(id: 1, email: "test@test.com") }
-  let(:menu) { Menu.new(id: 1, name: "Menu test", user: user) }
-
-  describe ".call" do
-    context "avec un menu vide" do
-      before do
-        allow(menu).to receive(:menu_recipes).and_return(MenuRecipe.none)
-      end
-
-      it "retourne une liste vide" do
-        result = described_class.call(menu: menu)
-
-        expect(result).to eq([])
-      end
+      item.reload
+      expect(item.quantity_base).to eq(100)
+      expect(item.checked).to be true
+      expect(item.previous_quantity_base).to be_nil
     end
 
-    context "avec une seule recette" do
-      before do
-        menu_recipe = MenuRecipe.new(menu: menu, recipe: recipe_carbonara, number_of_people: 4)
+    it "(b) quantité en baisse : met à jour la quantité, conserve la coche, pas de badge" do
+      menu = menu_with(ingredient => 80)
+      item = existing_generated(menu, ingredient, quantity: 100, checked: true)
 
-        relation = double("relation")
-        allow(relation).to receive(:empty?).and_return(false)
-        allow(relation).to receive(:includes).and_return([ menu_recipe ])
-        allow(menu).to receive(:menu_recipes).and_return(relation)
-      end
+      described_class.call(menu: menu)
 
-      it "retourne les ingrédients de la recette" do
-        result = described_class.call(menu: menu)
-
-        expect(result.length).to eq(2)
-
-        pates = result.find { |r| r[:ingredient_name] == "Pâtes" }
-        expect(pates[:quantity_base]).to eq(400)
-        expect(pates[:quantity_display]).to eq("400 g")
-
-        fromage = result.find { |r| r[:ingredient_name] == "Parmesan" }
-        expect(fromage[:quantity_base]).to eq(100)
-        expect(fromage[:quantity_display]).to eq("100 g")
-      end
+      item.reload
+      expect(item.quantity_base).to eq(80)
+      expect(item.checked).to be true
+      expect(item.previous_quantity_base).to be_nil
     end
 
-    context "avec plusieurs recettes partageant des ingrédients" do
-      before do
-        # Deux recettes qui utilisent les pâtes
-        recipe_pates_tomates = Recipe.new(id: 3, name: "Pâtes tomates", default_servings: 4, diet: "vegan")
-        allow(recipe_pates_tomates).to receive(:preparations).and_return([
-          Preparation.new(recipe: recipe_pates_tomates, ingredient: ingredient_pates, quantity_base: 400),
-          Preparation.new(recipe: recipe_pates_tomates, ingredient: ingredient_tomates, quantity_base: 6)
-        ])
+    it "(c) quantité en hausse sur item coché : décoche et mémorise l'ancienne quantité" do
+      menu = menu_with(ingredient => 200)
+      item = existing_generated(menu, ingredient, quantity: 100, checked: true)
 
-        menu_recipe1 = MenuRecipe.new(menu: menu, recipe: recipe_carbonara, number_of_people: 4)
-        menu_recipe2 = MenuRecipe.new(menu: menu, recipe: recipe_pates_tomates, number_of_people: 4)
+      described_class.call(menu: menu)
 
-        relation = double("relation")
-        allow(relation).to receive(:empty?).and_return(false)
-        allow(relation).to receive(:includes).and_return([ menu_recipe1, menu_recipe2 ])
-        allow(menu).to receive(:menu_recipes).and_return(relation)
-      end
-
-      it "agrège les quantités des ingrédients identiques" do
-        result = described_class.call(menu: menu)
-
-        pates = result.find { |r| r[:ingredient_name] == "Pâtes" }
-        # 400g (carbonara) + 400g (pâtes tomates) = 800g
-        expect(pates[:quantity_base]).to eq(800)
-        expect(pates[:quantity_display]).to eq("800 g")
-      end
-
-      it "retourne tous les ingrédients uniques" do
-        result = described_class.call(menu: menu)
-
-        ingredient_names = result.map { |r| r[:ingredient_name] }
-        expect(ingredient_names).to include("Pâtes", "Parmesan", "Tomates")
-        expect(result.length).to eq(3) # Pas de doublons
-      end
+      item.reload
+      expect(item.quantity_base).to eq(200)
+      expect(item.checked).to be false
+      expect(item.previous_quantity_base).to eq(100)
     end
 
-    context "avec des portions différentes" do
-      before do
-        # Carbonara pour 8 personnes (double)
-        menu_recipe = MenuRecipe.new(menu: menu, recipe: recipe_carbonara, number_of_people: 8)
+    it "(d) quantité en hausse sur item décoché : met à jour la quantité, pas de badge" do
+      menu = menu_with(ingredient => 200)
+      item = existing_generated(menu, ingredient, quantity: 100, checked: false)
 
-        relation = double("relation")
-        allow(relation).to receive(:empty?).and_return(false)
-        allow(relation).to receive(:includes).and_return([ menu_recipe ])
-        allow(menu).to receive(:menu_recipes).and_return(relation)
-      end
+      described_class.call(menu: menu)
 
-      it "adapte les quantités au nombre de personnes" do
-        result = described_class.call(menu: menu)
-
-        pates = result.find { |r| r[:ingredient_name] == "Pâtes" }
-        expect(pates[:quantity_base]).to eq(800) # 400 * 2
-        expect(pates[:quantity_display]).to eq("800 g")
-      end
+      item.reload
+      expect(item.quantity_base).to eq(200)
+      expect(item.checked).to be false
+      expect(item.previous_quantity_base).to be_nil
     end
 
-    context "tri des résultats" do
-      before do
-        menu_recipe1 = MenuRecipe.new(menu: menu, recipe: recipe_carbonara, number_of_people: 4)
-        menu_recipe2 = MenuRecipe.new(menu: menu, recipe: recipe_salade, number_of_people: 2)
+    it "(e) ingrédient disparu du menu : détruit l'item généré correspondant" do
+      other = create(:ingredient, name: "Sucre")
+      menu = menu_with(ingredient => 100)                 # le menu ne contient QUE farine
+      keep = existing_generated(menu, ingredient, quantity: 100, checked: false)
+      gone = existing_generated(menu, other, quantity: 50, checked: false)
 
-        relation = double("relation")
-        allow(relation).to receive(:empty?).and_return(false)
-        allow(relation).to receive(:includes).and_return([ menu_recipe1, menu_recipe2 ])
-        allow(menu).to receive(:menu_recipes).and_return(relation)
-      end
+      described_class.call(menu: menu)
 
-      it "trie par catégorie puis par nom" do
-        result = described_class.call(menu: menu)
-
-        categories = result.map { |r| r[:category] }
-        # fruits_legumes (0) < cremerie (3) < feculents (5) < condiments (8)
-        expect(categories).to eq(%w[fruits_legumes cremerie feculents condiments])
-      end
+      expect(GroceryItem.exists?(keep.id)).to be true
+      expect(GroceryItem.exists?(gone.id)).to be false
     end
 
-    context "format des résultats" do
-      before do
-        menu_recipe = MenuRecipe.new(menu: menu, recipe: recipe_carbonara, number_of_people: 4)
+    it "(f) nouvel ingrédient : crée un item généré décoché" do
+      menu = menu_with(ingredient => 100)                 # aucun item généré existant
 
-        relation = double("relation")
-        allow(relation).to receive(:empty?).and_return(false)
-        allow(relation).to receive(:includes).and_return([ menu_recipe ])
-        allow(menu).to receive(:menu_recipes).and_return(relation)
-      end
+      described_class.call(menu: menu)
 
-      it "inclut toutes les informations nécessaires" do
-        result = described_class.call(menu: menu)
-        item = result.first
+      item = menu.grocery_items.generated.find_by(ingredient: ingredient)
+      expect(item).to be_present
+      expect(item.quantity_base).to eq(100)
+      expect(item.checked).to be false
+      expect(item.previous_quantity_base).to be_nil
+      expect(item.name).to eq("Farine")
+    end
+  end
 
-        expect(item).to have_key(:ingredient)
-        expect(item).to have_key(:ingredient_name)
-        expect(item).to have_key(:quantity_base)
-        expect(item).to have_key(:quantity_display)
-        expect(item).to have_key(:unit)
-        expect(item).to have_key(:category)
-      end
+  describe ".call — recette répétée dans le menu (UC7)" do
+    it "additionne les quantités des doublons" do
+      menu = menu_with(ingredient => 100)
+      # La même recette une seconde fois : la levée de l'unicité menu/recette ne
+      # doit pas faire « oublier » l'un des deux repas à la liste de courses.
+      create(:menu_recipe, menu: menu, recipe: menu.menu_recipes.first.recipe, number_of_people: 1)
+
+      described_class.call(menu: menu)
+
+      expect(menu.menu_recipes.count).to eq(2)
+      item = menu.grocery_items.generated.find_by(ingredient: ingredient)
+      expect(item.quantity_base).to eq(200)
+    end
+  end
+
+  # Deux recettes peuvent doser le même ingrédient dans deux unités différentes —
+  # « 2 càs d'huile » ici, « 5 ml » là. L'addition reste juste parce qu'une
+  # quantité n'est jamais stockée autrement que dans l'unité de base de son
+  # ingrédient : le sélecteur d'unité du formulaire de recette convertit à la
+  # saisie (Units), il ne laisse pas une unité voyager jusqu'ici.
+  describe ".call — un ingrédient dosé dans deux unités" do
+    it "additionne des cuillerées et des millilitres dans l'unité de base" do
+      huile = create(:ingredient, name: "Huile d'olive", unit_group: :volume, base_unit: "ml")
+      cuillerees = UnitConversionService.convert(quantity: 2, from_unit: "càs", ingredient: huile)
+      millilitres = UnitConversionService.convert(quantity: 5, from_unit: "ml", ingredient: huile)
+
+      menu = menu_with(huile => cuillerees)
+      autre = build(:recipe, default_servings: 1)
+      autre.preparations.build(ingredient: huile, quantity_base: millilitres)
+      autre.save!
+      create(:menu_recipe, menu: menu, recipe: autre, number_of_people: 1)
+
+      described_class.call(menu: menu)
+
+      item = menu.grocery_items.generated.find_by(ingredient: huile)
+      # 2 càs = 30 ml, plus 5 ml
+      expect(item.quantity_base).to eq(35)
+      expect(item.base_unit).to eq("ml")
+      expect(Quantities::HumanizeService.call(quantity: item.quantity_base, unit_group: item.unit_group)[:display])
+        .to eq("35 ml")
+    end
+  end
+
+  describe ".call — idempotence" do
+    it "deux appels consécutifs sans changement de menu ne modifient rien" do
+      menu = menu_with(ingredient => 100)
+      described_class.call(menu: menu)
+      item = menu.grocery_items.generated.first
+      item.update!(checked: true)
+
+      expect { described_class.call(menu: menu) }
+        .not_to change { menu.grocery_items.generated.count }
+
+      item.reload
+      expect(item.checked).to be true                 # coche conservée
+      expect(item.quantity_base).to eq(100)
+      expect(item.previous_quantity_base).to be_nil
+    end
+  end
+
+  describe ".call — items manuels" do
+    it "ne touche jamais les items source: :manual" do
+      menu = menu_with(ingredient => 100)
+      manual = create(:grocery_item,
+                      menu: menu, ingredient: nil, source: :manual,
+                      name: "Éponges", checked: true)
+
+      described_class.call(menu: menu)
+
+      manual.reload
+      expect(GroceryItem.exists?(manual.id)).to be true
+      expect(manual.source_manual?).to be true
+      expect(manual.checked).to be true
+      expect(manual.name).to eq("Éponges")
     end
   end
 end

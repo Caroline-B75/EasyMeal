@@ -14,14 +14,20 @@
                   class: "btn-checkbox #{'btn-checkbox--checked' if item.checked}",
                   title: item.checked ? "Décocher" : "Cocher",
                   "aria-label": item.checked ? "Décocher l'article" : "Cocher l'article",
+                  form: { data: { action: "turbo:submit-end->grocery-check#submitEnd" } },
                   data: { "grocery-check-target": "checkbox",
                           action: "click->grocery-check#toggle" } do
         %svg.btn-checkbox-icon{ xmlns: "http://www.w3.org/2000/svg", viewbox: "0 0 14 14", width: "14", height: "14", fill: "none", stroke: "currentColor", "stroke-width": "2.5", "stroke-linecap": "round", "stroke-linejoin": "round" }
           %polyline{ points: "2,7.5 5.5,11 12,3" }
 
-    -# Nom
-    %span.grocery-item-name{ class: ("grocery-item-name--checked" if item.checked),
-                              data: { "grocery-check-target": "label" } }= item.name
+    -# Nom (+ badge « quantité augmentée » éventuel)
+    .grocery-item-main
+      %span.grocery-item-name{ class: ("grocery-item-name--checked" if item.checked),
+                                data: { "grocery-check-target": "label" } }= item.name
+      -# Badge d'attention : la réconciliation a augmenté la quantité d'un article
+      -# précédemment coché → il a été décoché. Disparaît au re-cochage (previous_quantity_base := nil).
+      - if item.previous_quantity_base.present? && !item.checked
+        %span.grocery-item-badge.badge-amber= "Tu en as peut-être déjà acheté #{item.previous_quantity_display} avant ta modification du menu."
 
     -# Quantité (droite)
     - if item.quantity_base.present?
@@ -33,9 +39,12 @@
                     scope: :grocery_item,
                     class: "grocery-qty-form",
                     data: { action: "keydown->grocery-edit-qty#handleKeydown" } do |f|
+          -# id unique par item : le partial est rendu N fois sur la même page,
+          -# les id HTML doivent rester uniques (audit Lighthouse R0.5).
           = f.number_field :quantity_base,
                            value: item.quantity_base,
                            step: 0.1, min: 0.1,
+                           id: "grocery_item_quantity_base_#{item.id}",
                            class: "grocery-qty-input",
                            data: { "grocery-edit-qty-target": "input" }
           %span.grocery-qty-unit= item.base_unit
@@ -51,9 +60,10 @@
 
     -# Suppression (items manuels uniquement)
     - if item.source_manual?
-      = button_to "✕", menu_grocery_item_path(menu, item),
+      = button_to menu_grocery_item_path(menu, item),
                   method: :delete,
                   class: "btn-remove",
                   title: "Supprimer",
                   "aria-label": "Supprimer l'article #{item.name}",
-                  form: { data: { turbo_confirm: "Supprimer \"#{item.name}\" ?" } }
+                  form: { data: { turbo_confirm: "Supprimer \"#{item.name}\" ?" } } do
+        = svg_icon(:x, size: 14)

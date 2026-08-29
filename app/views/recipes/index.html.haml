@@ -1,23 +1,30 @@
 -# UC5 : Catalogue & Recherche de recettes avec filtres
 - content_for :title, "Recettes"
 
-.recipes-container{ data: { controller: "recipe-filter" } }
+-# mobile-accordion : porté ici et non par le rail « menu à valider » lui-même,
+-# qui est remplacé par Turbo Stream à chaque ajout de recette — l'état plié /
+-# déplié du bandeau de vignettes survit ainsi au re-render (cf. _draft_rail).
+.recipes-container{ data: { controller: "recipe-filter mobile-accordion",
+                            mobile_accordion_query_value: "(max-width: 767px)" } }
 
   -# ── Variables filtres (calculées avant le layout pour le badge mobile) ──
   - selected_tag_ids = Array(params[:tag_ids]).map(&:to_s)
   - tags_count = selected_tag_ids.size
-  - has_query    = params[:query].present?
-  - has_diet     = params[:diet].present?
-  - has_diff     = params[:difficulty].present?
-  - has_time     = params[:max_time].present?
-  - has_seasonal = params[:seasonal] == "true"
-  - has_favs     = params[:favorites] == "true"
-  - has_any_filter = has_query || has_diet || has_diff || has_time || has_seasonal || has_favs || tags_count > 0
-  - active_count = [has_query, has_diet, has_diff, has_time, has_seasonal, has_favs].count(true) + tags_count
+  - has_query     = params[:query].present?
+  - has_diet      = params[:diet].present?
+  - has_meal_type = params[:meal_type].present?
+  - has_diff      = params[:difficulty].present?
+  - has_time      = params[:max_time].present?
+  - has_seasonal  = params[:seasonal] == "true"
+  - has_favs      = params[:favorites] == "true"
+  - has_any_filter = has_query || has_diet || has_meal_type || has_diff || has_time || has_seasonal || has_favs || tags_count > 0
+  - active_count = [has_query, has_diet, has_meal_type, has_diff, has_time, has_seasonal, has_favs].count(true) + tags_count
 
   -# ── Bouton flottant mobile (pill fixe en bas, invisible sur desktop) ──
   %button.filters-mobile-btn{ type: "button",
                               "aria-label": "Ouvrir les filtres",
+                              "aria-expanded": "false",
+                              "aria-controls": "filters-sidebar",
                               data: { action: "click->recipe-filter#openSidebar",
                                       recipe_filter_target: "mobileTrigger" } }
     Filtres
@@ -32,26 +39,37 @@
   .recipes-body
 
     -# ── Sidebar gauche : tous les filtres ──────────────────
-    .recipes-sidebar{ data: { recipe_filter_target: "sidebar" } }
+    .recipes-sidebar#filters-sidebar{ data: { recipe_filter_target: "sidebar" } }
       .sidebar-header
         %h2.sidebar-title Filtres
-        = link_to "Effacer", recipes_path, class: "reset-filters-btn"
+        -# Réinitialisation globale : toujours visible pour effacer tous les
+        -# filtres d'un coup (grisé/inactif visuellement si aucun filtre actif).
+        = link_to recipes_path, class: "reset-filters-btn#{' reset-filters-btn--idle' unless has_any_filter}" do
+          = svg_icon(:x, size: 13)
+          Réinitialiser
         %button.sidebar-close-btn{ type: "button",
                                    "aria-label": "Fermer les filtres",
-                                   data: { action: "click->recipe-filter#closeSidebar" } } ✕
+                                   data: { action: "click->recipe-filter#closeSidebar" } }
+          = svg_icon(:x, size: 18)
 
       = form_with url: recipes_path, method: :get,
                   class: "filters-form",
                   data: { turbo_frame: "recipes_list", recipe_filter_target: "form" } do |f|
 
         -# ── Barre de recherche (icône intégrée dans le champ) ──
+        -# La recherche part d'elle-même pendant la frappe (debounce), comme les
+        -# autres filtres partent à leur changement : Entrée et la loupe ne font
+        -# que devancer l'attente.
         .filters-search-row
           .search-field-wrapper
             = f.search_field :query,
                              value: params[:query],
                              placeholder: "Rechercher...",
-                             class: "search-input"
-            = f.submit "🔍", class: "search-inline-btn", title: "Rechercher"
+                             class: "search-input",
+                             data: { action: "input->recipe-filter#submitDebounced keydown.enter->recipe-filter#submit" }
+            %button.search-inline-btn{ type: "submit", title: "Rechercher", "aria-label": "Rechercher",
+                                       data: { action: "click->recipe-filter#submit" } }
+              = svg_icon(:search, size: 16)
 
         -# ── Filtres empilés verticalement ──
         .filters-quick-column
@@ -62,20 +80,30 @@
               = check_box_tag :favorites, "true", fav_active,
                               id: "filter-favorites",
                               data: { action: "change->recipe-filter#submit" }
-              = label_tag "filter-favorites", "♥ Mes favoris", class: "filter-label-inline"
+              = label_tag "filter-favorites", class: "filter-label-inline" do
+                = svg_icon(:heart, size: 14)
+                Mes favoris
 
           .filter-group
             = f.label :diet, "Régime", class: "filter-label"
             = f.select :diet,
-                       options_for_select(Recipe.diets.keys.map { |d| [d.humanize, d] }, params[:diet]),
+                       options_for_select(Recipe.enum_options(:diet), params[:diet]),
                        { include_blank: "Tous" },
                        class: "filter-select#{' filter-select--active' if has_diet}",
                        data: { action: "change->recipe-filter#submit" }
 
           .filter-group
+            = f.label :meal_type, "Moment du repas", class: "filter-label"
+            = f.select :meal_type,
+                       options_for_select(MealTypes::MEAL_TYPES.map { |t| [MealTypes.label(t), t] }, params[:meal_type]),
+                       { include_blank: "Tous" },
+                       class: "filter-select#{' filter-select--active' if has_meal_type}",
+                       data: { action: "change->recipe-filter#submit" }
+
+          .filter-group
             = f.label :difficulty, "Difficulté", class: "filter-label"
             = f.select :difficulty,
-                       options_for_select(Recipe.difficulties.keys.map { |d| [d.humanize, d] }, params[:difficulty]),
+                       options_for_select(Recipe.enum_options(:difficulty), params[:difficulty]),
                        { include_blank: "Toutes" },
                        class: "filter-select#{' filter-select--active' if has_diff}",
                        data: { action: "change->recipe-filter#submit" }
@@ -93,7 +121,9 @@
                           { checked: has_seasonal,
                             data: { action: "change->recipe-filter#submit" } },
                           "true", nil
-            = f.label :seasonal, "🌿 De saison", class: "filter-label-inline"
+            = f.label :seasonal, class: "filter-label-inline" do
+              = svg_icon(:leaf, size: 14)
+              De saison
 
         -# ── Filtres actifs (badges supprimables) ──
         - if has_any_filter
@@ -103,60 +133,72 @@
               %button.active-filter-badge{ type: "button",
                                            data: { action: "click->recipe-filter#clearFilter",
                                                    recipe_filter_field: "query" } }
-                🔍 #{params[:query]}
-                %span.badge-remove ×
+                = svg_icon(:search, size: 12)
+                = params[:query]
+                %span.badge-remove= svg_icon(:x, size: 12)
             - if has_diet
               %button.active-filter-badge{ type: "button",
                                            data: { action: "click->recipe-filter#clearFilter",
                                                    recipe_filter_field: "diet" } }
                 = params[:diet].humanize
-                %span.badge-remove ×
+                %span.badge-remove= svg_icon(:x, size: 12)
+            - if has_meal_type
+              %button.active-filter-badge{ type: "button",
+                                           data: { action: "click->recipe-filter#clearFilter",
+                                                   recipe_filter_field: "meal_type" } }
+                = MealTypes.label(params[:meal_type])
+                %span.badge-remove= svg_icon(:x, size: 12)
             - if has_diff
               %button.active-filter-badge{ type: "button",
                                            data: { action: "click->recipe-filter#clearFilter",
                                                    recipe_filter_field: "difficulty" } }
                 = params[:difficulty].humanize
-                %span.badge-remove ×
+                %span.badge-remove= svg_icon(:x, size: 12)
             - if has_time
               - time_labels = { "15" => "≤ 15 min", "30" => "≤ 30 min", "45" => "≤ 45 min", "60" => "≤ 1h", "90" => "≤ 1h30" }
               %button.active-filter-badge{ type: "button",
                                            data: { action: "click->recipe-filter#clearFilter",
                                                    recipe_filter_field: "max_time" } }
                 = time_labels[params[:max_time].to_s] || "≤ #{params[:max_time]} min"
-                %span.badge-remove ×
+                %span.badge-remove= svg_icon(:x, size: 12)
             - if has_seasonal
               %button.active-filter-badge{ type: "button",
                                            data: { action: "click->recipe-filter#clearFilter",
                                                    recipe_filter_field: "seasonal" } }
-                🌿 De saison
-                %span.badge-remove ×
+                = svg_icon(:leaf, size: 12)
+                De saison
+                %span.badge-remove= svg_icon(:x, size: 12)
             - if has_favs
               %button.active-filter-badge{ type: "button",
                                            data: { action: "click->recipe-filter#clearFilter",
                                                    recipe_filter_field: "favorites" } }
-                ♥ Mes favoris
-                %span.badge-remove ×
+                = svg_icon(:heart, size: 12)
+                Mes favoris
+                %span.badge-remove= svg_icon(:x, size: 12)
             - if tags_count > 0
-              - @tags&.select { |t| selected_tag_ids.include?(t.id.to_s) }.each do |tag|
+              - @catalog.tags.select { |t| selected_tag_ids.include?(t.id.to_s) }.each do |tag|
                 %button.active-filter-badge{ type: "button",
                                              data: { action: "click->recipe-filter#clearFilter",
                                                      recipe_filter_field: "tag_ids[]",
                                                      recipe_filter_value: tag.id } }
                   #{tag.name}
-                  %span.badge-remove ×
+                  %span.badge-remove= svg_icon(:x, size: 12)
 
         -# ── Tags par catégorie (cases à cocher verticales) ──
-        - if @tags&.any?
-          - tag_type_labels = { "rapidite" => "Rapidité", "regime_alimentaire" => "Régime alimentaire",
-                                "occasion" => "Occasion", "methode_cuisson" => "Méthode de cuisson",
-                                "saison" => "Saison", "autre" => "Autre" }
-          - tags_by_type = @tags.group_by { |t| t.tag_type || "autre" }
+        - if @catalog.tags.any?
           .filters-tags-section
-            - tag_type_labels.each do |type, label|
-              - group = tags_by_type[type]
-              - next unless group&.any?
-              .filters-tags-group
-                %span.filters-tags-sublabel= label
+            %span.filters-section-title Tags
+            -# Groupes ordonnés via Tag.grouped_by_type (source unique, ignore les vides).
+            - Tag.grouped_by_type(@catalog.tags).each do |_type, label, group|
+              -# Chaque type de tag est un accordéon, ouvert d'office si un de ses
+              -# tags est sélectionné (pour garder les filtres actifs visibles).
+              - active_in_group = group.count { |t| selected_tag_ids.include?(t.id.to_s) }
+              %details.filters-tags-accordion{ open: active_in_group.positive? }
+                %summary.filters-tags-summary
+                  %span.filters-tags-summary-label= label
+                  - if active_in_group.positive?
+                    %span.filters-tags-summary-count= active_in_group
+                  %span.filters-tags-chevron= svg_icon("chevron-down", size: 16)
                 .filters-tags-list
                   - group.each do |tag|
                     - tag_active = selected_tag_ids.include?(tag.id.to_s)
@@ -177,14 +219,18 @@
         %h1
           = inline_svg("cook-book", css_class: "icon-title", color: "var(--color-primary)")
           Catalogue de recettes
-        - if policy(Recipe).create?
-          = link_to new_recipe_path, class: "btn btn-primary" do
-            %span.btn-icon ✚
-            Ajouter une recette
-
-      -# ── Barre contextuelle menu brouillon ──
-      - if current_user
-        = render "recipes/draft_status_bar", draft: @draft
+        -# Actions empilées. « Créer un menu » n'apparaît que sans menu à valider :
+        -# c'est alors la seule entrée pour en démarrer un, les cartes n'ayant pas
+        -# de bouton + tant qu'aucun brouillon n'existe (cf. plus bas).
+        .recipes-header-actions
+          - if policy(Recipe).create?
+            = link_to new_recipe_path, class: "btn btn-primary" do
+              = svg_icon(:plus, size: 16)
+              Ajouter une recette
+          - if current_user && @draft.nil?
+            = link_to new_menu_path, class: "btn btn-white" do
+              = svg_icon(:plus, size: 16)
+              Créer un menu
 
       -# Loader de chargement
       .recipes-loader.hidden{ data: { recipe_filter_target: "loader" } }
@@ -194,34 +240,45 @@
       -# Liste des recettes (Turbo Frame pour rechargement partiel)
       .recipes-results{ data: { recipe_filter_target: "results" } }
         = turbo_frame_tag "recipes_list" do
-          - if @recipes.any?
+          - if @catalog.recipes.any?
             .recipes-count
-              %strong= @pagy.count
-              = " recette#{'s' if @pagy.count > 1} trouvée#{'s' if @pagy.count > 1}"
+              %strong= @catalog.pagy.count
+              = " recette#{'s' if @catalog.pagy.count > 1} trouvée#{'s' if @catalog.pagy.count > 1}"
             .recipes-grid
-              - @recipes.each do |recipe|
+              - @catalog.recipes.each do |recipe|
                 .recipe-card-wrapper
-                  = link_to recipe_path(recipe), class: "recipe-card-link", data: { turbo_frame: "_top", turbo_prefetch: "false" } do
-                    - cache recipe do
+                  -# Le contexte de moment (UC7) suit la navigation vers la fiche :
+                  -# son CTA d'ajout créera le repas avec ce moment.
+                  = link_to recipe_path(recipe, meal_type: context_meal_type), class: "recipe-card-link", data: { turbo_frame: "_top", turbo_prefetch: "false" } do
+                    -# Clé de cache incluant le mois : le badge « De saison » dépend
+                    -# du mois courant, il doit donc s'invalider chaque mois.
+                    - cache [recipe, "season-m#{@catalog.current_month}"] do
                       .recipe-card
                         .recipe-card-image-wrapper
                           - if recipe.photo.attached?
                             = image_tag cloudinary_photo_url(recipe.photo, width: 400, height: 250, crop: :fill),
+                                        srcset: cloudinary_photo_srcset(recipe.photo, width: 400, height: 250, crop: :fill),
                                         alt: recipe.name,
                                         class: "recipe-card-image",
+                                        width: 400, height: 250,
                                         loading: "lazy"
                           - else
-                            = image_tag "photo_par_defaut_recette.png", alt: recipe.name, class: "recipe-card-image", loading: "lazy"
+                            = image_tag "photo_par_defaut_recette.webp", alt: recipe.name, class: "recipe-card-image", width: 400, height: 250, loading: "lazy"
 
                         .recipe-card-body
-                          %h3.recipe-card-title= recipe.name
+                          %h2.recipe-card-title= recipe.name
 
+                          -# Méta hiérarchisée : temps total d'abord (info clé), puis
+                          -# régime en badge, puis badge saison si pertinent.
                           .recipe-card-meta
-                            %span.meta-item
-                              %span.meta-icon ⏱️
+                            %span.recipe-card-time
+                              = svg_icon(:clock, size: 15)
                               = format_total_time(recipe)
-                            %span.meta-item
-                              = diet_badge(recipe.diet)
+                            = diet_badge(recipe.diet)
+                            - if @catalog.seasonal?(recipe)
+                              %span.badge.badge-season
+                                = svg_icon(:leaf, size: 12)
+                                De saison
 
                           - if recipe.tags.any?
                             .recipe-card-tags
@@ -229,14 +286,18 @@
                                 %span.badge.badge-beige= tag.name
 
                           .recipe-card-footer
-                            .recipe-rating
-                              %span.recipe-rating-stars= rating_stars(recipe.rating_avg)
-                              %span.recipe-rating-count (#{recipe.reviews_count})
+                            - if recipe.reviews_count.positive?
+                              .recipe-rating
+                                %span.recipe-rating-stars= rating_stars(recipe.rating_avg)
+                                %span.recipe-rating-value= number_with_precision(recipe.rating_avg, precision: 1, strip_insignificant_zeros: true)
+                                %span.recipe-rating-count= "(#{recipe.reviews_count})"
+                            - else
+                              %span.recipe-rating-empty Pas encore d'avis
 
                   -# Coeur favori en overlay (user-specific, hors cache)
                   - if current_user
                     = render "recipes/favorite_button", recipe: recipe,
-                                                        is_favorited: @favorited_ids.include?(recipe.id),
+                                                        is_favorited: @catalog.favorited?(recipe),
                                                         container_id: "favorite-btn-#{recipe.id}",
                                                         compact: true
 
@@ -244,15 +305,21 @@
                   - if current_user && @draft
                     = render "recipes/draft_button", recipe: recipe,
                                                      in_draft: @draft_recipe_ids.include?(recipe.id),
-                                                     container_id: "draft-btn-#{recipe.id}"
+                                                     container_id: "draft-btn-#{recipe.id}",
+                                                     meal_type: context_meal_type
 
             .pagination-container
-              = pagy_nav(@pagy) if @pagy.pages > 1
+              = pagy_nav(@catalog.pagy) if @catalog.pagy.pages > 1
 
           - else
             .empty-state
-              .empty-state-icon 🍳
+              .empty-state-icon
+                = svg_icon(:utensils, size: 56)
               %h2 Aucune recette trouvée
               %p Essaye de modifier tes critères de recherche ou ajoute une nouvelle recette.
               - if policy(Recipe).create?
                 = link_to "Ajouter une recette", new_recipe_path, class: "btn btn-primary"
+
+    -# ── Rail droit : menu à valider en cours de composition ──
+    - if @draft
+      = render "recipes/draft_rail", draft: @draft, meals: @draft_meals

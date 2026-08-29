@@ -1,5 +1,7 @@
 -# Formulaire pour créer/éditer un ingrédient avec SimpleForm
-= simple_form_for ingredient, html: { class: "ingredient-form", data: { controller: "ingredient-form form-errors", turbo: false } } do |f|
+-# `ingredient_form_units_value` alimente le contrôleur Stimulus avec la seule
+-# source de vérité de la correspondance groupe d'unités → unité de base
+= simple_form_for ingredient, html: { class: "ingredient-form", data: { controller: "ingredient-form form-errors", ingredient_form_units_value: Ingredient::BASE_UNITS, turbo: false } } do |f|
 
   = f.error_notification message: "Des erreurs empêchent la sauvegarde :"
 
@@ -14,7 +16,7 @@
   .form-group
     = f.input :category, 
               label: "Rayon *",
-              collection: Ingredient.categories.map { |k, _v| [Ingredient.human_attribute_name("category.#{k}"), k] },
+              collection: Ingredient.enum_options(:category),
               prompt: "Sélectionnez un rayon",
               input_html: { class: "form-select" },
               label_html: { class: "form-label" },
@@ -24,7 +26,7 @@
   .form-group
     = f.input :unit_group, 
               label: "Groupe d'unités *",
-              collection: Ingredient.unit_groups.map { |k, _v| [Ingredient.human_attribute_name("unit_group.#{k}"), k] },
+              collection: Ingredient.enum_options(:unit_group),
               prompt: "Sélectionnez un groupe",
               input_html: { class: "form-select", data: { ingredient_form_target: "unitGroup", action: "change->ingredient-form#updateBaseUnit" } },
               label_html: { class: "form-label" },
@@ -43,6 +45,30 @@
               error_class: "has-error"
 
   .form-group
+    = f.input :piece_weight_g,
+              label: "Poids d'une pièce (g)",
+              hint: "Facultatif — fait le pont quand une recette compte ce que le catalogue pèse (1 aubergine ≈ 300 g). Ingrédients en masse ou en pièces uniquement.",
+              placeholder: "Ex: 300",
+              input_html: { class: "form-input", step: "0.01", min: "0.01" },
+              label_html: { class: "form-label" },
+              hint_html: { class: "form-hint" },
+              error_class: "has-error"
+
+  -# Second coefficient de conversion, symétrique du précédent. Quand la valeur
+  -# affichée vient de l'IA, l'indication le dit et rappelle qu'enregistrer vaut
+  -# vérification : le formulaire est le seul endroit d'où sort une densité
+  -# `manual` (cf. IngredientsController#ingredient_params).
+  .form-group
+    = f.input :density_g_per_ml,
+              label: "Densité (g/ml)",
+              hint: density_field_hint(ingredient),
+              placeholder: "Ex: 0.55",
+              input_html: { class: "form-input", step: "0.01", min: "0.01", max: Ingredient::MAX_DENSITY },
+              label_html: { class: "form-label" },
+              hint_html: { class: "form-hint" },
+              error_class: "has-error"
+
+  .form-group
     %label.form-label Alias (synonymes)
     %small.form-hint Noms alternatifs pour faciliter ta recherche
     = text_field_tag "ingredient[aliases]", 
@@ -50,15 +76,8 @@
                      class: "form-input", 
                      placeholder: "Ex: tomate, tomate fraîche (séparés par des virgules)"
 
-  .form-group
-    %label.form-label Mois de saison
-    %small.form-hint Coche les mois où cet ingrédient est de saison
-    = hidden_field_tag "ingredient[season_months][]", ""
-    .months-grid
-      - (1..12).each do |month|
-        %label.month-checkbox
-          = check_box_tag "ingredient[season_months][]", month, ingredient.season_months.include?(month), id: "ingredient_season_months_#{month}"
-          %span= Date::ABBR_MONTHNAMES[month]
+  = render "ingredients/season_months", ingredient: ingredient, id_prefix: "ingredient",
+                                        hint: "Coche les mois où cet ingrédient est de saison"
 
   .form-actions
     = f.submit ingredient.new_record? ? "Créer l'ingrédient" : "Mettre à jour", class: "btn btn-primary"

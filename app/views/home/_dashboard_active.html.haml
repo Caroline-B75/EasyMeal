@@ -1,5 +1,36 @@
--# Partial menu actif — 3 boutons d'accès rapide
-.hero-dashboard-actions
-  = link_to "Mon menu en cours", menu_path(active_menu), class: "btn-hero"
-  = link_to "Ma liste de courses", grocery_menu_path(active_menu), class: "btn-hero btn-hero--secondary"
-  = link_to "Créer un nouveau menu", new_menu_path, class: "btn-hero btn-hero--secondary"
+-# Partial menu actif — carte de synthèse opérationnelle
+-# Résume le menu en cours et l'avancement de la liste de courses.
+-# active_menu : Menu(status: :active)
+- progress = active_menu.grocery_progress
+- menu_recipes = active_menu.menu_recipes.by_position
+
+.hero-card
+  .hero-card-head
+    .hero-card-title-group
+      %h2.hero-card-title= active_menu.name
+      %span.hero-card-meal-count= "(#{active_menu.recipes_count} repas)"
+    %span.hero-card-status.hero-card-status--active Actif
+
+  -# Progression de la liste de courses (masquée si la liste est vide)
+  - if progress[:total].positive?
+    .hero-card-progress
+      .hero-card-progress-head
+        %span.hero-card-progress-label Liste de courses
+        %span.hero-card-progress-count= "#{progress[:checked]}/#{progress[:total]} articles"
+      .hero-progress-bar
+        .hero-progress-bar-fill{ style: "width: #{progress[:percent]}%" }
+
+  - if menu_recipes.any?
+    .hero-card-recipes
+      - menu_recipes.each do |menu_recipe|
+        = render "menus/menu_recipe_card_readonly", menu_recipe: menu_recipe
+
+  .hero-card-actions
+    = link_to "Voir la liste de courses", grocery_menu_path(active_menu), class: "btn-hero"
+    = link_to "Préparer un prochain menu", new_menu_path, class: "btn-hero btn-hero--secondary"
+  - base_confirm = "Repasser ce menu en brouillon pour le modifier ? À la revalidation, ta liste de courses sera mise à jour : les articles déjà cochés le restent, sauf si leur quantité augmente."
+  - revert_confirm = @draft ? "#{base_confirm}\n\nAttention : tu as déjà un menu « #{@draft.name} » à valider. Il sera remplacé par cette modification à revalider." : base_confirm
+  .hero-card-links
+    = button_to "Modifier le menu", revert_to_draft_menu_path(active_menu), method: :post,
+                class: "hero-card-link hero-card-link--btn",
+                form: { data: { turbo_confirm: revert_confirm } }

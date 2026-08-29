@@ -1,4 +1,23 @@
 fr:
+  date:
+    formats:
+      default: "%d/%m/%Y"
+      short: "%d %b"
+      long: "%d %B %Y"
+    month_names: [~, janvier, février, mars, avril, mai, juin, juillet, août, septembre, octobre, novembre, décembre]
+    abbr_month_names: [~, jan., fév., mar., avr., mai, juin, juil., août, sep., oct., nov., déc.]
+    day_names: [dimanche, lundi, mardi, mercredi, jeudi, vendredi, samedi]
+    abbr_day_names: [dim., lun., mar., mer., jeu., ven., sam.]
+    # Diminutifs sans point des sélecteurs de jour (cartes de repas, UC7) : deux
+    # sélecteurs s'y partagent la largeur d'une carte, chaque caractère compte.
+    # Indexés comme Date#wday, tout comme abbr_day_names ci-dessus.
+    short_day_names: [Dim, Lun, Mar, Mer, Jeu, Ven, Sam]
+  time:
+    formats:
+      default: "%d/%m/%Y %H:%M"
+      short: "%d %b %H:%M"
+      long: "%d %B %Y %H:%M"
+
   activerecord:
     models:
       ingredient:
@@ -27,6 +46,9 @@ fr:
         base_unit: Unité de base
         season_months: Mois de saison
         aliases: Alias
+        # Valeurs des enums d'Ingredient — libellés lus par Ingredient.enum_label,
+        # donc partagés par la fiche, les filtres, les formulaires et la liste de
+        # courses (GroceryItem duplique ces mêmes rayons, cf. app/models/grocery_item.rb).
         categories:
           fruits_legumes: Fruits et légumes
           boucherie_viande: Boucherie / Viande
@@ -38,6 +60,7 @@ fr:
           produits_frais_libre_service: Produits frais en libre-service
           glaces_desserts_glaces: Glaces et desserts glacés
           legumes_surgeles: Légumes surgelés
+          fruits_surgeles: Fruits surgelés
           viandes_poissons_surgeles: Viandes et poissons surgelés
           produits_aperitifs_surgeles: Produits apéritifs surgelés
           epicerie_salee: Épicerie salée
@@ -48,6 +71,7 @@ fr:
           hygiene_beaute: Hygiène et beauté
           entretien_maison: Entretien de la maison
           papeterie_fournitures: Papeterie et fournitures
+          autre: Autre
         unit_groups:
           mass: Masse (g, kg)
           volume: Volume (ml, L)
@@ -63,6 +87,9 @@ fr:
         last_name: Nom
         gender: Genre
         remember_me: Se souvenir de moi
+      review:
+        rating: La note
+        content: Le commentaire
       recipe:
         name: Nom
         diet: Régime alimentaire
@@ -73,6 +100,25 @@ fr:
         price: Budget
         appliance: Appareil
         instructions: Instructions
+        meal_types: Moment du repas
+        # Valeurs des enums de Recipe — libellés lus par Recipe.enum_label,
+        # donc partagés par la fiche recette, les filtres et le formulaire.
+        diets:
+          omnivore: Omnivore
+          vegetarien: Végétarien
+          vegan: Vegan
+          pescetarien: Pescétarien
+        difficulties:
+          facile: Facile
+          moyen: Moyen
+          difficile: Difficile
+        # Le budget se lit à l'échelle, pas au mot : trois niveaux de « € » se
+        # comparent d'un coup d'œil là où « Économique / Moyen / Cher » demande
+        # de lire. Même libellé sur la fiche recette et dans le formulaire.
+        prices:
+          economique: "€"
+          moyen: "€€"
+          cher: "€€€"
       preparation:
         ingredient_id: Ingrédient
         quantity_base: Quantité
@@ -81,8 +127,8 @@ fr:
         start_date: Date de début
       menu_recipe:
         number_of_people: Nombre de personnes
-        meal_type: Type de repas
-        scheduled_date: Date prévue
+        meal_type: Moment du repas
+        day_of_week: Jour
     errors:
       models:
         ingredient:
@@ -106,6 +152,8 @@ fr:
               blank: ne peut pas être vide
               not_a_number: doit être un nombre
               greater_than: doit être supérieur à %{count}
+            meal_types:
+              blank: doit comporter au moins un moment
         preparation:
           attributes:
             ingredient_id:
@@ -156,14 +204,113 @@ fr:
         present: "doit être vide"
         required: "doit exister"
 
-  # Traductions pour les types de repas
-  menu_recipes:
-    meal_types:
-      breakfast: Petit-déjeuner
-      lunch: Déjeuner
-      dinner: Dîner
-      snack: Collation
-        
+  # Moments du repas — vocabulaire partagé par Recipe#meal_types (array)
+  # et MenuRecipe#meal_type (valeur unique), via le concern MealTypes.
+  # D'abord les cinq moments de la journée dans l'ordre, puis les moments d'un
+  # repas, qui ne se rangent pas sur cette ligne du temps.
+  meal_types:
+    breakfast: Petit-déjeuner
+    lunch: Déjeuner
+    snack: Goûter
+    apero: Apéro
+    dinner: Dîner
+    starter: Entrée
+    salad: Salade
+    dessert: Dessert
+
+  # Même vocabulaire au pluriel : on commande DES petits-déjeuners et on titre
+  # une section avec cette forme (MealTypes.plural_label).
+  meal_types_plural:
+    breakfast: Petits-déjeuners
+    lunch: Déjeuners
+    snack: Goûters
+    apero: Apéros
+    dinner: Dîners
+    starter: Entrées
+    salad: Salades
+    dessert: Desserts
+
+  # Libellés des sélecteurs de moment des cartes de repas (MealTypes.compact_label) :
+  # ils partagent la largeur d'une carte avec le sélecteur de jour, où
+  # « Petit-déjeuner » ne tient pas.
+  meal_types_compact:
+    breakfast: Petit-déj
+    lunch: Déjeuner
+    snack: Goûter
+    apero: Apéro
+    dinner: Dîner
+    starter: Entrée
+    salad: Salade
+    dessert: Dessert
+
+  # Formes courtes et accordées de la barre de résumé du formulaire de menu :
+  # « 7 petits-déjs · 2 déjs · 1 apéro » (MealTypes.short_label).
+  meal_types_short:
+    breakfast:
+      one: petit-déj
+      other: petits-déjs
+    lunch:
+      one: déj
+      other: déjs
+    snack:
+      one: goûter
+      other: goûters
+    apero:
+      one: apéro
+      other: apéros
+    dinner:
+      one: dîner
+      other: dîners
+    starter:
+      one: entrée
+      other: entrées
+    salad:
+      one: salade
+      other: salades
+    dessert:
+      one: dessert
+      other: desserts
+
+  # Régimes alimentaires — vocabulaire partagé par Recipe#diet, Menu#diet et
+  # User#default_diet (mêmes clés d'enum). Comme les moments du repas, le
+  # français vit ici et nulle part ailleurs (voir MenusHelper#menu_diet_label).
+  diets:
+    omnivore: Omnivore
+    vegetarien: Végétarien
+    vegan: Vegan
+    pescetarien: Pescétarien
+
+  # Une phrase qui dit ce que le régime inclut ou exclut : elle accompagne le
+  # libellé dans les sélecteurs de régime (formulaire de menu, préférences).
+  diets_descriptions:
+    omnivore: Toutes les recettes disponibles
+    vegetarien: Sans viande ni poisson
+    vegan: Sans produits d'origine animale
+    pescetarien: Végétarien + poisson
+
+  # Manques du brouillon face à la commande (UC7, chapitre 3) : une seule ligne
+  # pour tout le menu, jamais une erreur. %{meals} reçoit l'énumération déjà
+  # accordée en nombre — « 6 petits-déjeuners, 2 déjeuners » (voir
+  # MenusHelper#missing_meals_message).
+  menus:
+    draft:
+      missing_meals: "Il manque %{meals} pour compléter ce menu."
+
+  # Panneau « Ingrédients détectés par l'IA ». Cette phrase-là vit ici parce
+  # qu'elle est dite deux fois : par la vue pour les suggestions rendues côté
+  # serveur, par le contrôleur Stimulus pour celles qu'il pose lui-même après
+  # une recherche. Les autres textes du panneau n'existent que dans le JS et y
+  # restent.
+  recipes:
+    ai_panel:
+      unit_mismatch: "L'unité détectée ne se convertit pas dans celle de cet ingrédient : le nombre sera repris tel quel, à vérifier."
+      unit_estimated: "La conversion repose sur une densité estimée par l'IA, pas encore vérifiée : la quantité est approximative."
+
+  # Dite trois fois — pastille du catalogue, fiche, indication du formulaire —
+  # d'où sa place ici plutôt que dans chaque vue.
+  ingredients:
+    density_to_check: "Densité estimée par l'IA : à vérifier. Enregistrer ce formulaire vaut vérification."
+
   errors:
     messages:
       blank: "ne peut pas être vide"

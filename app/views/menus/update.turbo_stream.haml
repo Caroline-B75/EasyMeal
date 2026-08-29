@@ -1,0 +1,20 @@
+-# Réponse Turbo Stream à la mise à jour inline du nom ou du nombre de personnes.
+-# Remplace l'en-tête et — pour un brouillon — le panneau de réglages (re-render
+-# avec les nouvelles valeurs, notamment l'état disabled du stepper aux bornes).
+-# Un menu actif ne soumet jamais ce formulaire : le second replace n'a alors
+-# simplement aucune cible dans la page et ne fait rien.
+-# Si le nombre de personnes a changé, met à jour également toutes les cartes recettes.
+
+= turbo_stream.replace "menu_head_#{@menu.id}" do
+  = render "menus/page_head", menu: @menu, menu_recipes: @menu_recipes
+
+- if @menu.status_draft?
+  = turbo_stream.replace "menu_settings_#{@menu.id}" do
+    = render "menus/settings_panel", menu: @menu, menu_recipes: @menu_recipes
+
+- if @people_changed
+  -# La collection est transmise à chaque carte : sans ce local, chaque carte
+  -# re-rendue rechargerait les repas du menu pour son seul état ⬆️/⬇️.
+  - @menu_recipes.each do |mr|
+    = turbo_stream.replace "menu_recipe_#{mr.id}" do
+      = render "menus/menu_recipe_card", menu_recipe: mr, menu: @menu, meals: @menu_recipes

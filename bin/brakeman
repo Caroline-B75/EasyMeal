@@ -2,6 +2,13 @@
 require "rubygems"
 require "bundler/setup"
 
-ARGV.unshift("--ensure-latest")
-
+# Le binstub généré par Rails ajoutait ici --ensure-latest, qui fait échouer
+# Brakeman quand une version plus récente existe. Conséquence : l'analyse ne
+# s'exécutait pas du tout (elle s'arrêtait au contrôle de version) et la CI
+# passait au rouge au premier jour d'une nouvelle publication du gem, sans que
+# rien n'ait été scanné.
+#
+# Le drapeau est retiré : Dependabot surveille déjà le Gemfile chaque jour et
+# proposera la mise à jour par une demande de fusion — un rappel qui ne casse
+# pas la CI.
 load Gem.bin_path("brakeman", "brakeman")

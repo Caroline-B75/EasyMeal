@@ -1,0 +1,46 @@
+-# Sélecteur segmenté : tout le vocabulaire d'un champ posé sur une rangée,
+-# l'option active en aplat anthracite. Remplace les listes déroulantes des
+-# caractéristiques et les cases à cocher des moments — à trois ou cinq valeurs,
+-# dérouler une liste pour les découvrir coûte plus que ça ne rapporte.
+-#
+-# Locals :
+-#   f         : builder du formulaire de recette
+-#   attribute : champ visé (:diet, :difficulty, :price, :meal_types)
+-#   label     : intitulé de la rangée
+-#   options   : [[libellé, valeur], ...] dans l'ordre d'affichage
+-#   multiple  : true ⇒ options cumulables (cases à cocher). Défaut : choix unique
+-#   required  : true ⇒ le champ ne peut pas revenir à « non renseigné »
+- multiple = local_assigns.fetch(:multiple, false)
+- required = local_assigns.fetch(:required, false)
+- record = f.object
+
+-# Un choix unique facultatif n'affiche pas d'option « Non renseigné » : il se
+-# vide en recliquant sur l'option active (deselectable-radio). Le champ caché
+-# rendu avant les radios porte la valeur vide envoyée quand plus rien n'est
+-# coché — sans lui, le paramètre serait simplement absent et l'ancienne valeur
+-# resterait en base.
+- clearable = !multiple && !required
+- label_id = "#{f.object_name}_#{attribute}_label"
+
+.form-group.rf-choice{ class: field_error_class(record, attribute) }
+  -# L'intitulé nomme un groupe, pas un champ unique : un %span relié par
+  -# aria-labelledby, plutôt qu'un %label dont le « for » ne viserait qu'une
+  -# option sur cinq.
+  %span.form-label{ id: label_id }= label
+  .rf-segmented{ role: (multiple ? "group" : "radiogroup"),
+                 "aria-labelledby": label_id,
+                 title: ("Clique à nouveau sur l'option active pour l'effacer" if clearable),
+                 data: (clearable ? { controller: "deselectable-radio",
+                                      action: "mousedown->deselectable-radio#remember keydown->deselectable-radio#remember" } : nil) }
+    - if clearable
+      = f.hidden_field attribute, value: "", id: nil
+    - options.each do |option_label, value|
+      %label.rf-segment
+        - if multiple
+          -# Une case décochée envoie "" (4ᵉ argument) : clean_meal_types
+          -# (AttributeCleaner) filtre ces entrées fantômes.
+          = f.check_box attribute, { multiple: true, checked: Array(record.public_send(attribute)).include?(value) }, value, ""
+        - else
+          = f.radio_button attribute, value, data: (clearable ? { action: "click->deselectable-radio#toggle" } : nil)
+        %span.rf-segment-label= option_label
+  = field_errors(record, attribute)

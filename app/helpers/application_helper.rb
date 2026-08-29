@@ -1,25 +1,40 @@
 module ApplicationHelper
   include Pagy::Frontend
 
-  # Retourne un Greeting(text:, subtext:) personnalisé et aléatoire.
-  # Délègue la logique au GreetingService pour une meilleure séparation des responsabilités.
-  # La paire est stockée en session pour rester cohérente pendant toute la journée.
-  # Une nouvelle paire est générée chaque jour pour garder le charme de la personnalisation.
-  def random_greeting(user)
+  # Retourne un Greeting(text:, subtext:) personnalisé.
+  # Le cache varie aussi selon le contexte pour éviter de garder une phrase obsolète
+  # après validation, revalidation ou repassage d'un menu actif en brouillon.
+  def random_greeting(user, active_menu: nil, draft: nil)
     today = Date.today.to_s
     data = session[:user_greeting]
+    context = greeting_context(active_menu: active_menu, draft: draft).to_s
 
     # Réinitialiser si nouveau jour ou si le format en session est invalide (ex: ancienne session)
-    if session[:greeting_date] != today || !data.is_a?(Hash)
+    if session[:greeting_date] != today || !data.is_a?(Hash) || data["context"] != context
       session[:greeting_date] = today
-      greeting = GreetingService.new(user).random_greeting
+      greeting = GreetingService.new(user, context: context).random_greeting
       # Stocker avec clés string : JSON (cookie store) dépersiste les symboles en strings
-      session[:user_greeting] = { "text" => greeting.text, "subtext" => greeting.subtext }
+      session[:user_greeting] = { "text" => greeting.text, "subtext" => greeting.subtext, "context" => context }
       data = session[:user_greeting]
     end
 
     GreetingService::Greeting.new(data["text"], data["subtext"])
   end
+
+  # Chaîne de gardes : chaque situation est nommée et testée dans son ordre de
+  # priorité. La complexité mesurée (8 pour 7) vient des `&.` et des retours
+  # anticipés, pas d'un enchevêtrement — découper ne ferait que disperser une
+  # décision qui se lit d'un seul bloc.
+  # rubocop:disable Metrics/CyclomaticComplexity
+  def greeting_context(active_menu:, draft:)
+    return :grocery_list_ready if active_menu&.grocery_items&.exists?
+    return :active_menu_ready if active_menu
+    return :pending_revalidation if draft&.pending_revalidation?
+    return :draft_ready if draft
+
+    :planning
+  end
+  # rubocop:enable Metrics/CyclomaticComplexity
 
   # Vérifie si on est sur la page d'accueil
   def home_page?
@@ -33,18 +48,38 @@ module ApplicationHelper
     @_current_active_menu ||= current_user.menus.active_menus.first
   end
 
+  # Retourne le menu brouillon de l'utilisateur courant (un seul autorisé par validation)
+  def current_draft_menu
+    return nil unless user_signed_in?
+
+    @_current_draft_menu ||= current_user.menus.status_draft.recent.first
+  end
+
   # Classe CSS pour les liens de navigation du header (avec état actif)
-  def header_nav_class(section)
+  #
+  # Un `when` par section du header, chacun disant comment il se reconnaît
+  # « actif ». La complexité mesurée (11 pour 7) est celle de cette table de
+  # correspondance : elle croît d'une unité par entrée du menu. La remplacer par
+  # un dictionnaire de lambdas satisferait la métrique au prix de la lisibilité —
+  # ici, une section se lit sur une ligne. Même esprit que l'exclusion de
+  # filter_service.rb dans .rubocop.yml : structure volontairement branchée.
+  # rubocop:disable Metrics/CyclomaticComplexity
+  def header_nav_class(section, target_menu = nil)
     is_active = case section
-                when :recipes then controller_name == "recipes"
-                when :menus   then controller_name == "menus" && action_name == "index"
-                when :current then controller_name == "menus" && action_name == "show"
-                when :grocery then controller_name == "menus" && action_name == "grocery"
-                else false
-                end
+    when :recipes then controller_name == "recipes"
+    when :menus   then controller_name == "menus" && action_name == "index"
+    when :current, :draft then target_menu.present? && current_page?(menu_path(target_menu))
+    when :grocery then target_menu.present? && current_page?(grocery_menu_path(target_menu))
+    # L'import IA est un parcours en deux temps : le formulaire
+    # (recipe_imports) puis la liste des brouillons (recipe_drafts).
+    when :drafts  then controller_name.in?(%w[recipe_drafts recipe_imports])
+    when :users   then controller_name == "users"
+    else false
+    end
 
     "header-nav-link #{'active' if is_active}"
   end
+  # rubocop:enable Metrics/CyclomaticComplexity
 
   # ============================================
   # SYSTÈME DE GESTION D'ERREURS INLINE
@@ -56,8 +91,7 @@ module ApplicationHelper
   def field_errors(object, attribute)
     return unless object.errors[attribute].any?
 
-    # Messages d'erreur courts et clairs (sans le nom du champ)
-    messages = object.errors[attribute].map { |msg| clean_error_message(msg) }
+    messages = object.errors[attribute]
 
     content_tag(:div, class: "field-errors", data: { field_error: true }) do
       safe_join(messages.map { |msg| content_tag(:span, msg, class: "field-error") })
@@ -77,7 +111,14 @@ module ApplicationHelper
   # ============================================
   # SYSTÈME D'ICÔNES SVG INLINE
   # ============================================
-  #
+
+  ICONS_PATH = Rails.root.join("app/assets/images/icones")
+
+  # Contenu brut des SVG déjà lus (voir #svg_source) : une page affiche plusieurs
+  # icônes, on ne veut pas un accès disque par icône et par requête. Concurrent::Map
+  # plutôt qu'un Hash nu car Puma sert les requêtes sur plusieurs threads.
+  SVG_SOURCES = Concurrent::Map.new
+
   # Insère un fichier SVG inline pour permettre la stylisation via variables CSS.
   # Les SVGs doivent utiliser fill="currentColor" (monocouleur) ou
   # fill="var(--icon-color-1)" / fill="var(--icon-color-2)" (bicouleur).
@@ -87,12 +128,9 @@ module ApplicationHelper
   #
   # Usage bicouleur (le SVG doit avoir 2 groupes de paths avec --icon-color-1 et --icon-color-2) :
   #   = inline_svg("my-icon", css_class: "icon-md", color: "var(--color-primary)", color2: "var(--color-secondary)")
-  #
   def inline_svg(icon_name, css_class: nil, color: nil, color2: nil, size: nil)
-    file_path = Rails.root.join("app/assets/images/icones/#{icon_name}.svg")
-    return "".html_safe unless File.exist?(file_path)
-
-    svg_content = File.read(file_path)
+    svg_content = svg_source(icon_name)
+    return "".html_safe if svg_content.nil?
 
     # Construction du style inline pour les variables de couleur CSS
     style_parts = []
@@ -101,49 +139,140 @@ module ApplicationHelper
     style_parts << "width: #{size}; height: #{size}" if size.present?
 
     # Construction des attributs à injecter dans la balise <svg>
-    css_classes = ["svg-icon", css_class].compact.join(" ")
+    css_classes = [ "svg-icon", css_class ].compact.join(" ")
     extra_attrs = " class=\"#{css_classes}\""
     extra_attrs += " style=\"#{style_parts.join('; ')}\"" if style_parts.any?
     extra_attrs += " aria-hidden=\"true\""
 
-    svg_content = svg_content.gsub(/<svg\b/, "<svg#{extra_attrs}")
-    svg_content.html_safe
+    # gsub et non gsub! : la source est partagée par tous les appels, elle ne doit
+    # jamais être modifiée en place.
+    svg_content.gsub(/<svg\b/, "<svg#{extra_attrs}").html_safe
   end
 
   # Icônes Feather inline (petits SVG courants sans fichier séparé)
   # Usage : = svg_icon(:edit, size: 13)
   #         = svg_icon(:heart, size: 14, fill: "currentColor")
+  #
+  # Longueur de ligne suspendue sur ce seul dictionnaire : chaque valeur est un
+  # tracé SVG d'un seul tenant (« M11 4H4a2 2 0 0 0-2 2v14… »). Le couper à 120
+  # caractères ne le rendrait pas plus lisible, seulement plus difficile à
+  # comparer d'une icône à l'autre. Même esprit que l'exclusion de db/seeds dans
+  # .rubocop.yml : ce sont des données, pas du code.
+  # rubocop:disable Layout/LineLength
   FEATHER_ICONS = {
     "chevron-left"  => '<polyline points="15 18 9 12 15 6"/>',
     "chevron-down"  => '<polyline points="6 9 12 15 18 9"/>',
     "plus"          => '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+    "minus"         => '<line x1="5" y1="12" x2="19" y2="12"/>',
+    "maximize"      => '<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>',
     "list"          => '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>',
     "upload"        => '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
     "share"         => '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>',
     "edit"          => '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
     "trash"         => '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+    "trash-fill"    => '<path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>',
     "heart"         => '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
     "sparkle"       => '<path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>',
     "shuffle"       => '<polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>',
+    "copy"          => '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
     "search"        => '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+    "eye"           => '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
+    "eye-off"       => '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>' \
+                       '<line x1="1" y1="1" x2="23" y2="23"/>',
     "arrow-right"   => '<line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>',
     "grip-vertical" => '<circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/>',
-    "book-open"     => '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>'
-  }.freeze
+    "book-open"     => '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+    "x"             => '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+    "check"         => '<polyline points="20 6 9 17 4 12"/>',
+    "leaf"          => '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/>',
+    "users"         => '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+    "info"          => '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
+    "clock"         => '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+    "link"          => '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+    "image"         => '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>',
+    "camera"        => '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+    "clipboard"     => '<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>',
+    "utensils"      => '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>',
+    "settings"      => '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
 
-  def svg_icon(name, size: nil, css_class: nil, fill: "none")
+    # Moments de la journée (UC7) : c'est MealTypes.icon qui les nomme, personne
+    # d'autre. « glass » (apéro) n'existe pas chez Feather — elle est dessinée
+    # dans le même langage que les autres : viewBox 24, trait de 2, bouts arrondis.
+    #
+    # « sunrise » est celle de Feather MOINS sa pointe de flèche
+    # (<polyline points="8 6 12 2 16 6"/>). C'est elle qui, chez Feather, oppose
+    # sunrise à sunset ; mais rendue à 13 px dans la carte de repas, elle domine
+    # le dessin et se lit comme un chevron « monter » plutôt que comme un lever
+    # de soleil. Sans elle, le trait vertical redevient le rayon du haut et la
+    # silhouette est un soleil à cinq rayons au-dessus de l'horizon.
+    "sunrise"       => '<path d="M17 18a5 5 0 0 0-10 0"/><line x1="12" y1="2" x2="12" y2="9"/><line x1="4.22" y1="10.22" x2="5.64" y2="11.64"/><line x1="1" y1="18" x2="3" y2="18"/><line x1="21" y1="18" x2="23" y2="18"/><line x1="18.36" y1="11.64" x2="19.78" y2="10.22"/><line x1="23" y1="22" x2="1" y2="22"/>',
+    "sun"           => '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>',
+    "coffee"        => '<path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>',
+    "glass"         => '<path d="M5 3h14l-7 8z"/><line x1="12" y1="11" x2="12" y2="20"/><line x1="8" y1="20" x2="16" y2="20"/>',
+    "moon"          => '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+
+    # Les trois suivantes n'existent pas chez Feather non plus. Elles suivent
+    # la même grammaire que « glass » : viewBox 24, trait de 2, bouts arrondis,
+    # et une silhouette qui tient encore à 13 px dans une carte de repas — d'où
+    # des formes franchement distinctes les unes des autres (une assiette ronde,
+    # un bol surmonté de feuilles, un cône pointe en bas).
+    "plate"         => '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/>',
+    "salad"         => '<path d="M3 12a9 9 0 0 0 18 0z"/><path d="M12 12c0-2.8 2.2-5 5-5 0 2.8-2.2 5-5 5z"/><path d="M12 12C9.2 12 7 9.8 7 7c2.8 0 5 2.2 5 5z"/>',
+    "ice-cream"     => '<path d="M7.5 10a4.5 4.5 0 0 1 9 0"/><path d="M7.5 10h9l-4.5 11z"/>'
+  }.freeze
+  # rubocop:enable Layout/LineLength
+
+  # stroke: "none" (avec fill: "currentColor") pour les icônes pleines (silhouettes),
+  # par opposition aux icônes Feather au trait (stroke par défaut).
+  def svg_icon(name, size: nil, css_class: nil, fill: "none", stroke: "currentColor")
     body = FEATHER_ICONS[name.to_s] || ""
-    attrs = %w[xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"]
+    # Classe .svg-icon commune (alignement vertical + flex-shrink) pour un rendu
+    # cohérent aussi bien dans du texte que dans un conteneur flex.
+    classes = [ "svg-icon", css_class ].compact.join(" ")
+    attrs = %w[xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"
+stroke-linejoin="round"]
+    attrs << %(stroke="#{ERB::Util.html_escape(stroke)}")
     attrs << %(width="#{size}" height="#{size}") if size
-    attrs << %(class="#{ERB::Util.html_escape(css_class)}") if css_class
+    attrs << %(class="#{ERB::Util.html_escape(classes)}")
     attrs << %(fill="#{ERB::Util.html_escape(fill)}")
+    # Icônes décoratives : le nom accessible est porté par le bouton/lien parent
+    # (title / aria-label). Évite une double lecture par les lecteurs d'écran.
+    attrs << 'aria-hidden="true"'
     "<svg #{attrs.join(' ')}>#{body}</svg>".html_safe
+  end
+
+  # Libellé abrégé d'un mois (1..12), pris dans la locale — et non dans
+  # Date::ABBR_MONTHNAMES, qui est en anglais. Capitalisé car les mois s'affichent
+  # en tête de case à cocher ou d'étiquette, comme les jours de `short_day_names`.
+  def month_abbr(month)
+    I18n.t("date.abbr_month_names")[month].capitalize
+  end
+
+  # Initiales de l'utilisateur (avatar) — ex. "Caroline Belmas" → "CB".
+  # Mutualisé entre l'avatar du header et l'en-tête du menu déroulant.
+  def user_initials(user)
+    names = [ user.first_name, user.last_name ].filter_map { |name| name.presence&.first }
+    return names.join.upcase if names.any?
+
+    user.email.to_s.first(2).upcase.presence || "?"
   end
 
   private
 
-  # Nettoie le message d'erreur pour ne garder que l'essentiel
-  def clean_error_message(message)
-    message
+  # Contenu brut d'une icône, nil si le fichier n'existe pas. Le résultat est mémorisé
+  # — les absences aussi, sinon une icône mal nommée coûterait un File.exist? par appel.
+  # Le cache est court-circuité là où le code est rechargé à chaud (développement) pour
+  # qu'un SVG ajouté ou modifié soit visible sans redémarrer le serveur.
+  def svg_source(icon_name)
+    return read_svg_source(icon_name) if Rails.application.config.enable_reloading
+
+    SVG_SOURCES.fetch_or_store(icon_name.to_s) { read_svg_source(icon_name) }
+  end
+
+  def read_svg_source(icon_name)
+    file_path = ICONS_PATH.join("#{icon_name}.svg")
+    return nil unless File.exist?(file_path)
+
+    File.read(file_path).freeze
   end
 end

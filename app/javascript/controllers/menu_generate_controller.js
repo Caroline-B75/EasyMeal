@@ -1,75 +1,70 @@
 import { Controller } from "@hotwired/stimulus"
+import { paintSliderTrack } from "slider_track"
 
 /**
- * Gère l'interactivité du formulaire de génération de menu :
- * - Sélection de régime alimentaire (radio cards visuels avec ARIA)
- * - Sliders pour le nombre de personnes et le nombre de repas
+ * Interactivité du formulaire de paramètres de menu (génération / régénération) :
+ * - Régime alimentaire : report du libellé choisi dans le résumé
+ * - Slider "personnes" avec piste colorée
+ * - Répartition des repas : écoute les steppers du contrôleur meal-counts
+ * - Barre résumé synchronisée en temps réel
  * - État de chargement au submit
+ *
+ * Les accès aux cibles de résumé sont gardés par `has…Target` pour rester
+ * robuste si la barre résumé venait à être retirée d'un parcours.
  */
 export default class extends Controller {
   static targets = [
-    "dietOption", "dietInput",
     "peopleSlider", "peopleDisplay", "peopleUnit",
-    "mealsSlider", "mealsDisplay",
-    "submitBtn"
+    "nameInput",
+    "sumDiet", "sumPeople", "sumMeals", "sumName",
+    "emptyMealsHint", "submitBtn"
   ]
 
+  static values = { defaultName: String }
+
   connect() {
-    this.updateAllSliderTracks()
+    if (this.hasPeopleSliderTarget) paintSliderTrack(this.peopleSliderTarget)
   }
 
   // ── Régime alimentaire ──────────────────────────────────
 
+  // Le radio natif porte seul l'état sélectionné : cochage, apparence
+  // (CSS :has(:checked)) et annonce ARIA. Il ne reste au JS qu'à reporter le
+  // libellé du régime choisi dans la barre de résumé.
   selectDiet(event) {
-    const option = event.currentTarget
+    if (!this.hasSumDietTarget) return
 
-    // Mise à jour des classes et ARIA
-    this.dietOptionTargets.forEach(opt => {
-      opt.classList.remove("selected")
-      opt.setAttribute("aria-checked", "false")
-    })
-    option.classList.add("selected")
-    option.setAttribute("aria-checked", "true")
-
-    // Cocher le radio button correspondant
-    const radio = option.querySelector("input[type='radio']")
-    if (radio) radio.checked = true
+    const name = event.target.closest(".mn-diet-option")?.querySelector(".mn-diet-name")
+    if (name) this.sumDietTarget.textContent = name.textContent
   }
 
   // ── Nombre de personnes (slider) ────────────────────────
 
   updatePeople() {
     const val = parseInt(this.peopleSliderTarget.value)
+    const unit = val === 1 ? "personne" : "personnes"
     this.peopleDisplayTarget.textContent = val
-    this.peopleUnitTarget.textContent = val === 1 ? "personne" : "personnes"
-    this.updateSliderTrack(this.peopleSliderTarget)
+    this.peopleUnitTarget.textContent = unit
+    paintSliderTrack(this.peopleSliderTarget)
+    if (this.hasSumPeopleTarget) this.sumPeopleTarget.textContent = `${val} ${unit}`
   }
 
-  // ── Nombre de repas (slider) ────────────────────────────
+  // ── Répartition des repas (steppers meal-counts) ────────
 
-  updateMeals() {
-    const val = parseInt(this.mealsSliderTarget.value)
-    this.mealsDisplayTarget.textContent = val
-    this.updateSliderTrack(this.mealsSliderTarget)
+  // Réagit à l'événement meal-counts:change émis par les steppers : le résumé
+  // reprend la répartition, et une semaine sans aucun repas ne se génère pas —
+  // le bouton se désactive plutôt que de laisser partir une commande vide.
+  updateMealCounts({ detail: { total, summary } }) {
+    if (this.hasSumMealsTarget) this.sumMealsTarget.textContent = summary
+    if (this.hasEmptyMealsHintTarget) this.emptyMealsHintTarget.hidden = total > 0
+    if (this.hasSubmitBtnTarget) this.submitBtnTarget.disabled = total === 0
   }
 
-  // ── Slider track visual update ──────────────────────────
+  // ── Nom du menu ─────────────────────────────────────────
 
-  updateAllSliderTracks() {
-    if (this.hasPeopleSliderTarget) {
-      this.updateSliderTrack(this.peopleSliderTarget)
-    }
-    if (this.hasMealsSliderTarget) {
-      this.updateSliderTrack(this.mealsSliderTarget)
-    }
-  }
-
-  updateSliderTrack(slider) {
-    const min = parseInt(slider.min) || 1
-    const max = parseInt(slider.max) || 14
-    const val = parseInt(slider.value) || 7
-    const pct = Math.round(((val - min) / (max - min)) * 100)
-    slider.style.background = `linear-gradient(to right, var(--color-primary) ${pct}%, var(--color-bg-tertiary) ${pct}%)`
+  updateName() {
+    if (!this.hasSumNameTarget) return
+    this.sumNameTarget.textContent = this.nameInputTarget.value.trim() || this.defaultNameValue
   }
 
   // ── Submit avec état de chargement ──────────────────────

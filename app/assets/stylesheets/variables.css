@@ -7,61 +7,154 @@
    ============================================ */
 
 :root {
-  /* === COULEURS PRINCIPALES === */
-  --color-primary: #1C1917;
-  --color-primary-hover: #44403C;
-  --color-primary-light: rgba(28, 25, 23, 0.08);
+  /* === COULEURS PRINCIPALES ===
+     Toute la rampe neutre (principales, encres, fonds, bordures, surfaces
+     sombres) est générée à ~70° de teinte en OKLCH. Elle dérivait auparavant
+     de 49° (les gris) à 95° (les fonds) : les fonds tiraient vers le
+     jaune-vert pendant que les gris tiraient vers l'orange. Imperceptible sur
+     un échantillon isolé, c'est ce désaccord qui donnait l'effet « blanc
+     sale » à l'échelle d'une page. */
+  --color-primary: #1C1916;
+  --color-primary-hover: #45403B;
+  --color-primary-light: rgba(28, 25, 22, 0.08);
 
-  --color-secondary: #F1F0EC;
-  --color-secondary-hover: #E7E5E4;
-  --color-secondary-text: #44403C;
+  --color-secondary: #E8E2DB;
+  --color-secondary-hover: #E0D9D1;
+  --color-secondary-text: #45403B;
 
+  /* Corail du logotype. Rôle strictement décoratif — état sélectionné des
+     options de régime, moments de marque. Jamais un bouton, un lien ni un état
+     d'erreur : il n'est qu'à 6,7° de teinte de --color-danger, et les confondre
+     sur une app où l'on supprime des recettes coûterait cher. */
+  --color-brand: #D73A49;
+  --color-brand-light: #FFF8F8;
+
+  /* === RÔLES SÉMANTIQUES ===
+     Socle commun à tous les rôles :
+       --color-{rôle} · -light · -border · -text · --color-on-{rôle}
+     --color-on-{rôle} se lit « texte ou icône posé sur l'aplat de base ».
+
+     -hover n'est pas dans ce socle : il ne se justifie que pour un rôle
+     réellement porté par une surface cliquable. Seuls accent et danger le sont
+     ici. Un token de survol pour success, warning ou info serait une variante
+     que personne ne consomme — donc une valeur qu'aucun rendu ne valide, et
+     qu'on finirait par recopier de travers le jour où le besoin arrive.
+     Ajouter -hover au rôle concerné à ce moment-là, pas avant.
+
+     Accent et warning sont deux rôles distincts : l'ambre est le highlight de
+     marque (charte « anthracite + ambre », jamais un remplissage interactif),
+     l'orange est l'avertissement. Ils partageaient jusqu'ici les mêmes valeurs
+     de -light et -text, c'est-à-dire deux noms pour un seul rôle. Séparations
+     obtenues en teinte OKLCH : accent/warning 28,4°, warning/danger 28,7°. */
+
+  /* Accent — ambre.
+     -hover et -deep partagent la même valeur mais pas le même sens : -hover est
+     l'état survolé de .btn-accent, -deep est l'ambre foncé posé à plat sur une
+     surface non interactive (bordure de carte, cible de drop, filet décoratif).
+     Les distinguer permet de faire évoluer le survol du bouton sans repeindre du
+     même coup sept éléments qui ne réagissent à rien.
+     Ni l'un ni l'autre ne portent du texte : ils ne dépassent pas 2,15:1 sur une
+     surface claire. Pour du texte ambre, --color-accent-text. */
   --color-accent: #FBBF24;
   --color-accent-hover: #F59E0B;
+  --color-accent-deep: #F59E0B;
   --color-accent-light: #FEF3C7;
+  --color-accent-border: #FCD34D;
   --color-accent-text: #92400E;
+  --color-on-accent: #1C1916;   /* 10,48:1 — jamais de blanc sur l'ambre (1,67:1) */
 
-  /* === COULEURS SÉMANTIQUES === */
+  /* Warning — orange. */
+  --color-warning: #EB7D06;
+  --color-warning-light: #FFEDDE;
+  --color-warning-border: #FBC48E;
+  --color-warning-text: #823600;  /* 7,44:1 sur --color-warning-light */
+  --color-on-warning: #1C1916;    /* 6,22:1 */
+
+  /* Success — lime. */
   --color-success: #65A30D;
   --color-success-light: #ECFCCB;
-  --color-success-text: #365314;
+  --color-success-border: #D9F99D;
+  --color-success-text: #365314;  /* 8,05:1 sur --color-success-light */
+  --color-on-success: #1C1916;    /* 5,66:1 — le blanc plafonne à 3,09:1 */
 
+  /* Danger — rouge. */
   --color-danger: #DC2626;
   --color-danger-hover: #B91C1C;
   --color-danger-light: #FEF2F2;
-  --color-danger-text: #991B1B;
+  --color-danger-border: #FECACA;
+  --color-danger-text: #991B1B;   /* 7,60:1 sur --color-danger-light */
+  --color-on-danger: #FFFFFF;     /* 4,83:1 */
 
-  --color-warning: #F59E0B;
-  --color-warning-light: #FEF3C7;
-  --color-warning-text: #92400E;
-
+  /* Info — bleu. */
   --color-info: #3B82F6;
   --color-info-light: #EFF6FF;
-  --color-info-text: #1E40AF;
+  --color-info-border: #BFDBFE;
+  --color-info-text: #1E40AF;     /* 8,01:1 sur --color-info-light */
+  --color-on-info: #1C1916;       /* 4,76:1 — le blanc plafonne à 3,68:1 sur ce bleu */
+
+  /* Contour de focus clavier. Vaut --color-primary, isolé pour pouvoir diverger
+     sans toucher aux boutons. Consommé par le bloc :focus-visible de global.css. */
+  --color-focus-ring: #1C1916;
 
   /* === NEUTRALS / TEXTE === */
-  --color-ink: #1C1917;
-  --color-ink-2: #44403C;
-  --color-ink-3: #78716C;
-  --color-ink-4: #A8A29E;
+  --color-ink: #1C1916;
+  --color-ink-2: #45403B;
+  /* ink-3 assombri (#78716C → #6B645E → #615B54) pour atteindre WCAG AA
+     (≥ 4.5:1) sur les trois fonds clairs de l'app. Les fonds ayant été
+     assombris avec la rampe à 70°, #6B645E n'y suffisait plus (4,16:1 sur
+     --color-bg-tertiary). #615B54 donne 5,61:1 sur --color-bg-main,
+     5,21:1 sur --color-bg-secondary et 4,79:1 sur --color-bg-tertiary. */
+  --color-ink-3: #615B54;
+  --color-ink-4: #A9A29A;
 
-  /* === FONDS === */
-  --color-bg-main: #F8F7F4;
-  --color-bg-secondary: #F1F0EC;
-  --color-bg-tertiary: #E7E5E4;
+  /* === FONDS ===
+     bg-main assombri : le blanc n'avait que 1,07:1 sur l'ancien #F8F7F4, donc
+     aucune surface blanche ne se détachait du fond. Il est maintenant à 1,19:1. */
+  --color-bg-main: #F0EAE3;
+  --color-bg-secondary: #E8E2DB;
+  --color-bg-tertiary: #E0D9D1;
   --color-bg-white: #FFFFFF;
 
+  /* === SURFACES SOMBRES ===
+     Carte « menu actif » rendue sur fond anthracite (--color-primary).
+     Tons neutres chauds et variantes danger dédiés au fond sombre,
+     absents de la palette claire principale. */
+  --color-surface-dark: #292521;               /* sous-carte / séparateur le plus foncé */
+  --color-surface-dark-border: #393530;        /* bordure sur fond sombre */
+  /* Éclairci (#57524C → #7A736C) : à 1,96:1 sur --color-surface-dark, l'ancienne
+     valeur passait sous le seuil UI de 3:1, donc un survol de bordure qu'on ne
+     voyait pas. oklch(0.56 0.014 70) donne 3,26:1 sur la même surface. */
+  --color-surface-dark-border-hover: #7A736C;  /* bordure au survol sur fond sombre */
+  --color-ink-on-dark: #D5CEC6;                /* texte clair sur fond sombre */
+  /* La variante danger ne suit pas la teinte des neutres : le rouge doit rester
+     lisible comme rouge sur ce fond. */
+  --color-danger-on-dark: #F87171;             /* texte/bordure danger sur fond sombre */
+
+  /* Ni les couleurs de jour (cartes de repas, UC7), ni les pastilles de régime,
+     ni la pastille d'icône de catégorie ne sont des tokens globaux : elles n'ont
+     de sens que posées sur leur composant et vivent donc dans menus.css. */
+
   /* === BORDURES === */
-  --color-border: #E7E5E4;
-  --color-border-light: #F1F0EC;
-  --color-border-strong: #D6D3D1;
+  --color-border: #DCD5CD;
+  --color-border-light: #E8E2DB;
+  --color-border-strong: #C9C1B8;
+
+  /* Épaisseur de bordure canonique : 1px (rendu fiable partout, contrairement à
+     0.5px qui s'arrondit à 0 ou 1px selon le device non-retina). L'aspect « fin »
+     est porté par la couleur claire de la bordure, pas par une épaisseur inférieure. */
+  --border-width: 1px;
+  --border-thin: var(--border-width) solid var(--color-border);
 
   /* === BORDER RADIUS === */
   --radius-button: 4px;
   --radius-badge: 2px;
   --radius-card: 6px;
   --radius-card-compact: 4px;
-  --radius-input: 4px;
+  /* Aligné sur --radius-card (était 10px). Dans un formulaire, le champ était
+     plus arrondi que le bouton qui le valide (4px) — un écart de 6px visible à
+     l'œil et sans intention. La famille est maintenant cohérente : 4px pour les
+     contrôles, 6px pour les surfaces qui les contiennent. */
+  --radius-input: 6px;
   --radius-icon-btn: 4px;
 
   /* === ESPACEMENTS (inchangés) === */
@@ -72,25 +165,62 @@
   --spacing-xl: 2rem;
   --spacing-2xl: 3rem;
 
-  /* === OMBRES === */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 1px 4px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 2px 8px rgba(0, 0, 0, 0.08);
+  /* === OMBRES ===
+     Teintées de l'encre plutôt qu'en noir pur : sur des fonds à 70° de teinte,
+     un gris parfaitement neutre lit légèrement bleuté et éteint la chaleur du
+     fond. Alphas très légèrement relevés, une ombre teintée paraissant plus
+     faible qu'une ombre neutre à luminosité égale. */
+  --shadow-sm: 0 1px 2px rgba(28, 25, 22, 0.05);
+  --shadow-md: 0 1px 4px rgba(28, 25, 22, 0.07);
+  --shadow-lg: 0 2px 8px rgba(28, 25, 22, 0.09);
 
   /* === TRANSITIONS (inchangées) === */
   --transition-fast: 0.15s ease;
   --transition-normal: 0.2s ease;
   --transition-slow: 0.3s ease;
 
-  /* === TYPOGRAPHIE (inchangée) === */
-  --font-size-xs: 0.875rem;
-  --font-size-sm: 1rem;
-  --font-size-base: 1rem;
-  --font-size-lg: 1.125rem;
-  --font-size-xl: 1.25rem;
-  --font-size-2xl: 1.5rem;
-  --font-size-3xl: 2rem;
-  --font-size-4xl: 2.5rem;
+  /* === TYPOGRAPHIE === */
+  /* Pile système : rendu natif sur chaque OS, sans requête réseau ni FOUT.
+     Choix « le plus robuste » pour une PWA offline-first (aucun asset à
+     précacher). Source unique de vérité — référencée par body dans global.css. */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  /* Police d'affichage, réservée aux titres. Le @font-face auto-hébergé est
+     dans fonts.css.erb, qui explique pourquoi font-display vaut « optional » et
+     pourquoi cela n'annule pas l'arbitrage offline-first ci-dessus.
+     Repli sur Georgia : serif à empattements présent sur tous les OS, ce qui
+     rend le premier rendu (avant mise en cache de Fraunces) cohérent en style
+     plutôt que renvoyé au serif générique du navigateur.
+     Ce token n'a encore AUCUN consommateur : le branchement sur les titres est
+     le sujet du lot typographie, pas de celui-ci. */
+  --font-serif: 'Fraunces', Georgia, 'Times New Roman', serif;
+
+  /* Échelle typographique cohérente et non redondante.
+     Source unique de vérité — un pas net entre chaque token, aucun doublon.
+     Plancher de lisibilité : le texte de contenu vise « base » (16px),
+     jamais en dessous de « xs » (12px). */
+  --font-size-xs: 0.75rem;    /* 12px — labels secondaires, badges, méta */
+  --font-size-sm: 0.875rem;   /* 14px — sous-titres, texte de bouton */
+  --font-size-base: 1rem;     /* 16px — texte de contenu (défaut) */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.25rem;    /* 20px */
+  --font-size-2xl: 1.5rem;    /* 24px */
+  --font-size-3xl: 1.875rem;  /* 30px */
+  --font-size-4xl: 2.25rem;   /* 36px */
+
+  /* Titre de page (h1) : taille fluide, sans media query.
+     Interpole linéairement entre le plancher mobile et le plafond desktop —
+     20px à 375px de large, ~24px à 768px, 30px à partir de 1280px.
+     Source unique de vérité : consommée par la règle de base h1 (global.css),
+     donc tout titre de page suit l'échelle sans la redéclarer. */
+  --font-size-h1: clamp(1.25rem, 1rem + 1.1vw, var(--font-size-3xl));
+
+  /* === LAYOUT === */
+  /* Hauteur du header sticky. Valeur de repli (desktop) : la hauteur réelle,
+     qui dépend du breakpoint et de la zone sûre iOS, est publiée ici au runtime
+     par le controller sticky-header. Consommée par tout bloc qui doit s'ancrer
+     sous le header (sidebars sticky, scroll-padding des ancres internes). */
+  --header-height: 60px;
 
   /* === BREAKPOINTS (inchangés) === */
   --breakpoint-mobile: 768px;

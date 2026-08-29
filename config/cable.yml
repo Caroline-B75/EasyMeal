@@ -4,7 +4,11 @@ development:
 test:
   adapter: test
 
+# Action Cable n'est utilisé par aucune vue (aucun turbo_stream_from, aucun
+# broadcast) : les Turbo Streams du projet voyagent tous dans des réponses HTTP,
+# qui n'en ont pas besoin. On garde le framework parce que turbo-rails s'appuie
+# dessus au chargement, mais l'adaptateur passe par PostgreSQL — la base qu'on a
+# déjà — plutôt que par un Redis loué pour rien.
 production:
-  adapter: redis
-  url: <%= ENV.fetch("REDIS_URL") { "redis://localhost:6379/1" } %>
+  adapter: postgresql
   channel_prefix: easymeal_production

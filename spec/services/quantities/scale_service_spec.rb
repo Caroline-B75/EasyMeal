@@ -5,15 +5,16 @@ require "rails_helper"
 RSpec.describe Quantities::ScaleService do
   # Factories ou setup manuel pour les tests
   let(:ingredient_pates) do
-    Ingredient.new(id: 1, name: "Pâtes", unit_group: "mass", base_unit: "g", category: "feculents")
+    Ingredient.new(id: 1, name: "Pâtes", unit_group: "mass", base_unit: "g", category: "epicerie_salee")
   end
 
   let(:ingredient_oeufs) do
-    Ingredient.new(id: 2, name: "Œufs", unit_group: "count", base_unit: "pièce", category: "produits_frais")
+    Ingredient.new(id: 2, name: "Œufs", unit_group: "count", base_unit: "pièce",
+                   category: "produits_frais_libre_service")
   end
 
   let(:ingredient_huile) do
-    Ingredient.new(id: 3, name: "Huile d'olive", unit_group: "spoon", base_unit: "càc", category: "condiments")
+    Ingredient.new(id: 3, name: "Huile d'olive", unit_group: "spoon", base_unit: "càc", category: "epicerie_salee")
   end
 
   let(:recipe) do

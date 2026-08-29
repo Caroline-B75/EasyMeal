@@ -1,0 +1,15 @@
+-# Manques du brouillon face à la commande (UC7) : une ligne compacte pour tout
+-# le menu — « Il manque 6 petits-déjeuners, 2 déjeuners pour compléter ce
+-# menu. » Un constat, jamais une erreur : le brouillon reste validable.
+-#
+-# L'élément est rendu même sans manque, masqué : cible d'un Turbo Stream, il
+-# doit déjà exister dans le DOM pour être remplacé — sans quoi le manque né
+-# d'un changement de moment n'apparaîtrait jamais.
+-#
+-# Locals :
+-#   menu         : Menu (status: :draft)
+-#   menu_recipes : collection ordonnée des MenuRecipe, déjà chargée par la vue
+- message = missing_meals_message(menu.missing_meal_counts(menu_recipes))
+%p.mc-missing-alert{ id: "draft_missing_meals", hidden: message.nil? }
+  = svg_icon("info", size: 13)
+  = message

@@ -1,40 +1,71 @@
 -# Partial pour un champ ingrédient (nested field dans le formulaire recette)
--# Utilisé par le controller Stimulus nested-form pour ajouter/supprimer dynamiquement
-.nested-fields.preparation-fields{ data: { nested_form_target: "fields", controller: "ingredient-unit" } }
+-# Utilisé par le controller Stimulus nested-form pour ajouter/supprimer dynamiquement.
+-# Carte disposée en grille (cf. .preparation-fields dans recipes.css) :
+-#   mobile  → ingrédient | croix, puis quantité + unité en dessous
+-#   desktop → ingrédient | quantité + unité | croix, sur une seule ligne
+-#
+-# catalog : ce rendu porte-t-il la liste complète des ingrédients ?
+-#   true  → le modèle de ligne (<template> du nested-form), rendu une seule fois
+-#   false → une ligne déjà remplie, qui n'affiche que son ingrédient et emprunte
+-#           le reste de la liste au modèle, à la connexion d'`ingredient-options`
+.preparation-fields{ data: { nested_form_target: "fields", controller: "ingredient-unit" } }
+  -# id rendu explicitement ici : sinon Rails l'émet après le bloc, donc en frère
+  -# de la carte, et il survivrait à la suppression de la ligne côté JS.
+  - if f.object.persisted?
+    = f.hidden_field :id, data: { nested_form_target: "recordId" }
+
   .form-group.preparation-ingredient{ class: field_error_class(f.object, :ingredient_id) }
     = f.label :ingredient_id, "Ingrédient", class: "form-label sr-only"
+    -# Chaque option porte l'unité de base de son ingrédient et le groupe d'unités
+    -# dont elle vient : c'est là que le contrôleur Stimulus lit quelles unités
+    -# proposer quand on change d'ingrédient. L'unité est aussi écrite dans le
+    -# libellé (Ingredient#select_label) : on la voit avant de choisir, et non
+    -# après, quand le sélecteur d'unité s'est déjà mis à jour.
+    -# Les options ne sont listées que dans le modèle de ligne ; ailleurs, seul
+    -# l'ingrédient déjà choisi est rendu, et `ingredient-options` complète.
+    - options = catalog ? Ingredient.alphabetical : Array(f.object.ingredient)
     %select.form-select{ name: f.object_name + "[ingredient_id]",
                          id: f.field_id(:ingredient_id),
-                         data: { ingredient_unit_target: "select", action: "change->ingredient-unit#updateUnit" } }
+                         data: { ingredient_unit_target: "select", action: "change->ingredient-unit#updateUnit",
+                                 controller: ("ingredient-options" unless catalog) } }
       %option{ value: "" } Choisir un ingrédient...
-      - Ingredient.alphabetical.each do |ingredient|
+      - options.each do |ingredient|
         %option{ value: ingredient.id,
                  selected: f.object.ingredient_id == ingredient.id,
-                 data: { unit: ingredient.base_unit } }
-          = ingredient.display_name
+                 data: { unit: ingredient.base_unit, unit_group: ingredient.unit_group } }
+          = ingredient.select_label
     = field_errors(f.object, :ingredient_id)
 
   .form-group.preparation-quantity{ class: field_error_class(f.object, :quantity_base) }
     = f.label :quantity_base, "Quantité", class: "form-label sr-only"
-    = f.number_field :quantity_base, 
-                     class: "form-input", 
-                     step: "0.01", 
-                     min: "0.01", 
-                     placeholder: "Quantité"
+    -# Quantité et unité partagent un seul cadre (.rf-unit-field, commun aux
+    -# durées du formulaire). Ce qui se saisit ici, c'est la quantité telle que la
+    -# recette l'écrit — « 3 càs » — et non la quantité de base : le champ soumis
+    -# (quantity_base, caché) est recalculé par ingredient-unit à chaque frappe et
+    -# à chaque changement d'unité. Sans ce sélecteur, corriger une unité mal lue
+    -# par l'IA demandait de refaire la conversion de tête.
+    -# Le rendu serveur ouvre sur l'unité de base de l'ingrédient ; le contrôleur
+    -# Stimulus reprend la main dès qu'on change d'ingrédient (mêmes unités, même
+    -# ordre — elles viennent de la même table Ruby).
+    - unit_options = Units.select_options(f.object.ingredient&.unit_group).presence || [ [ "—", "" ] ]
+    .rf-unit-field
+      = f.hidden_field :quantity_base, id: nil, data: { ingredient_unit_target: "base" }
+      %input.form-input{ type: "number", step: "0.01", min: "0.01", placeholder: "Qté",
+                         id: f.field_id(:quantity_base), value: f.object.quantity_base,
+                         data: { ingredient_unit_target: "quantity",
+                                 action: "input->ingredient-unit#recompute" } }
+      -# Un seul choix possible (les pièces, ou aucun ingrédient) : le sélecteur
+      -# passe inerte et se lit alors comme le simple suffixe qu'il est.
+      %select.rf-unit-select{ "aria-label": "Unité de la quantité",
+                              disabled: unit_options.one?,
+                              data: { ingredient_unit_target: "unit",
+                                      action: "change->ingredient-unit#recompute" } }
+        = options_for_select(unit_options, f.object.ingredient&.base_unit)
     = field_errors(f.object, :quantity_base)
 
-  .form-group.preparation-unit
-    -# Affiche l'unité de base de l'ingrédient sélectionné (en lecture seule)
-    %span.unit-display{ data: { ingredient_unit_target: "display" } }
-      - if f.object.ingredient.present?
-        = f.object.ingredient.base_unit
-      - else
-        —
-
-  -# Bouton supprimer
-  .form-group.preparation-remove
+  .preparation-remove
     = f.hidden_field :_destroy, value: false, data: { nested_form_target: "destroy" }
-    %button.remove-preparation{ type: "button", 
-                                data: { action: "click->nested-form#remove" },
-                                title: "Supprimer cet ingrédient" }
-      ✕
+    %button.icon-btn.icon-btn-delete{ type: "button",
+                                      data: { action: "click->nested-form#remove" },
+                                      title: "Supprimer cet ingrédient" }
+      = svg_icon(:x, size: 16)

@@ -3,7 +3,7 @@
    ============================================
    Index, new/edit, show brouillon (draft_view),
    cartes de repas (meal-card), formulaires de génération.
-   Design Slate Craft Premium — no box-shadow on cards, border 0.5px.
+   Design Slate Craft Premium — no box-shadow on cards, bordures fines 1px.
    ============================================ */
 
 /* ─────────────────────────────────────────────────────────
@@ -11,8 +11,8 @@
    ───────────────────────────────────────────────────────── */
 
 .mi-page-wrap {
+  width: 100%;
   max-width: 1400px;
-  width: 50%;
   margin: 0 auto;
   padding: 36px 0 60px;
 }
@@ -25,7 +25,7 @@
 }
 
 .mi-page-title {
-  font-family: Georgia, serif;
+  font-family: var(--font-serif);
   font-size: 22px;
   font-weight: 400;
   color: var(--color-ink);
@@ -34,11 +34,11 @@
 
 .mi-btn-new {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-bg-white);
   border: none;
   border-radius: var(--radius-button);
   padding: 9px 18px;
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   cursor: pointer;
   display: inline-flex;
@@ -52,11 +52,15 @@
 
 .mi-btn-new:hover {
   background: var(--color-primary-hover);
-  color: #fff;
+  color: var(--color-bg-white);
   text-decoration: none;
 }
 
-.mi-btn-new svg { width: 14px; height: 14px; flex-shrink: 0; }
+.mi-btn-new svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
 
 /* ── Draft guard (modale avant création si brouillon existant) ── */
 
@@ -70,7 +74,7 @@
 /* Aperçu du brouillon dans la modale */
 .mn-draft-guard-preview {
   background: var(--color-bg-main);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   border-radius: var(--radius-button);
   padding: 10px 14px;
   margin: 10px 0 16px;
@@ -80,13 +84,13 @@
 }
 
 .mn-draft-guard-name {
-  font-size: 14px;
+  font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--color-ink);
 }
 
 .mn-draft-guard-meta {
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   color: var(--color-ink-3);
 }
 
@@ -132,6 +136,24 @@
   }
 }
 
+.mn-replace-warning {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  background: var(--color-bg-white);
+  border: var(--border-thin);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius-card);
+  color: var(--color-ink-2);
+  font-size: var(--font-size-sm);
+}
+
+.mn-replace-warning strong {
+  color: var(--color-ink);
+  font-weight: 500;
+}
+
 /* ── Section labels ────────────────────────────────────── */
 
 .mi-section {
@@ -139,11 +161,11 @@
 }
 
 .mi-section-label {
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--color-ink-4);
+  color: var(--color-ink-3);
   margin-bottom: 10px;
   display: flex;
   align-items: center;
@@ -153,13 +175,13 @@
 .mi-section-label::after {
   content: '';
   flex: 1;
-  height: 0.5px;
+  height: var(--border-width);
   background: var(--color-border);
 }
 
 .mi-section-count {
-  font-size: 10px;
-  color: var(--color-ink-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
   font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
@@ -169,7 +191,7 @@
 
 .mi-draft-card {
   background: var(--color-bg-white);
-  border: 0.5px solid var(--color-accent-hover);
+  border: var(--border-width) solid var(--color-accent-deep);
   border-radius: var(--radius-button);
   overflow: hidden;
   margin-bottom: 8px;
@@ -206,7 +228,7 @@
 .mi-draft-badge {
   background: var(--color-accent-light);
   color: var(--color-accent-text);
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   padding: 2px 7px;
   border-radius: var(--radius-badge);
@@ -214,14 +236,14 @@
 }
 
 .mi-draft-card-name {
-  font-size: 13px;
+  font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--color-ink);
 }
 
 .mi-draft-card-meta {
-  font-size: 11px;
-  color: var(--color-ink-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
   display: flex;
   gap: 8px;
 }
@@ -229,7 +251,7 @@
 /* Draft expanded content (hidden by default) */
 .mi-draft-expanded {
   display: none;
-  border-top: 0.5px solid var(--color-accent-hover);
+  border-top: var(--border-width) solid var(--color-accent-deep);
 }
 
 .mi-draft-expanded.open {
@@ -241,17 +263,17 @@
   display: flex;
   gap: 6px;
   background: var(--color-bg-secondary);
-  border-top: 0.5px solid var(--color-border);
+  border-top: var(--border-thin);
   flex-wrap: wrap;
 }
 
 /* ── Boutons compacts (brouillon + historique) ──────────── */
 
 .mi-btn-sm {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   padding: 5px 10px;
   border-radius: var(--radius-button);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   background: var(--color-bg-white);
   color: var(--color-ink-2);
   cursor: pointer;
@@ -259,38 +281,61 @@
   align-items: center;
   gap: 4px;
   text-decoration: none;
-  transition: background var(--transition-fast);
+  transition: background var(--transition-fast), border-color var(--transition-fast),
+    box-shadow var(--transition-fast), color var(--transition-fast);
 }
 
+/* Survol : fond blanc conservé, feedback par bordure marquée + ombre discrète. */
 .mi-btn-sm:hover {
-  background: var(--color-bg-secondary);
-  color: var(--color-ink-2);
+  background: var(--color-bg-white);
+  color: var(--color-ink);
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-sm);
   text-decoration: none;
 }
 
-.mi-btn-sm svg { width: 11px; height: 11px; }
+.mi-btn-sm svg {
+  width: 11px;
+  height: 11px;
+}
 
+/* Bouton suppression (cartes « à valider » & historique) : poubelle pleine noire
+   (sans contour), dans un bouton blanc aligné sur les boutons voisins .mi-btn-sm.
+   padding: 2px → seuls 2px entourent l'icône, qui est agrandie en conséquence. */
 .mi-btn-sm-danger {
-  font-size: 11px;
-  padding: 5px 10px;
+  padding: 2px;
   border-radius: var(--radius-button);
-  border: 0.5px solid #FECACA;
-  background: #FEF2F2;
-  color: #991B1B;
+  border: var(--border-thin);
+  background: var(--color-bg-white);
+  color: var(--color-ink);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
   margin-left: auto;
   text-decoration: none;
-  transition: background var(--transition-fast);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .mi-btn-sm-danger:hover {
-  background: #FEE2E2;
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-sm);
 }
 
-.mi-btn-sm-danger svg { width: 11px; height: 11px; }
+.mi-btn-sm-danger svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* button_to enveloppe le bouton dans un <form>, seul enfant flex de la rangée
+   d'actions (étiré en hauteur par align-items: stretch). On centre le bouton
+   compact dans cette hauteur pour l'aligner sur les boutons voisins. */
+.mi-draft-card-actions form.button_to,
+.mi-history-card-actions form.button_to {
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
 
 /* ── Hero card (menu actif) ────────────────────────────── */
 
@@ -323,13 +368,17 @@
   flex-wrap: wrap;
 }
 
+/* flex: 1 → absorbe l'espace libre pour pousser les actions et la poubelle
+   contre le bord droit (la barre a 3 enfants : badges, actions, suppression). */
 .mi-hero-card-badges-left {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
-.mi-hero-card-badges-right {
+.mi-hero-card-badges-actions {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -338,7 +387,7 @@
 .mi-badge-active {
   background: var(--color-accent-light);
   color: var(--color-accent-text);
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   padding: 3px 8px;
   border-radius: var(--radius-badge);
@@ -346,21 +395,21 @@
 }
 
 .mi-hero-date {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: var(--color-ink-4);
 }
 
 .mi-hero-menu-name {
-  font-family: Georgia, serif;
+  font-family: var(--font-serif);
   font-size: 20px;
   font-weight: 400;
-  color: #fff;
+  color: var(--color-bg-white);
   line-height: 1.2;
   margin: 0 0 4px;
 }
 
 .mi-hero-meta {
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   color: var(--color-ink-4);
   display: flex;
   gap: 10px;
@@ -368,13 +417,15 @@
   align-items: center;
 }
 
-.mi-hero-meta-sep { color: #44403C; }
+.mi-hero-meta-sep {
+  color: var(--color-ink-2);
+}
 
 /* Stats */
 .mi-hero-stats {
   display: flex;
   gap: 0;
-  border: 0.5px solid #44403C;
+  border: var(--border-width) solid var(--color-ink-2);
   border-radius: var(--radius-button);
   overflow: hidden;
   flex-shrink: 0;
@@ -384,21 +435,23 @@
 
 .mi-hero-stat {
   padding: 8px 14px;
-  border-right: 0.5px solid #44403C;
+  border-right: var(--border-width) solid var(--color-ink-2);
   text-align: center;
 }
 
-.mi-hero-stat:last-child { border-right: none; }
+.mi-hero-stat:last-child {
+  border-right: none;
+}
 
 .mi-hero-stat-val {
-  font-size: 16px;
+  font-size: var(--font-size-base);
   font-weight: 500;
-  color: #fff;
+  color: var(--color-bg-white);
   line-height: 1;
 }
 
 .mi-hero-stat-lbl {
-  font-size: 9px;
+  font-size: var(--font-size-xs);
   color: var(--color-ink-4);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -408,12 +461,12 @@
 /* ── Mini recipe cards (dans le hero) ──────────────────── */
 
 .mi-recipe-cards-section {
-  border-top: 0.5px solid #292524;
+  border-top: var(--border-width) solid var(--color-surface-dark);
   padding: 16px 24px;
 }
 
 .mi-recipe-cards-label {
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-ink-4);
@@ -427,8 +480,8 @@
 }
 
 .mi-recipe-card-mini {
-  background: #292524;
-  border: 0.5px solid #3C3836;
+  background: var(--color-surface-dark);
+  border: var(--border-width) solid var(--color-surface-dark-border);
   border-radius: var(--radius-button);
   overflow: hidden;
   cursor: pointer;
@@ -438,7 +491,7 @@
 }
 
 .mi-recipe-card-mini:hover {
-  border-color: #57534E;
+  border-color: var(--color-surface-dark-border-hover);
   text-decoration: none;
 }
 
@@ -448,7 +501,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-bottom: 0.5px solid #3C3836;
+  border-bottom: var(--border-width) solid var(--color-surface-dark-border);
   overflow: hidden;
 }
 
@@ -459,7 +512,7 @@
 }
 
 .mi-recipe-placeholder-icon {
-  color: #57534E;
+  color: var(--color-surface-dark-border-hover);
 }
 
 .mi-recipe-card-mini-body {
@@ -467,9 +520,9 @@
 }
 
 .mi-recipe-card-mini-name {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
-  color: #D6D3D1;
+  color: var(--color-ink-on-dark);
   line-height: 1.3;
   margin-bottom: 3px;
   white-space: nowrap;
@@ -478,14 +531,14 @@
 }
 
 .mi-recipe-card-mini-meta {
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   color: var(--color-ink-4);
 }
 
 /* ── Hero actions ──────────────────────────────────────── */
 
 .mi-hero-actions {
-  border-top: 0.5px solid #292524;
+  border-top: var(--border-width) solid var(--color-surface-dark);
   padding: 14px 24px;
   display: flex;
   gap: 8px;
@@ -493,10 +546,13 @@
   flex-wrap: wrap;
 }
 
+/* Action principale sur la carte « menu actif » (fond sombre anthracite).
+   L'anthracite plein serait invisible ici : on utilise donc le primaire inversé
+   (fond clair, texte anthracite). L'ambre reste réservé au seul CTA accent. */
 .mi-btn-hero-primary {
-  background: var(--color-accent);
-  color: var(--color-accent-text);
-  font-size: 12px;
+  background: var(--color-bg-white);
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
   font-weight: 500;
   padding: 8px 16px;
   border-radius: var(--radius-button);
@@ -510,20 +566,23 @@
 }
 
 .mi-btn-hero-primary:hover {
-  background: var(--color-accent-hover);
-  color: var(--color-accent-text);
+  background: var(--color-secondary-hover);
+  color: var(--color-primary);
   text-decoration: none;
 }
 
-.mi-btn-hero-primary svg { width: 13px; height: 13px; }
+.mi-btn-hero-primary svg {
+  width: 13px;
+  height: 13px;
+}
 
 .mi-btn-hero-ghost {
   background: transparent;
-  color: #A8A29E;
-  font-size: 12px;
+  color: var(--color-ink-4);
+  font-size: var(--font-size-sm);
   padding: 8px 12px;
   border-radius: var(--radius-button);
-  border: 0.5px solid #44403C;
+  border: var(--border-width) solid var(--color-ink-2);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -533,34 +592,53 @@
 }
 
 .mi-btn-hero-ghost:hover {
-  border-color: #57534E;
-  color: #D6D3D1;
+  border-color: var(--color-surface-dark-border-hover);
+  color: var(--color-ink-on-dark);
   text-decoration: none;
 }
 
-.mi-btn-hero-ghost svg { width: 13px; height: 13px; }
+.mi-btn-hero-ghost svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* Suppression du menu actif : icône poubelle pleine seule (blanche), sans cadre.
+   button_to enveloppe le bouton dans un <form> : c'est ce form qui est l'enfant
+   flex de la barre. On l'étire (align-self: stretch) sur la hauteur des boutons
+   voisins (« Voir le menu »…) et le bouton, seul enfant flex du form, la remplit.
+   Survol en rouge danger pour signaler l'action destructive. */
+.mi-hero-card-badges>form.button_to {
+  display: flex;
+  align-self: stretch;
+  margin: 0;
+}
 
 .mi-btn-hero-danger {
   background: transparent;
-  color: #F87171;
-  font-size: 12px;
-  padding: 8px 12px;
+  color: var(--color-bg-white);
+  padding: 2px 10px;
   border-radius: var(--radius-button);
-  border: 0.5px solid #3C1515;
+  border: none;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
   text-decoration: none;
-  transition: border-color var(--transition-fast), color var(--transition-fast);
+  transition: color var(--transition-fast);
 }
 
 .mi-btn-hero-danger:hover {
-  border-color: #F87171;
+  color: var(--color-danger-on-dark);
   text-decoration: none;
 }
 
-.mi-btn-hero-danger svg { width: 13px; height: 13px; }
+/* height: 100% → l'icône épouse la hauteur du bouton (donc des boutons voisins) ;
+   width: auto conserve le ratio 1:1 du viewBox. La taille passée à svg_icon ne
+   sert que de repli si le pourcentage ne se résout pas. */
+.mi-btn-hero-danger svg {
+  height: 100%;
+  width: auto;
+}
 
 /* ── History list + cards ──────────────────────────────── */
 
@@ -573,7 +651,7 @@
 
 .mi-history-card {
   background: var(--color-bg-white);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   border-radius: var(--radius-button);
   overflow: hidden;
   transition: border-color var(--transition-fast);
@@ -600,7 +678,7 @@
 }
 
 .mi-history-card-name {
-  font-size: 13px;
+  font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--color-ink);
   margin-bottom: 3px;
@@ -610,8 +688,8 @@
 }
 
 .mi-history-card-meta {
-  font-size: 11px;
-  color: var(--color-ink-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
@@ -627,7 +705,7 @@
 .mi-badge-done {
   background: var(--color-success-light);
   color: var(--color-success-text);
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   padding: 2px 7px;
   border-radius: var(--radius-badge);
   font-weight: 500;
@@ -648,7 +726,7 @@
 /* Expanded content (hidden by default) */
 .mi-history-expanded {
   display: none;
-  border-top: 0.5px solid var(--color-border);
+  border-top: var(--border-thin);
 }
 
 .mi-history-expanded.open {
@@ -667,7 +745,7 @@
 
 .mi-hist-recipe-card {
   background: var(--color-bg-white);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   border-radius: var(--radius-button);
   overflow: hidden;
 }
@@ -678,7 +756,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-bottom: 0.5px solid var(--color-border);
+  border-bottom: var(--border-thin);
   overflow: hidden;
 }
 
@@ -688,16 +766,12 @@
   object-fit: cover;
 }
 
-.mi-hist-recipe-placeholder {
-  color: var(--color-ink-4);
-}
-
 .mi-hist-recipe-body {
   padding: 5px 7px;
 }
 
 .mi-hist-recipe-name {
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   color: var(--color-ink);
   line-height: 1.3;
@@ -707,8 +781,8 @@
 }
 
 .mi-hist-recipe-time {
-  font-size: 9px;
-  color: var(--color-ink-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
   margin-top: 1px;
 }
 
@@ -718,7 +792,7 @@
   display: flex;
   gap: 6px;
   background: var(--color-bg-secondary);
-  border-top: 0.5px solid var(--color-border);
+  border-top: var(--border-thin);
   flex-wrap: wrap;
 }
 
@@ -738,7 +812,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: var(--color-ink-3);
   cursor: pointer;
   padding: 8px 0;
@@ -770,12 +844,12 @@
   padding: 4rem 2rem;
   background: var(--color-bg-white);
   border-radius: var(--radius-card);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
 }
 
 .mi-empty-icon {
-  font-size: 3rem;
   margin-bottom: 1rem;
+  color: var(--color-ink-4);
 }
 
 .mi-empty-title {
@@ -804,6 +878,63 @@
 
   .mi-hero-card-top {
     flex-direction: column;
+  }
+
+  /* Barre d'en-tête du menu actif sur 2 lignes :
+     1. badge « Actif » + date de création, avec la poubelle callée à droite ;
+     2. les 2 actions de consultation, à parts égales.
+     Grille explicite plutôt qu'un simple retour à la ligne flex : le passage
+     à la ligne est ainsi garanti quelle que soit la longueur des libellés. */
+  .mi-hero-card-badges {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .mi-hero-card-badges-left {
+    grid-row: 1;
+    grid-column: 1;
+    /* Sur écran très étroit, badge et date passent l'un sous l'autre plutôt que
+       de déborder sous la poubelle. */
+    flex-wrap: wrap;
+  }
+
+  /* Suppression : remontée sur la ligne 1, collée à droite. La cible tactile
+     reste à 44px (action destructive) mais l'icône est réduite pour rester
+     discrète à côté de la date. */
+  .mi-hero-card-badges>form.button_to {
+    grid-row: 1;
+    grid-column: 2;
+    align-self: center;
+    justify-self: end;
+  }
+
+  .mi-btn-hero-danger svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Ligne 2 pleine largeur, 2 colonnes égales → boutons de largeur identique,
+     et même hauteur même si un libellé passe sur 2 lignes (stretch par défaut). */
+  .mi-hero-card-badges-actions {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  /* Padding latéral réduit : le libellé dispose de toute la demi-largeur. */
+  .mi-btn-hero-primary {
+    padding: 8px 6px;
+    justify-content: center;
+    text-align: center;
+    min-width: 0;
+  }
+
+  .mi-btn-hero-primary svg {
+    flex-shrink: 0;
   }
 
   .mi-recipe-cards-grid {
@@ -850,7 +981,7 @@
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 0.75rem;
-  font-size: 0.6875rem;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -867,7 +998,7 @@
 .mn-hero-title {
   font-size: var(--font-size-3xl);
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--color-bg-white);
   margin: 0;
 }
 
@@ -881,7 +1012,7 @@
 .mn-form {
   background: var(--color-bg-white);
   border-radius: var(--radius-card);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   overflow: hidden;
 }
 
@@ -890,19 +1021,19 @@
 }
 
 .mn-section-label {
-  font-size: 0.6875rem;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--color-ink-4);
+  color: var(--color-ink-3);
   margin-bottom: 1.25rem;
   padding-bottom: 0.5rem;
-  border-bottom: 0.5px solid var(--color-border);
+  border-bottom: var(--border-thin);
 }
 
 .mn-form-actions {
   padding: 1.25rem 2rem;
-  border-top: 0.5px solid var(--color-border);
+  border-top: var(--border-thin);
   background: var(--color-bg-secondary);
   display: flex;
   gap: 0.75rem;
@@ -923,7 +1054,7 @@
   gap: 1rem;
   margin-bottom: 2rem;
   padding-bottom: 1.25rem;
-  border-bottom: 0.5px solid var(--color-border);
+  border-bottom: var(--border-thin);
 }
 
 /* NOTE: .menu-show-breadcrumb et .menu-breadcrumb-* supprimés — utilise .context-bar */
@@ -940,7 +1071,7 @@
 .menu-meta-diet,
 .menu-meta-people {
   background: var(--color-bg-secondary);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   border-radius: var(--radius-badge);
   padding: 0.2em 0.65em;
   font-size: 0.75rem;
@@ -953,51 +1084,32 @@
   gap: 0.5rem;
 }
 
-/* ── Readonly recipe card (menu actif) ─────────────────── */
-.mc-recipe-card--readonly {
+/* ── Readonly recipe card (dashboards de la home) ──────── */
+/* Sélecteur doublé à dessein : .mc-recipe-card pose plus bas dans ce fichier un
+   raccourci `border-left` qui, à spécificité égale, l'emporterait par simple
+   ordre de déclaration. */
+.mc-recipe-card.mc-recipe-card--readonly {
   cursor: pointer;
   text-decoration: none;
-  display: block;
-}
-.mc-recipe-card--readonly:hover { text-decoration: none; }
-
-.mc-card-meta {
-  padding: 4px 8px 7px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  /* Ces cartes n'annotent aucun jour (pas de data-day) : elles reprennent une
+     bordure uniforme plutôt que la barre latérale neutre de 5px, qui n'y
+     signifierait rien. */
+  border-left-width: var(--border-width);
+  /* Le nom est le dernier bloc de la carte (pas de méta) : la carte reprend à
+     son compte le retrait bas que portait la ligne « X pers. ». */
+  padding-bottom: 7px;
 }
 
+.mc-recipe-card--readonly:hover {
+  text-decoration: none;
+}
+
+/* « X pers. » figé dans la barre d'actions de la carte du menu actif
+   (menus/_menu_recipe_card). */
 .mc-card-meta-people {
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   color: var(--color-ink-3);
   font-weight: 500;
-}
-
-/* Chip "En cours" (barre contextuelle menu actif) */
-.mc-chip-active {
-  background: var(--color-success-light);
-  color: var(--color-success-text);
-}
-
-/* ── Draft view : personnalisation ─────────────────────── */
-.menu-draft-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.menu-draft-title {
-  font-size: var(--font-size-2xl);
-  font-weight: 600;
-  color: var(--color-ink);
-  margin: 0;
-}
-
-.menu-draft-toolbar-actions {
-  display: flex;
-  gap: 0.5rem;
 }
 
 /* ── Liste meal-cards ──────────────────────────────────── */
@@ -1016,7 +1128,7 @@
   padding: 1rem 1.25rem;
   background: var(--color-bg-white);
   border-radius: var(--radius-card);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   flex-wrap: wrap;
 }
 
@@ -1038,7 +1150,9 @@
   transition: color var(--transition-fast);
 }
 
-.meal-card-recipe-link:hover { color: var(--color-primary-hover); }
+.meal-card-recipe-link:hover {
+  color: var(--color-primary-hover);
+}
 
 .meal-card-badges {
   display: flex;
@@ -1046,122 +1160,86 @@
   flex-wrap: wrap;
 }
 
-/* ── People form ───────────────────────────────────────── */
-.people-form {
+/* ── Vue menu archivé (_archived_view) ─────────────────── */
+.menu-archived-banner {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-}
-
-.people-label {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  cursor: pointer;
-}
-
-.people-input {
-  width: 3.5rem;
-  text-align: center;
-  padding: 0.375rem 0.5rem;
-  border: 0.5px solid var(--color-border);
-  border-radius: var(--radius-input);
-  font-size: var(--font-size-xs);
-  color: var(--color-ink);
-  background: var(--color-bg-white);
-}
-
-.people-input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-primary-light);
-}
-
-.people-label-text {
-  font-size: var(--font-size-xs);
-  color: var(--color-ink-3);
-}
-
-/* ── Meal card actions ─────────────────────────────────── */
-.meal-card-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.inline-form {
-  display: inline;
-}
-
-/* ── Draft footer ──────────────────────────────────────── */
-.menu-draft-footer {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 0.5px solid var(--color-border);
-  display: flex;
   justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
   flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  background: var(--color-bg-secondary);
+  border: var(--border-thin);
+  border-radius: var(--radius-card);
 }
 
-.menu-draft-summary {
-  font-size: var(--font-size-base);
-  color: var(--color-ink-3);
+.menu-archived-banner-text {
+  margin: 0;
+  color: var(--color-ink-2);
+  font-size: var(--font-size-sm);
 }
 
-.menu-draft-summary strong { color: var(--color-ink); }
-
-.menu-draft-summary-sep {
-  margin: 0 0.25rem;
-  color: var(--color-ink-4);
+.menu-archived-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-ink);
+  margin: 0 0 1rem;
 }
 
-.menu-draft-empty {
-  text-align: center;
+.menu-archived-empty {
   padding: 2rem;
+  text-align: center;
   color: var(--color-ink-3);
   background: var(--color-bg-secondary);
+  border: var(--border-width) dashed var(--color-border-strong);
   border-radius: var(--radius-card);
-  border: 0.5px dashed var(--color-border-strong);
 }
 
-.menu-draft-empty-text {
+.menu-archived-empty p {
+  margin: 0;
+}
+
+/* Bloc « X pers. » à droite d'une meal-card (lecture seule) */
+.meal-card-people {
+  flex-shrink: 0;
+}
+
+.people-display {
+  display: inline-block;
+  background: var(--color-bg-secondary);
+  border: var(--border-thin);
+  border-radius: var(--radius-badge);
+  padding: 0.2em 0.65em;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   color: var(--color-ink-2);
-  margin-bottom: 0.25rem;
 }
 
-/* ── Badge ambre de saison (meal-card uniquement) ──────── */
+/* Sur mobile, le bouton de réactivation prend toute la largeur du bandeau. */
+@media (max-width: 767px) {
+  .menu-archived-banner .btn {
+    width: 100%;
+  }
+}
+
+/* ── Badge ambre d'information (badge « de saison » meal-card + badge
+      « quantité augmentée » de la liste de courses) ──────── */
 .badge-amber {
   background: var(--color-accent-light);
   color: var(--color-accent-text);
-  border: 0.5px solid var(--color-accent);
+  border: var(--border-width) solid var(--color-accent);
   border-radius: var(--radius-badge);
   font-size: 0.75rem;
   font-weight: 500;
   padding: 0.2em 0.6em;
 }
 
-/* ── btn-sm utilitaire ─────────────────────────────────── */
-.btn-sm {
-  padding: 0.375rem 0.875rem;
-  font-size: var(--font-size-xs);
-  min-height: unset;
-}
-
-.btn-lg {
-  padding: 0.875rem 2rem;
-  font-size: var(--font-size-lg);
-}
-
-.btn-icon {
-  padding: 0.375rem 0.625rem;
-  font-size: var(--font-size-xs);
-}
+/* Tailles partagées .btn-sm / .btn-lg / .btn-icon : voir components.css
+   (section BOUTONS — source de vérité du système). */
 
 /* ── Responsive ────────────────────────────────────────── */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .menu-show-header {
     flex-direction: column;
     align-items: flex-start;
@@ -1172,30 +1250,9 @@
     justify-content: flex-start;
   }
 
-  .menu-draft-toolbar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
-  }
-
   .meal-card {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .meal-card-actions {
-    width: 100%;
-    justify-content: flex-end;
-  }
-
-  .menu-draft-footer {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .menu-draft-footer .btn-lg {
-    width: 100%;
-    justify-content: center;
   }
 
   .mn-form-section {
@@ -1227,7 +1284,7 @@
 }
 
 .mn-page-kicker {
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   letter-spacing: 0.12em;
   color: var(--color-accent-hover);
   text-transform: uppercase;
@@ -1239,13 +1296,13 @@
 
 .mn-page-kicker-sep {
   width: 16px;
-  height: 0.5px;
-  background: var(--color-accent-hover);
+  height: var(--border-width);
+  background: var(--color-accent-deep);
   opacity: 0.6;
 }
 
 .mn-page-title {
-  font-family: Georgia, serif;
+  font-family: var(--font-serif);
   font-size: 24px;
   font-weight: 400;
   color: var(--color-ink);
@@ -1254,7 +1311,7 @@
 }
 
 .mn-page-sub {
-  font-size: 13px;
+  font-size: var(--font-size-base);
   color: var(--color-ink-3);
   line-height: 1.5;
   margin: 0;
@@ -1264,7 +1321,7 @@
 
 .mn-form-card {
   background: var(--color-bg-white);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   border-radius: var(--radius-button);
   overflow: hidden;
   margin-bottom: 12px;
@@ -1282,8 +1339,8 @@
   height: 20px;
   border-radius: var(--radius-button);
   background: var(--color-primary);
-  color: #fff;
-  font-size: 10px;
+  color: var(--color-bg-white);
+  font-size: var(--font-size-xs);
   font-weight: 500;
   display: flex;
   align-items: center;
@@ -1292,7 +1349,7 @@
 }
 
 .mn-form-card-title {
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--color-ink);
   letter-spacing: 0.01em;
@@ -1307,15 +1364,15 @@
 }
 
 .mn-field-hint {
-  font-size: 11px;
-  color: var(--color-ink-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
   margin-top: 8px;
   line-height: 1.4;
 }
 
 .mn-field-optional {
-  font-size: 10px;
-  color: var(--color-ink-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
   font-style: italic;
   margin-left: 5px;
 }
@@ -1329,7 +1386,7 @@
 }
 
 .mn-diet-option {
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   border-radius: var(--radius-button);
   padding: 12px 14px;
   cursor: pointer;
@@ -1341,13 +1398,15 @@
 }
 
 .mn-diet-option:hover {
-  border-color: #D73A49;
-  background: #FFF8F8;
+  border-color: var(--color-brand);
+  background: var(--color-brand-light);
 }
 
-.mn-diet-option.selected {
-  border-color: #D73A49;
-  background: #FFF8F8;
+/* État sélectionné : piloté par le radio natif, donc toujours exact — au clic
+   sur le label comme au clavier, sans classe à poser ni à retirer. */
+.mn-diet-option:has(.mn-diet-radio-input:checked) {
+  border-color: var(--color-brand);
+  background: var(--color-brand-light);
 }
 
 /* Masquer le radio natif */
@@ -1377,19 +1436,19 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--color-bg-white);
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
 }
 
-.mn-diet-option.selected .mn-diet-radio {
-  background: #D73A49;
-  border-color: #D73A49;
+.mn-diet-option:has(.mn-diet-radio-input:checked) .mn-diet-radio {
+  background: var(--color-brand);
+  border-color: var(--color-brand);
 }
 
-.mn-diet-option.selected .mn-diet-radio::after {
+.mn-diet-option:has(.mn-diet-radio-input:checked) .mn-diet-radio::after {
   display: block;
 }
 
@@ -1399,14 +1458,14 @@
 }
 
 .mn-diet-name {
-  font-size: 13px;
+  font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--color-ink);
   margin-bottom: 2px;
 }
 
 .mn-diet-desc {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: var(--color-ink-3);
   line-height: 1.4;
 }
@@ -1419,7 +1478,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 4px;
 }
 
 .mn-slider-icon {
@@ -1433,13 +1492,8 @@
 }
 
 .mn-slider-icon--people {
-  background: #EDE9FE;
-  color: #7C3AED;
-}
-
-.mn-slider-icon--meals {
-  background: #FEF3C7;
-  color: #D97706;
+  background: var(--color-category-icon-bg);
+  color: var(--color-category-icon);
 }
 
 .mn-slider-big {
@@ -1450,7 +1504,7 @@
 }
 
 .mn-slider-label {
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   color: var(--color-ink-3);
 }
 
@@ -1485,14 +1539,65 @@
   border: 2px solid var(--color-bg-white);
 }
 
+/* ── Répartition des repas (5 steppers, UC7) ─────────────── */
+
+/* Une ligne par moment de la journée : libellé à gauche, stepper à droite.
+   Le stepper lui-même réutilise le composant .mc-stepper des réglages du menu
+   (variante compacte, sans unité) — même objet d'interface, mêmes dimensions.
+   Trois consommateurs, un seul habillage : le formulaire de génération, les
+   réglages du foyer (shared/_meal_counts_fields) et le panneau de réglages du
+   brouillon (menus/_settings_panel), qui y règle sa répartition en direct. */
+.mn-meal-counts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mn-meal-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mn-meal-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-ink-2);
+}
+
+/* Option « même petit-déjeuner toute la semaine » : discrète, elle n'apparaît
+   qu'à partir de 2 petits-déjeuners (attribut hidden piloté par Stimulus). */
+.mn-meal-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.mn-meal-option[hidden] {
+  display: none;
+}
+
+.mn-meal-option-checkbox {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--color-primary);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
 /* ── Text input ──────────────────────────────────────────── */
 
 .mn-text-input {
   width: 100%;
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   border-radius: var(--radius-button);
   padding: 9px 12px;
-  font-size: 13px;
+  font-size: var(--font-size-base);
   color: var(--color-ink);
   background: var(--color-bg-white);
   font-family: inherit;
@@ -1512,7 +1617,7 @@
 
 .mn-summary-bar {
   background: var(--color-bg-secondary);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   border-radius: var(--radius-button);
   padding: 12px 16px;
   margin-bottom: 20px;
@@ -1523,29 +1628,29 @@
 }
 
 .mn-summary-label {
-  font-size: 11px;
-  color: var(--color-ink-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
   margin-right: 4px;
 }
 
 .mn-summary-chip {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   padding: 3px 9px;
   background: var(--color-bg-white);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   border-radius: var(--radius-button);
   color: var(--color-ink-2);
 }
 
 .mn-summary-chip--highlighted {
   background: var(--color-accent-light);
-  border-color: var(--color-accent-hover);
+  border-color: var(--color-accent-deep);
   color: var(--color-accent-text);
 }
 
 .mn-summary-sep {
   color: var(--color-border-strong);
-  font-size: 10px;
+  font-size: var(--font-size-xs);
 }
 
 /* ── Submit zone ─────────────────────────────────────────── */
@@ -1558,11 +1663,11 @@
 
 .mn-btn-generate {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-bg-white);
   border: none;
   border-radius: var(--radius-button);
   padding: 13px 24px;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   cursor: pointer;
   width: 100%;
@@ -1591,15 +1696,17 @@
 }
 
 .mn-submit-note {
-  font-size: 11px;
-  color: var(--color-ink-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
   text-align: center;
   line-height: 1.5;
   margin: 0;
 }
 
 @keyframes mn-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .mn-spinning {
@@ -1621,7 +1728,12 @@
 
 /* ── Diet icons (backgrounds thématiques) ────────────────── */
 
+/* Comme pour les cartes de repas, le neutre par défaut est porté par l'élément
+   lui-même : un seul point de peinture, et tout régime sans pastille dédiée
+   (--default compris) est couvert sans règle supplémentaire. */
 .mn-diet-icon {
+  --diet-tint: var(--color-bg-tertiary);
+
   width: 36px;
   height: 36px;
   border-radius: var(--radius-card);
@@ -1629,24 +1741,30 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  background: var(--diet-tint);
 }
 
-.mn-diet-icon--omni  { background: #FFF0EE; }
-.mn-diet-icon--vege  { background: #EDF7E6; }
-.mn-diet-icon--vegan { background: #E6F5EE; }
-.mn-diet-icon--pesc  { background: #E6F1FB; }
+.mn-diet-icon--omni  { --diet-tint: var(--diet-omni-tint); }
+.mn-diet-icon--vege  { --diet-tint: var(--diet-vege-tint); }
+.mn-diet-icon--vegan { --diet-tint: var(--diet-vegan-tint); }
+.mn-diet-icon--pesc  { --diet-tint: var(--diet-pesc-tint); }
+
+/* Le glyphe générique est tracé en currentColor, contrairement aux quatre
+   pictogrammes de régime qui portent leurs propres couleurs de remplissage. */
+.mn-diet-icon--default {
+  color: var(--color-ink-3);
+}
 
 /* ── Slider marks (graduation) ───────────────────────────── */
 
 .mn-slider-marks {
   display: flex;
   justify-content: space-between;
-  margin-top: 6px;
 }
 
 .mn-slider-mark {
-  font-size: 10px;
-  color: var(--color-ink-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
 }
 
 /* ── Responsive formulaire de génération ──────────────── */
@@ -1674,92 +1792,6 @@
    Maquette : easymeal_menu_customize.html — Slate Craft Premium
    ============================================================ */
 
-/* ── Context bar ───────────────────────────────────────── */
-.mc-context-bar {
-  background: var(--color-bg-white);
-  border-bottom: 0.5px solid var(--color-border);
-  padding: 10px 28px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.mc-bc-link {
-  font-size: 12px;
-  color: var(--color-ink-3);
-  text-decoration: none;
-  cursor: pointer;
-}
-.mc-bc-link:hover { color: var(--color-ink); }
-
-.mc-bc-sep {
-  font-size: 10px;
-  color: var(--color-border);
-}
-
-.mc-bc-current {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--color-ink);
-}
-
-.mc-chip {
-  font-size: 11px;
-  padding: 2px 8px;
-  background: var(--color-bg-secondary);
-  border: 0.5px solid var(--color-border);
-  border-radius: var(--radius-button);
-  color: var(--color-ink-3);
-}
-
-.mc-chip-draft {
-  background: var(--color-accent-light);
-  border-color: var(--color-accent-hover);
-  color: var(--color-accent-text);
-}
-
-.mc-ctx-btns {
-  margin-left: auto;
-  display: flex;
-  gap: 6px;
-}
-
-/* Les form générés par button_to doivent rester inline */
-.mc-ctx-btns form.button_to,
-.mc-ctx-btns form {
-  display: inline;
-}
-
-.mc-btn-outline-sm {
-  font-size: 11px;
-  padding: 5px 10px;
-  border-radius: var(--radius-button);
-  border: 0.5px solid var(--color-border);
-  background: var(--color-bg-white);
-  color: var(--color-ink-2);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  text-decoration: none;
-  transition: background var(--transition-fast);
-}
-.mc-btn-outline-sm:hover { background: var(--color-bg-secondary); }
-.mc-btn-outline-sm svg { width: 11px; height: 11px; flex-shrink: 0; }
-
-.mc-btn-danger-sm {
-  font-size: 11px;
-  padding: 5px 10px;
-  border-radius: var(--radius-button);
-  border: 0.5px solid #FECACA;
-  background: var(--color-danger-light);
-  color: var(--color-danger-text);
-  cursor: pointer;
-  transition: background var(--transition-fast);
-}
-.mc-btn-danger-sm:hover { background: #FEE2E2; }
-
 /* ── Page layout ───────────────────────────────────────── */
 .mc-page-outer {
   display: flex;
@@ -1768,11 +1800,13 @@
 }
 
 .mc-page-wrap {
-  width: 50%;
+  width: 75%;
   min-width: 480px;
-  max-width: 760px;
+  max-width: 1400px;
 }
 
+/* Utilisé par grocery.html.haml (titre "Liste de courses") — les vues
+   brouillon/actif portent désormais leur titre dans .mc-head-title. */
 .mc-page-header {
   display: flex;
   align-items: baseline;
@@ -1782,36 +1816,580 @@
 }
 
 .mc-page-title {
-  font-family: Georgia, serif;
+  font-family: var(--font-serif);
   font-size: 20px;
   font-weight: 400;
   color: var(--color-ink);
 }
 
-.mc-page-hint {
-  font-size: 11px;
+/* ── En-tête de page menu (mc-head-*) ──────────────────────
+   Nom du menu en titre, puis une ligne de méta qui porte la pastille de statut
+   et les caractéristiques du menu à gauche, les actions secondaires à droite.
+   Rendu par menus/_page_head — brouillon et menu actif. L'action principale de
+   la page est le CTA de bas de page (.mc-validate-zone). */
+.mc-head {
+  margin-bottom: 28px;
+}
+
+/* En desktop, la vue brouillon place sa disposition en deux colonnes juste sous
+   l'en-tête : .mc-split porte déjà son propre écart (margin-top), la marge de
+   l'en-tête s'y ajouterait. Elle reste en place sous le breakpoint, où
+   .mc-split perd ce margin-top, et dans la vue menu actif (grille de repas
+   directement sous l'en-tête, sans marge propre). */
+@media (min-width: 1025px) {
+  .mc-head:has(+ .mc-split) {
+    margin-bottom: 0;
+  }
+}
+
+/* Pastille de statut de la page */
+.mc-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: var(--radius-badge);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.mc-kicker::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.mc-kicker--draft {
+  background: var(--color-accent-light);
+  color: var(--color-accent-text);
+}
+
+.mc-kicker--active {
+  background: var(--color-success-light);
+  color: var(--color-success-text);
+}
+
+/* ── Titre : nom du menu ───────────────────────────────── */
+.mc-head-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.mc-head-title,
+.mc-head-title-input {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+/* Le nom du brouillon s'édite sur place : le champ se fond dans le titre et
+   ne se révèle qu'au survol / focus pour ne pas alourdir l'en-tête. */
+.mc-head-title-input {
+  /* Largeur naturelle donnée par l'attribut size (calé sur la longueur du nom),
+     bornée pour ne jamais déborder ; field-sizing affine au caractère près sur
+     les navigateurs qui le supportent. */
+  flex: 0 1 auto;
+  min-width: 275px;
+  max-width: 100%;
+  field-sizing: content;
+  padding: 1px 2px;
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px solid transparent;
+  border-radius: 0;
+  transition: border-color var(--transition-fast);
+}
+
+.mc-head-title-input:hover {
+  border-bottom-color: var(--color-border-strong);
+}
+
+.mc-head-title-input:focus {
+  outline: none;
+  border-bottom-color: var(--color-primary);
+}
+
+.mc-head-title-input::placeholder {
   color: var(--color-ink-4);
 }
 
+/* Crayon : affordance d'édition du nom (le champ reste éditable au clic direct) */
+.mc-head-title-edit {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-white);
+  border: var(--border-thin);
+  border-radius: var(--radius-icon-btn);
+  color: var(--color-ink-3);
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.mc-head-title-edit:hover {
+  color: var(--color-ink);
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Ligne méta : statut + caractéristiques, actions à droite ──
+   Deux groupes écartés par space-between. En mobile, le groupe d'actions passe
+   à la ligne (flex-wrap) et se retrouve aligné à gauche, sous les méta. */
+.mc-head-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 10px;
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
+}
+
+.mc-head-meta-facts {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* La pastille ouvre la ligne : un peu d'air pour la détacher du texte de méta,
+   qui n'a pas de séparateur avant lui. */
+.mc-head-meta-facts .mc-kicker {
+  margin-right: 4px;
+}
+
+.mc-head-meta-sep {
+  color: var(--color-border-strong);
+}
+
+.mc-head-meta-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+/* button_to enveloppe chaque bouton dans un <form> : il ne doit pas rompre
+   l'alignement de la rangée d'actions. */
+.mc-head-meta-actions form.button_to {
+  display: inline-flex;
+  margin: 0;
+}
+
+/* Lien et non bouton encadré : ces actions ne doivent pas appeler le clic.
+   Hauteur contenue pour ne pas épaissir la ligne de méta. */
+.mc-head-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  background: none;
+  border: none;
+  border-radius: var(--radius-button);
+  font-size: var(--font-size-sm);
+  color: var(--color-ink-3);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.mc-head-action:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-ink);
+}
+
+/* Destructif : neutre au repos, rouge au survol / focus — la conséquence est
+   signalée juste avant le clic. */
+.mc-head-action--danger:hover,
+.mc-head-action--danger:focus-visible {
+  background: var(--color-danger-light);
+  color: var(--color-danger-text);
+}
+
+/* ── Panneau de réglages (brouillon) ───────────────────────
+   Carte affichée en colonne latérale à côté de la grille de repas (voir
+   .mc-split ci-dessous) : nombre de personnes et régime alimentaire, les
+   deux réglages qui s'appliquent à tout le menu. Toujours empilée verticalement
+   (desktop et mobile) — pas de bascule flex-direction à gérer en responsive. */
+.mc-settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  background: var(--color-bg-white);
+  border: var(--border-thin);
+  border-radius: var(--radius-card);
+}
+
+.mc-settings-panel-title {
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 400;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+/* Le titre est aussi le déclencheur de l'accordéon mobile (controller
+   mobile-accordion). En desktop le JS le passe à disabled : il n'est ni
+   cliquable ni focusable, et rend exactement comme un titre simple. */
+.mc-settings-panel-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+}
+
+/* Le chevron n'a de sens que là où la carte se replie (mobile) */
+.mc-settings-panel-chevron {
+  display: none;
+  color: var(--color-ink-3);
+  transition: transform var(--transition-fast);
+}
+
+.mc-settings-panel-toggle[aria-expanded="false"] .mc-settings-panel-chevron {
+  transform: rotate(-90deg);
+}
+
+/* Corps repliable : reprend l'empilement vertical de la carte */
+.mc-settings-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mc-setting {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Réglage à plusieurs lignes (répartition des repas) : sa pastille se cale en
+   haut, au niveau du libellé, plutôt qu'au milieu de la colonne de steppers. */
+.mc-setting--stacked {
+  align-items: flex-start;
+}
+
+/* Pastille d'icône — même vocabulaire que les cartes du formulaire de génération */
+.mc-setting-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-card);
+}
+
+.mc-setting-icon--people {
+  background: var(--color-category-icon-bg);
+  color: var(--color-category-icon);
+}
+
+.mc-setting-icon--diet {
+  background: var(--diet-vege-tint);
+  color: var(--color-success);
+}
+
+/* Répartition des repas : l'ambre de la charte, seul accent coloré, distingue
+   ce réglage des deux autres pastilles sans introduire de nouvelle teinte. */
+.mc-setting-icon--meals {
+  background: var(--color-accent-light);
+  color: var(--color-accent-text);
+}
+
+/* flex: 1 pour que les trois réglages (régime, personnes, répartition)
+   partagent la même largeur de champ malgré leurs contenus différents — c'est
+   ce qui permet à leurs contrôles de se terminer sur le même bord droit. */
+.mc-setting-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.mc-setting-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+
+/* Séparateur horizontal entre les blocs du panneau (note de portée, puis chaque
+   réglage) */
+.mc-settings-panel-sep {
+  height: var(--border-width);
+  background: var(--color-border);
+}
+
+/* Rappel de la portée des réglages, juste sous le titre : la consigne se lit
+   avant les réglages qu'elle qualifie, et non après. */
+.mc-settings-panel-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+  color: var(--color-ink-3);
+}
+
+/* flex-shrink + margin-top : l'icône reste alignée sur la 1ère ligne du texte
+   (et non centrée sur sa hauteur totale) quand la note tient sur 2 lignes. */
+.mc-settings-panel-note svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--color-ink-4);
+}
+
+/* En desktop, la carte de réglages est côte à côte avec la grille de repas :
+   elle s'aligne sur la hauteur d'une carte de recette (--mc-card-height,
+   mesurée et publiée par menu_customize_controller) pour que les deux colonnes
+   se terminent au même trait. min-height et non height : le contenu du panneau
+   ne peut jamais être rogné si la carte de référence est plus courte. */
+@media (min-width: 1025px) {
+  .mc-settings-panel {
+    min-height: var(--mc-card-height);
+  }
+
+  /* Le supplément de hauteur est réparti entre les blocs de réglages plutôt que
+     laissé en blanc au bas de la carte. */
+  .mc-settings-panel-body {
+    flex: 1;
+    justify-content: space-between;
+  }
+}
+
+/* ── Disposition brouillon : réglages en colonne latérale ──
+   Libère la largeur au-dessus de la grille de repas — le titre du menu n'est
+   plus repoussé vers le bas par une barre de réglages pleine largeur. */
+.mc-split {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+/* 280px : la largeur qu'il faut pour que les lignes de répartition tiennent
+   d'un trait — libellé du moment, puis stepper compact — sans grignoter de
+   colonne à la grille de repas (les cartes font 190px minimum). */
+.mc-split-aside {
+  flex: 0 0 280px;
+}
+
+.mc-split-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Sous le --breakpoint-tablet (1024px), la carte de réglages n'a plus la
+   place de cohabiter avec la grille : elle repasse au-dessus, pleine largeur.
+   (valeur dupliquée en dur : les media features n'acceptent pas var()) */
+@media (max-width: 1024px) {
+
+  /* Empilée, la carte de réglages pousse déjà la grille de repas vers le bas :
+     l'écart avec l'en-tête (.mc-head, margin-bottom) suffit. */
+  .mc-split {
+    flex-direction: column;
+    margin-top: 0;
+  }
+
+  .mc-split-aside {
+    flex-basis: auto;
+    width: 100%;
+  }
+
+  /* Accordéon : le titre plie / déplie la carte pour que la grille de repas
+     remonte dans la page (voir mobile_accordion_controller.js). */
+  .mc-settings-panel-chevron {
+    display: inline-block;
+  }
+
+  /* Le déclencheur occupe toute la largeur de la carte : cible tactile pleine.
+     L'affordance (curseur) n'est posée qu'ici, là où le titre est cliquable. */
+  .mc-settings-panel-toggle {
+    min-height: var(--min-touch-target);
+    cursor: pointer;
+  }
+
+  .mobile-accordion--collapsed .mc-settings-panel-body {
+    display: none;
+  }
+
+  /* Replié, le titre n'introduit plus rien : son trait de séparation n'a plus
+     d'objet et la carte se réduit à une simple barre. */
+  .mobile-accordion--collapsed .mc-settings-panel-title {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+
+  /* Réduite à sa barre de titre, la carte n'a plus de contenu à espacer
+     verticalement : la hauteur de la barre vient du déclencheur (cible
+     tactile), le padding ne garde que ses marges latérales. */
+  .mobile-accordion--collapsed .mc-settings-panel {
+    padding: 0 1rem;
+  }
+
+  /* Replier la carte sert à faire remonter la grille de repas : l'écart sous
+     l'en-tête y participe. Il est rétabli au dépliage, où la carte redevient un
+     bloc de contenu à part entière (voir .mc-split, margin-top ci-dessus). */
+  .mc-head:has(+ .mc-split .mobile-accordion--collapsed) {
+    margin-bottom: 0;
+  }
+}
+
+/* ── Manques du brouillon (UC7) ─────────────────────────── */
+/* Une ligne compacte au-dessus de la grille : ce n'est pas une erreur mais un
+   état du menu, d'où le ton ambre de la charte plutôt qu'un bandeau rouge.
+   Le display: flex ci-dessous écrase le display: none que le navigateur pose
+   sur [hidden] : sans repli explicite, l'élément vide resterait visible. */
+.mc-missing-alert {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 12px;
+  padding: 7px 10px;
+  background: var(--color-warning-light);
+  border-radius: var(--radius-button);
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+  color: var(--color-warning-text);
+}
+
+.mc-missing-alert[hidden] {
+  display: none;
+}
+
+.mc-missing-alert svg {
+  flex-shrink: 0;
+}
+
 /* ── Card grid ─────────────────────────────────────────── */
+/* auto-fill plutôt qu'un repeat figé : la grille s'adapte à la largeur
+   disponible, que la colonne soit pleine largeur (menu actif) ou réduite par
+   le panneau de réglages latéral (.mc-split-main, brouillon). minmax(190px)
+   agrandit les cartes en desktop par rapport au gabarit mobile (160px,
+   ci-dessous) — le mobile garde son propre minmax et n'est pas affecté. */
 .mc-card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 14px;
   margin-bottom: 24px;
+}
+
+/* ── Palette des jours (UC7) ─────────────────────────────
+   SOURCE UNIQUE de vérité des couleurs de jour : partout ailleurs, uniquement
+   var(--day-accent) & co. Indices = Date#wday (0 = dimanche … 6 = samedi),
+   l'entier de MenuRecipe#day_of_week que la carte porte en data-day.
+
+   Teintes générées en OKLCH à luminosité et chroma constants — seule la teinte
+   tourne, du froid (lundi) au chaud (dimanche). Aucun jour ne « saute » donc
+   plus que les autres, et le texte de la pastille tient partout entre 6,9:1 et
+   7,6:1 sur son fond. Converties en sRGB : le projet est en CSS vanilla, et une
+   déclaration oklch() invalide ferait retomber les sept jours sur le même gris.
+
+   La charte reste anthracite + ambre : la couleur ne lave plus la carte entière,
+   elle se concentre sur la bordure latérale et la pastille du sélecteur de jour.
+   Elle ne porte jamais l'information seule — le jour reste écrit en toutes
+   lettres dans ce sélecteur, juste à côté.
+
+   Quatre rôles : --day-accent (bordure latérale de la carte, seul aplat vif),
+   --day-tint (fond de pastille), --day-deep (texte sur la pastille),
+   --day-edge (bordure de la pastille, et de la carte au survol). */
+
+/* Jour non renseigné : les valeurs neutres sont portées par la carte elle-même.
+   Couvre du même coup l'absence d'attribut (day_of_week nil, ou repassé à « — » :
+   menu-customize#setDay supprime alors data-day) et un data-day="" — inutile de
+   sélectionner les deux. */
+.mc-recipe-card {
+  --day-tint: var(--color-bg-secondary);
+  --day-edge: var(--color-border-strong);
+  --day-accent: var(--color-border-strong);
+  --day-deep: var(--color-ink-2);
+}
+
+/*                                   tint                edge                accent              deep    */
+.mc-recipe-card[data-day="1"] { --day-tint: #E7F5FF; --day-edge: #C5DEFF; --day-accent: #719AD6; --day-deep: #2D5083; } /* lundi    */
+.mc-recipe-card[data-day="2"] { --day-tint: #DEF9FF; --day-edge: #B0E7F3; --day-accent: #3CA8BC; --day-deep: #005C6E; } /* mardi    */
+.mc-recipe-card[data-day="3"] { --day-tint: #E2FAEE; --day-edge: #B9E9D3; --day-accent: #55AC89; --day-deep: #006042; } /* mercredi */
+.mc-recipe-card[data-day="4"] { --day-tint: #F1F7E0; --day-edge: #D8E2B7; --day-accent: #93A157; --day-deep: #4B560A; } /* jeudi    */
+.mc-recipe-card[data-day="5"] { --day-tint: #FFF1DE; --day-edge: #F5D7B3; --day-accent: #BE8E4F; --day-deep: #6F4500; } /* vendredi */
+.mc-recipe-card[data-day="6"] { --day-tint: #FFEDE7; --day-edge: #FFCFC5; --day-accent: #CE8171; --day-deep: #7B392D; } /* samedi   */
+.mc-recipe-card[data-day="0"] { --day-tint: #FFECF5; --day-edge: #FCCDE0; --day-accent: #C87E9F; --day-deep: #763755; } /* dimanche */
+
+/* ── Palette des régimes & de la pastille de catégorie ───
+   Mêmes raisons que les couleurs de jour ci-dessus : tous leurs points de
+   consommation sont dans ce fichier, elles n'ont donc rien à faire dans la
+   palette globale. Même convention de nommage aussi — « tint » désigne le fond
+   d'une pastille — plutôt qu'un second vocabulaire à quelques lignes d'écart.
+
+   Teintes générées en OKLCH à luminosité et chroma constants (L 0.955 / C 0.030),
+   seule la teinte tourne : aucun régime ne « saute » plus que les autres, ce que
+   les anciennes valeurs ne garantissaient pas. Converties en sRGB, pour la raison
+   déjà donnée plus haut — une déclaration oklch() invalide ferait retomber tous
+   les régimes sur le même gris. */
+:root {
+  --diet-omni-tint:  #FFE9E6;  /* oklch(0.955 0.030  25) */
+  --diet-vege-tint:  #EBF4DE;  /* oklch(0.955 0.030 125) */
+  --diet-vegan-tint: #DFF7EB;  /* oklch(0.955 0.030 165) */
+  --diet-pesc-tint:  #E0F3FF;  /* oklch(0.955 0.030 245) */
+
+  /* Pastille du compteur de personnes. Nommée par son rôle et non par sa
+     teinte : le jour où elle passe au bleu, un token « violet » deviendrait un
+     mensonge impossible à corriger sans rename global. */
+  --color-category-icon: #7C3AED;
+  --color-category-icon-bg: #EDE9FE;
 }
 
 /* ── Recipe card ───────────────────────────────────────── */
 .mc-recipe-card {
+  /* Colonne flex pour que la barre d'actions se cale en bas (margin-top: auto).
+     Les cartes d'une même ligne ayant déjà la même hauteur (elles sont les items
+     de la grille, cf. display: contents du turbo-frame), leurs barres d'actions
+     s'alignent alors aussi, que le titre tienne sur une ou deux lignes. */
+  display: flex;
+  flex-direction: column;
   background: var(--color-bg-white);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
+  /* Toute la couleur du jour tient dans cette barre. */
+  border-left: 5px solid var(--day-accent);
   border-radius: var(--radius-button);
   overflow: hidden;
   cursor: grab;
   user-select: none;
   transition: border-color var(--transition-fast), opacity 0.2s, transform var(--transition-fast);
 }
-.mc-recipe-card:hover { border-color: var(--color-border-strong); }
+
+.mc-recipe-card:hover {
+  border-color: var(--day-edge);
+  /* La barre du jour ne bouge pas au survol : c'est un repère, pas un état. */
+  border-left-color: var(--day-accent);
+}
 
 /* Turbo frame wrapper ne doit pas casser le grid */
 .mc-card-grid turbo-frame {
@@ -1825,20 +2403,35 @@
   transform: scale(0.97);
   border-color: var(--color-ink-4);
 }
+
+/* Cible de dépôt : on repeint les bordures sans toucher à leurs épaisseurs — un
+   raccourci `border` ramènerait la barre latérale de 5px à 1px et décalerait le
+   contenu de la carte à chaque survol pendant le glissement. */
 .mc-recipe-card.mc-drag-over {
-  border: 1.5px solid var(--color-accent-hover);
+  border-color: var(--color-accent-deep);
+  border-left-color: var(--color-accent-deep);
   background: var(--color-accent-light);
 }
 
 /* ── Photo carrée ──────────────────────────────────────── */
+/* Enveloppe de la photo (UC7) : repère de positionnement du bouton Dupliquer,
+   qui se superpose à la photo sans pouvoir vivre dans son lien (<form> dans
+   <a>). Sans ce parent, il se réglerait sur toute la hauteur de la carte. La
+   poignée de glissement et le badge temps, eux, vivent DANS le lien et se
+   règlent sur .mc-card-photo. */
+.mc-card-media {
+  position: relative;
+}
+
 .mc-card-photo {
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 1 / 0.8;
   background: var(--color-bg-secondary);
   overflow: hidden;
   position: relative;
   display: block;
 }
+
 .mc-card-photo img {
   width: 100%;
   height: 100%;
@@ -1847,15 +2440,6 @@
   pointer-events: none;
 }
 
-.mc-card-photo-ph {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.mc-card-photo-ph svg { width: 24px; height: 24px; opacity: 0.3; }
-
 /* Drag handle */
 .mc-drag-hint {
   position: absolute;
@@ -1863,33 +2447,153 @@
   left: 5px;
   opacity: 0;
   transition: opacity var(--transition-fast);
-  background: rgba(28, 25, 23, 0.65);
+  background: rgba(28, 25, 22, 0.65);
   border-radius: 2px;
   padding: 3px 4px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.mc-recipe-card:hover .mc-drag-hint { opacity: 1; }
-.mc-drag-hint svg { width: 10px; height: 10px; color: #fff; }
 
-/* ── Nom de la recette ─────────────────────────────────── */
-.mc-card-name-wrap { padding: 7px 8px 0; }
+.mc-recipe-card:hover .mc-drag-hint {
+  opacity: 1;
+}
+
+.mc-drag-hint svg {
+  width: 10px;
+  height: 10px;
+  color: var(--color-bg-white);
+}
+
+/* ⏱️ Badge temps (UC7) : pastille sur la photo, toujours visible (contrairement
+   au drag-hint qui n'apparaît qu'au survol) — même habillage sombre translucide. */
+.mc-card-time-badge {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: rgba(28, 25, 22, 0.65);
+  color: var(--color-bg-white);
+  border-radius: var(--radius-badge);
+  padding: 2px 6px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.mc-card-time-badge svg {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+}
+
+/* ⧉ Dupliquer (UC7) : répéter un repas dans la semaine. Coin bas-droit de la
+   photo — le haut est pris par la poignée (gauche) et le badge temps (droite).
+   Toujours visible comme le badge, et non au survol comme la poignée : le
+   glisser-déposer n'existe qu'à la souris, dupliquer sert aussi au doigt.
+   Même habillage sombre translucide que les deux autres surimpressions. */
+.mc-card-dup {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  border: none;
+  /* 7px + 14px d'icône = 28px, la taille des boutons de la barre d'actions :
+     même confort au doigt, sans mesure propre à ce bouton. */
+  padding: 7px;
+  border-radius: var(--radius-badge);
+  background: rgba(28, 25, 22, 0.65);
+  color: var(--color-bg-white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast);
+}
+
+.mc-card-dup svg {
+  width: 14px;
+  height: 14px;
+}
+
+.mc-card-dup:hover {
+  background: rgba(28, 25, 22, 0.9);
+}
+
+.mc-card-dup:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+/* ── Nom de la recette ─────────────────────────────────────
+   Wrapper partagé avec la carte en lecture seule (menu actif) : il porte le
+   retrait du bloc, le nom porte son propre écrêtage à 2 lignes. */
+.mc-card-name-wrap {
+  padding: 7px 8px 0;
+}
 
 .mc-card-name {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   color: var(--color-ink);
   line-height: 1.35;
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   min-height: 28px;
+  /* Équilibre la coupure entre les deux lignes plutôt que de remplir la première
+     au maximum : évite le mot orphelin sur la seconde ligne et les coupures en
+     milieu de syntagme (« Tartelette au chèvre / sur »). Sans effet là où le
+     navigateur ne le gère pas encore. */
+  text-wrap: pretty;
+}
+
+/* Photo et nom : liens vers la recette (menu_card_recipe_link) — même habillage
+   qu'un bloc inerte, sans soulignement ; seul le nom se souligne au survol
+   pour annoncer le clic. */
+a.mc-card-photo,
+a.mc-card-name-wrap {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+a.mc-card-name-wrap:hover .mc-card-name {
+  text-decoration: underline;
+}
+
+/* ── Rangée moment + jour (UC7) ─────────────────────────────
+   Les deux contrôles se partagent la ligne à parts égales : flex: 1 1 0 sur
+   les enfants directs (formulaire d'un sélecteur, ou étiquette figée du menu
+   actif) leur donne la même largeur quel que soit le libellé, et min-width: 0
+   les autorise à se comprimer sous la largeur naturelle du <select>.
+   Habillage mc-mini-select commun. */
+.mc-card-controls {
+  display: flex;
+  gap: 5px;
+  padding: 6px 8px 0;
+}
+
+.mc-card-control {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Corps compact conservé même en desktop (où les autres mini-selects grandissent) :
+   deux sélecteurs pour une largeur de carte, « Petit-déj » doit tenir en entier. */
+.mc-card-controls .mc-mini-select {
+  width: 100%;
+  font-size: var(--font-size-xs);
 }
 
 /* ── Barre d'actions (3 éléments) ──────────────────────── */
 .mc-card-actions {
+  /* Cale la barre en bas de la carte (colonne flex), quelle que soit la hauteur
+     du titre au-dessus : les barres d'une même ligne s'alignent entre elles. */
+  margin-top: auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1908,7 +2612,7 @@
   width: 28px;
   height: 28px;
   border-radius: var(--radius-button);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   background: var(--color-bg-white);
   cursor: pointer;
   display: flex;
@@ -1918,47 +2622,142 @@
   transition: all 0.12s;
   padding: 0;
 }
-.mc-act-btn svg { width: 12px; height: 12px; color: var(--color-ink-3); flex-shrink: 0; }
-.mc-act-btn:hover { background: var(--color-bg-secondary); border-color: var(--color-border-strong); }
-.mc-act-btn:hover svg { color: var(--color-ink); }
+
+.mc-act-btn svg {
+  width: 17px;
+  height: 17px;
+  color: var(--color-ink-3);
+  flex-shrink: 0;
+}
+
+.mc-act-btn:hover:not(:disabled) {
+  background: var(--color-bg-white);
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.mc-act-btn:hover:not(:disabled) svg {
+  color: var(--color-ink);
+}
+
+/* Focus clavier explicite (les libellés aria sont annoncés en parallèle) */
+.mc-act-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+  border-color: var(--color-primary);
+}
+
+.mc-act-btn:focus-visible svg {
+  color: var(--color-ink);
+}
+
+/* Aux bornes de section, ⬆️/⬇️ sont désactivés plutôt que masqués (UC7) : même
+   traitement que le stepper de personnes (.mc-stepper-btn:disabled). */
+.mc-act-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
 
 /* Variante danger (supprimer) */
-.mc-del:hover { background: var(--color-danger-light); border-color: #FECACA; }
-.mc-del:hover svg { color: var(--color-danger); }
+.mc-del:hover {
+  background: var(--color-danger-light);
+  border-color: var(--color-danger-border);
+}
 
-/* Select nombre de personnes */
-.mc-ppl-select {
+.mc-del:hover svg {
+  color: var(--color-danger);
+}
+
+/* ⬆️/⬇️ réordonnancement dans la section (UC7) : le drag & drop HTML5 suffit
+   là où la souris est disponible, ces boutons ne servent qu'au tactile.
+   Une seule icône (chevron-down) pour les deux sens, la variante « monter »
+   pivote à 180° — même idiome que .mi-expand-icon.open. */
+.mc-move-btn {
+  display: none;
+}
+
+.mc-move-btn--up svg {
+  transform: rotate(180deg);
+}
+
+/* Mini-selects de carte (personnes / type / jour, UC7) : même habillage —
+   bordure, flèche, hauteur — largeur propre à chaque variante ci-dessous. */
+.mc-mini-select {
   height: 28px;
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   border-radius: var(--radius-button);
   background: var(--color-bg-white);
   color: var(--color-ink);
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
-  padding: 0 18px 0 6px;
+  padding: 0 10px 0 4px;
   cursor: pointer;
-  min-width: 52px;
-  flex: 1;
-  max-width: 64px;
   appearance: none;
   -webkit-appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg width='8' height='5' viewBox='0 0 8 5' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l3 3 3-3' stroke='%23A8A29E' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 5px center;
 }
-.mc-ppl-select:hover { border-color: var(--color-border-strong); }
-.mc-ppl-select:focus { outline: none; border-color: var(--color-ink); }
 
-/* ── Add slot (2 boutons empilés) ──────────────────────── */
-.mc-add-slot {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.mc-mini-select:hover {
+  border-color: var(--color-border-strong);
 }
 
+.mc-mini-select:focus {
+  outline: none;
+  border-color: var(--color-ink);
+}
+
+.mc-mini-select:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+  border-color: var(--color-primary);
+}
+
+/* Moment figé d'un menu validé : même gabarit que le mini-select avec lequel
+   il partage la rangée (mêmes hauteurs à chaque breakpoint), mais aucune
+   affordance d'interaction — ni flèche, ni curseur. Fond blanc et encre
+   soutenue héritées de .mc-mini-select : c'est une étiquette en lecture seule,
+   pas un contrôle désactivé — le gris clair aurait dit l'inverse. */
+.mc-mini-select--static {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-image: none;
+  color: var(--color-ink-2);
+  cursor: default;
+}
+
+/* Sélecteur de jour : seul mini-select à porter la couleur du jour, puisque
+   c'est lui qui la pilote. Déclaré après .mc-mini-select — même spécificité,
+   c'est l'ordre qui tranche. */
+.mc-day-select {
+  background-color: var(--day-tint);
+  border-color: var(--day-edge);
+  color: var(--day-deep);
+}
+
+.mc-day-select:hover {
+  border-color: var(--day-accent);
+}
+
+/* Select nombre de personnes : inline dans la rangée d'actions, largeur réduite. */
+.mc-ppl-select {
+  min-width: 52px;
+  flex: 1;
+  max-width: 64px;
+}
+
+/* ── Bouton « Ajouter un repas » ────────────────────────── */
+/* Dernier item de la grille, toujours à la suite du dernier repas : il ouvre le
+   catalogue, où les filtres choisissent le moment voulu. Il occupe la hauteur
+   d'une carte, mesurée et publiée en variable par menu_customize_controller. */
 .mc-add-btn {
+  /* Sans carte de référence sur la page (menu vide) la variable n'est pas
+     publiée : la déclaration est invalide, la hauteur retombe sur le contenu. */
+  height: var(--mc-card-height);
   background: var(--color-bg-white);
-  border: 0.5px dashed var(--color-border-strong);
+  border: var(--border-width) dashed var(--color-border-strong);
   border-radius: var(--radius-button);
   cursor: pointer;
   transition: border-color var(--transition-fast), background var(--transition-fast);
@@ -1969,27 +2768,32 @@
   gap: 5px;
   width: 100%;
   text-decoration: none;
-  padding: 0;
+  padding: 14px 6px;
 }
+
 .mc-add-btn:hover {
   border-color: var(--color-ink-4);
   background: var(--color-bg-secondary);
 }
-.mc-add-btn svg { width: 15px; height: 15px; color: var(--color-ink-4); flex-shrink: 0; }
+
+.mc-add-btn svg {
+  width: 15px;
+  height: 15px;
+  color: var(--color-ink-4);
+  flex-shrink: 0;
+}
+
 .mc-add-btn span {
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   color: var(--color-ink-3);
   text-align: center;
   line-height: 1.3;
   padding: 0 6px;
 }
-.mc-add-btn:hover svg,
-.mc-add-btn:hover span { color: var(--color-ink-2); }
 
-/* Le form généré par button_to dans le slot d'ajout doit être transparent */
-.mc-add-slot form.button_to,
-.mc-add-slot form {
-  display: contents;
+.mc-add-btn:hover svg,
+.mc-add-btn:hover span {
+  color: var(--color-ink-2);
 }
 
 /* ── Empty grid ────────────────────────────────────────── */
@@ -2000,7 +2804,7 @@
   color: var(--color-ink-3);
   background: var(--color-bg-secondary);
   border-radius: var(--radius-card);
-  border: 0.5px dashed var(--color-border-strong);
+  border: var(--border-width) dashed var(--color-border-strong);
 }
 
 .mc-empty-text {
@@ -2008,8 +2812,27 @@
   color: var(--color-ink-2);
 }
 
+/* L'invitation au catalogue de l'état vide respire sous son texte */
+.mc-empty-grid .btn {
+  margin-top: 12px;
+}
+
 /* ── Bouton de validation ──────────────────────────────── */
-.mc-validate-zone { text-align: center; }
+.mc-validate-zone {
+  text-align: center;
+}
+
+/* Sticky en bas quand le menu contient au moins un repas : le CTA reste
+   visible pendant le défilement de la grille. Bande de fond + bordure
+   haute pour détacher la zone du contenu qui défile dessous. */
+.mc-validate-zone--sticky {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  padding: 14px 0;
+  margin-top: 4px;
+  background: var(--color-bg-main);
+}
 
 /* Le form de button_to doit rester inline */
 .mc-validate-zone form.button_to,
@@ -2019,11 +2842,11 @@
 
 .mc-btn-validate {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-bg-white);
   border: none;
   border-radius: var(--radius-button);
   padding: 13px 32px;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   cursor: pointer;
   display: inline-flex;
@@ -2032,35 +2855,679 @@
   letter-spacing: 0.02em;
   transition: background var(--transition-fast);
 }
-.mc-btn-validate:hover { background: var(--color-primary-hover); }
+
+.mc-btn-validate:hover {
+  background: var(--color-primary-hover);
+}
+
 .mc-btn-validate:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-.mc-btn-validate svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+.mc-btn-validate svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+/* ── Agrandissement desktop des cartes de recette (mc-*) ──
+   La grille (minmax 190px ci-dessus) agrandit déjà la photo carrée ; on
+   remonte ici les éléments internes (nom, barre d'actions) dans la
+   même proportion pour que la carte agrandie ne paraisse pas déséquilibrée.
+   Scindé du reste des styles mc-* pour laisser le mobile (2 colonnes,
+   gabarit compact ci-dessous) strictement inchangé. */
+@media (min-width: 768px) {
+  .mc-card-name-wrap {
+    padding: 10px 10px 0;
+  }
+
+  .mc-card-name {
+    font-size: var(--font-size-sm);
+    min-height: 38px;
+  }
+
+  .mc-recipe-card.mc-recipe-card--readonly {
+    padding-bottom: 10px;
+  }
+
+  .mc-card-controls {
+    padding: 6px 10px 0;
+    gap: 6px;
+  }
+
+  .mc-card-actions {
+    padding: 8px 10px 10px;
+    gap: 8px;
+  }
+
+  .mc-act-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .mc-act-btn svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  /* Suit l'agrandissement des cartes, comme les boutons de la barre d'actions */
+  .mc-card-dup svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .mc-mini-select {
+    height: 32px;
+    font-size: var(--font-size-sm);
+    padding: 0 14px 0 8px;
+    background-position: right 7px center;
+  }
+
+  .mc-ppl-select {
+    min-width: 68px;
+    max-width: 92px;
+  }
+}
 
 /* ── Responsive (mc-*) ─────────────────────────────────── */
-@media (max-width: 768px) {
-  .mc-ctx-btns { display: none; }
+@media (max-width: 767px) {
 
-  .mc-page-outer { padding: 16px 16px 48px; }
+  .mc-head-title,
+  .mc-head-title-input {
+    font-size: 1.1rem;
+  }
+
+  .mc-page-outer {
+    padding: 16px 16px 48px;
+  }
+
+  /* Moins d'espace sous le titre sur mobile : la liste de courses doit
+     démarrer plus haut, l'écran étant plus petit qu'en desktop. */
+  .mc-page-header {
+    margin-bottom: 10px;
+  }
 
   .mc-page-wrap {
     width: 100%;
     min-width: 0;
   }
 
+  /* Cartes assez larges (≥160px) pour que la barre d'actions tienne sans être
+     coupée : le 110px précédent générait 3 colonnes sur les téléphones 390–430px
+     et tronquait le bouton Supprimer (clippé par overflow:hidden de la carte). */
   .mc-card-grid {
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 8px;
   }
 
-  .mc-context-bar {
-    padding: 8px 16px;
+  /* Barre d'actions au doigt : cibles 44px + retour à la ligne de sécurité, pour
+     ne jamais tronquer un bouton même sur les écrans très étroits (≤360px). */
+  .mc-card-actions {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .mc-act-btn {
+    width: var(--min-touch-target);
+    height: var(--min-touch-target);
+  }
+
+  /* ⬆️/⬇️ ne servent qu'au tactile : le drag & drop HTML5 couvre le desktop. */
+  .mc-move-btn {
+    display: flex;
+  }
+
+  .mc-mini-select {
+    height: var(--min-touch-target);
+    font-size: 12px;
+    /* évite aussi le zoom iOS au focus */
+  }
+
+  /* Réglages du menu au doigt : stepper et sélecteur de régime à hauteur de cible */
+  .mc-stepper,
+  .mc-diet-toggle {
+    height: var(--min-touch-target);
+  }
+
+  .mc-stepper-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
   }
 
   .mc-btn-validate {
     width: 100%;
+    justify-content: center;
+  }
+
+  /* Actions d'en-tête au doigt. On ne masque jamais une action — « Modifier ce
+     menu » (revert_to_draft) n'existe QUE là : la masquer rendrait impossible
+     de repasser un menu actif en brouillon sur mobile. */
+  .mc-head-action {
+    min-height: var(--min-touch-target);
+    padding: 8px 12px;
+    font-size: var(--font-size-sm);
+  }
+
+  /* Le bouton le plus à gauche du groupe s'aligne sur le titre : son padding
+     horizontal est compensé pour que le texte tombe pile au bord. */
+  .mc-head-meta-actions {
+    margin-left: -12px;
+  }
+}
+
+/* ============================================
+   Polish mobile — cibles tactiles résiduelles (lot 4)
+   ============================================ */
+@media (max-width: 767px) {
+
+  /* Index : CTA de création + croix de fermeture de la modale */
+  .mi-btn-new {
+    min-height: var(--min-touch-target);
+    padding: 11px 18px;
+  }
+
+  .mn-modal-close {
+    min-width: var(--min-touch-target);
+    min-height: var(--min-touch-target);
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Boutons des cartes brouillon & historique : cible + espacement au doigt */
+  .mi-btn-sm,
+  .mi-btn-sm-danger {
+    min-height: var(--min-touch-target);
+    padding: 8px 12px;
+    font-size: var(--font-size-sm);
+  }
+
+  /* Suppression : icône seule → cible tactile carrée en conservant les 2px autour. */
+  .mi-btn-sm-danger {
+    padding: 2px;
+    min-width: var(--min-touch-target);
+  }
+
+  .mi-draft-card-actions,
+  .mi-history-card-actions {
+    gap: 8px;
+  }
+
+  /* Carte « à valider » : les 3 actions restent sur une seule ligne, poubelle
+     comprise. Les 2 boutons libellés se compriment jusqu'à leur mot le plus
+     long (le libellé passe alors sur 2 lignes) — on ne descend pas en dessous,
+     donc aucun texte ne déborde de son bouton. */
+  .mi-draft-card-actions {
+    flex-wrap: nowrap;
+  }
+
+  /* Padding latéral réduit : le libellé récupère la place ainsi gagnée. */
+  .mi-draft-card-actions .mi-btn-sm {
+    padding: 8px 6px;
+    justify-content: center;
+    text-align: center;
+  }
+
+  /* L'icône n'est jamais écrasée par la compression du libellé voisin. */
+  .mi-draft-card-actions .mi-btn-sm svg {
+    flex-shrink: 0;
+  }
+
+  /* button_to enveloppe la poubelle dans un <form> : c'est lui l'enfant flex.
+     Il garde sa largeur pleine (cible tactile de 44px intacte). */
+  .mi-draft-card-actions form.button_to {
+    flex-shrink: 0;
+  }
+
+  /* Actions du hero « menu actif » */
+  .mi-btn-hero-primary,
+  .mi-btn-hero-ghost,
+  .mi-btn-hero-danger {
+    height: var(--min-touch-target);
+  }
+
+  /* Icône seule : garantir aussi une cible tactile assez large. */
+  .mi-btn-hero-danger {
+    min-width: var(--min-touch-target);
+  }
+
+  /* Bouton d'ajout de repas (brouillon) */
+  .mc-add-btn {
+    min-height: var(--min-touch-target);
+  }
+
+  /* Sliders (nb personnes / nb repas) : préhension plus large au doigt */
+  .mn-slider {
+    height: 6px;
+  }
+
+  .mn-slider::-webkit-slider-thumb {
+    width: 26px;
+    height: 26px;
+  }
+
+  .mn-slider::-moz-range-thumb {
+    width: 26px;
+    height: 26px;
+  }
+
+  /* CTA « Valider » collant : ne pas friser le home-indicator iOS */
+  .mc-validate-zone--sticky {
+    padding-bottom: calc(14px + env(safe-area-inset-bottom));
+  }
+}
+
+/* ============================================
+   CONTRÔLES DES RÉGLAGES DU MENU (mc-diet-*, mc-stepper-*)
+   Sélecteur de régime et stepper « personnes » du panneau .mc-settings-panel
+   (vue brouillon). Design Slate Craft Premium.
+   ============================================ */
+
+/* Déclencheur du sélecteur de régime — même vocabulaire visuel que les selects
+   de l'app (fond blanc, bordure fine, chevron à droite). */
+.mc-diet-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 150px;
+  height: 32px;
+  padding: 0 10px;
+  background: var(--color-bg-white);
+  border: var(--border-thin);
+  border-radius: var(--radius-button);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.mc-diet-toggle:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.mc-diet-toggle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+  border-color: var(--color-primary);
+}
+
+.mc-diet-chevron {
+  opacity: 0.55;
+  transition: transform 0.15s;
+  flex-shrink: 0;
+}
+
+.mc-diet-toggle[aria-expanded="true"] .mc-diet-chevron {
+  transform: rotate(180deg);
+}
+
+/* Dropdown du sélecteur de régime — le picker occupe toute la largeur du champ
+   (héritée de .mc-setting-body) et pousse le déclencheur sur le bord droit,
+   aligné avec les autres réglages du panneau. */
+.mc-diet-picker {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mc-diet-options {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  background: var(--color-bg-white);
+  border: 0.5px solid var(--color-border);
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  min-width: 160px;
+  z-index: 200;
+  padding: 4px 0;
+}
+
+.mc-diet-opt,
+.mc-diet-opt--current {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  font-size: 12.5px;
+  color: var(--color-ink-2);
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  white-space: nowrap;
+}
+
+.mc-diet-opt:hover {
+  background: var(--color-bg-secondary);
+}
+
+.mc-diet-opt--current {
+  font-weight: 600;
+  color: var(--color-ink);
+  cursor: default;
+}
+
+.mc-diet-opt-form {
+  display: block;
+}
+
+/* Stepper nombre de personnes — occupe toute la largeur du champ et pousse le
+   stepper sur le bord droit, aligné avec les autres réglages du panneau. */
+.mc-stepper-form {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.mc-stepper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 150px;
+  height: 32px;
+  padding: 0 4px;
+  background: var(--color-bg-white);
+  border: var(--border-thin);
+  border-radius: var(--radius-button);
+}
+
+/* Variante sans unité, pour les listes de steppers où le libellé est déjà
+   porté par la ligne (répartition des repas du formulaire de menu et des
+   réglages du foyer). */
+.mc-stepper--compact {
+  min-width: 96px;
+}
+
+/* Les deux boutons ont la même largeur : avec justify-content: space-between,
+   ce groupe (valeur + unité) se retrouve exactement centré dans la largeur
+   étendue du stepper (alignée sur .mc-diet-toggle). */
+.mc-stepper-value {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.mc-stepper-btn {
+  background: none;
+  border: none;
+  color: var(--color-ink-2);
+  font-size: 16px;
+  line-height: 1;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: var(--radius-badge);
+  padding: 0;
+  transition: background var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.mc-stepper-btn:hover:not(:disabled) {
+  background: var(--color-bg-tertiary);
+}
+
+.mc-stepper-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.mc-stepper-val {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-ink);
+  min-width: 16px;
+  text-align: center;
+}
+
+.mc-stepper-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
+  letter-spacing: 0.02em;
+  padding-right: 2px;
+}
+
+/* ============================================
+   MÉMORISER LES PRÉFÉRENCES (mn-save-defaults-*)
+   ============================================ */
+
+.mn-save-defaults {
+  padding: 14px 20px;
+  background: var(--color-bg-secondary);
+  border-radius: 4px;
+  margin: 0 0 8px;
+}
+
+.mn-save-defaults-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--color-ink-2);
+}
+
+.mn-save-defaults-checkbox {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.mn-save-defaults-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mn-save-defaults-title {
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+.mn-save-defaults-hint {
+  font-size: 12px;
+  color: var(--color-ink-3);
+  line-height: 1.4;
+}
+
+/* ============================================
+   PRÉFÉRENCES PROFIL (pref-*)
+   ============================================ */
+
+.pref-page-wrap {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+
+/* Encadrement carte sur desktop */
+@media (min-width: 768px) {
+  .pref-page-wrap {
+    margin-top: 25px;
+    padding: 40px 48px 56px;
+    background: var(--color-bg-white);
+    border: 0.5px solid var(--color-border);
+    border-radius: 6px;
+  }
+}
+
+.pref-header {
+  margin-bottom: 27px;
+}
+
+.pref-title {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 400;
+  color: var(--color-ink);
+  margin: 0 0 8px;
+}
+
+.pref-subtitle {
+  font-size: 14px;
+  color: var(--color-ink-3);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.pref-form {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.pref-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pref-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+  margin: 0;
+  padding-bottom: 10px;
+  border-bottom: 0.5px solid var(--color-border);
+}
+
+/* Grille régime : 2 colonnes desktop, 1 sur mobile */
+.pref-diet-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 480px) {
+  .pref-diet-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pref-diet-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 0.5px solid var(--color-border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+  background: var(--color-bg-white);
+  position: relative;
+}
+
+.pref-diet-option:hover {
+  border-color: var(--color-ink-4);
+  background: var(--color-bg-secondary);
+}
+
+.pref-diet-radio {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.pref-diet-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.pref-diet-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+.pref-diet-desc {
+  font-size: 11.5px;
+  color: var(--color-ink-3);
+}
+
+.pref-diet-check {
+  color: var(--color-ink);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  flex-shrink: 0;
+}
+
+/* État sélectionné : piloté par le radio natif, donc toujours exact — au clic
+   sur le label comme au clavier, sans classe à poser ni à retirer. */
+.pref-diet-option:has(.pref-diet-radio:checked) {
+  border-color: var(--color-primary);
+  background: var(--color-bg-secondary);
+}
+
+.pref-diet-option:has(.pref-diet-radio:checked) .pref-diet-check {
+  opacity: 1;
+}
+
+/* Champ numérique (personnes / repas) */
+.pref-number-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pref-number-input {
+  width: 80px;
+  padding: 8px 12px;
+  border: 0.5px solid var(--color-border);
+  border-radius: 4px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-ink);
+  background: var(--color-bg-white);
+  text-align: center;
+}
+
+.pref-number-input:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+.pref-number-label {
+  font-size: 13px;
+  color: var(--color-ink-3);
+}
+
+.pref-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding-top: 8px;
+}
+
+@media (max-width: 480px) {
+  .pref-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pref-actions .btn {
+    text-align: center;
     justify-content: center;
   }
 }

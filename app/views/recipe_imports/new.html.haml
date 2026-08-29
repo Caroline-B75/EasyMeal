@@ -1,0 +1,104 @@
+-# Page d'import IA de recette (admin only)
+- content_for :title, "Importer une recette"
+
+= context_bar_back(recipe_drafts_path, "Retour aux recettes importées", variant: :narrow)
+
+.rf-hero
+  .rf-hero-inner
+    .rf-kicker
+      %span.rf-kicker-line
+      IMPORT IA
+    %h1.rf-hero-title Importer une recette
+
+.rf-body
+  .import-wrapper
+    -# Le collage est écouté sur le document : l'événement paste vise l'élément
+    -# focalisé (souvent le body), jamais le formulaire.
+    = form_with url: recipe_imports_path, method: :post, multipart: true,
+        data: { turbo: false, controller: "import-source",
+                action: "submit->import-source#submit paste@document->import-source#paste" } do |f|
+
+      = hidden_field_tag :source_type, "url", data: { "import-source-target": "sourceType" }
+
+      -# Onglets de sélection de la source (pattern ARIA tablist)
+      .import-tabs{ role: "tablist", "aria-label": "Type de source à importer" }
+        %button.import-tab.import-tab--active{ type: "button", role: "tab", id: "import-tab-url",
+            "aria-selected": "true", "aria-controls": "import-panel-url",
+            data: { "import-source-target": "urlTab", action: "click->import-source#selectUrl" } }
+          = svg_icon(:link, size: 16)
+          Lien internet
+        %button.import-tab{ type: "button", role: "tab", id: "import-tab-photo",
+            "aria-selected": "false", "aria-controls": "import-panel-photo",
+            data: { "import-source-target": "photoTab", action: "click->import-source#selectPhoto" } }
+          = svg_icon(:image, size: 16)
+          Photo ou capture
+
+      -# Section URL
+      .import-section{ id: "import-panel-url", role: "tabpanel", "aria-labelledby": "import-tab-url",
+          data: { "import-source-target": "urlSection" } }
+        %label.form-label{ for: "source_url" } URL de la recette
+        = url_field_tag :source_url, params[:source_url],
+            id: "source_url",
+            placeholder: "https://www.marmiton.org/recettes/...",
+            class: "form-input",
+            autocomplete: "off",
+            data: { "import-source-target": "urlInput", action: "input->import-source#clearError" }
+        %p.import-hint
+          Fonctionne avec Marmiton, 750g, AllRecipes, et la plupart des sites de recettes.
+        %p.import-hint.import-hint--gesture
+          Tu peux aussi coller l'URL directement (Ctrl+V) : l'onglet se choisit tout seul.
+
+      -# Section Photo
+      .import-section{ id: "import-panel-photo", role: "tabpanel", "aria-labelledby": "import-tab-photo",
+          hidden: true, data: { "import-source-target": "photoSection" } }
+        %label.form-label{ for: "photo_file" } Photo de la recette
+        .import-file-zone{ data: { "import-source-target": "fileZone",
+            action: "dragover->import-source#dragOver dragleave->import-source#dragLeave drop->import-source#dropPhoto" } }
+          = file_field_tag :photo_file,
+              id: "photo_file",
+              accept: "image/jpeg,image/png,image/webp",
+              class: "import-file-input",
+              data: { "import-source-target": "fileInput", action: "change->import-source#previewPhoto" }
+          %label.import-file-label{ for: "photo_file" }
+            %span.import-file-label__icon= svg_icon(:camera, size: 32)
+            %span.import-file-label__text Dépose une photo ici ou clique pour choisir
+
+        -# Aperçu de la photo sélectionnée
+        .import-file-preview{ hidden: true, data: { "import-source-target": "preview" } }
+          %img.import-file-preview__img{ alt: "Aperçu de la photo sélectionnée",
+              data: { "import-source-target": "previewImg" } }
+          .import-file-preview__info
+            %span.import-file-preview__name{ data: { "import-source-target": "previewName" } }
+            -# Poids après réduction navigateur : la preuve que la photo est allégée.
+            %span.import-file-preview__size{ data: { "import-source-target": "previewSize" } }
+            %button.import-file-preview__change{ type: "button",
+                data: { action: "click->import-source#clearPhoto" } } Changer de photo
+
+        %p.import-hint
+          Formats acceptés : JPG, PNG, WebP.
+          %strong Photo nette et bien éclairée recommandée.
+        %p.import-hint.import-hint--gesture
+          Tu peux aussi coller une capture d'écran (Ctrl+V) depuis n'importe où sur cette page.
+
+      -# Réassurance + soumission
+      .import-actions
+        %p.import-reassure
+          = svg_icon(:check, size: 15)
+          Pas d'inquiétude : tu pourras vérifier et compléter la recette avant de la publier.
+
+        %p.import-error{ role: "alert", hidden: true, data: { "import-source-target": "error" } }
+
+        %button.btn.btn-primary.btn-lg.import-submit-btn{ type: "submit",
+            data: { "import-source-target": "submitBtn" } }
+          %span.import-submit-spinner{ "aria-hidden": "true", hidden: true,
+              data: { "import-source-target": "spinner" } }
+          -# aria-live : au clic, le libellé passe à « Envoi en cours… » et le
+          -# bouton se désactive — le changement doit être annoncé aux lecteurs
+          -# d'écran. Les étapes de l'extraction, elles, se suivent ensuite sur
+          -# la page d'attente.
+          %span.import-submit-label{ "aria-live": "polite",
+              data: { "import-source-target": "submitLabel" } } Extraire la recette avec l'IA
+
+        %p.import-notice
+          = svg_icon(:clock, size: 14)
+          L'extraction peut prendre 15 à 30 secondes selon la source.

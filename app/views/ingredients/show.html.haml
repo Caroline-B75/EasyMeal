@@ -11,14 +11,23 @@
       .detail-item
         %span.detail-label Rayon
         %span.detail-value
-          %span{ class: "ingredient-category-badge category-#{@ingredient.category}" }
-            = Ingredient.human_attribute_name("category.#{@ingredient.category}")
+          %span.category-badge{ data: { category: @ingredient.category } }
+            = Ingredient.enum_label(:category, @ingredient.category)
 
       .detail-item
         %span.detail-label Unité de mesure
         %span.detail-value
-          = Ingredient.human_attribute_name("unit_group.#{@ingredient.unit_group}")
+          = Ingredient.enum_label(:unit_group, @ingredient.unit_group)
           = "(#{@ingredient.base_unit})"
+
+      -# Les coefficients qui font les ponts d'unités. Ils n'existent que sur une
+      -# partie du catalogue, d'où la ligne conditionnelle plutôt qu'un « — ».
+      - if conversion_coefficients(@ingredient)
+        .detail-item
+          %span.detail-label Conversions
+          %span.detail-value
+            = conversion_coefficients(@ingredient)
+            = density_to_check_badge(@ingredient)
 
       - if @ingredient.aliases.present?
         .detail-item
@@ -30,9 +39,9 @@
         .detail-item
           %span.detail-label Mois de saison
           .detail-value
-            .months-display
+            .season-months
               - @ingredient.season_months.sort.each do |month|
-                %span.month-badge= Date::ABBR_MONTHNAMES[month]
+                %span.month-tag= month_abbr(month)
 
     .show-actions
       - if policy(@ingredient).edit?

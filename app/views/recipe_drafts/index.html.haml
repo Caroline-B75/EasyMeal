@@ -1,0 +1,84 @@
+- content_for :title, "Recettes importées"
+
+-# Colonne élargie (--wide) : les cartes de brouillon alignent nom, statut et
+-# actions sur une ligne — 820 px les serrait. Le hero suit pour rester aligné.
+.rf-hero
+  .rf-hero-inner.rf-hero-inner--wide
+    .rf-kicker
+      %span.rf-kicker-line
+      ADMIN
+    %h1.rf-hero-title Recettes importées
+
+.rf-body.rf-body--wide
+  .draft-toolbar
+    %p.draft-toolbar__count
+      = pluralize(@recipes.size, "recette en attente de validation", "recettes en attente de validation")
+    .draft-toolbar__actions
+      -# Tri sans bouton d'envoi : filter-form soumet au changement du sélecteur.
+      -# Masqué tant qu'il n'y a rien à trier.
+      - if @recipes.any?
+        = form_with url: recipe_drafts_path, method: :get, class: "draft-sort",
+                    data: { controller: "filter-form" } do |f|
+          = f.label :sort, "Trier par", class: "draft-sort__label"
+          = f.select :sort, draft_sort_options(@sort), {},
+                     class: "filter-select",
+                     data: { action: "change->filter-form#submit" }
+      = link_to new_recipe_import_path, class: "btn btn-primary btn-sm" do
+        ＋ Importer une recette
+
+  - if @recipes.empty?
+    .draft-empty
+      %p.draft-empty__text Aucune recette importée pour l'instant.
+      %p.draft-empty__hint
+        Les recettes importées via IA apparaissent ici avant d'être publiées dans le catalogue.
+  - else
+    .draft-list
+      - @recipes.each do |recipe|
+        - missing = recipe.draft_missing_fields
+        .draft-card{ class: missing.empty? ? "draft-card--ready" : "draft-card--todo" }
+          -# Mini-photo : la photo de présentation, à défaut la page photographiée
+          -# à l'import (un import photo se reconnaît d'un coup d'œil), à défaut
+          -# un placeholder.
+          .draft-card__thumb
+            - thumbnail = draft_thumbnail_photo(recipe)
+            - if thumbnail
+              = image_tag cloudinary_photo_url(thumbnail, width: 120, height: 120, crop: :fill),
+                  class: "draft-card__thumb-img", alt: recipe.name, width: 56, height: 56, loading: "lazy"
+            - else
+              %span.draft-card__thumb-empty{ title: "Aucune photo" }
+                = svg_icon(:image, size: 20)
+
+          .draft-card__main
+            %h2.draft-card__name= recipe.name
+            .draft-card__meta
+              -# Badge de source : cliquable vers la page d'origine si l'import
+              -# vient d'un lien (le séparateur suit le badge, pas la date).
+              - if recipe.source_type
+                = draft_source_badge(recipe)
+                %span.draft-card__sep ·
+              %span.draft-card__date= l(recipe.created_at.to_date, format: :long)
+
+            -# Statut de complétude : prêt à valider, ou champs restant à compléter
+            - if missing.empty?
+              %p.draft-status.draft-status--ready
+                = svg_icon(:check, size: 13)
+                Prêt à valider
+            - else
+              .draft-status.draft-status--todo
+                %span.draft-status__label
+                  = svg_icon(:edit, size: 13)
+                  À compléter
+                %ul.draft-missing
+                  - missing.each do |field|
+                    %li.draft-missing__item= field
+
+          .draft-card__actions
+            -# Le libellé suit le même signal que le statut ci-dessus : il reste
+            -# des champs à saisir, ou le brouillon n'attend plus que sa validation.
+            - action_label = missing.empty? ? "Valider" : "Compléter"
+            = link_to action_label, edit_recipe_path(recipe), class: "btn btn-primary btn-sm"
+            = button_to "Supprimer",
+                recipe_draft_path(recipe),
+                method: :delete,
+                data: { turbo_confirm: "Supprimer définitivement cette recette ?" },
+                class: "btn btn-danger btn-sm"

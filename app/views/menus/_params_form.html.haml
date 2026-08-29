@@ -1,0 +1,133 @@
+-# Formulaire de paramètres d'un menu — partagé par la génération (UC1)
+-# et la re-génération d'un brouillon (UC2). La tâche est mentalement
+-# identique : choisir régime, personnes, repas et nom, puis lancer la
+-# (re)génération. Les deux parcours ne diffèrent que par l'URL, le libellé
+-# du bouton et l'éventuelle confirmation.
+-#
+-# Locals :
+-#   menu         : Menu (nouveau ou brouillon)
+-#   url          : URL de soumission (menus_path ou regenerate_menu_path)
+-#   submit_label : libellé du bouton de soumission
+-#   submit_note  : note affichée sous le bouton
+-#   confirm      : message turbo_confirm (nil = pas de confirmation)
+- confirm = local_assigns.fetch(:confirm, nil)
+- default_diet = menu.diet || current_user.default_diet || "omnivore"
+- default_people = menu.default_people || current_user.default_people || 4
+- meal_counts = form_meal_counts(menu, current_user)
+-# Le nom réellement attribué en l'absence de saisie — annoncé tel quel.
+- default_name_placeholder = Menu.default_name
+
+= form_with model: menu, url: url, method: :post, class: "mn-generate-form",
+            data: { controller: "menu-generate",
+                    action: "meal-counts:change->menu-generate#updateMealCounts",
+                    menu_generate_default_name_value: default_name_placeholder } do |f|
+
+  -# ── Carte 1 — Régime alimentaire (grille 2×2 avec icônes) ────────
+  .mn-form-card{ role: "radiogroup", "aria-labelledby": "diet-label" }
+    .mn-form-card-header
+      .mn-form-card-num 1
+      %span#diet-label.mn-form-card-title Régime alimentaire
+    .mn-form-card-body
+      .mn-diet-grid
+        -# État visuel et sémantique portés par le radio natif (CSS :has(:checked),
+        -# ARIA implicite) : pas de classe ni d'aria-checked posés au rendu, qui
+        -# resteraient collés à l'option initiale. Le JS n'écoute le changement
+        -# que pour la barre de résumé, seule chose que le CSS ne sait pas faire.
+        - Menu.diets.keys.each do |diet_key|
+          %label.mn-diet-option
+            = render "menus/diet_icon", diet: diet_key
+            = f.radio_button :diet, diet_key, checked: diet_key == default_diet,
+                             class: "mn-diet-radio-input",
+                             data: { action: "change->menu-generate#selectDiet" }
+            .mn-diet-text
+              %span.mn-diet-name= menu_diet_label(diet_key)
+              %span.mn-diet-desc= menu_diet_description(diet_key)
+            %span.mn-diet-radio
+
+  -# ── Cartes 2 & 3 — Personnes + Repas (côte à côte sur desktop) ───
+  .mn-two-col
+    -# ── Carte 2 — Nombre de personnes (slider) ─────────────
+    .mn-form-card
+      .mn-form-card-header
+        .mn-form-card-num 2
+        %span.mn-form-card-title Nombre de personnes
+      .mn-form-card-body.mn-form-card-body--compact
+        .mn-slider-display
+          .mn-slider-icon.mn-slider-icon--people
+            = svg_icon("users", size: 20)
+          %span.mn-slider-big{ data: { menu_generate_target: "peopleDisplay" } }= default_people
+          %span.mn-slider-label{ data: { menu_generate_target: "peopleUnit" } }
+            = default_people == 1 ? "personne" : "personnes"
+        = f.range_field :default_people, min: 1, max: 12, value: default_people,
+                        class: "mn-slider",
+                        "aria-label": "Nombre de personnes par repas",
+                        data: { action: "input->menu-generate#updatePeople",
+                                menu_generate_target: "peopleSlider" }
+        .mn-slider-marks
+          %span.mn-slider-mark 1
+          %span.mn-slider-mark 6
+          %span.mn-slider-mark 12
+
+    -# ── Carte 3 — Répartition des repas (5 steppers) ───────
+    .mn-form-card
+      .mn-form-card-header
+        .mn-form-card-num 3
+        %span.mn-form-card-title Répartition des repas
+      .mn-form-card-body.mn-form-card-body--compact
+        = render "shared/meal_counts_fields", meal_counts: meal_counts,
+                                              name_prefix: "menu[meal_counts]"
+        %p.mn-field-hint{ data: { menu_generate_target: "emptyMealsHint" },
+                          hidden: meal_counts.any? }
+          Choisis au moins un repas pour lancer la génération.
+
+  -# ── Carte 4 — Nom du menu (optionnel) ──────────────────
+  .mn-form-card
+    .mn-form-card-header
+      .mn-form-card-num 4
+      %span.mn-form-card-title
+        Nom du menu
+        %span.mn-field-optional — optionnel
+    .mn-form-card-body
+      = f.text_field :name, value: menu.name, maxlength: 60,
+                     placeholder: "Ex : Menu de la semaine, Repas de vacances…",
+                     class: "mn-text-input",
+                     data: { action: "input->menu-generate#updateName",
+                             menu_generate_target: "nameInput" }
+      %p.mn-field-hint
+        Si laissé vide, le menu sera nommé
+        = "\"#{default_name_placeholder}\"."
+
+  -# ── Barre résumé (synchronisée en temps réel) ──────────
+  .mn-summary-bar
+    %span.mn-summary-label Résumé :
+    %span.mn-summary-chip.mn-summary-chip--highlighted{ data: { menu_generate_target: "sumDiet" } }
+      = menu_diet_label(default_diet)
+    %span.mn-summary-sep ·
+    %span.mn-summary-chip{ data: { menu_generate_target: "sumPeople" } }
+      = "#{default_people} #{default_people == 1 ? 'personne' : 'personnes'}"
+    %span.mn-summary-sep ·
+    %span.mn-summary-chip{ data: { menu_generate_target: "sumMeals" } }
+      = meal_counts_summary(meal_counts)
+    %span.mn-summary-sep ·
+    %span.mn-summary-chip{ data: { menu_generate_target: "sumName" } }
+      = menu.name.presence || default_name_placeholder
+
+  -# ── Mémoriser comme paramètres par défaut ─────────────────
+  .mn-save-defaults
+    %label.mn-save-defaults-label
+      = check_box_tag "menu[save_as_defaults]", "1", !current_user.preferences_configured?,
+                      class: "mn-save-defaults-checkbox"
+      .mn-save-defaults-text
+        %span.mn-save-defaults-title Mémoriser ces paramètres
+        %span.mn-save-defaults-hint
+          Régime, personnes et répartition des repas seront utilisés par défaut pour vos prochains menus.
+
+  -# ── Bouton de soumission ───────────────────────────────
+  .mn-submit-zone
+    %button.mn-btn-generate{ type: "submit",
+                             disabled: !meal_counts.any?,
+                             data: { menu_generate_target: "submitBtn",
+                                     turbo_confirm: confirm }.compact }
+      = svg_icon("sparkle", size: 16)
+      = submit_label
+    %p.mn-submit-note= submit_note

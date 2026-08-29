@@ -1,93 +1,159 @@
 -# Formulaire partagé pour création/édition de recette
 -# Design Slate Craft Premium — cohérent avec la fiche recette
 
-.recipe-form-wrapper{ data: { controller: "slideout" } }
-  = form_with model: recipe, class: "rf-form", data: { controller: "nested-form form-errors", turbo: false } do |f|
+-# Le panneau IA demande l'ouverture du slideout par événement : c'est slideout#open
+-# qui réinitialise le formulaire de création d'ingrédient avant de l'afficher.
+.recipe-form-wrapper{ data: { controller: "slideout",
+                              action: "ai-panel:openIngredientForm->slideout#open" } }
+  -# Pense-bête de validation : la page d'origine reste à un clic pour confronter
+  -# ce que l'IA a extrait (une quantité, une étape sautée). Nouvel onglet
+  -# obligatoire — la saisie en cours ne doit pas être perdue.
+  -# Un import photo n'a pas d'adresse à rappeler : sa source est une image, tenue
+  -# sous les yeux dans la visionneuse latérale (recipes/_source_viewer).
+  - if recipe.persisted? && recipe.draft? && recipe.imported_from_link?
+    .rf-source
+      %span.rf-source__label
+        = svg_icon(draft_source_icon(recipe.source_type), size: 13)
+        Source de l'import
+      = draft_source_url_link(recipe)
 
-    -# Section : Informations générales
+  -# novalidate : la validation native du navigateur s'arrêterait au premier champ
+  -# `required` (le nom) et n'afficherait qu'une bulle éphémère, alors que le
+  -# formulaire est long et que la plupart des règles — moments, régime, au moins
+  -# un ingrédient — n'ont pas d'équivalent HTML. On laisse donc le modèle valider
+  -# et field_errors afficher toutes les erreurs à la fois, sous leur champ.
+  -# Les attributs `required` restent en place : ils portent l'information aux
+  -# lecteurs d'écran.
+  -# data-units-table : la table des unités du projet (Units.table), posée une
+  -# fois pour tout le formulaire. Les contrôleurs Stimulus qui convertissent ou
+  -# affichent une unité (ingredient-unit, ai-panel) la lisent là, via le module
+  -# units.js — aucun facteur de conversion n'est recopié en JS.
+  = form_with model: recipe, class: "rf-form", html: { novalidate: true }, data: { controller: "nested-form form-errors", units_table: Units.table.to_json, turbo: false } do |f|
+
+    -# Informations générales — section sans intitulé : les libellés des champs
+    -# se suffisent. Le nom occupe sa propre ligne, puis les trois valeurs
+    -# chiffrées de la recette se partagent la ligne suivante.
     .rf-section
-      .rf-section-label INFORMATIONS GÉNÉRALES
-
       .form-row
-        .form-group.form-group-large{ class: field_error_class(recipe, :name) }
-          = f.label :name, "Nom de la recette *", class: "form-label"
-          = f.text_field :name, class: "form-input", placeholder: "Ex: Pâtes carbonara", required: true
+        -# Le nom se saisit comme un titre : pas de libellé visible (le placeholder
+        -# le porte), un simple trait sous le champ. Le label reste dans le DOM en
+        -# .sr-only pour que le champ garde son intitulé au lecteur d'écran.
+        .form-group{ class: field_error_class(recipe, :name) }
+          = f.label :name, "Nom de la recette *", class: "sr-only"
+          = f.text_field :name, class: "form-input rf-name-input", placeholder: "Nom de la recette", required: true
           = field_errors(recipe, :name)
 
-        .form-group{ class: field_error_class(recipe, :default_servings) }
-          = f.label :default_servings, "Personnes *", class: "form-label"
-          = f.number_field :default_servings, class: "form-input", min: 1, value: recipe.default_servings || 4, required: true
-          = field_errors(recipe, :default_servings)
+      -# Les valeurs chiffrées se lisent comme une phrase — « Pour 4 personnes ·
+      -# Préparation 20 min · Cuisson 15 min » — plutôt que comme trois champs
+      -# étiquetés : libellés en ligne, unité à l'intérieur du champ. Chaque unité
+      -# est reliée à son champ par aria-describedby, pour que le lecteur d'écran
+      -# annonce la phrase telle qu'elle se lit.
+      .rf-measures
+        .rf-measure{ class: field_error_class(recipe, :default_servings) }
+          = f.label :default_servings, "Pour", class: "form-label"
+          -# Stepper − / + : le champ reste saisissable (taper « 12 » va plus vite
+          -# que douze clics) et porte seul la borne basse, lue par le contrôleur.
+          .rf-unit-field.rf-stepper{ data: { controller: "number-stepper" } }
+            %button.rf-stepper-btn{ type: "button", "aria-label": "Retirer une personne",
+                                    data: { action: "number-stepper#decrement",
+                                            number_stepper_target: "decrement" } } −
+            = f.number_field :default_servings, class: "form-input",
+                             min: 1, required: true, value: recipe.default_servings || 4,
+                             aria: { describedby: "recipe_servings_unit" },
+                             data: { number_stepper_target: "input", action: "input->number-stepper#refresh" }
+            %button.rf-stepper-btn{ type: "button", "aria-label": "Ajouter une personne",
+                                    data: { action: "number-stepper#increment",
+                                            number_stepper_target: "increment" } } +
+          %span.rf-measure-unit#recipe_servings_unit personnes
+
+        -# Ponctuation de la phrase : masquée aux lecteurs d'écran, et retirée
+        -# en CSS dès que la rangée se replie sur plusieurs lignes.
+        %span.rf-measure-sep{ "aria-hidden": "true" } ·
+
+        .rf-measure{ class: field_error_class(recipe, :prep_time_minutes) }
+          = f.label :prep_time_minutes, "Préparation", class: "form-label"
+          .rf-unit-field.rf-duration
+            = f.number_field :prep_time_minutes, class: "form-input", min: 0, placeholder: "—",
+                             aria: { describedby: "recipe_prep_unit" }
+            %span.rf-unit-suffix#recipe_prep_unit min
+
+        .rf-measure{ class: field_error_class(recipe, :cook_time_minutes) }
+          = f.label :cook_time_minutes, "Cuisson", class: "form-label"
+          .rf-unit-field.rf-duration
+            = f.number_field :cook_time_minutes, class: "form-input", min: 0, placeholder: "—",
+                             aria: { describedby: "recipe_cook_unit" }
+            %span.rf-unit-suffix#recipe_cook_unit min
+
+        -# Une erreur éventuelle passe sous la rangée entière, jamais entre deux
+        -# groupes qui couperaient la phrase en deux.
+        = field_errors(recipe, :default_servings)
+        = field_errors(recipe, :prep_time_minutes)
+        = field_errors(recipe, :cook_time_minutes)
+
+    -# Section : Photo
+    -# Une photo déjà en place se remplace via « Changer de photo », qui révèle
+    -# la zone de dépôt ; sinon celle-ci est visible d'emblée. Un seul bloc
+    -# d'upload dans les deux cas, piloté par l'attribut hidden.
+    .rf-section
+      .rf-section-label PHOTO
+
+      - photo_attached = recipe.persisted? && recipe.photo.attached?
+      -# Le collage est écouté sur le document : l'événement paste vise l'élément
+      -# focalisé (souvent le body), jamais la zone photo.
+      .form-group.rf-photo{ data: { controller: "image-preview",
+          action: "paste@document->image-preview#paste" } }
+        - if photo_attached
+          = image_tag cloudinary_photo_url(recipe.photo, width: 200, height: 150), class: "photo-preview", width: 200, height: 150, loading: "lazy"
+          %button.btn.btn-white{ type: "button", data: { image_preview_target: "changeButton", action: "click->image-preview#showUploadField" } }
+            Changer de photo
+
+        .rf-photo-upload{ data: { image_preview_target: "uploadArea" }, hidden: photo_attached }
+          -# La zone entière est le label du champ fichier : elle est donc
+          -# cliquable, et le glisser-déposer y réinjecte le fichier déposé.
+          %label.rf-dropzone{ for: "recipe_photo", data: { image_preview_target: "dropzone", action: "dragover->image-preview#dragOver dragleave->image-preview#dragLeave drop->image-preview#dropFile" } }
+            = svg_icon(:camera, size: 24, css_class: "rf-dropzone-icon")
+            %span.rf-dropzone-title Dépose une photo ici
+            %span.rf-dropzone-hint ou clique pour choisir, ou colle une capture (Ctrl+V) — JPEG/PNG, 800×600 minimum
+          = f.file_field :photo, accept: "image/*", id: "recipe_photo", class: "photo-upload-input sr-only", data: { image_preview_target: "input", action: "change->image-preview#showFilename" }
+          -# Vignette du fichier choisi, lue par le navigateur : rien n'est
+          -# envoyé tant que le formulaire n'est pas soumis.
+          %img.photo-preview.photo-preview--chosen{ hidden: true, alt: "Aperçu de la photo choisie",
+              data: { image_preview_target: "preview" } }
+          %p.photo-upload-notice{ data: { image_preview_target: "notice" }, hidden: true }
 
     -# Section : Caractéristiques
     .rf-section
       .rf-section-label CARACTÉRISTIQUES
 
-      .form-row
-        .form-group{ class: field_error_class(recipe, :diet) }
-          = f.label :diet, "Régime alimentaire *", class: "form-label"
-          = f.select :diet, Recipe.diets.keys.map { |d| [d.humanize, d] }, { prompt: "Sélectionnez un régime" }, class: "form-select", required: true
-          = field_errors(recipe, :diet)
+      -# Les quatre caractéristiques se lisent comme quatre rangées d'options
+      -# alignées sur une même colonne d'intitulés : chaque vocabulaire est
+      -# visible en entier, sans dérouler de liste. Les moments et le régime
+      -# sont obligatoires (validations du modèle), la difficulté et le budget
+      -# se laissent effacer en recliquant sur l'option active.
+      -#
+      -# Les moments ouvrent la section : ce sont eux qui déterminent où la
+      -# recette peut tomber dans un menu, donc la première question qu'on se
+      -# pose devant une recette à classer.
+      -# Multi-sélection obligatoire (sauf brouillon IA, cf. HasMealTypes),
+      -# dans l'ordre où la journée se déroule. Libellés compacts : cinq moments
+      -# se partagent la largeur d'un écran de téléphone, où « Petit-déjeuner »
+      -# ne tient pas — c'est exactement le registre de MealTypes.compact_label.
+      = render "recipes/segmented_field", f: f, attribute: :meal_types,
+               label: "Moment(s) du repas *", multiple: true, required: true,
+               options: MealTypes::MEAL_TYPES.map { |type| [MealTypes.compact_label(type), type] }
 
-        .form-group{ class: field_error_class(recipe, :difficulty) }
-          = f.label :difficulty, "Difficulté", class: "form-label"
-          = f.select :difficulty, Recipe.difficulties.keys.map { |d| [d.humanize, d] }, { include_blank: "Non renseignée" }, class: "form-select"
-          = field_errors(recipe, :difficulty)
+      = render "recipes/segmented_field", f: f, attribute: :diet,
+               label: "Régime alimentaire *", options: Recipe.enum_options(:diet), required: true
 
-        .form-group{ class: field_error_class(recipe, :price) }
-          = f.label :price, "Budget", class: "form-label"
-          = f.select :price, Recipe.prices.keys.map { |p| [p.humanize, p] }, { include_blank: "Non renseigné" }, class: "form-select"
-          = field_errors(recipe, :price)
+      = render "recipes/segmented_field", f: f, attribute: :difficulty,
+               label: "Difficulté", options: Recipe.enum_options(:difficulty)
 
-      .form-row
-        .form-group{ class: field_error_class(recipe, :prep_time_minutes) }
-          = f.label :prep_time_minutes, "Préparation (min)", class: "form-label"
-          = f.number_field :prep_time_minutes, class: "form-input", min: 0, placeholder: "Ex: 20"
-          = field_errors(recipe, :prep_time_minutes)
+      = render "recipes/segmented_field", f: f, attribute: :price,
+               label: "Budget", options: Recipe.enum_options(:price)
 
-        .form-group{ class: field_error_class(recipe, :cook_time_minutes) }
-          = f.label :cook_time_minutes, "Cuisson (min)", class: "form-label"
-          = f.number_field :cook_time_minutes, class: "form-input", min: 0, placeholder: "Ex: 30"
-          = field_errors(recipe, :cook_time_minutes)
-
-    -# Section : Tags
-    .rf-section
-      .rf-section-label TAGS
-
-      .form-group
-        - tag_category_labels = { "rapidite" => "Rapidité", "regime_alimentaire" => "Régime alimentaire",
-                                   "occasion" => "Occasion", "methode_cuisson" => "Méthode de cuisson",
-                                   "saison" => "Saison", "autre" => "Autre" }
-        - %w[rapidite regime_alimentaire occasion methode_cuisson saison autre].each do |category|
-          .rf-tags-group
-            .rf-tags-category= tag_category_labels[category]
-            .tags-grid
-              - Tag.where(tag_type: category).alphabetical.each do |tag|
-                %label.tag-checkbox
-                  = f.check_box :tag_ids, { multiple: true, checked: recipe.tags.include?(tag) }, tag.id, nil
-                  %span.tag-name= tag.name
-
-    -# Section : Photo
-    .rf-section
-      .rf-section-label PHOTO
-
-      .form-group{ data: { controller: "image-preview" } }
-        - if recipe.persisted? && recipe.photo.attached?
-          .current-photo
-            = image_tag cloudinary_photo_url(recipe.photo, width: 200, height: 150), class: "photo-preview"
-          %button.rf-btn-outline{ type: "button", data: { image_preview_target: "changeButton", action: "click->image-preview#showUploadField" } } Changer de photo
-
-          .photo-upload-area{ data: { image_preview_target: "uploadArea" }, hidden: true }
-            %label.rf-btn-photo{ for: "recipe_photo" } Ajouter une photo
-            = f.file_field :photo, accept: "image/*", id: "recipe_photo", class: "photo-upload-input", data: { image_preview_target: "input", action: "change->image-preview#showFilename" }
-            %small.rf-hint Format recommandé : JPEG ou PNG, 800×600 minimum
-            %p.photo-upload-notice{ data: { image_preview_target: "notice" }, hidden: true }
-        - else
-          .rf-photo-upload
-            %label.rf-btn-photo{ for: "recipe_photo" } Ajouter une photo
-            = f.file_field :photo, accept: "image/*", id: "recipe_photo", class: "photo-upload-input", data: { image_preview_target: "input", action: "change->image-preview#showFilename" }
-            %small.rf-hint Format recommandé : JPEG ou PNG, 800×600 minimum
-            %p.photo-upload-notice{ data: { image_preview_target: "notice" }, hidden: true }
+    -# Panneau IA (brouillon uniquement — juste au-dessus des ingrédients)
+    - if @ai_matches.present?
+      = render "recipes/ai_ingredients_panel", ai_matches: @ai_matches
 
     -# Section : Ingrédients (nested fields)
     .rf-section
@@ -98,20 +164,31 @@
           - recipe.errors[:base].each do |message|
             %span.field-error= message
 
+      -# Le catalogue complet n'est rendu qu'ici, dans le modèle de ligne : à
+      -# près de 600 ingrédients, le répéter dans chaque ligne pesait 58 Ko par
+      -# ligne, soit un demi-méga sur une recette d'une dizaine d'ingrédients.
+      -# Les lignes déjà remplies n'affichent que leur ingrédient et empruntent
+      -# le reste de la liste à ce modèle (contrôleur `ingredient-options`).
       .preparations-container{ data: { nested_form_target: "container" } }
         %template{ data: { nested_form_target: "template" } }
           = f.fields_for :preparations, Preparation.new, child_index: "NEW_RECORD" do |pf|
-            = render "recipes/preparation_fields", f: pf
+            = render "recipes/preparation_fields", f: pf, catalog: true
 
         = f.fields_for :preparations do |pf|
-          = render "recipes/preparation_fields", f: pf
+          = render "recipes/preparation_fields", f: pf, catalog: false
 
       .preparations-actions
-        %button.rf-btn-add{ type: "button", data: { action: "click->nested-form#add" } }
-          + Ajouter un ingrédient
+        -# Ajout d'une ligne : volontairement pas un bouton plein — l'aplat
+        -# anthracite est réservé à l'action finale du formulaire.
+        %button.btn.rf-add-ingredient{ type: "button", data: { action: "click->nested-form#add" } }
+          = svg_icon(:plus, size: 16)
+          Ajouter un ingrédient
 
-        %button.rf-btn-create{ type: "button", data: { action: "click->slideout#open" } }
-          + Créer un nouvel ingrédient
+        -# Feuille et non « + » : ce bouton n'ajoute rien à la recette, il ouvre
+        -# le catalogue d'ingrédients — dont c'est déjà l'icône (ingredients/index).
+        %button.btn.btn-white{ type: "button", data: { action: "click->slideout#open" } }
+          = svg_icon(:leaf, size: 16)
+          Créer un nouvel ingrédient
 
       #ingredient-created-notification
 
@@ -124,10 +201,49 @@
         = f.text_area :instructions, class: "form-textarea", rows: 10, placeholder: "Faire bouillir l'eau...\nAjouter les pâtes...\n..."
         = field_errors(recipe, :instructions)
 
+    -# Section : Tags — en fin de formulaire, après la recette elle-même : ce
+    -# sont des étiquettes de classement, pas des données de la préparation.
+    .rf-section
+      .rf-section-label TAGS
+
+      .form-group
+        -# N'affiche que les catégories qui ont des tags (Tag.grouped_by_type ignore les groupes vides)
+        - Tag.grouped_by_type(Tag.alphabetical).each do |_type_key, type_label, group_tags|
+          .rf-tags-group
+            .rf-tags-category= type_label
+            -# Capsules : la case à cocher reste dans le DOM (focusable au clavier,
+            -# lue par les lecteurs d'écran) mais tout l'état visuel est porté par
+            -# la pastille, comme pour les sélecteurs segmentés.
+            .tags-grid
+              - group_tags.each do |tag|
+                %label.tag-checkbox
+                  = f.check_box :tag_ids, { multiple: true, checked: recipe.tags.include?(tag) }, tag.id, nil
+                  = tag.name
+
     -# Actions du formulaire
     .rf-actions
-      = f.submit recipe.new_record? ? "Créer la recette" : "Mettre à jour", class: "btn btn-primary"
-      = link_to "Annuler", recipes_path, class: "rf-cancel-link"
+      - if recipe.persisted? && recipe.draft?
+        -# Brouillon IA : publier = sauvegarder + changer le statut en un seul clic
+        %button.btn.btn-primary.btn-lg{ type: "submit", name: "_publish", value: "1" }
+          = svg_icon(:check, size: 16)
+          Publier la recette
+        = f.submit "Sauvegarder", class: "btn btn-white"
+      - else
+        = f.submit recipe.new_record? ? "Créer la recette" : "Mettre à jour", class: "btn btn-primary"
+        = link_to "Annuler", recipes_path, class: "btn btn-white"
+
+  -# Abandon d'un import : hors du form_with, et pour deux raisons. Un <form> ne
+  -# peut pas en contenir un autre, et le formulaire recette porte turbo: false —
+  -# un bouton placé dedans échapperait à Turbo, donc au modal de confirmation.
+  - if recipe.persisted? && recipe.draft?
+    .rf-discard
+      %p.rf-discard__hint
+        Extraction inexploitable ? Supprimez l'import et relancez-en un.
+      = button_to "Supprimer l'import",
+          recipe_draft_path(recipe),
+          method: :delete,
+          class: "btn btn-link rf-discard__btn",
+          data: { turbo_confirm: "Supprimer définitivement cet import ? La recette extraite sera perdue." }
 
   -# Slideout pour créer un ingrédient à la volée
   .slideout-overlay{ data: { slideout_target: "overlay", action: "click->slideout#closeOnOverlay" } }
@@ -135,6 +251,6 @@
     .slideout-header
       %h3 Créer un nouvel ingrédient
       %button.slideout-close{ type: "button", data: { action: "click->slideout#close" } }
-        ✕
+        = svg_icon(:x, size: 18)
     .slideout-content#quick-ingredient-form
       = render "ingredients/quick_form", ingredient: Ingredient.new

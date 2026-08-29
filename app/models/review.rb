@@ -6,11 +6,11 @@ class Review < ApplicationRecord
   belongs_to :recipe, touch: true
 
   # === Validations ===
-  validates :rating, presence: true,
-                     inclusion: {
-                       in: 1..5,
-                       message: "doit être entre 1 et 5 étoiles"
-                     }
+  # L'inclusion couvre aussi l'absence de note : nil n'appartient pas à 1..5.
+  validates :rating, inclusion: {
+    in: 1..5,
+    message: "doit être comprise entre 1 et 5 étoiles"
+  }
 
   validates :content, length: { maximum: 1000 }, allow_blank: true
 

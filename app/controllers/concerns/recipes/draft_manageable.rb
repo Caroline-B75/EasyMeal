@@ -3,53 +3,108 @@ module Recipes
   module DraftManageable
     extend ActiveSupport::Concern
 
-    # POST /recipes/:id/add_to_menu
-    # UC2 : Ajoute la recette au menu brouillon en cours de l'utilisateur
-    def add_to_menu
-      draft = current_draft
-      return redirect_to(recipe, alert: "Aucun menu brouillon en cours. Générez d'abord un menu.") unless draft
-
-      menu_recipe = draft.menu_recipes.new(recipe: recipe, number_of_people: draft.default_people)
-      if menu_recipe.save
-        redirect_to draft, notice: "\"#{recipe.name}\" ajoutée au menu."
-      else
-        redirect_to recipe, alert: menu_recipe.errors.full_messages.to_sentence
-      end
+    included do
+      # Les vues du catalogue s'en servent pour propager le contexte de moment
+      # (liens des cartes, boutons d'ajout) — voir context_meal_type.
+      helper_method :context_meal_type
     end
 
     # POST /recipes/:id/toggle_in_draft
-    # UC2 : Toggle ajout/retrait de la recette dans le menu brouillon (Turbo Stream)
+    # UC2 : Toggle ajout/retrait de la recette dans le menu brouillon (Turbo Stream).
+    # Si l'utilisateur n'a aucun brouillon, on en démarre un à la volée avec cette
+    # recette (« Démarrer un menu ») — hors flux de génération classique.
+    # Depuis un catalogue filtré par moment (UC7), le repas est créé avec ce
+    # moment : la recette arrive dans le brouillon déjà qualifiée.
     def toggle_in_draft
       authorize recipe
-      @draft = current_draft
-      return respond_no_draft unless @draft
+      existing_draft = current_draft
+      @draft = existing_draft || build_draft_menu
+      @draft_created = existing_draft.nil?
 
-      result = Menus::ToggleDraftRecipeService.call(draft: @draft, recipe: recipe)
+      result = Menus::ToggleDraftRecipeService.call(draft: @draft, recipe: recipe,
+                                                    meal_type: context_meal_type)
       @added = result.added
-      @draft.menu_recipes.reload
+      load_draft_meals
+
+      respond_success(redirect_path: recipes_path)
+    end
+
+    # DELETE /recipes/draft_meals/:id
+    # UC2 : retrait d'un repas via la croix d'une vignette du rail — sans quitter
+    # le catalogue. Vise un MenuRecipe précis, et non la recette : la répétition
+    # étant permise, seule la vignette cliquée doit disparaître (le toggle, lui,
+    # retirerait un exemplaire choisi d'après le moment du contexte).
+    def remove_from_draft
+      @draft = current_draft or raise ActiveRecord::RecordNotFound
+      meal = @draft.menu_recipes.find(params[:id])
+      authorize meal, :destroy?
+
+      @recipe = meal.recipe
+      meal.destroy!
+      load_draft_meals
+      # État du bouton de la carte après retrait : un autre exemplaire de la
+      # recette peut encore occuper le contexte (ex. présente au déjeuner ET au
+      # dîner dans un catalogue non filtré) — même règle que load_draft_data.
+      @in_draft = draft_meals_in_context.exists?(recipe_id: @recipe.id)
 
       respond_success(redirect_path: recipes_path)
     end
 
     private
 
+    # Moment du repas du contexte courant (UC7) : posé dans l'URL par le filtre
+    # « Moment du repas » du catalogue, puis transporté de page en page par les
+    # liens de recette et les boutons d'ajout. Liste blanche : toute valeur hors
+    # vocabulaire vaut absence de contexte.
+    def context_meal_type
+      params[:meal_type].presence_in(MealTypes::MEAL_TYPES)
+    end
+
     # Menu brouillon de l'utilisateur connecté (ou nil)
     def current_draft
       current_user&.menus&.status_draft&.recent&.first
     end
 
-    # Charge le brouillon et les IDs de ses recettes pour l'index (évite N+1)
+    # Brouillon vierge aux préférences de l'utilisateur, créé quand aucun menu
+    # brouillon n'existe encore.
+    def build_draft_menu
+      current_user.menus.create!(
+        name:           Menu.default_name,
+        diet:           current_user.default_diet,
+        default_people: current_user.default_people,
+        status:         :draft
+      )
+    end
+
+    # Charge le brouillon et les IDs de ses recettes pour l'index (évite N+1).
+    # Dans un contexte de moment (catalogue filtré, UC7), l'état « déjà dans le
+    # menu » d'un bouton s'évalue dans ce moment seulement — même règle que le
+    # toggle, pour que le bouton fasse toujours ce qu'il affiche.
     def load_draft_data
       return unless current_user
 
       @draft = current_draft
-      @draft_recipe_ids = @draft ? Set.new(@draft.menu_recipes.pluck(:recipe_id)) : Set.new
+      @draft_recipe_ids = @draft ? Set.new(draft_meals_in_context.pluck(:recipe_id)) : Set.new
     end
 
-    def respond_no_draft
-      respond_to do |format|
-        format.turbo_stream { render_flash_stream(alert: "Aucun menu brouillon en cours.") }
-        format.html { redirect_to recipe, alert: "Aucun menu brouillon en cours." }
+    # Repas du brouillon restreints au moment du contexte, tous sinon
+    def draft_meals_in_context
+      context_meal_type ? @draft.menu_recipes.for_meal(context_meal_type) : @draft.menu_recipes
+    end
+
+    # Repas du brouillon dans l'ordre du menu, recette et photo préchargées —
+    # alimente le rail du catalogue (une vignette par repas, avec sa croix de
+    # retrait). Chargement distinct de load_draft_data : la fiche recette n'a
+    # besoin que des IDs et n'a pas à payer ces jointures.
+    # Toujours requêté (et non lu dans l'association) pour refléter l'état de la
+    # base après un toggle ou un retrait.
+    def load_draft_meals
+      @draft_meals = if @draft
+        @draft.menu_recipes.by_position
+              .includes(recipe: { photo_attachment: :blob })
+              .to_a
+      else
+        []
       end
     end
   end

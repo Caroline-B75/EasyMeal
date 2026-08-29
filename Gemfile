@@ -3,7 +3,7 @@ source "https://rubygems.org"
 ruby "3.3.7"
 
 # Core Rails
-gem "rails", "~> 7.2.3"
+gem "rails", "~> 8.1.3"
 gem "pg", "~> 1.6.3"
 gem "puma", "~> 7.2.0"
 gem "sprockets-rails", "~> 3.5.2"
@@ -11,9 +11,8 @@ gem "importmap-rails", "~> 2.2.3"
 gem "turbo-rails", "~> 2.0.21"
 gem "jbuilder", "~> 2.14.1"
 
-# UI / Forms / Icons
+# UI / Forms
 gem "simple_form", "~> 5.4.1"
-gem "font-awesome-sass", "~> 6.7.2"
 
 # Templates Haml
 gem "haml-rails", "~> 3.0.0"
@@ -22,11 +21,8 @@ gem "haml-rails", "~> 3.0.0"
 gem "stimulus-rails", "~> 1.3.4"
 
 # Auth & Policy
-gem "devise", "~> 4.9.4"
+gem "devise", "~> 5.0.4"
 gem "pundit", "~> 2.5.2"
-
-# Cache / Sessions
-gem "redis", "~> 4.8.1"
 
 # Recherche & pagination
 gem "ransack", "~> 4.4.1"
@@ -37,26 +33,42 @@ gem "image_processing", "~> 1.14.0"
 gem "cloudinary", "~> 2.4.3"
 gem "activestorage-cloudinary-service", "~> 0.2.3"
 
+# Jobs de fond, stockés en PostgreSQL. En mode :async, ils s'exécutent dans des
+# threads du process web : aucun worker à héberger, donc aucun coût en plus, et
+# aucune dépendance à Redis. C'est ce qui sort l'extraction IA du cycle de la
+# requête HTTP, dont les routeurs d'hébergeurs coupent le fil vers 30 s.
+gem "good_job", "~> 4.9"
+
+# Extraction IA des recettes (import par lien ou par photo)
+gem "anthropic", "~> 1.61.0"
+
 # Config
 gem "dotenv-rails", "~> 3.2.0"
 
 # Dev qualité
 gem "bootsnap", "~> 1.21.1", require: false
-gem "annotate", "~> 3.2.0", group: [ :development ]
 gem "bundler-audit", "~> 0.9.3", require: false, group: [ :development, :test ]
 
 group :development, :test do
   gem "debug", "~> 1.11.1", platforms: %i[mri windows], require: "debug/prelude"
-  gem "brakeman", "~> 7.1.2", require: false
+  gem "brakeman", "~> 8.0", require: false
   gem "rubocop-rails-omakase", "~> 1.1.0", require: false
   gem "rspec-rails", "~> 8.0.2"
+  # Formateur qui transforme chaque échec en annotation GitHub : le nom du test et
+  # son message s'affichent alors directement sur le commit, sans avoir à ouvrir
+  # les logs. Chargé partout mais inerte tant que la CI ne le sélectionne pas.
+  gem "rspec-github", "~> 3.0"
   gem "factory_bot_rails", "~> 6.5.1"
   gem "shoulda-matchers", "~> 5.3.0"
   gem "faker", "~> 3.6.0"
   gem "capybara", "~> 3.40.0"
   gem "selenium-webdriver", "~> 4.40.0"
+  # Simule l'API Claude au niveau HTTP : le SDK officiel est ainsi exercé pour
+  # de vrai (corps de requête envoyé, erreurs typées levées depuis les codes HTTP)
+  gem "webmock", "~> 3.26.2"
   gem "awesome_print", "~> 1.9.2"
   gem "table_print", "~> 1.5.7"
+  gem "simplecov", require: false
 end
 
 group :development do

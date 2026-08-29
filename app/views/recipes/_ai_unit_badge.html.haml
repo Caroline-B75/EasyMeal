@@ -1,0 +1,8 @@
+-# L'unité de base de l'ingrédient du catalogue, collée à son nom. C'est la
+-# comparaison avec l'unité détectée à gauche de la ligne qui évite d'ajouter
+-# 2 g de jambon là où la recette disait 2 tranches ; quand la conversion ne
+-# sait pas franchir cet écart, l'unité passe en alerte et l'explique — et quand
+-# elle ne l'a franchi que sur une densité estimée par l'IA, elle le dit aussi.
+-# Les trois états sont décidés par recipes_helper#ai_unit_badge_attributes, dont
+-# le pendant JS vit dans ai_panel_controller#unitBadge.
+%span.ai-row__unit{ ai_unit_badge_attributes(converts: converts, estimated: estimated) }= "(#{Units.label(ingredient.base_unit)})"

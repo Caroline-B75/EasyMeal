@@ -2,7 +2,7 @@
 -# Utilisé depuis le formulaire de recette pour ajouter un ingrédient à la volée
 -# Soumet en AJAX et dispatch un événement pour mettre à jour les selects
 
-= simple_form_for ingredient, url: quick_create_ingredients_path, html: { class: "ingredient-form ingredient-form-slideout", id: "quick-ingredient-form-content", data: { controller: "ingredient-form" } } do |f|
+= simple_form_for ingredient, url: quick_create_ingredients_path, html: { class: "ingredient-form ingredient-form-slideout", id: "quick-ingredient-form-content", data: { controller: "ingredient-form", ingredient_form_units_value: Ingredient::BASE_UNITS } } do |f|
 
   .slideout-form-content
     = f.error_notification message: "Des erreurs empêchent la sauvegarde :"
@@ -11,10 +11,10 @@
       = f.input :name, label: "Nom de l'ingrédient *", placeholder: "Ex: Tomates", input_html: { class: "form-input", autofocus: true }, label_html: { class: "form-label" }, error_class: "has-error"
 
     .form-group
-      = f.input :category, label: "Rayon *", collection: Ingredient.categories.map { |k, _v| [Ingredient.human_attribute_name("category.#{k}"), k] }, prompt: "Sélectionnez un rayon", input_html: { class: "form-select" }, label_html: { class: "form-label" }, error_class: "has-error"
+      = f.input :category, label: "Rayon *", collection: Ingredient.enum_options(:category), prompt: "Sélectionnez un rayon", input_html: { class: "form-select" }, label_html: { class: "form-label" }, error_class: "has-error"
 
     .form-group
-      = f.input :unit_group, label: "Groupe d'unités *", collection: Ingredient.unit_groups.map { |k, _v| [Ingredient.human_attribute_name("unit_group.#{k}"), k] }, prompt: "Sélectionnez un groupe", input_html: { class: "form-select", data: { ingredient_form_target: "unitGroup", action: "change->ingredient-form#updateBaseUnit" } }, label_html: { class: "form-label" }, error_class: "has-error"
+      = f.input :unit_group, label: "Groupe d'unités *", collection: Ingredient.enum_options(:unit_group), prompt: "Sélectionnez un groupe", input_html: { class: "form-select", data: { ingredient_form_target: "unitGroup", action: "change->ingredient-form#updateBaseUnit" } }, label_html: { class: "form-label" }, error_class: "has-error"
 
     .form-group
       = f.input :base_unit, label: "Unité de base *", hint: "Déterminée automatiquement", readonly: true, input_html: { class: "form-input", data: { ingredient_form_target: "baseUnit" } }, label_html: { class: "form-label" }, hint_html: { class: "form-hint" }, error_class: "has-error"
@@ -25,20 +25,24 @@
         %span Options avancées
 
       .optional-fields-content
+        -# Renseignés ici, les deux coefficients de conversion servent
+        -# immédiatement : c'est le panneau d'import qui vient d'ouvrir ce
+        -# formulaire, et il posera la quantité détectée en la convertissant.
+        -# Les laisser vides n'est pas grave — l'import estimera la densité au
+        -# besoin, et la signalera alors comme telle.
+        .form-group
+          = f.input :piece_weight_g, label: "Poids d'une pièce (g)", hint: "Ex: 300 pour une aubergine, 40 pour une tranche de jambon", input_html: { class: "form-input", step: "0.01", min: "0.01" }, label_html: { class: "form-label" }, hint_html: { class: "form-hint" }, error_class: "has-error"
+
+        .form-group
+          = f.input :density_g_per_ml, label: "Densité (g/ml)", hint: "Ex: 0.55 pour la farine, 1.42 pour le miel — pour peser ce qu'une recette dose à la cuillère", input_html: { class: "form-input", step: "0.01", min: "0.01", max: Ingredient::MAX_DENSITY }, label_html: { class: "form-label" }, hint_html: { class: "form-hint" }, error_class: "has-error"
+
         .form-group
           %label.form-label Alias (synonymes)
           %small.form-hint Noms alternatifs (séparés par des virgules)
           = text_field_tag "ingredient[aliases]", "", class: "form-input", placeholder: "Ex: tomate cerise, cherry tomato"
 
-        .form-group
-          %label.form-label Mois de saison
-          %small.form-hint Mois où l'ingrédient est de saison
-          = hidden_field_tag "ingredient[season_months][]", ""
-          .months-grid.months-grid-compact
-            - (1..12).each do |month|
-              %label.month-checkbox
-                = check_box_tag "ingredient[season_months][]", month, false, id: "quick_ingredient_season_months_#{month}"
-                %span= Date::ABBR_MONTHNAMES[month]
+        = render "ingredients/season_months", ingredient: ingredient, id_prefix: "quick_ingredient",
+                                              hint: "Mois où l'ingrédient est de saison"
 
   .slideout-form-actions
     = f.submit "Créer l'ingrédient", class: "btn btn-primary"

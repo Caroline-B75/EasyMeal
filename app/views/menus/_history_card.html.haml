@@ -7,7 +7,7 @@
     .mi-history-card-left
       .mi-history-card-name= menu.name.presence || "Menu sans nom"
       .mi-history-card-meta
-        %span= french_date(menu.created_at)
+        %span= l(menu.created_at.to_date, format: :long)
         %span ·
         %span= menu_diet_label(menu.diet)
         %span ·
@@ -24,11 +24,7 @@
         - menu.menu_recipes.each do |mr|
           .mi-hist-recipe-card
             .mi-hist-recipe-img
-              - if mr.recipe.photo.attached?
-                = image_tag mr.recipe.photo.variant(resize_to_fill: [96, 48]),
-                           class: "mi-hist-recipe-photo"
-              - else
-                = svg_icon("heart", size: 16, css_class: "mi-hist-recipe-placeholder")
+              = recipe_photo_tag(mr.recipe, width: 96, height: 48, css_class: "mi-hist-recipe-photo")
             .mi-hist-recipe-body
               .mi-hist-recipe-name= mr.recipe.name
               - total_time = mr.recipe.total_time_minutes
@@ -41,5 +37,6 @@
         = svg_icon("upload", size: 11)
         Réutiliser ce menu
       = button_to menu_path(menu), method: :delete, class: "mi-btn-sm-danger",
+                  title: "Supprimer le menu", "aria-label": "Supprimer le menu",
                   form: { data: { turbo_confirm: "Supprimer ce menu ?" } } do
-        Supprimer
+        = svg_icon("trash-fill", size: 22, fill: "currentColor", stroke: "none")

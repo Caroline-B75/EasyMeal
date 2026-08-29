@@ -8,6 +8,16 @@
 # Architecture : le draft n'est PAS stocké en session — c'est un enregistrement
 # DB standard. La différence draft/actif est uniquement portée par l'enum status.
 class Menu < ApplicationRecord
+  # Transition d'état refusée par une garde métier (« seul un menu archivé peut
+  # être réactivé »). C'est une erreur ATTENDUE : le contrôleur la rattrape pour
+  # en faire un message flash. Tout ce qui n'est pas de cette famille est un bug
+  # et doit remonter normalement — même esprit que Menus::NoCandidatesError.
+  #
+  # Usage :
+  #   rescue Menu::InvalidTransitionError => e
+  #     redirect_to menu, alert: e.message
+  class InvalidTransitionError < StandardError; end
+
   # === Associations ===
   belongs_to :user
 
@@ -17,6 +27,14 @@ class Menu < ApplicationRecord
 
   # Lignes de la liste de courses (générées + manuelles)
   has_many :grocery_items, dependent: :destroy
+
+  # Nom donné à un menu créé sans nom — par la génération, par le démarrage
+  # depuis le catalogue, et annoncé en placeholder du formulaire. Une seule
+  # source : le nom promis à l'utilisatrice est exactement celui qu'elle obtient.
+  # @return [String] ex. « Menu du 08/08/2026 »
+  def self.default_name
+    "Menu du #{Date.current.strftime('%d/%m/%Y')}"
+  end
 
   # === Enums ===
 
@@ -44,19 +62,18 @@ class Menu < ApplicationRecord
     message: "doit être au moins 1"
   }
 
-  # === Scopes ===
+  validates :user_id, uniqueness: {
+    conditions: -> { where(status: statuses[:draft]) },
+    message: "a déjà un menu à valider"
+  }, if: :status_draft?
 
-  # Brouillons de l'utilisateur (en cours de composition)
-  scope :drafts, -> { where(status: :draft) }
+  # === Scopes ===
+  # Les filtres par statut passent par les scopes de l'enum (status_draft,
+  # status_active, status_archived) — sauf active_menus, dont le nom explicite
+  # se lit mieux sur les appels « le menu actif de l'utilisatrice ».
 
   # Menus finalisés (un seul actif par utilisateur)
   scope :active_menus, -> { where(status: :active) }
-
-  # Menus archivés (historique)
-  scope :archived, -> { where(status: :archived) }
-
-  # Brouillons inactifs depuis plus de 7 jours — candidats au nettoyage
-  scope :stale_drafts, -> { draft.where("updated_at < ?", 7.days.ago) }
 
   # Tri chronologique (les plus récents d'abord)
   scope :recent, -> { order(created_at: :desc) }
@@ -65,7 +82,7 @@ class Menu < ApplicationRecord
 
   # Passe le menu en statut :active et déclenche la génération de la liste de courses.
   # Archive automatiquement l'éventuel menu actif précédent de l'utilisateur.
-  # Lève une ActiveRecord::RecordInvalid si le menu ne peut pas être activé.
+  # @raise [ActiveRecord::RecordInvalid] si le menu ne peut pas être activé
   def activate!
     transaction do
       archive_current_active!
@@ -76,10 +93,35 @@ class Menu < ApplicationRecord
 
   # Réactive un menu archivé : l'ancien menu actif passe en archived,
   # celui-ci redevient le menu actif et sa liste de courses est régénérée.
+  # @raise [InvalidTransitionError] si le menu n'est pas archivé
+  # @raise [ActiveRecord::RecordInvalid] si le menu ne peut pas être activé
   def reactivate!
-    raise "Seul un menu archivé peut être réactivé" unless status_archived?
+    raise InvalidTransitionError, "Seul un menu archivé peut être réactivé" unless status_archived?
 
+    # Les coches de ce vieux menu sont obsolètes (courses d'il y a des semaines) :
+    # on repart d'une liste fraîche, entièrement décochée et sans badge résiduel.
+    # update_all est sûr ici : on ne fait que décocher (le callback d'effacement de
+    # previous_quantity_base ne concerne que le passage à coché) et on remet
+    # explicitement previous_quantity_base à nil dans la même opération.
+    grocery_items.update_all(checked: false, previous_quantity_base: nil)
     activate!
+  end
+
+  # Repasse un menu actif en brouillon pour le rendre à nouveau modifiable (R3.2bis).
+  # Les grocery_items sont CONSERVÉS tels quels (coches comprises) : c'est la
+  # réconciliation de Groceries::BuildForMenuService, à la revalidation, qui les
+  # mettra à jour sans perdre le travail de courses déjà fait.
+  # Remplace l'éventuel brouillon existant : un utilisateur ne garde qu'un seul
+  # menu à valider pour éviter toute ambiguïté entre menu actif et prochain menu.
+  # @raise [InvalidTransitionError] si le menu n'est pas actif
+  # @raise [ActiveRecord::RecordInvalid] si le brouillon ne peut pas être enregistré
+  def revert_to_draft!
+    raise InvalidTransitionError, "Seul un menu actif peut repasser en brouillon" unless status_active?
+
+    transaction do
+      destroy_other_drafts!
+      update!(status: :draft)
+    end
   end
 
   # Passe le menu en statut :archived (historique)
@@ -92,9 +134,107 @@ class Menu < ApplicationRecord
     menu_recipes.count
   end
 
-  # Nombre total de personnes servies (somme de tous les repas)
-  def total_servings
-    menu_recipes.sum(:number_of_people)
+  # Repas prêts pour l'affichage des vues brouillon / actif : ordonnés par
+  # position, photo préchargée. Chargement partagé entre la page du menu et
+  # les Turbo Streams qui re-rendent ses cartes.
+  def meals_for_display
+    menu_recipes.includes(recipe: :photo_attachment).by_position
+  end
+
+  # Ajoute un repas à la suite du dernier de la grille — la place de tout ajout
+  # dans un brouillon, qu'il vienne du catalogue ou des steppers du panneau de
+  # réglages. Le nombre de personnes du menu s'applique, comme à la génération.
+  # @param recipe [Recipe]
+  # @param meal_type [String, nil] moment du repas ; nil hors contexte de moment
+  # @return [MenuRecipe]
+  def append_meal!(recipe:, meal_type: nil)
+    menu_recipes.create!(recipe:           recipe,
+                         meal_type:        meal_type,
+                         number_of_people: default_people,
+                         position:         menu_recipes.maximum(:position).to_i + 1)
+  end
+
+  # Insère une copie d'un repas juste après lui — la répétition d'un même plat
+  # dans la semaine (UC7 : le même petit-déjeuner plusieurs matins). Là où
+  # append_meal! crée un repas neuf aux valeurs du menu, on reprend ici TOUT ce
+  # qui a déjà été réglé sur la carte — moment, personnes, jour : c'est un
+  # duplicata. D'où le `dup`, qui embarquera aussi les colonnes que MenuRecipe
+  # gagnera plus tard, sans qu'on ait à y repenser.
+  #
+  # La copie se pose juste derrière son original, et non en fin de grille où
+  # elle serait hors écran sur un menu long — le clic paraîtrait sans effet.
+  # Les repas suivants sont décalés d'un cran pour lui faire place, en une
+  # seule requête.
+  # @param menu_recipe [MenuRecipe] repas de ce menu à dupliquer
+  # @return [MenuRecipe] la copie
+  def duplicate_meal!(menu_recipe)
+    copy_position = menu_recipe.position + 1
+
+    transaction do
+      menu_recipes.where(position: copy_position..).update_all("position = position + 1")
+      copy = menu_recipe.dup
+      copy.position = copy_position
+      copy.save!
+      copy
+    end
+  end
+
+  # Progression de la liste de courses : articles cochés sur total.
+  # `checked` est une colonne booléenne et `count` renvoie un Integer,
+  # donc percent est calculé sans risque de division sur nil.
+  # @return [Hash] { checked: Integer, total: Integer, percent: Integer }
+  #                percent vaut 0 si la liste est vide (aucun article).
+  def grocery_progress
+    total = grocery_items.count
+    checked = grocery_items.checked.count
+    percent = total.zero? ? 0 : (checked.to_f / total * 100).round
+    { checked: checked, total: total, percent: percent }
+  end
+
+  # Un brouillon avec une liste existante provient d'un menu actif repassé en
+  # modification : sa validation mettra à jour la liste plutôt que d'en créer une
+  # première version.
+  def pending_revalidation?
+    status_draft? && grocery_items.exists?
+  end
+
+  # La commande passée à la génération (UC7), sous forme d'objet-valeur.
+  # La colonne jsonb requested_meal_counts n'est qu'un support de stockage —
+  # même principe que User#preferred_meal_counts.
+  # @return [MealCounts]
+  def requested_counts
+    MealCounts.from_hash(requested_meal_counts)
+  end
+
+  # La composition RÉELLE du menu, moment par moment (UC7) — par opposition à
+  # la commande (requested_counts) : ce que la grille contient vraiment.
+  # Comptage brut et non MealCounts, qui borne et élague les quotas d'une
+  # commande : les steppers du panneau de réglages doivent afficher les cinq
+  # moments, zéros compris, et dire la vérité même au-delà de MealCounts::MAX.
+  # @param meals [Enumerable<MenuRecipe>] repas à compter — par défaut
+  #   l'association, mais la vue du brouillon passe la collection qu'elle a
+  #   déjà chargée pour éviter une requête doublon
+  # @return [Hash{String => Integer}] les cinq moments, dans l'ordre de la journée
+  def composed_meal_counts(meals = menu_recipes)
+    tally = meals.map(&:display_meal_type).tally
+
+    MealTypes::MEAL_TYPES.index_with { |meal_type| tally.fetch(meal_type, 0) }
+  end
+
+  # Les manques par moment (UC7) : ce que la commande demandait, moins ce que
+  # le menu contient — « Il manque 3 petits-déjeuners ». Un moment servi
+  # au-delà de sa commande n'est pas un manque, et un menu d'avant les quotas
+  # (commande vide) n'en a aucun.
+  # @param meals [Enumerable<MenuRecipe>] voir composed_meal_counts
+  # @return [Hash{String => Integer}] moments incomplets seuls, dans l'ordre
+  #   de la journée
+  def missing_meal_counts(meals = menu_recipes)
+    requested = requested_counts
+
+    composed_meal_counts(meals).each_with_object({}) do |(meal_type, count), missing|
+      gap = requested[meal_type] - count
+      missing[meal_type] = gap if gap.positive?
+    end
   end
 
   private
@@ -102,5 +242,9 @@ class Menu < ApplicationRecord
   # Archive le menu actif actuel de l'utilisateur (s'il existe)
   def archive_current_active!
     user.menus.active_menus.where.not(id: id).find_each(&:archive!)
+  end
+
+  def destroy_other_drafts!
+    user.menus.status_draft.where.not(id: id).find_each(&:destroy!)
   end
 end

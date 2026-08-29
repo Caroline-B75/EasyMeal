@@ -3,20 +3,15 @@
 - rating_avg = @recipe.rating_avg
 - reviews_count = @recipe.reviews_count
 
--# Zone 1 — Lien retour
-= context_bar_back(recipes_path, "Retour aux recettes")
-
--# Zone 2 — Hero sur fond sombre
+-# Zone 1 — Hero sur fond sombre
 .rs-hero
   .rs-hero-inner
     -# Colonne gauche
     .rs-hero-content
-      -# Kicker
+      -# Kicker — régime (classification éditoriale ; les tags sont dans les badges)
       .rs-kicker
         %span.rs-kicker-line
-        - kicker_parts = [@recipe.diet_human]
-        - kicker_parts += @recipe.tags.first(2).map(&:name)
-        = kicker_parts.join(" · ").upcase
+        = @recipe.diet_human.to_s.upcase
 
       -# Titre
       %h1.rs-title= @recipe.name
@@ -29,50 +24,53 @@
         .rs-meta-cell
           %span.rs-meta-value= @recipe.cook_time_minutes || "–"
           %span.rs-meta-label CUISSON (MIN)
-        .rs-meta-cell
-          %span.rs-meta-value= @servings
-          %span.rs-meta-label PERSONNES
 
-      -# Badges
+      -# Badges — moments du repas + attributs pratiques + tags (le régime est
+      -# porté par le kicker). Tous neutres : aucune valeur n'est mise en avant
+      -# par une couleur.
       .rs-badges
-        = show_hero_badge(@recipe.diet_human, badge_variant_for_diet(@recipe.diet))
+        - @recipe.ordered_meal_types.each do |type|
+          %span.rs-badge= MealTypes.label(type)
         - if @recipe.difficulty.present?
-          = show_hero_badge(@recipe.difficulty_human, :default)
+          %span.rs-badge= @recipe.difficulty_human
         - if @recipe.price.present?
-          = show_hero_badge(@recipe.price_human, price_badge_variant(@recipe.price))
+          %span.rs-badge= @recipe.price_human
         - @recipe.tags.each do |tag|
-          = show_hero_badge(tag.name, :default)
+          %span.rs-badge= tag.name
 
       -# Boutons d'action
       .rs-actions
         - if current_user
-          = button_to "Ajouter à mon menu", add_to_menu_recipe_path(@recipe),
-                      method: :post,
-                      class: "rs-btn-accent",
-                      title: "Ajouter cette recette à mon menu brouillon"
+          = render "recipes/draft_cta", recipe: @recipe, in_draft: @in_draft, has_draft: @draft.present?,
+                                        variant: "hero", container_id: "draft-cta-hero-#{@recipe.id}",
+                                        meal_type: context_meal_type
         - else
-          = link_to "Ajouter à mon menu", new_user_session_path, class: "rs-btn-accent"
+          = link_to "Démarrer un menu", new_user_session_path, class: "btn-accent rs-btn-accent"
 
         - if current_user
           = render "recipes/favorite_button", recipe: @recipe, is_favorited: @is_favorited, container_id: "favorite-btn-#{@recipe.id}", show_page: true
 
-        %button.rs-btn-icon{ type: "button", title: "Partager" }
+        %button.rs-btn-icon{ type: "button", title: "Partager",
+                             data: { controller: "share",
+                                     action: "share#share",
+                                     share_url_value: recipe_url(@recipe),
+                                     share_title_value: @recipe.name } }
           = svg_icon(:share, size: 14)
 
     -# Colonne droite — Photo
     .rs-hero-photo
       - if @recipe.photo.attached?
         = image_tag cloudinary_photo_url(@recipe.photo, width: 680, height: 560, crop: :fill),
-                    alt: @recipe.name, class: "rs-photo-img"
+                    alt: @recipe.name, class: "rs-photo-img", width: 680, height: 560, fetchpriority: "high"
       - else
-        = image_tag "photo_par_defaut_recette.png", alt: @recipe.name, class: "rs-photo-img"
+        = image_tag "photo_par_defaut_recette.webp", alt: @recipe.name, class: "rs-photo-img", width: 680, height: 560
       .rs-photo-overlay
         %span.rs-photo-stars= rating_stars(rating_avg)
         %span.rs-photo-score
           = rating_avg
           = "· #{reviews_count} avis"
 
--# Zone 3 — Corps principal en deux colonnes
+-# Zone 2 — Corps principal en deux colonnes
 .rs-body{ data: { controller: "servings", servings_default_value: @recipe.default_servings } }
   -# Colonne gauche — Préparation + Avis
   .rs-main
@@ -86,7 +84,7 @@
           .rs-step-number= index + 1
           .rs-step-text= step.strip
 
-    -# Zone 4 — Section Avis
+    -# Zone 3 — Section Avis
     .rs-section.rs-section--reviews
       .rs-section-title AVIS
 
@@ -131,17 +129,17 @@
     -# Barre admin (Pundit)
     - if policy(@recipe).edit?
       .rs-admin-bar
-        = link_to edit_recipe_path(@recipe), class: "rs-admin-btn" do
-          = svg_icon(:edit, size: 13)
+        = link_to edit_recipe_path(@recipe), class: "btn btn-primary" do
+          = svg_icon(:edit, size: 16)
           Modifier la recette
 
         - if policy(@recipe).destroy?
           .rs-admin-delete{ data: { controller: "modal" } }
             = button_to recipe_path(@recipe),
                         method: :delete,
-                        class: "rs-admin-btn rs-admin-btn--danger",
+                        class: "btn btn-danger",
                         form: { data: { action: "submit->modal#open" } } do
-              = svg_icon(:trash, size: 13)
+              = svg_icon(:trash, size: 16)
               Supprimer
             = render "shared/delete_confirmation_modal", resource_name: "recette"
 
@@ -154,17 +152,24 @@
         %span.rs-servings-val{ data: { servings_target: "value" } }= @servings
         %button.rs-servings-btn{ type: "button", data: { action: "click->servings#increase" } } +
 
-    - if @preparations_by_category.any?
-      - @preparations_by_category.each do |category, preparations|
-        .rs-ing-group
-          .rs-ing-category= Ingredient.human_attribute_name("category.#{category}")
-          - preparations.each do |preparation|
-            .rs-ing-row{ data: { servings_target: "ingredient",
-                                 base_quantity: preparation.quantity_base,
-                                 unit_group: preparation.ingredient.unit_group,
-                                 default_servings: @recipe.default_servings } }
-              %span.rs-ing-name= preparation.ingredient.name
-              %span.rs-ing-qty{ data: { servings_target: "quantity" } }
-                = preparation.humanized_quantity(servings: @servings)
+    - if @preparations.any?
+      .rs-ing-list
+        - @preparations.each do |preparation|
+          .rs-ing-row{ data: { servings_target: "ingredient",
+                               base_quantity: preparation.quantity_base,
+                               unit_group: preparation.ingredient.unit_group,
+                               default_servings: @recipe.default_servings } }
+            %span.rs-ing-name= preparation.ingredient.name
+            %span.rs-ing-qty{ data: { servings_target: "quantity" } }
+              = preparation.humanized_quantity(servings: @servings)
     - else
       %p.rs-empty Aucun ingrédient renseigné.
+
+-# CTA persistant (mobile) — barre sticky en bas, l'ajout au menu reste toujours accessible
+.rs-mobile-cta
+  - if current_user
+    = render "recipes/draft_cta", recipe: @recipe, in_draft: @in_draft, has_draft: @draft.present?,
+                                  variant: "mobile", container_id: "draft-cta-mobile-#{@recipe.id}",
+                                  meal_type: context_meal_type
+  - else
+    = link_to "Démarrer un menu", new_user_session_path, class: "btn-accent rs-mobile-cta-btn"

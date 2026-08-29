@@ -1,20 +1,14 @@
--# Carte compacte d'un repas en lecture seule (menu actif / archivé)
+-# Carte compacte d'un repas en lecture seule (dashboards de la home)
 -# Même design que la carte de personnalisation mais sans actions (drag/replace/delete)
+-# — la page du menu actif, elle, rend menus/_menu_recipe_card en mode figé.
 -# menu_recipe : MenuRecipe
 
 = link_to recipe_path(menu_recipe.recipe), class: "mc-recipe-card mc-recipe-card--readonly", data: { turbo_prefetch: "false" } do
   -# ── Photo carrée ──────────────────────────────────────
   .mc-card-photo
-    - if menu_recipe.recipe.photo.attached?
-      = image_tag menu_recipe.recipe.photo.variant(resize_to_fill: [260, 260]),
-                  alt: menu_recipe.recipe.name
-    - else
-      = image_tag "photo_par_defaut_recette.png", alt: menu_recipe.recipe.name, class: "mc-card-photo-default"
+    = render "menus/recipe_photo", recipe: menu_recipe.recipe
 
   -# ── Nom de la recette ─────────────────────────────────
+  -# Pas de méta ici : sur la home, la carte se limite à la photo et au nom.
   .mc-card-name-wrap
     .mc-card-name= menu_recipe.recipe.name
-
-  -# ── Méta : nombre de personnes ────────────────────────
-  .mc-card-meta
-    %span.mc-card-meta-people= "#{menu_recipe.number_of_people} pers."

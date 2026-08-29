@@ -1,0 +1,186 @@
+<%#
+  Service worker EasyMeal (PWA).
+
+  Vue Rails rendue par Rails::PwaController (route /service-worker).
+  Le suffixe .erb permet d'injecter les URLs d'assets FINGERPRINTÉES par
+  l'asset pipeline : la liste de pré-cache ne peut pas être codée en dur.
+
+  Stratégie :
+    - install  : pré-cache de l'app shell (CSS compilé, logo, icônes, page offline).
+    - activate : suppression des anciens caches versionnés.
+    - fetch    : network-first pour les navigations (repli page offline),
+                 cache-first pour les assets statiques même-origine.
+%>
+<%
+  # App shell à pré-cacher. asset_path renvoie les URLs digestées (fingerprint),
+  # ce qui rend le cache automatiquement invalide à chaque déploiement.
+  precache_urls = [
+    asset_path("application.css"),
+    asset_path("logos/logo_EasyMeal.svg"),
+    # Police d'affichage (Fraunces, ~66 Ko). Précachée et non simplement mise en
+    # cache paresseusement, parce que font-display:optional ne laisse au
+    # navigateur AUCUNE fenêtre d'attente : une police absente du cache au moment
+    # du rendu est purement et simplement ignorée pour cette page-là. Sans
+    # pré-cache, la seconde visite — le cas normal d'une PWA installée — resterait
+    # en pile système tant que la police n'aurait pas été téléchargée par
+    # ailleurs. C'est le pré-cache qui rend « optional » utilisable.
+    asset_path("fraunces-variable.woff2"),
+    # Icônes versionnées manuellement (suffixe -vN) : comme ce sont des fichiers
+    # statiques NON fingerprintés, on change leur NOM à chaque refonte pour forcer
+    # navigateurs et OS à retélécharger (les caches d'icônes de raccourci sont tenaces).
+    "/icon-96-v4.png",
+    "/icon-192-v4.png",
+    "/icon-512-v4.png",
+    pwa_offline_path
+  ]
+
+  # Révision manuelle de la LOGIQUE du service worker. À incrémenter quand la
+  # stratégie de cache change (et non les assets) pour forcer la rotation du
+  # cache : l'ancien cache est alors purgé à l'activate.
+  #   r2 : cache des navigations limité à la liste de courses.
+  #   r3 : les requêtes HTML (dont visites Turbo) passent en network-first,
+  #        pour ne plus être mises en cache par la branche "assets".
+  #   r4 : classification par URL (et non par en-tête Accept/mode, trop
+  #        fragile) — corrige la page d'accueil qui atterrissait dans le
+  #        cache "assets" et masquait la page de secours.
+  #   r5 : nouvelles icônes d'app (wok paprika). Les icônes sont des fichiers
+  #        statiques NON fingerprintés (/icon-*.png) : remplacer leur contenu
+  #        ne change pas le nom de cache, d'où la rotation manuelle ici.
+  #   r6 : icônes régénérées depuis une source haute résolution (rendu net en
+  #        petites tailles) + variante maskable recentrée dans la zone de sécurité.
+  #   r7 : nouvelle version de la source (wok plein + éclats), icônes régénérées.
+  #   r8 : rotation du cache pour republier la page offline après correction du CTA.
+  sw_revision = "r8"
+
+  # Nom de cache versionné par le digest de l'app shell + la révision de logique :
+  # dès qu'un asset change (nouveau fingerprint) OU que la stratégie évolue, le
+  # nom change → l'ancien cache est purgé à l'activate, évitant de servir du
+  # contenu périmé.
+  cache_version = Digest::SHA1.hexdigest(precache_urls.join + sw_revision)[0, 12]
+%>
+const CACHE_NAME = "easymeal-<%= cache_version %>";
+const OFFLINE_URL = "<%= pwa_offline_path %>";
+const PRECACHE_URLS = <%= precache_urls.to_json.html_safe %>;
+
+// Seule la liste de courses (/menus/:id/grocery) est volontairement mise en
+// cache pour un usage hors-ligne (R0.3). Toutes les autres navigations
+// conservent le repli sur la page offline quand le réseau est absent.
+const GROCERY_PATH = /^\/menus\/\d+\/grocery\/?$/;
+
+// INSTALL — pré-cache de l'app shell puis activation immédiate (skipWaiting)
+// pour ne pas laisser les utilisateurs bloqués sur une ancienne version.
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => cache.addAll(PRECACHE_URLS))
+      .then(() => self.skipWaiting())
+  );
+});
+
+// ACTIVATE — suppression des anciens caches EasyMeal, puis prise de contrôle
+// immédiate des clients ouverts (clients.claim).
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(
+          keys
+            .filter((key) => key.startsWith("easymeal-") && key !== CACHE_NAME)
+            .map((key) => caches.delete(key))
+        )
+      )
+      .then(() => self.clients.claim())
+  );
+});
+
+// FETCH
+self.addEventListener("fetch", (event) => {
+  const request = event.request;
+
+  // On ne gère que les GET : jamais de cache pour POST/PATCH/DELETE, etc.
+  if (request.method !== "GET") return;
+
+  // On ignore les autres origines (CDN, analytics…) : on laisse le navigateur gérer.
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+
+  // Classification par URL (déterministe), et NON par en-tête Accept / mode /
+  // destination : selon le navigateur et Turbo, une même page peut être
+  // demandée avec des en-têtes variables, ce qui faisait basculer certaines
+  // pages HTML (dont l'accueil) dans la branche "assets" (cache-first) — elles
+  // y étaient mises en cache puis resservies hors-ligne, masquant la page de
+  // secours.
+  //
+  // Est considéré comme asset statique (→ cache-first) : tout ce qui est sous
+  // /assets/, le manifest, et les fichiers à extension (icônes, images…).
+  // Tout le reste est une page HTML (→ network-first + repli offline).
+  const isStaticAsset =
+    url.pathname.startsWith("/assets/") ||
+    url.pathname === "/manifest" ||
+    /\.[^/]+$/.test(url.pathname);
+
+  if (!isStaticAsset) {
+    event.respondWith(
+      // cache: "no-store" force un vrai appel réseau. Sans ça, le cache HTTP du
+      // navigateur peut resservir la page hors-ligne, le fetch "réussit" et le
+      // repli sur la page offline ne se déclenche jamais.
+      fetch(request, { cache: "no-store" })
+        .then((response) => {
+          // En ligne : on renvoie TOUJOURS la réponse réseau fraîche (comportement
+          // inchangé). Seule la liste de courses est mise en cache, pour un usage
+          // hors-ligne ultérieur en magasin après une première visite en ligne.
+          if (
+            GROCERY_PATH.test(url.pathname) &&
+            response.ok &&
+            response.type === "basic"
+          ) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          }
+          return response;
+        })
+        .catch(async () => {
+          // Hors-ligne : pour la liste de courses uniquement, on sert sa version
+          // cachée (usage en magasin). Pour toutes les autres pages, on garde le
+          // repli sur la page offline (comportement R0.2).
+          // ignoreVary : la page est cachée avec ses en-têtes d'origine
+          // (dont Vary: Accept-Encoding) ; sans cette option la correspondance
+          // échouerait et on retomberait sur l'erreur réseau.
+          if (GROCERY_PATH.test(url.pathname)) {
+            const cachedPage = await caches.match(request, { ignoreVary: true });
+            if (cachedPage) return cachedPage;
+          }
+
+          const offline = await caches.match(OFFLINE_URL, {
+            ignoreVary: true,
+            ignoreSearch: true
+          });
+          return offline || Response.error();
+        })
+    );
+    return;
+  }
+
+  // Assets statiques même-origine → cache-first, avec mise en cache paresseuse.
+  event.respondWith(
+    caches.match(request, { ignoreVary: true }).then((cached) => {
+      if (cached) return cached;
+
+      // Absent du cache : on tente le réseau. Le .catch évite une "uncaught
+      // promise" quand on est hors-ligne et que l'asset n'a pas été pré-caché.
+      return fetch(request)
+        .then((response) => {
+          // Ne jamais mettre en cache les réponses d'erreur ni les réponses opaques :
+          // uniquement les réponses OK basiques (même-origine).
+          if (response.ok && response.type === "basic") {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          }
+          return response;
+        })
+        .catch(() => Response.error());
+    })
+  );
+});

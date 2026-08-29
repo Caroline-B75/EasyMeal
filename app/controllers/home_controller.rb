@@ -9,7 +9,9 @@ class HomeController < ApplicationController
 
   # Charge le brouillon le plus récent et le menu actif de l'utilisateur
   def load_user_menus
-    @draft = current_user.menus.status_draft.recent.first
-    @active_menu = current_user.menus.active_menus.first
+    menu_includes = { menu_recipes: { recipe: :photo_attachment } }
+
+    @active_menu = current_user.menus.active_menus.includes(menu_includes).first
+    @draft = current_user.menus.status_draft.recent.includes(menu_includes).first
   end
 end

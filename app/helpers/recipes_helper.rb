@@ -1,5 +1,118 @@
 # Helper pour les recettes
 module RecipesHelper
+  # Libellés lisibles des sources d'import d'un brouillon (source_type en base).
+  DRAFT_SOURCE_LABELS = { "url" => "Lien", "photo" => "Photo" }.freeze
+
+  # Libellé lisible de la source d'un brouillon importé (badge de la liste).
+  def draft_source_label(source_type)
+    DRAFT_SOURCE_LABELS[source_type] || source_type.to_s.upcase
+  end
+
+  # Icône associée à la source d'import (lien internet vs photo).
+  def draft_source_icon(source_type)
+    source_type == "photo" ? :image : :link
+  end
+
+  # Infobulle des deux portes d'entrée vers la page d'origine d'un import :
+  # le badge de la liste des brouillons et le bandeau du formulaire de validation.
+  SOURCE_LINK_TITLE = "Ouvrir la page d'origine dans un nouvel onglet".freeze
+
+  # Borne de l'image servie à la visionneuse. Le redimensionnement navigateur
+  # plafonne déjà les imports à 1600 px et crop: :limit n'agrandit jamais : la
+  # photo s'affiche donc telle qu'elle a été envoyée — c'est cette définition qui
+  # rend le zoom lisible jusqu'aux quantités écrites en petit.
+  SOURCE_PHOTO_FULL_SIZE = 1600
+
+  # Badge de source d'un brouillon importé (liste des imports).
+  # Quand l'import vient d'un lien dont l'URL est connue, le badge devient un
+  # vrai lien : pendant la validation, un clic rouvre la page d'origine pour
+  # comparer. Les autres cas — import photo, ou vieux brouillon URL sans
+  # source_url — gardent un simple libellé.
+  def draft_source_badge(recipe)
+    content = safe_join([
+      svg_icon(draft_source_icon(recipe.source_type), size: 11),
+      draft_source_label(recipe.source_type)
+    ])
+
+    return content_tag(:span, content, class: "badge badge--source") unless recipe.imported_from_link?
+
+    link_to content, recipe.source_url, **source_link_options("badge badge--source badge--source-link")
+  end
+
+  # La page d'origine d'un import par lien, adresse en toutes lettres : c'est le
+  # rappel posé en tête du formulaire de validation (un import photo, lui, montre
+  # sa source dans la visionneuse latérale).
+  def draft_source_url_link(recipe)
+    link_to recipe.source_url, recipe.source_url, **source_link_options("rf-source__link")
+  end
+
+  # La page photographiée à l'import, en pleine définition : l'image de la
+  # visionneuse et sa version « ouvrir dans un onglet » sont la même.
+  def draft_source_photo_url(recipe)
+    cloudinary_photo_url(recipe.source_photo, width: SOURCE_PHOTO_FULL_SIZE,
+                                              height: SOURCE_PHOTO_FULL_SIZE)
+  end
+
+  # Politique commune des liens sortants vers la source d'un import : nouvel
+  # onglet (le formulaire en cours de saisie ne doit jamais être remplacé), rel
+  # de sécurité, et infobulle qui annonce ce qui s'ouvre.
+  def source_link_options(css_class, title: SOURCE_LINK_TITLE)
+    { class: css_class, target: "_blank", rel: "noopener noreferrer", title: title }
+  end
+
+  # Vignette d'une carte de brouillon : la photo de présentation, à défaut la
+  # page photographiée à l'import — un import photo se reconnaît ainsi d'un coup
+  # d'œil dans la liste. nil quand aucune des deux n'est attachée : la carte
+  # affiche alors son placeholder.
+  def draft_thumbnail_photo(recipe)
+    return recipe.photo if recipe.photo.attached?
+
+    recipe.source_photo if recipe.source_photo.attached?
+  end
+
+  # Options du sélecteur de tri de la liste des brouillons. La liste des tris
+  # vit dans RecipeDraftsController::SORTS, qui les applique : la vue l'affiche
+  # sans jamais recopier ni les clés ni les libellés.
+  def draft_sort_options(selected)
+    options_for_select(RecipeDraftsController::SORTS.map { |key, label| [ label, key ] }, selected)
+  end
+
+  # Habillage de l'unité de base d'un ingrédient dans le panneau IA. Trois états,
+  # du plus grave au plus discret :
+  #   - la quantité détectée ne sait pas rejoindre cette unité → alerte ;
+  #   - elle la rejoint, mais par une densité que l'IA a estimée → estimation ;
+  #   - elle la rejoint sur des facteurs sûrs → rien à signaler.
+  # Le pendant JS vit dans ai_panel_controller#unitBadge.
+  def ai_unit_badge_attributes(converts:, estimated:)
+    return { class: "ai-row__unit--mismatch", title: t("recipes.ai_panel.unit_mismatch") } unless converts
+    return { class: "ai-row__unit--estimated", title: t("recipes.ai_panel.unit_estimated") } if estimated
+
+    {}
+  end
+
+  # État d'une ligne du panneau IA — la seule question que se pose l'utilisatrice
+  # devant la liste : est-ce que ça part d'un clic, ou est-ce que j'ai une
+  # décision à prendre ?
+  #   :ready   → le catalogue a un ingrédient certain, il n'y a qu'à l'ajouter
+  #   :confirm → des suggestions à départager
+  #   :missing → rien au catalogue, il faut chercher ou créer
+  # Une seule définition pour la mise en forme de la ligne et pour les compteurs
+  # de l'en-tête : les deux ne peuvent pas diverger.
+  def ai_match_state(match)
+    return :ready if match[:exact]
+
+    match[:fuzzy].any? ? :confirm : :missing
+  end
+
+  # Ce que l'en-tête du panneau annonce : combien de lignes se règlent d'un clic,
+  # combien attendent une décision. :confirm et :missing sont comptées ensemble —
+  # elles demandent la même chose à l'utilisatrice, s'y attarder n'aiderait pas.
+  def ai_matches_state_counts(matches)
+    ready = matches.count { |match| ai_match_state(match) == :ready }
+
+    { ready: ready, todo: matches.size - ready }
+  end
+
   # Retourne le texte formaté du temps de préparation
   def format_prep_time(minutes)
     return "Non renseigné" if minutes.blank? || minutes.zero?
@@ -23,6 +136,16 @@ module RecipesHelper
     format_prep_time(total)
   end
 
+  # Texte compact du badge temps d'une mini-carte (UC7, ex « 35 min ») — nil
+  # si aucun temps n'est renseigné : le badge ne doit alors pas s'afficher.
+  # Volontairement sans conversion en heures (contrairement à format_prep_time) :
+  # le badge reste un repère rapide, pas une durée précise.
+  # @return [String, nil]
+  def total_time_badge(recipe)
+    total = recipe.total_time_minutes
+    "#{total} min" if total.positive?
+  end
+
   # Retourne les étoiles affichées pour la note moyenne
   # rating_avg est un decimal (ex: 4.3)
   def rating_stars(rating_avg)
@@ -35,80 +158,68 @@ module RecipesHelper
     ("☆" * empty_stars)
   end
 
-  # Badge de régime avec icône et couleur
+  # Badge de régime — pastille colorée + libellé (sans emoji : rendu premium et
+  # cohérent quel que soit l'OS ; la couleur porte l'identité du régime).
   def diet_badge(diet)
-    icons = {
-      "omnivore" => "🍖",
-      "vegetarien" => "🥕",
-      "vegan" => "🌱",
-      "pescetarien" => "🐟"
-    }
-
     colors = {
       "omnivore" => "badge-beige",
       "vegetarien" => "badge-green",
       "vegan" => "badge-green",
       "pescetarien" => "badge-blue"
     }
-
-    icon = icons[diet] || inline_svg("cook-book", css_class: "icon-sm", color: "currentColor")
     color_class = colors[diet] || "badge-orange"
 
-    content_tag :span, class: "badge #{color_class}" do
-      safe_join([icon, " #{diet.humanize}"])
+    content_tag :span, diet.humanize, class: "badge #{color_class}"
+  end
+
+  # === Boutons d'ajout / retrait du brouillon (UC2/UC7) ===
+
+  # Destination annoncée par le tooltip d'un bouton d'ajout / retrait du
+  # brouillon. En contexte de moment (catalogue filtré, UC7), elle nomme le
+  # moment réellement visé — « aux goûters du menu à valider » ; sinon le menu
+  # tout court. Partagée par le bouton compact des cartes du catalogue
+  # (_draft_button) et le CTA de la fiche recette (_draft_cta), qui ne
+  # divergent que par ce qui la précède.
+  # @param meal_type [String, nil] moment du contexte
+  # @param action [Symbol] :add ou :remove — la préposition suit le sens
+  # @return [String]
+  def draft_toggle_destination(meal_type, action)
+    adding = action == :add
+    return adding ? "au menu à valider" : "du menu à valider" if meal_type.blank?
+
+    "#{adding ? 'aux' : 'des'} #{MealTypes.inline_label(meal_type)} du menu à valider"
+  end
+
+  # === Rail « menu à valider » du catalogue (UC2) ===
+
+  # Compteur du rail : brouillon encore vide, ou nombre de recettes retenues.
+  # Pluriel écrit à la main (comme ailleurs dans le projet) : ActionView#pluralize
+  # s'appuie sur les inflexions de la locale courante, et :fr n'en définit aucune
+  # — il rendrait « 3 recette ».
+  def draft_rail_label(count)
+    return "Aucune recette dans le menu" if count.zero?
+
+    "#{count} recette#{'s' if count > 1} dans le menu"
+  end
+
+  # Message de confirmation d'un changement du brouillon depuis le catalogue —
+  # flash des réponses Turbo Stream toggle_in_draft et remove_from_draft.
+  # @param recipe_name [String] nom de la recette ajoutée / retirée
+  # @param count [Integer] nombre de repas du brouillon après l'opération
+  # @param added [Boolean] sens de l'opération
+  # @param draft_created [Boolean] le toggle vient-il de démarrer le brouillon ?
+  def draft_change_notice(recipe_name:, count:, added:, draft_created: false)
+    suffix = "(#{count} recette#{'s' if count != 1})"
+    return "\"#{recipe_name}\" retirée du menu à valider #{suffix}" unless added
+
+    if draft_created
+      "Menu à valider démarré avec \"#{recipe_name}\" #{suffix}"
+    else
+      "\"#{recipe_name}\" ajoutée au menu à valider #{suffix}"
     end
   end
 
-  # Badge de difficulté avec couleur
-  def difficulty_badge(difficulty)
-    return content_tag(:span, "Non renseignée", class: "badge badge-beige") if difficulty.nil?
-
-    colors = {
-      "facile" => "badge-green",
-      "moyen" => "badge-orange",
-      "difficile" => "badge-red"
-    }
-
-    content_tag :span, difficulty.humanize, class: "badge #{colors[difficulty] || 'badge-beige'}"
-  end
-
-  # Badge de prix avec symboles €
-  def price_badge(price)
-    return content_tag(:span, "Non renseigné", class: "badge badge-beige") if price.nil?
-
-    symbols = {
-      "economique" => "€",
-      "moyen" => "€€",
-      "cher" => "€€€"
-    }
-
-    content_tag :span, symbols[price] || "€", class: "badge badge-beige"
-  end
-
-  # === Helpers pour le hero sombre de la fiche recette ===
-
-  # Badge sur fond sombre (hero) — variantes : :default, :green, :amber
-  def show_hero_badge(text, variant = :default)
-    css = case variant
-          when :green then "rs-badge rs-badge--green"
-          when :amber then "rs-badge rs-badge--amber"
-          else "rs-badge"
-          end
-    content_tag :span, text, class: css
-  end
-
-  # Détermine la variante de badge pour un régime alimentaire
-  def badge_variant_for_diet(diet)
-    case diet
-    when "vegetarien", "vegan" then :green
-    else :default
-    end
-  end
-
-  # Détermine la variante de badge pour un prix
-  def price_badge_variant(price)
-    price == "economique" ? :amber : :default
-  end
+  # === Helpers pour la fiche recette ===
 
   # Distribution des notes pour l'histogramme (hash {1=>count, 2=>count, ...})
   def review_distribution(recipe)
@@ -132,5 +243,40 @@ module RecipesHelper
       fetch_format: :auto,
       quality: :auto
     )
+  end
+
+  # Srcset Cloudinary 1x/2x : sert la résolution adaptée à la densité de l'écran
+  # (nette sur les écrans retina sans surcharger les écrans classiques).
+  # width/height = taille d'affichage 1x (la variante 2x est calculée automatiquement).
+  def cloudinary_photo_srcset(photo, width:, height:, crop: :fill)
+    return nil unless photo.attached?
+
+    url_1x = cloudinary_photo_url(photo, width: width, height: height, crop: crop)
+    url_2x = cloudinary_photo_url(photo, width: width * 2, height: height * 2, crop: crop)
+    "#{url_1x} 1x, #{url_2x} 2x"
+  end
+
+  # Image du projet servie aux recettes sans photo.
+  DEFAULT_PHOTO = "photo_par_defaut_recette.webp".freeze
+
+  # Vignette d'une recette : sa photo recadrée en width×height, ou l'image par
+  # défaut du projet quand elle n'en a pas.
+  #
+  # Le recadrage passe par les URL de transformation Cloudinary et non par
+  # .variant() : rien n'est uploadé, et le serveur n'a besoin d'aucune
+  # bibliothèque de traitement d'image (.variant() exigerait libvips installé).
+  #
+  # width/height = taille d'affichage 1x, le srcset 2x suivant pour les écrans à
+  # forte densité. css_class reste optionnel : la boîte est parfois posée par le
+  # conteneur plutôt que par l'image elle-même.
+  def recipe_photo_tag(recipe, width:, height:, css_class: nil)
+    options = { alt: recipe.name, width: width, height: height, loading: "lazy" }
+    options[:class] = css_class if css_class
+
+    return image_tag(DEFAULT_PHOTO, **options) unless recipe.photo.attached?
+
+    image_tag cloudinary_photo_url(recipe.photo, width: width, height: height, crop: :fill),
+              srcset: cloudinary_photo_srcset(recipe.photo, width: width, height: height, crop: :fill),
+              **options
   end
 end

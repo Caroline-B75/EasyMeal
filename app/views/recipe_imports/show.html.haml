@@ -1,0 +1,31 @@
+-# Page d'attente d'un import IA (admin only).
+-# Le job travaille de son côté ; cette page revient voir où il en est toutes les
+-# deux secondes, et le contrôleur l'emmène au formulaire de validation dès que
+-# le brouillon existe — ou la renvoie au formulaire d'import en cas d'échec.
+- content_for :title, "Import en cours"
+
+= context_bar_back(recipe_drafts_path, "Retour aux recettes importées", variant: :narrow)
+
+.rf-hero
+  .rf-hero-inner
+    .rf-kicker
+      %span.rf-kicker-line
+      IMPORT IA
+    %h1.rf-hero-title Extraction en cours
+
+.rf-body
+  .import-wrapper
+    .import-waiting{ data: { controller: "import-poller" } }
+      .import-waiting__spinner{ "aria-hidden": "true" }
+
+      -# Le libellé change au fil de l'attente : chaque changement doit être
+      -# annoncé aux lecteurs d'écran.
+      %p.import-waiting__step{ "aria-live": "polite" }= import_step_label(@import)
+
+      %p.import-waiting__hint
+        L'extraction continue même si tu quittes cette page : la recette
+        apparaîtra dans tes recettes importées.
+
+      %p.import-notice
+        = svg_icon(:clock, size: 14)
+        En général 15 à 30 secondes selon la source.

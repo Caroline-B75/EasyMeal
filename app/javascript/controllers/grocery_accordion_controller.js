@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["body", "chevron"]
+  static targets = ["header", "body", "chevron"]
   static values = { open: { type: Boolean, default: true } }
 
   toggle() {
@@ -22,6 +22,10 @@ export default class extends Controller {
     }
     if (this.hasChevronTarget) {
       this.chevronTarget.classList.toggle("grocery-section-chevron--closed", !this.openValue)
+    }
+    // Synchronise l'état ARIA du déclencheur pour les lecteurs d'écran.
+    if (this.hasHeaderTarget) {
+      this.headerTarget.setAttribute("aria-expanded", String(this.openValue))
     }
   }
 }

@@ -1,22 +1,62 @@
 {
-  "name": "Easymeal",
+  "name": "My EasyMeal",
+  "short_name": "EasyMeal",
+  "id": "/",
+  "lang": "fr",
+  "dir": "ltr",
+  "description": "Planifie tes menus de la semaine et génère automatiquement ta liste de courses.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#1C1917",
+  "background_color": "#F8F7F4",
+  "categories": ["food", "lifestyle"],
   "icons": [
     {
-      "src": "/icon.png",
+      "src": "/icon-192-v4.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "192x192",
+      "purpose": "any"
     },
     {
-      "src": "/icon.png",
+      "src": "/icon-512-v4.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512-maskable-v4.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "maskable"
     }
   ],
-  "start_url": "/",
-  "display": "standalone",
-  "scope": "/",
-  "description": "Easymeal.",
-  "theme_color": "red",
-  "background_color": "red"
+  "shortcuts": [
+    {
+      "name": "Menu actif",
+      "short_name": "Mon menu",
+      "description": "Accéder au menu actif",
+      "url": "/menu-en-cours",
+      "icons": [
+        {
+          "src": "/icon-96-v4.png",
+          "type": "image/png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Liste de courses",
+      "short_name": "Courses",
+      "description": "Accéder à la liste de courses du menu actif",
+      "url": "/liste-de-courses",
+      "icons": [
+        {
+          "src": "/icon-96-v4.png",
+          "type": "image/png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
 }

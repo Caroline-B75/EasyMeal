@@ -3,3 +3,11 @@ cloudinary:
   cloud_name: <%= ENV['CLOUDINARY_CLOUD_NAME'] %>
   api_key:    <%= ENV['CLOUDINARY_API_KEY'] %>
   api_secret: <%= ENV['CLOUDINARY_API_SECRET'] %>
+
+# Pièces jointes de la suite de tests : sur disque, dans tmp/ (déjà ignoré par
+# git). Les specs qui attachent un fichier ne doivent rien envoyer à Cloudinary
+# — la génération d'URL, elle, reste la vraie (Cloudinary::Utils ne fait aucun
+# appel réseau, quel que soit le service de stockage).
+test:
+  service: Disk
+  root: <%= Rails.root.join("tmp/storage") %>

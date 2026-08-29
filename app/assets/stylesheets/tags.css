@@ -16,117 +16,236 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
 }
 
+/* La taille suit l'échelle fluide de la règle de base h1 (global.css). */
 .tags-header h1 {
-  font-size: var(--font-size-2xl);
   font-weight: 600;
   color: var(--color-ink);
   margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-/* === Table des tags === */
-.tags-container .table-container {
+/* === Barre de création rapide d'un tag === */
+.tag-create {
   background: var(--color-bg-white);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-md);
-  overflow: hidden;
+  padding: 1rem 1.5rem;
   margin-bottom: 2rem;
 }
 
-/* Assurer que le turbo-frame ne perturbe pas le layout */
-.tags-container .table-container turbo-frame {
-  display: block;
+.tag-create-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
-.tags-table {
+.tag-create-field {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+/* Le champ occupe toute la largeur de sa colonne (le conteneur n'est pas flex) */
+.tag-create .tag-inline-input {
   width: 100%;
-  border-collapse: collapse;
 }
 
-.tags-table thead {
-  background: var(--color-bg-main);
-}
-
-.tags-table th {
-  padding: 1rem 1.5rem;
-  text-align: left;
-  font-weight: 600;
+.tag-create-select {
+  flex: 0 1 200px;
+  padding: 0.625rem 0.875rem;
+  border: var(--border-thin);
+  border-radius: var(--radius-input);
+  font-size: var(--font-size-base);
   color: var(--color-ink);
-  font-size: var(--font-size-sm);
+  background: var(--color-bg-white);
+  cursor: pointer;
+  transition: var(--transition-normal);
+}
+
+.tag-create-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+/* Alignement icône + libellé hérité de .btn ; on ne pilote que le flex. */
+.tag-create-submit {
+  flex: 0 0 auto;
+}
+
+/* Champ en erreur (nom dupliqué, trop court, etc.) */
+.tag-create-field.has-error .tag-inline-input {
+  border-color: var(--color-danger);
+}
+
+.tag-create .field-errors {
+  margin-top: 0.5rem;
+}
+
+/* === Liste des groupes (accordéons) === */
+.tags-container turbo-frame {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* === Groupe de tags = accordéon (un par type) === */
+.tag-group-header {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  width: 100%;
+  background: none;
+  border: none;
+  border-left: 3px solid var(--color-primary);
+  border-bottom: var(--border-thin);
+  cursor: pointer;
+  padding: 0.5rem 0.5rem 0.5rem 0.875rem;
+  margin-bottom: 0.5rem;
+  text-align: left;
+  transition: opacity var(--transition-fast);
+}
+
+.tag-group-header:hover {
+  opacity: 0.75;
+}
+
+.tag-group-title {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-bottom: 0.5px solid var(--color-border);
+  color: var(--color-ink);
 }
 
-.tags-table td {
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--color-border);
+/* Compteur de tags du groupe (pastille) */
+.tag-group-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  background: var(--color-bg-secondary);
+  color: var(--color-ink-3);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
 }
 
-.tags-table tbody tr:hover {
-  background: var(--color-bg-main);
+.tag-group-chevron {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  color: var(--color-ink-4);
 }
 
-.tags-table tbody tr:last-child td {
-  border-bottom: none;
+.tag-group-chevron::after {
+  content: "›";
+  display: inline-block;
+  transform: rotate(90deg);
+  transition: transform var(--transition-fast);
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
-.tags-table tbody tr.editing {
+/* Chevron replié — piloté par l'état ARIA générique posé par le controller */
+.tag-group-header[aria-expanded="false"] .tag-group-chevron::after {
+  transform: rotate(0deg);
+}
+
+/* === Corps de l'accordéon : liste des tags === */
+.tag-group-body {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0.75rem 0.875rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.tag-group-body[hidden] {
+  display: none;
+}
+
+.tag-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-bg-white);
+  border: var(--border-thin);
+  border-radius: var(--radius-card-compact);
+}
+
+.tag-row.editing {
+  border-color: var(--color-primary);
   background: var(--color-bg-secondary);
 }
 
-.tag-name-cell strong {
-  color: var(--color-ink);
-  font-size: var(--font-size-base);
+.tag-row-name {
   font-weight: 600;
+  color: var(--color-ink);
 }
 
-.tag-usage {
+.tag-row-usage {
   color: var(--color-ink-3);
   font-size: var(--font-size-sm);
 }
 
 .text-muted {
-  color: var(--color-ink-4);
+  color: var(--color-ink-3);
   font-style: italic;
   font-size: var(--font-size-sm);
 }
 
-.actions-column {
-  width: 120px;
-  text-align: center;
+/* Actions : boutons icône à droite, masqués pendant l'édition inline */
+.tag-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
-.actions-cell {
-  text-align: center;
+.tag-row.editing .tag-row-actions {
+  display: none;
 }
 
 /* === Édition inline === */
 
 .tag-display {
   display: flex;
-  align-items: center;
+  align-items: baseline;
+  gap: 0.625rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .tag-edit-form {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .tag-inline-input {
   flex: 1;
-  padding: 0.625rem 0.875rem;
-  border: 0.5px solid var(--color-border);
+  min-width: 0;
+  padding: 0.5rem 0.75rem;
+  border: var(--border-thin);
   border-radius: var(--radius-input);
   font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--color-ink);
   background: var(--color-bg-white);
   transition: var(--transition-normal);
-  min-width: 250px;
 }
 
 .tag-inline-input:focus {
@@ -151,13 +270,15 @@
   box-shadow: var(--shadow-sm);
 }
 
+/* Action principale (enregistrer) = anthracite, cohérent avec .btn-primary.
+  L'ambre est réservé au seul CTA accent de l'app. */
 .btn-icon-save {
-  background: var(--color-accent);
-  color: white;
+  background: var(--color-primary);
+  color: var(--color-bg-white);
 }
 
 .btn-icon-save:hover {
-  background: var(--color-accent-hover);
+  background: var(--color-primary-hover);
   transform: translateY(-1px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }
@@ -168,7 +289,12 @@
 }
 
 .btn-icon-cancel:hover {
-  background: #D1D5DB;
+  /* Lavis d'encre à 8 % plutôt qu'un cran opaque de la rampe : les pas entre
+     surfaces voisines valent ~0,025 en luminance, soit ~1,09:1 — trop fin pour
+     signaler un état. Le lavis donne 1,17:1 contre la surface qu'il recouvre,
+     ici --color-bg-secondary porté par .tag-row.editing, seul contexte où ce
+     bouton est rendu. */
+  background: var(--color-primary-light);
   transform: translateY(-1px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }
@@ -229,86 +355,50 @@
   }
 
   .tags-header h1 {
-    font-size: var(--font-size-xl);
-    text-align: center;
+    justify-content: center;
   }
 
-  /* Table en mode cartes sur mobile */
-  .tags-container .table-container {
-    overflow-x: visible;
-    box-shadow: none;
-    background: transparent;
-  }
-
-  .tags-table {
-    display: block;
-    border: none;
-  }
-
-  .tags-table thead {
-    display: none;
-  }
-
-  .tags-table tbody {
-    display: block;
-  }
-
-  .tags-table tr {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    background: var(--color-bg-white);
-    border-radius: var(--radius-card-compact);
-    padding: 1rem;
-    margin-bottom: 0.75rem;
-    box-shadow: var(--shadow-md);
-    gap: 0.5rem;
-  }
-
-  .tags-table td {
-    padding: 0;
-    border: none;
-  }
-
-  /* LIGNE 1 : Nom (gauche) + Actions (droite) */
-  .tag-name-cell {
-    display: contents;
-  }
-
-  .tag-name-cell strong,
-  .tag-name-cell .tag-display {
-    order: 1;
-    flex: 1;
-    font-size: var(--font-size-lg);
-    font-weight: 600;
-    color: var(--color-ink-2);
-  }
-
-  /* LIGNE 1 : Actions (côté droit) */
-  .actions-cell {
-    display: flex !important;
-    gap: 0.375rem;
-    order: 2;
-    flex-shrink: 0;
-  }
-
-  /* LIGNE 2 : Utilisation */
-  .tags-table td[data-label="Utilisation"] {
-    order: 3;
-    width: 100%;
-  }
-
-  /* Édition inline mobile */
-  .tag-edit-form {
+  /* Barre de création : champs empilés pleine largeur sur mobile */
+  .tag-create-row {
     flex-direction: column;
-    width: 100%;
-    gap: 0.5rem;
+    align-items: stretch;
   }
 
+  .tag-create-select,
+  .tag-create-submit {
+    flex: 1 1 auto;
+  }
+
+  .tag-create-submit {
+    justify-content: center;
+  }
+
+  /* Évite le zoom sur iOS lors du focus des champs texte */
   .tag-inline-input {
-    width: 100%;
-    min-width: 100%;
-    font-size: 16px; /* Évite le zoom sur iOS */
+    font-size: 16px;
+  }
+
+  /* Barre de création : padding horizontal réduit sur mobile */
+  .tag-create {
+    padding: 1rem;
+  }
+
+  /* En-tête d'accordéon : hauteur d'ouverture/fermeture confortable au pouce */
+  .tag-group-header {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  /* Boutons Valider/Annuler de l'édition inline : cible 44px */
+  .btn-icon-save,
+  .btn-icon-cancel {
+    width: var(--min-touch-target);
+    height: var(--min-touch-target);
+  }
+
+  /* Select de création à hauteur tactile */
+  .tag-create-select {
+    min-height: var(--min-touch-target);
   }
 
   .tag-form-container {
@@ -317,25 +407,5 @@
 
   .tag-form .form-actions {
     flex-direction: column;
-  }
-}
-
-@media (min-width: 768px) and (max-width: 1024px) {
-  .tags-container {
-    padding: 1.5rem 1rem;
-  }
-
-  .tags-container .table-container {
-    overflow-x: auto;
-  }
-
-  .tags-table {
-    min-width: 600px;
-  }
-
-  .tags-table th,
-  .tags-table td {
-    padding: 0.875rem 1rem;
-    font-size: var(--font-size-sm);
   }
 }

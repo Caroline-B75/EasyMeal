@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"c:\\\\Caroline\\\\easymeal\" -Force)",
+      "Bash(Select-Object Name, FullName)",
+      "Bash(bin/rails db:migrate)"
+    ]
+  }
+}

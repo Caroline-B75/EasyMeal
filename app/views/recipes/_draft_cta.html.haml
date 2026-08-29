@@ -1,0 +1,33 @@
+-# CTA « Démarrer / Ajouter / Retirer » du menu brouillon — fiche recette (UC4/UC2).
+-# Bascule l'état via toggle_in_draft (Turbo Stream), sans quitter la page :
+-#   - déjà dans le menu   → « Retirer du menu à valider » (état confirmé, retrait au clic)
+-#   - brouillon existant  → « Ajouter au menu à valider »
+-#   - aucun brouillon     → « Démarrer un menu » (crée un brouillon avec cette recette)
+-#
+-# Locals :
+-#   recipe       : Recipe (required)
+-#   in_draft     : Boolean — recette déjà dans le brouillon (required)
+-#   has_draft    : Boolean — l'utilisateur a déjà un menu brouillon (default: true)
+-#   variant      : "hero" (défaut) | "mobile" — gabarit du bouton
+-#   container_id : String — id du wrapper DOM (cible Turbo Stream)
+-#   meal_type    : String, nil — moment du contexte (arrivée depuis un
+-#                  catalogue filtré, UC7) : transporté par le POST, le repas
+-#                  est créé avec ce moment et atterrit dans la bonne section
+- variant = local_assigns.fetch(:variant, "hero")
+- has_draft = local_assigns.fetch(:has_draft, true)
+- meal_type = local_assigns[:meal_type]
+- template_class = variant == "mobile" ? "rs-mobile-cta-btn" : "rs-btn-accent"
+- state_class = in_draft ? "is-in-draft" : "btn-accent"
+- label = in_draft ? "Retirer du menu à valider" : (has_draft ? "Ajouter au menu à valider" : "Démarrer un menu")
+-# En contexte de moment, le tooltip annonce la destination réelle (« aux goûters »).
+-# in_draft implique has_draft : le cas « aucun brouillon » ne concerne que l'ajout.
+- toggle_tooltip = in_draft ? "Retirer cette recette #{draft_toggle_destination(meal_type, :remove)}" : "Ajouter cette recette #{draft_toggle_destination(meal_type, :add)}"
+- tooltip = has_draft ? toggle_tooltip : "Démarrer un nouveau menu avec cette recette"
+%div{ id: container_id }
+  = button_to toggle_in_draft_recipe_path(recipe, meal_type: meal_type),
+              method: :post,
+              class: "#{template_class} #{state_class}",
+              title: tooltip,
+              form: { data: { turbo_stream: true } } do
+    = svg_icon(in_draft ? :check : :plus, size: 15)
+    = label

@@ -24,7 +24,11 @@ Devise.setup do |config|
   # Configure the e-mail address which will be shown in Devise::Mailer,
   # note that it will be overwritten if you use your own mailer class
   # with default "from" parameter.
-  config.mailer_sender = "please-change-me-at-config-initializers-devise@example.com"
+  # Expéditeur des emails de Devise (« mot de passe oublié »). Doit correspondre
+  # à une boîte réellement existante du domaine : les serveurs destinataires
+  # rejettent volontiers un expéditeur que le domaine ne reconnaît pas, et le
+  # SPF de la zone DNS est en -all (rejet strict).
+  config.mailer_sender = ENV.fetch("MAILER_FROM", "contact@myeasymeal.fr")
 
   # Configure the class responsible to send e-mails.
   # config.mailer = 'Devise::Mailer'

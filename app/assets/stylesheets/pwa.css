@@ -1,0 +1,62 @@
+/*
+ * Indicateur global d'état réseau (PWA — R0.3).
+ * Bandeau discret affiché en bas de l'écran : « Hors ligne » / « Synchronisation… ».
+ * Masqué par défaut, révélé par le controller Stimulus network-status.
+ */
+
+.network-status {
+  position: fixed;
+  left: 50%;
+  /* Au-dessus de l'indicateur d'accueil iOS (zone sûre) */
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+  z-index: 1000;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  background: var(--color-ink);
+  color: var(--color-bg-white);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1;
+  box-shadow: var(--shadow-lg);
+
+  /* Masqué par défaut : hors du champ + non interactif, transition douce. */
+  opacity: 0;
+  transform: translate(-50%, 150%);
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.network-status--visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* Point d'état coloré selon la situation. */
+.network-status__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: currentColor;
+  flex: 0 0 auto;
+}
+
+.network-status--offline {
+  background: var(--color-ink-2);
+}
+
+.network-status--offline .network-status__dot {
+  background: var(--color-danger);
+}
+
+.network-status--syncing .network-status__dot {
+  background: var(--color-accent);
+  animation: network-status-pulse 1s ease-in-out infinite;
+}
+
+@keyframes network-status-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}

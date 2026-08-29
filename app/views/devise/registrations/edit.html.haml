@@ -1,0 +1,75 @@
+-# « Mon compte » : ce qui identifie la personne (pseudo, nom, courriel) et son
+-# mot de passe. Les réglages de l'application — nombre de personnes, régime,
+-# semaine type — vivent ailleurs, dans les préférences du profil : on ne mélange
+-# pas « qui je suis » et « comment je cuisine ».
+-#
+-# authentication.css est déjà inclus dans le bundle global application.css :
+-# pas de stylesheet_link_tag séparé ici (évite un asset data-turbo-track qui
+-# force un rechargement complet lors des visites Turbo).
+.auth-container
+  .auth-card
+    .auth-header.user-form-header
+      %h1.auth-title Mon compte
+      %p.auth-subtitle Tes informations et ton mot de passe
+
+    = simple_form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put, class: 'auth-form' }) do |f|
+      = f.error_notification
+
+      .form-fields
+        / Username
+        .form-group
+          = f.input :username, required: true, autofocus: true,
+                    input_html: { class: 'form-input', autocomplete: "username" },
+                    label_html: { class: 'form-label' }, wrapper_html: { class: 'input-wrapper' }
+
+        / First Name & Last Name (side by side)
+        .form-row
+          .form-group.form-group-half
+            = f.input :first_name, required: true,
+                      input_html: { class: 'form-input', autocomplete: "given-name" },
+                      label_html: { class: 'form-label' }, wrapper_html: { class: 'input-wrapper' }
+
+          .form-group.form-group-half
+            = f.input :last_name, required: true,
+                      input_html: { class: 'form-input', autocomplete: "family-name" },
+                      label_html: { class: 'form-label' }, wrapper_html: { class: 'input-wrapper' }
+
+        / Gender
+        .form-group
+          = f.input :gender, required: true, collection: [['Homme', 'male'], ['Femme', 'female']],
+                    input_html: { class: 'form-input' },
+                    label_html: { class: 'form-label' }, wrapper_html: { class: 'input-wrapper' }
+
+        / Email
+        .form-group
+          = f.input :email, required: true,
+                    input_html: { class: 'form-input', autocomplete: "email" },
+                    label_html: { class: 'form-label' }, wrapper_html: { class: 'input-wrapper' }
+
+        -# Le mot de passe se change ici, ou pas du tout : deux champs laissés
+        -# vides valent « je n'y touche pas », et c'est le cas le plus courant
+        -# sur cette page — d'où le rappel explicite plutôt qu'un champ requis.
+        = render "devise/password_field", f: f, attribute: :password, label: "Nouveau mot de passe",
+                 required: false, autocomplete: "new-password",
+                 hint: "Laisse vide pour garder ton mot de passe actuel"
+
+        = render "devise/password_field", f: f, attribute: :password_confirmation,
+                 label: "Confirme le nouveau mot de passe", required: false, autocomplete: "new-password"
+
+        -# Devise exige le mot de passe actuel pour toute modification du compte :
+        -# c'est ce qui empêche un écran laissé ouvert de changer une adresse
+        -# de courriel, donc de détourner le compte.
+        = render "devise/password_field", f: f, attribute: :current_password, label: "Mot de passe actuel",
+                 required: true, autocomplete: "current-password",
+                 hint: "Nécessaire pour enregistrer, même sans changer de mot de passe"
+
+      / Submit Button
+      .form-actions
+        = f.button :submit, "Enregistrer", class: "btn btn-primary btn-large"
+
+    .auth-footer
+      .auth-links
+        %p.auth-link-text
+          = link_to "Préférences de menus", preferences_profile_path, class: "auth-link"
+        %p.auth-link-text
+          = link_to "Retour à l'accueil", root_path, class: "auth-link-secondary"

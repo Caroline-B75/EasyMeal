@@ -7,23 +7,48 @@ export default class extends Controller {
     id: Number,
     name: String,
     displayName: String,
-    baseUnit: String
+    // Libellé de l'option du sélecteur d'ingrédient, unité comprise, composé
+    // par Ingredient#select_label : l'option ajoutée ici doit se lire et se
+    // trier exactement comme celles rendues par le serveur.
+    optionLabel: String,
+    baseUnit: String,
+    unitGroup: String,
+    // Absents quand l'ingrédient ne porte pas ce coefficient : Stimulus rend
+    // alors 0, que le panneau IA lit comme « pas de pont » — de pièce à masse
+    // pour le poids unitaire, de volume à masse pour la densité.
+    pieceWeight: Number,
+    density: Number,
+    // « ai » quand la densité n'est qu'une estimation : le panneau le signale.
+    densitySource: String
   }
 
   connect() {
-    // Mettre à jour tous les selects d'ingrédients
     this.updateIngredientSelects()
 
-    // Présélectionner le nouvel ingrédient dans le premier select vide
-    this.preselectIngredient()
-    
-    // Afficher le flash message dans le container global
+    // Notifie les autres controllers (ex: ai-panel). Celui qui prend en charge
+    // le nouvel ingrédient annule l'événement : il pose lui-même la ligne, avec
+    // la quantité détectée par l'IA. Sans cette revendication, la
+    // présélection ci-dessous garnirait en plus la ligne vide du formulaire —
+    // le même ingrédient en double, et celui-là sans quantité.
+    const claimed = !document.dispatchEvent(new CustomEvent('easymeal:ingredientCreated', {
+      bubbles: true,
+      cancelable: true,
+      detail: {
+        id: this.idValue,
+        name: this.nameValue,
+        displayName: this.displayNameValue,
+        optionLabel: this.optionLabelValue,
+        baseUnit: this.baseUnitValue,
+        unitGroup: this.unitGroupValue,
+        pieceWeight: this.pieceWeightValue,
+        density: this.densityValue,
+        densitySource: this.densitySourceValue
+      }
+    }))
+
+    if (!claimed) this.preselectIngredient()
     this.showFlashMessage()
-    
-    // Fermer le slideout
     this.closeSlideout()
-    
-    // Supprimer cet élément après exécution
     setTimeout(() => this.element.remove(), 100)
   }
 
@@ -32,10 +57,13 @@ export default class extends Controller {
 
     selects.forEach(select => {
       if (!select.querySelector(`option[value="${this.idValue}"]`)) {
+        // Mêmes données que les options rendues par le serveur : l'unité de base
+        // et le groupe d'unités, dont ingredient-unit tire les unités saisissables.
         const option = document.createElement('option')
         option.value = this.idValue
-        option.textContent = this.displayNameValue
+        option.textContent = this.optionLabelValue
         option.dataset.unit = this.baseUnitValue
+        option.dataset.unitGroup = this.unitGroupValue
 
         // Insertion alphabétique
         const existingOptions = Array.from(select.querySelectorAll('option'))
@@ -43,7 +71,7 @@ export default class extends Controller {
 
         let inserted = false
         for (const existingOption of ingredientOptions) {
-          if (existingOption.textContent.localeCompare(this.displayNameValue, 'fr', { sensitivity: 'base' }) > 0) {
+          if (existingOption.textContent.localeCompare(this.optionLabelValue, 'fr', { sensitivity: 'base' }) > 0) {
             select.insertBefore(option, existingOption)
             inserted = true
             break

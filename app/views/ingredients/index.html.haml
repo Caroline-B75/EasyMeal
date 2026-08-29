@@ -7,24 +7,52 @@
     - if policy(Ingredient).create?
       = link_to "Ajouter un ingrédient", new_ingredient_path, class: "btn btn-primary"
 
-  -# Filtres et recherche
+  -# Filtres et recherche — le formulaire se soumet de lui-même à chaque
+  -# changement (contrôleur `filter-form`), il n'a donc pas de bouton d'envoi.
+  -# Il vit hors du turbo-frame qu'il recharge : jamais re-rendu, donc le focus
+  -# et le curseur restent dans le champ de recherche pendant la frappe.
+  - filters_active = [params[:query], params[:category], params[:month], params[:seasonal], params[:to_check]].any?(&:present?)
+  - month_names = t("date.month_names")
   .ingredients-filters
-    = form_with url: ingredients_path, method: :get, class: "search-form", data: { turbo_frame: "ingredients_list" } do |f|
+    = form_with url: ingredients_path, method: :get, class: "search-form",
+                data: { turbo_frame: "ingredients_list", controller: "filter-form" } do |f|
       .search-group
-        = f.text_field :query, value: params[:query], placeholder: "Rechercher un ingrédient...", class: "search-input"
+        = f.text_field :query, value: params[:query],
+                       placeholder: "Rechercher un ingrédient...",
+                       class: "search-input",
+                       data: { action: "input->filter-form#submitDebounced keydown.enter->filter-form#submit" }
 
-        = f.select :category, options_for_select(Ingredient.categories.map { |k, v| [Ingredient.human_attribute_name("category.#{k}"), k] }, params[:category]), { include_blank: "Tous les rayons" }, class: "filter-select"
+        = f.select :category,
+                   options_for_select(Ingredient.enum_options(:category), params[:category]),
+                   { include_blank: "Tous les rayons" },
+                   class: "filter-select", data: { action: "change->filter-form#submit" }
 
-        = f.select :month, options_for_select((1..12).map { |m| [Date::MONTHNAMES[m], m] }, params[:month]), { include_blank: "Tous les mois" }, class: "filter-select"
+        = f.select :month,
+                   options_for_select((1..12).map { |m| [month_names[m], m] }, params[:month]),
+                   { include_blank: "Tous les mois" },
+                   class: "filter-select", data: { action: "change->filter-form#submit" }
 
         %label.season-checkbox
-          = f.check_box :seasonal, {}, "true", nil
+          = f.check_box :seasonal,
+                        { checked: params[:seasonal] == "true", data: { action: "change->filter-form#submit" } },
+                        "true", nil
           %span Ingrédients de saison
 
-        = f.submit "Rechercher", class: "btn btn-secondary"
+        -# Sans ce filtre, une densité estimée ne se retrouverait qu'au hasard des
+        -# pages : la pastille signale, celui-ci rassemble.
+        %label.season-checkbox
+          = f.check_box :to_check,
+                        { checked: params[:to_check] == "true", data: { action: "change->filter-form#submit" } },
+                        "true", nil
+          %span Densité à vérifier
 
-        - if params[:query].present? || params[:category].present? || params[:month].present? || params[:seasonal].present?
-          = link_to "Réinitialiser", ingredients_path, class: "btn btn-link"
+        -# Lien plutôt que bouton : effacer les filtres revient à revenir à
+        -# l'index nu, ce qu'une navigation fait déjà très bien. Sa visibilité,
+        -# elle, suit les filtres en direct — d'où l'état initial rendu ici et
+        -# repris ensuite par le contrôleur.
+        = link_to "Effacer les filtres", ingredients_path,
+                  class: "btn btn-link#{' hidden' unless filters_active}",
+                  data: { filter_form_target: "clear" }
 
   -# Table des ingrédients
   = turbo_frame_tag "ingredients_list" do
@@ -34,22 +62,24 @@
           %thead
             %tr
               %th Nom
-              %th Rayon
+              %th.category-column Rayon
               %th Saison
               %th.actions-column Actions
           %tbody
+            - abbr_month_names = t("date.abbr_month_names")
             - @ingredients.each do |ingredient|
               %tr
                 %td.ingredient-name-cell{ data: { label: "Nom" } }
                   %strong
-                    = ingredient.name
+                    = link_to ingredient.name, ingredient_path(ingredient), class: "ingredient-name-link", data: { turbo_frame: "_top" }
                     %span.unit-inline= "(#{ingredient.base_unit})"
+                    = density_to_check_badge(ingredient)
                   - if ingredient.aliases.present?
                     %small.aliases= ingredient.aliases.is_a?(Array) ? ingredient.aliases.join(', ') : ingredient.aliases.values.join(', ')
 
-                %td{ data: { label: "Rayon" } }
-                  %span{ class: "category-badge category-#{ingredient.category}" }
-                    = Ingredient.human_attribute_name("category.#{ingredient.category}")
+                %td.category-cell{ data: { label: "Rayon" } }
+                  %span.category-badge{ data: { category: ingredient.category } }
+                    = Ingredient.enum_label(:category, ingredient.category)
 
                 %td{ data: { label: "Saison" } }
                   - if ingredient.season_months.present? && ingredient.season_months.length == 12
@@ -57,7 +87,7 @@
                   - elsif ingredient.season_months.present?
                     .season-months
                       - ingredient.season_months.sort.each do |month|
-                        %span.month-tag= Date::ABBR_MONTHNAMES[month]
+                        %span.month-tag= abbr_month_names[month]
 
                 %td.actions-cell{ data: { label: "Actions" } }
                   - if policy(ingredient).edit?
@@ -78,9 +108,12 @@
 
     - else
       .empty-state
-        %p Aucun ingrédient trouvé.
+        .empty-state-icon
+          = svg_icon(:leaf, size: 56)
+        %h2 Aucun ingrédient trouvé
+        %p Ajuste ta recherche ou ajoute un premier ingrédient à ton catalogue.
         - if policy(Ingredient).create?
-          = link_to "Créer le premier ingrédient", new_ingredient_path, class: "btn btn-primary"
+          = link_to "Ajouter un ingrédient", new_ingredient_path, class: "btn btn-primary"
 
   -# Modal de confirmation de suppression
   = render "shared/delete_confirmation_modal"

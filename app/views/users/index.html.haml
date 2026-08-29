@@ -1,0 +1,65 @@
+-# Page de gestion des utilisateurs (admin only)
+- content_for :title, "Utilisateurs"
+
+.users-container
+  .users-header
+    .users-header__content
+      %span.users-kicker ADMIN
+      %h1.users-title Gestion des utilisateurs
+      %p.users-subtitle Pilote les comptes, les préférences par défaut et les droits d'administration.
+    .users-header__meta
+      %span.users-count= pluralize(@users_count, "utilisateur", "utilisateurs")
+
+  - if @users.any?
+    .users-table-wrap
+      %table.users-table
+        %thead
+          %tr
+            %th Utilisateur
+            %th Rôle
+            %th Préférences
+            %th Menus créés
+            %th Inscription
+            %th Actions
+        %tbody
+          - @users.each do |user|
+            %tr
+              %td.users-identity-cell
+                .users-avatar= user_initials(user)
+                .users-identity
+                  %strong= "#{user.first_name} #{user.last_name}"
+                  %span= user.email
+                  %small= "@#{user.username}"
+              %td
+                - if user.admin?
+                  %span.badge.badge-dark Admin
+                - else
+                  %span.badge Membre
+              %td
+                .users-preferences
+                  %span= menu_diet_label(user.default_diet)
+                  -# Le détail par moment est une affaire d'utilisatrice : la
+                  -# supervision se contente du volume de sa semaine type.
+                  %small= "#{user.default_people} pers. · #{user.preferred_meal_counts.total} repas"
+                  - unless user.preferences_configured?
+                    %span.users-warning Préférences à confirmer
+              %td
+                %span.users-menu-count= user.menus_count
+              %td
+                %time{ datetime: user.created_at.iso8601 }= l(user.created_at.to_date)
+              %td.users-actions
+                .users-actions__inner
+                  = link_to edit_user_path(user), class: "icon-btn icon-btn-edit", title: "Modifier", "aria-label": "Modifier #{user.email}" do
+                    = svg_icon(:edit, size: 16)
+                  - if user == current_user
+                    %span.icon-btn.icon-btn-disabled{ title: "Compte courant", "aria-label": "Suppression désactivée pour le compte courant" }
+                      = svg_icon(:trash, size: 16)
+                  - else
+                    = button_to user_path(user), method: :delete, class: "icon-btn icon-btn-delete", data: { turbo_confirm: "Supprimer définitivement le compte #{user.email} ?" }, form: { data: { turbo_confirm: "Supprimer définitivement le compte #{user.email} ?" } }, title: "Supprimer", "aria-label": "Supprimer #{user.email}" do
+                      = svg_icon(:trash, size: 16)
+  - else
+    .empty-state
+      .empty-state-icon
+        = svg_icon(:list, size: 56)
+      %h2 Aucun utilisateur trouvé
+      %p Les nouveaux comptes apparaîtront ici après inscription.

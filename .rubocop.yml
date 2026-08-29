@@ -21,13 +21,9 @@ Layout/LineLength:
     - "config/initializers/devise.rb"
 
 # Longueur maximale d'une méthode : 20 lignes (simplicité)
-# ingredient.rb : human_attribute_name est une table de correspondance catégorie → libellé,
-#   intentionnellement longue et non décomposable sans perte de lisibilité.
 Metrics/MethodLength:
   Max: 20
   Enabled: true
-  Exclude:
-    - "app/models/ingredient.rb"
 
 # Longueur maximale d'une classe : 150 lignes
 Metrics/ClassLength:

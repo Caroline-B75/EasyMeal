@@ -6,15 +6,20 @@
   .tags-header
     %h1 Tes tags
 
-  -# Table des tags avec édition inline
+  -# Formulaire de création rapide (ajout d'un tag à la volée)
+  = render "tags/new_tag_form", tag: (@tag || Tag.new), autofocus: false
+
+  -# Liste des tags en accordéons (édition inline dans chaque groupe)
   - if @tags.any?
-    .table-container
-      = turbo_frame_tag "tags_list" do
-        = render "tags/tags_list", tags: @tags
+    = turbo_frame_tag "tags_list" do
+      = render "tags/tags_list", tags: @tags, recipe_counts: @recipe_counts
 
   - else
     .empty-state
-      %p Aucun tag trouvé.
+      .empty-state-icon
+        = svg_icon(:list, size: 56)
+      %h2 Aucun tag trouvé
+      %p Crée ton premier tag avec le formulaire ci-dessus pour catégoriser tes recettes.
 
   -# Modal de confirmation de suppression (réutilisation du composant existant)
   = render "shared/delete_confirmation_modal", resource_name: "tag"

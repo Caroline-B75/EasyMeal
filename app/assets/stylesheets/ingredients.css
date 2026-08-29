@@ -6,10 +6,10 @@
 
 /* === Container principal === */
 .ingredients-container {
+  width: 100%;
   max-width: 1400px;
   margin: 0 auto;
   padding: 2rem 1rem;
-  width: 50%;
 }
 
 .ingredients-header {
@@ -19,8 +19,8 @@
   margin-bottom: 2rem;
 }
 
+/* La taille suit l'échelle fluide de la règle de base h1 (global.css). */
 .ingredients-header h1 {
-  font-size: var(--font-size-3xl);
   font-weight: 600;
   color: var(--color-ink);
   margin: 0;
@@ -53,7 +53,7 @@
   flex: 1;
   min-width: 250px;
   padding: 0.75rem 1rem;
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   border-radius: var(--radius-input);
   font-size: var(--font-size-base);
   background: var(--color-bg-white);
@@ -69,7 +69,7 @@
 
 .filter-select {
   padding: 0.75rem 1rem;
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   border-radius: var(--radius-input);
   font-size: var(--font-size-base);
   background: var(--color-bg-white);
@@ -122,7 +122,7 @@
 }
 
 .ingredients-table thead {
-  background: var(--color-bg-main);
+  background: var(--color-ink-4);
 }
 
 .ingredients-table th {
@@ -133,7 +133,7 @@
   font-size: var(--font-size-sm);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 0.5px solid var(--color-border);
+  border-bottom: var(--border-thin);
 }
 
 .ingredients-table td {
@@ -143,6 +143,30 @@
 
 .ingredients-table tbody tr:hover {
   background: var(--color-bg-main);
+}
+
+/* Colonne Rayon : largeur fixe pour que tous les badges tombent à la même
+   largeur, quel que soit le libellé. Le plus long (« Produits frais en
+   libre-service ») tient sur une ligne dans cette largeur ; s'il déborde
+   malgré tout — zoom texte, police système large — il passe à la ligne plutôt
+   que d'étirer la colonne, d'où le white-space remis à normal. */
+.category-column,
+.category-cell {
+  width: 18rem;
+}
+
+.category-cell .category-badge {
+  display: block;
+  width: 100%;
+  text-align: center;
+  white-space: normal;
+}
+
+/* Le frame des résultats se recharge à chaque filtre : on l'estompe le temps de
+   la requête plutôt que de laisser croire que rien ne s'est passé. */
+#ingredients_list[busy] {
+  opacity: 0.6;
+  transition: opacity var(--transition-fast);
 }
 
 .ingredients-table tbody tr:last-child td {
@@ -176,6 +200,8 @@
 
 .actions-cell {
   text-align: center;
+  /* Boutons icône (modifier/supprimer) maintenus sur une seule ligne — cf. tags.css. */
+  white-space: nowrap;
 }
 
 /* === Pagination === */
@@ -259,7 +285,6 @@
   }
 
   .ingredients-header h1 {
-    font-size: var(--font-size-2xl);
     text-align: center;
   }
 
@@ -356,7 +381,7 @@
     order: 3;
     width: 100%;
     font-size: var(--font-size-xs);
-    color: var(--color-ink-4);
+    color: var(--color-ink-3);
     font-style: italic;
     margin-bottom: 0.25rem;
   }
@@ -370,10 +395,17 @@
   }
 
   /* LIGNE 3 : Rayon */
-  .ingredients-table td[data-label="Rayon"] {
+  .ingredients-table .category-cell {
     order: 4;
     width: 100%;
     margin-bottom: 0.25rem;
+  }
+
+  /* En carte, le badge reprend sa largeur naturelle : la colonne qu'il alignait
+     n'existe plus, et un aplat pleine largeur écraserait la carte. */
+  .ingredients-table .category-cell .category-badge {
+    display: inline-block;
+    width: auto;
   }
 
   /* LIGNE 4 : Mois de saison */
@@ -442,5 +474,89 @@
   .ingredients-table td {
     padding: 0.875rem 1rem;
     font-size: 0.9375rem;
+  }
+}
+
+/* ============================================
+   Nom cliquable dans l'index (→ fiche ingrédient)
+   ============================================ */
+.ingredient-name-link {
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.ingredient-name-link:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+/* ============================================
+   Fiche ingrédient (show)
+   ============================================ */
+.show-container {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.show-header {
+  margin-bottom: 1.5rem;
+}
+
+/* La taille suit l'échelle fluide de la règle de base h1 (global.css). */
+.show-header h1 {
+  font-weight: 600;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+.show-card {
+  background: var(--color-bg-white);
+  border: var(--border-thin);
+  border-radius: var(--radius-card);
+  padding: 1.5rem;
+}
+
+.detail-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.detail-label {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+
+.detail-value {
+  font-size: var(--font-size-base);
+  color: var(--color-ink);
+}
+
+.show-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: var(--border-thin);
+}
+
+/* Sur mobile, les actions (Modifier / Supprimer) s'empilent en pleine largeur. */
+@media (max-width: 767px) {
+  .show-actions {
+    flex-direction: column;
+  }
+
+  .show-actions .btn {
+    width: 100%;
   }
 }

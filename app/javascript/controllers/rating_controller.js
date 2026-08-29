@@ -17,11 +17,24 @@ export default class extends Controller {
   static targets = ["star"]
 
   /**
+   * Reflète la note déjà cochée (formulaire réaffiché après une erreur)
+   */
+  connect() {
+    const checked = this.element.querySelector("input[type=radio]:checked")
+    this.render(checked ? parseInt(checked.value) : 0)
+  }
+
+  /**
    * Met à jour l'affichage des étoiles lors de la sélection
    */
   update(event) {
-    const selectedValue = parseInt(event.target.value)
-    
+    this.render(parseInt(event.target.value))
+  }
+
+  /**
+   * Remplit les `value` premières étoiles, vide les suivantes
+   */
+  render(selectedValue) {
     this.starTargets.forEach((star, index) => {
       // index est 0-based, selectedValue est 1-based
       if (index < selectedValue) {

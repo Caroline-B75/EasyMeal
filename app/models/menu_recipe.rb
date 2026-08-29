@@ -4,12 +4,12 @@
 # Stocke le nombre de personnes spécifique pour chaque repas du menu,
 # permettant un override local du nombre de convives recette par recette.
 #
-# Règle : une recette ne peut apparaître qu'UNE FOIS dans un menu donné
-# (contrainte DB unique sur menu_id + recipe_id + validation Rails).
+# Une même recette peut apparaître PLUSIEURS FOIS dans un menu (UC7) : dans la
+# vraie vie, le petit-déjeuner est souvent le même tous les matins de la semaine.
 class MenuRecipe < ApplicationRecord
-  # === Constantes ===
-  # Types de repas disponibles
-  MEAL_TYPES = %w[breakfast lunch dinner snack].freeze
+  # === Concerns ===
+  # Fournit MEAL_TYPES, le vocabulaire partagé avec Recipe
+  include MealTypes
 
   # === Associations ===
   belongs_to :menu
@@ -25,25 +25,30 @@ class MenuRecipe < ApplicationRecord
 
   validates :meal_type, inclusion: { in: MEAL_TYPES, allow_blank: true }
 
-  # Unicité de la recette dans un menu (filet de sécurité côté Rails,
-  # la contrainte DB unique sur menu_id+recipe_id est le vrai garde-fou)
-  validates :recipe_id, uniqueness: {
-    scope: :menu_id,
-    message: "est déjà dans ce menu"
-  }
+  # day_of_week (0 = dimanche … 6 = samedi) est volontairement SANS validation :
+  # le cahier des charges UC7 en fait une pure annotation, sans tri ni
+  # groupement — elle ne fait que teinter la carte pour la repérer d'un coup
+  # d'œil. C'est ce « rien » qui la rend sans effet de bord.
 
   # === Scopes ===
   # Trie par position (ordre défini par l'utilisateur via drag & drop)
   scope :by_position, -> { order(:position) }
 
-  # Trie par date planifiée
-  scope :chronological, -> { order(:scheduled_date, :meal_type) }
-
   # Filtre par type de repas
   scope :for_meal, ->(type) { where(meal_type: type) }
 
-  # Recettes d'une date spécifique
-  scope :on_date, ->(date) { where(scheduled_date: date) }
+  # Repas rangés sous un moment donné à l'AFFICHAGE (UC7) : ceux de ce moment,
+  # plus — pour le déjeuner — les repas sans moment, que display_meal_type y
+  # range déjà. C'est la contrepartie SQL de cette règle : sans elle, les
+  # steppers de répartition du panneau de réglages compteraient des repas
+  # qu'ils ne sauraient pas retirer.
+  scope :displayed_as, lambda { |meal_type|
+    if meal_type.to_s == MealCounts::UNTYPED_MEAL_TYPE
+      where(meal_type: [ meal_type, nil ])
+    else
+      for_meal(meal_type)
+    end
+  }
 
   # === Délégations ===
   delegate :name, :default_servings, to: :recipe, prefix: true
@@ -56,19 +61,12 @@ class MenuRecipe < ApplicationRecord
     number_of_people.to_f / recipe_default_servings
   end
 
-  # Retourne les quantités d'ingrédients adaptées pour ce menu_recipe
-  # Utilise le service ScaleService pour le calcul
-  # @return [Array<Hash>] Liste des ingrédients avec leurs quantités adaptées
-  def scaled_ingredients
-    Quantities::ScaleService.call(recipe: recipe, servings: number_of_people)
-  end
-
-  # Libellé du type de repas en français
-  # @return [String] Nom du repas traduit
-  def meal_type_label
-    return nil if meal_type.blank?
-
-    I18n.t("menu_recipes.meal_types.#{meal_type}", default: meal_type.humanize)
+  # Moment affiché de ce repas (UC7) : le sien, ou le moment neutre des repas
+  # sans moment (brouillons d'avant les quotas) — même règle que leur comptage
+  # face à la commande (MealCounts::UNTYPED_MEAL_TYPE).
+  # @return [String]
+  def display_meal_type
+    meal_type.presence || MealCounts::UNTYPED_MEAL_TYPE
   end
 
   # Affichage formaté pour l'interface

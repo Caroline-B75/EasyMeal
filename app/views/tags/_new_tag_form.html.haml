@@ -1,0 +1,26 @@
+-# Formulaire de création rapide d'un tag (admin only).
+-# Répond en Turbo Stream : succès -> liste rafraîchie + formulaire vidé ;
+-# erreur -> ce formulaire réaffiché avec les messages d'erreur.
+-# Le controller tag-form (focus auto) n'est attaché qu'après une soumission
+-# (autofocus: true) pour ne pas voler le focus au chargement initial.
+%section#new_tag_form.tag-create{ data: (autofocus ? { controller: "tag-form" } : {}) }
+  = form_with model: tag, url: tags_path, method: :post, class: "tag-create-form" do |f|
+    .tag-create-row
+      .tag-create-field{ class: field_error_class(tag, :name) }
+        = f.label :name, "Nom du nouveau tag", class: "sr-only"
+        = f.text_field :name,
+                       class: "tag-inline-input",
+                       placeholder: "Nom du tag",
+                       required: true,
+                       data: { tag_form_target: "input" },
+                       "aria-label": "Nom du nouveau tag"
+      .tag-create-field
+        = f.label :tag_type, "Type du tag", class: "sr-only"
+        = f.select :tag_type,
+                   options_for_select(Tag::TAG_TYPE_LABELS.map { |key, label| [ label, key ] }, tag.tag_type),
+                   { prompt: "Type…" },
+                   { class: "tag-create-select", required: true, "aria-label": "Type du tag" }
+      %button.btn.btn-primary.tag-create-submit{ type: "submit" }
+        = svg_icon(:plus, size: 18)
+        Ajouter
+    = field_errors(tag, :name)

@@ -1,20 +1,33 @@
--# Turbo Stream : toggle ajout/retrait d'une recette dans le menu brouillon
--# Remplace 3 cibles : le bouton draft sur la carte, la barre contextuelle, le flash
+-# Turbo Stream : toggle ajout/retrait d'une recette dans le menu brouillon.
+-# Met à jour toutes les cibles présentes selon le contexte ; celles absentes
+-# de la page courante (index vs fiche) sont ignorées côté client (no-op).
 
-- draft_count = @draft.menu_recipes.size
-
--# 1. Remplace le bouton draft sur la carte de la recette
+-# 1. Bouton draft compact sur la carte de la recette (index).
+-#    Le contexte de moment (UC7) est reconduit : les toggles suivants
+-#    continuent de viser la même section du brouillon.
 = turbo_stream.replace "draft-btn-#{@recipe.id}" do
   = render "recipes/draft_button", recipe: @recipe,
                                     in_draft: @added,
-                                    container_id: "draft-btn-#{@recipe.id}"
+                                    container_id: "draft-btn-#{@recipe.id}",
+                                    meal_type: context_meal_type
 
--# 2. Remplace la barre contextuelle (compteur mis à jour)
-= turbo_stream.replace "draft-status-bar" do
-  = render "recipes/draft_status_bar", draft: @draft
+-# 2. Rail « menu à valider » : compteur + vignettes (index)
+= turbo_stream.replace "draft-rail" do
+  = render "recipes/draft_rail", draft: @draft, meals: @draft_meals
 
--# 3. Affiche le flash de confirmation (wrapper #flash préservé pour les remplacements suivants)
-- notice_msg = @added ? "\"#{@recipe.name}\" ajoutée au menu brouillon (#{draft_count} recette#{'s' if draft_count != 1})" : "\"#{@recipe.name}\" retirée du menu brouillon (#{draft_count} recette#{'s' if draft_count != 1})"
+-# 3. CTAs Ajouter/Retirer de la fiche recette (hero + barre mobile).
+-#    has_draft: true — après un toggle, le brouillon existe forcément.
+= turbo_stream.replace "draft-cta-hero-#{@recipe.id}" do
+  = render "recipes/draft_cta", recipe: @recipe, in_draft: @added, has_draft: true,
+                                variant: "hero", container_id: "draft-cta-hero-#{@recipe.id}",
+                                meal_type: context_meal_type
+= turbo_stream.replace "draft-cta-mobile-#{@recipe.id}" do
+  = render "recipes/draft_cta", recipe: @recipe, in_draft: @added, has_draft: true,
+                                variant: "mobile", container_id: "draft-cta-mobile-#{@recipe.id}",
+                                meal_type: context_meal_type
+
+-# 4. Affiche le flash de confirmation (wrapper #flash préservé pour les remplacements suivants)
 = turbo_stream.update "flash" do
   .flash-message.notice{ data: { controller: "flash" } }
-    = notice_msg
+    = draft_change_notice(recipe_name: @recipe.name, count: @draft_meals.size,
+                          added: @added, draft_created: @draft_created)

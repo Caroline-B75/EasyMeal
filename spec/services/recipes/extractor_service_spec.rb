@@ -1,0 +1,261 @@
+# frozen_string_literal: true
+
+require "rails_helper"
+require_relative "../../support/recipe_page_fixtures"
+
+# Spec de Recipes::ExtractorService, né comme filet de sécurité avant le
+# découpage du service : si un exemple rougit après un refactoring, c'est que le
+# comportement a bougé.
+#
+# Le service ne fait plus que de l'orchestration : le HTTP vers les sites
+# (PageFetcher), la lecture des pages (SchemaOrgParser), l'écriture des prompts
+# (ClaudePrompts) et l'appel à l'API (ClaudeClient) ont chacun leur classe et
+# leur spec. Ces collaborateurs sont donc simulés ici, et les exemples vérifient
+# qui est appelé, avec quoi, et ce qu'on fait de la réponse.
+#
+# Écrits d'abord en tests de caractérisation, ces exemples ont mis au jour six
+# bugs, tous corrigés depuis ; le seul qui touche encore à l'orchestration garde
+# ici un exemple de non-régression marqué « RÉGRESSION » (les autres ont suivi
+# leur méthode dans schema_org_parser_spec.rb et claude_client_spec.rb) :
+#   6. le repli « chaînes brutes » de la structuration des ingrédients était
+#      inatteignable, son `rescue ExtractionError` ne pouvant pas s'armer tant
+#      que l'appel à l'IA levait un NameError (RÉGRESSION n°5).
+RSpec.describe Recipes::ExtractorService do
+  include RecipePageFixtures
+
+  let(:url) { "https://exemple.fr/recette" }
+
+  # Demandes soumises à l'IA, une par appel ({ messages:, schema: }) :
+  # ClaudeClient étant simulé, c'est ainsi qu'on inspecte ce que le service lui
+  # a confié.
+  let(:claude_calls) { [] }
+
+  # IA scellée par défaut : tout appel non explicitement simulé par l'exemple
+  # lève une erreur bruyante.
+  before do
+    allow(Recipes::ClaudeClient).to receive(:call) do
+      raise "Appel à l'IA non simulé dans cet exemple"
+    end
+  end
+
+  # ── Simulation des collaborateurs ───────────────────────────────────────
+
+  # La récupération de la page relève de PageFetcher, testé pour lui-même :
+  # ici on lui substitue la page voulue. Le `with(url)` vérifie au passage que
+  # le service lui transmet bien l'URL reçue.
+  def stub_page(html)
+    allow(Recipes::PageFetcher).to receive(:call).with(url).and_return(html)
+  end
+
+  # @param answer [Object] ce que l'IA retourne (déjà analysé par ClaudeClient)
+  def stub_claude(answer)
+    allow(Recipes::ClaudeClient).to receive(:call) do |request|
+      claude_calls << request
+      answer
+    end
+  end
+
+  # Panne de l'IA : ClaudeClient traduit toutes les siennes en ExtractionError.
+  def stub_claude_failure(message = "Erreur API Claude (529) : overloaded_error")
+    allow(Recipes::ClaudeClient).to receive(:call) do |request|
+      claude_calls << request
+      raise Recipes::ExtractionError, message
+    end
+  end
+
+  # Classement rendu par l'IA — ce que le schema.org ne dit jamais.
+  let(:classification) do
+    {
+      "difficulty" => "facile",
+      "diet"       => "vegetarien",
+      "price"      => "economique",
+      "meal_types" => [ "lunch", "dinner" ],
+      "tags"       => [ "de saison" ],
+      "ingredients" => []
+    }
+  end
+
+  # Recette telle que le service la reconstruit depuis schema_recipe, une fois
+  # l'IA passée.
+  let(:extracted_recipe) do
+    {
+      "name"               => "Tarte aux poireaux",
+      "description"        => "Une tarte salée de saison",
+      "default_servings"   => 6,
+      "prep_time_minutes"  => 20,
+      "cook_time_minutes"  => 40,
+      "total_time_minutes" => 60,
+      "appliance"          => nil,
+      "instructions"       => "1. Préchauffer le four.\n2. Enfourner 40 minutes.",
+      "difficulty"         => "facile",
+      "diet"               => "vegetarien",
+      "price"              => "economique",
+      "meal_types"         => [ "lunch", "dinner" ],
+      "tags"               => [ "de saison" ],
+      "ingredients"        => []
+    }
+  end
+
+  # ── from_url : chemin schema.org ────────────────────────────────────────
+
+  describe ".from_url avec du schema.org" do
+    it "reconstruit les faits depuis le schema.org et complète avec le classement de l'IA" do
+      stub_page(page_with_json_ld(schema_recipe))
+      stub_claude(classification)
+
+      expect(described_class.from_url(url)).to eq(extracted_recipe)
+    end
+
+    # Le site publie déjà les faits : l'IA n'est appelée qu'une fois, pour les
+    # deux choses qu'il ne dit pas — les ingrédients découpés et le classement.
+    it "confie les ingrédients bruts et le classement à un seul appel" do
+      schema     = schema_recipe.merge("recipeIngredient" => [ "200 g de farine", "", "3 oeufs" ])
+      structured = [
+        { "name" => "farine", "quantity" => 200, "unit" => "g" },
+        { "name" => "oeufs", "quantity" => 3, "unit" => nil }
+      ]
+      stub_page(page_with_json_ld(schema))
+      # Le schéma de sortie enveloppe le tableau sous la clé "ingredients".
+      stub_claude(classification.merge("ingredients" => structured))
+
+      expect(described_class.from_url(url)["ingredients"]).to eq(structured)
+      expect(claude_calls.size).to eq(1)
+      # Les ingrédients vides sont retirés avant d'être soumis à l'IA, et ce que
+      # le site dit déjà de la recette part avec eux pour la faire classer.
+      expect(claude_calls.last).to eq(Recipes::ClaudePrompts.schema_org_request(
+        name:         "Tarte aux poireaux",
+        description:  "Une tarte salée de saison",
+        categories:   [ "Plat principal", "Tarte" ],
+        instructions: "1. Préchauffer le four.\n2. Enfourner 40 minutes.",
+        ingredients:  [ "200 g de farine", "3 oeufs" ]
+      ))
+    end
+
+    # Le classement est une suggestion, pas une fatalité : si l'IA n'aboutit
+    # pas, l'import reste utilisable et l'utilisatrice coche elle-même.
+    it "laisse le classement vide quand l'IA échoue" do
+      stub_page(page_with_json_ld(schema_recipe))
+      stub_claude_failure
+
+      expect(described_class.from_url(url)).to eq(
+        extracted_recipe.merge(
+          "difficulty" => nil, "diet" => nil, "price" => nil, "meal_types" => [], "tags" => []
+        )
+      )
+    end
+  end
+
+  # ── from_url : repli sur l'extraction IA du texte ───────────────────────
+
+  describe ".from_url sans schema.org" do
+    let(:ia_result) { { "name" => "Soupe de potiron", "ingredients" => [] } }
+
+    before { stub_page(page_without_json_ld) }
+
+    it "soumet à l'IA le texte nettoyé de la page" do
+      stub_claude(ia_result)
+
+      expect(described_class.from_url(url)).to eq(ia_result)
+
+      prompt = claude_calls.last[:messages].first[:content]
+      expect(prompt).to include("Soupe de potiron", "Faire revenir le potiron.")
+      # C'est le texte extrait qui part dans le prompt, pas le HTML brut.
+      expect(prompt).not_to include("analytics", "Accueil Recettes", "Mentions legales")
+    end
+
+    # Contrairement aux ingrédients, la recette entière n'a pas de repli : sans
+    # l'IA il n'y a rien à importer, et l'erreur doit atteindre le contrôleur.
+    it "laisse remonter l'échec de l'IA" do
+      stub_claude_failure
+
+      expect { described_class.from_url(url) }
+        .to raise_error(Recipes::ExtractionError, "Erreur API Claude (529) : overloaded_error")
+    end
+  end
+
+  # ── from_photo ──────────────────────────────────────────────────────────
+
+  describe ".from_photo" do
+    let(:ia_result) { { "name" => "Gratin de courgettes", "ingredients" => [] } }
+
+    before { stub_claude(ia_result) }
+
+    it "confie la photo à l'IA avec son media_type et retourne la recette extraite" do
+      expect(described_class.from_photo("QUJD", media_type: "image/png")).to eq(ia_result)
+      expect(claude_calls.last).to eq(Recipes::ClaudePrompts.photo_request("QUJD", "image/png"))
+    end
+
+    it "utilise le media_type image/jpeg par défaut" do
+      described_class.from_photo("QUJD")
+
+      expect(claude_calls.last).to eq(Recipes::ClaudePrompts.photo_request("QUJD", "image/jpeg"))
+    end
+  end
+
+  # ── Unités : le vocabulaire de l'IA rejoint celui du projet ─────────────
+
+  # L'IA répond dans un vocabulaire verbeux, voulu ainsi pour qu'elle ne
+  # confonde plus la cuillère à soupe et la cuillère à café. Le brouillon, lui,
+  # ne doit connaître que les unités canoniques : la traduction se fait ici,
+  # quel que soit le chemin d'extraction.
+  describe "normalisation des unités" do
+    let(:ia_result) do
+      { "name" => "Frittata",
+        "ingredients" => [
+          { "name" => "huile d'olive", "quantity" => 3, "unit" => "cuillere_a_soupe" },
+          { "name" => "crème", "quantity" => 3, "unit" => "cl" },
+          { "name" => "oeufs", "quantity" => 8, "unit" => nil },
+          { "name" => "jambon", "quantity" => 2, "unit" => "tranches" }
+        ] }
+    end
+
+    before { stub_claude(ia_result) }
+
+    it "ramène les unités de l'IA aux unités canoniques, sur une photo" do
+      units = described_class.from_photo("QUJD")["ingredients"].map { |i| i["unit"] }
+
+      # « tranches » n'est pas une unité : elle reste telle quelle pour que la
+      # revue la montre et signale qu'elle ne se convertit pas.
+      expect(units).to eq([ "cas", "cl", nil, "tranches" ])
+    end
+
+    it "en fait autant pour une page sans schema.org" do
+      stub_page("<html><body>Une recette</body></html>")
+      allow(Recipes::SchemaOrgParser).to receive(:parse_schema_org).and_return(nil)
+
+      units = described_class.from_url(url)["ingredients"].map { |i| i["unit"] }
+
+      expect(units).to eq([ "cas", "cl", nil, "tranches" ])
+    end
+  end
+
+  # ── Structuration des ingrédients : le repli ────────────────────────────
+
+  describe "repli sur les ingrédients bruts" do
+    let(:raw_ingredients) { [ "200 g de farine", "3 oeufs" ] }
+    let(:raw_fallback) do
+      [
+        { "name" => "200 g de farine", "quantity" => nil, "unit" => nil },
+        { "name" => "3 oeufs", "quantity" => nil, "unit" => nil }
+      ]
+    end
+
+    before { stub_page(page_with_json_ld(schema_recipe.merge("recipeIngredient" => raw_ingredients))) }
+
+    # RÉGRESSION n°6 — ce repli était du code mort : son `rescue
+    # ExtractionError` ne pouvait pas s'armer, l'appel à l'IA levant un
+    # NameError (RÉGRESSION n°5) avant toute conversion en ExtractionError. Un
+    # échec de l'IA doit dégrader l'import, jamais l'interrompre.
+    it "garde les chaînes brutes quand l'IA échoue" do
+      stub_claude_failure
+
+      expect(described_class.from_url(url)["ingredients"]).to eq(raw_fallback)
+    end
+
+    it "garde les chaînes brutes quand la réponse ne porte pas de tableau" do
+      stub_claude("recette" => "sans ingrédients")
+
+      expect(described_class.from_url(url)["ingredients"]).to eq(raw_fallback)
+    end
+  end
+end

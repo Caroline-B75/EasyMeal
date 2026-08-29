@@ -9,6 +9,24 @@
   max-width: 1600px;
   margin: 0 auto;
   padding: 2rem 1.5rem;
+  /* Gabarit du rail « menu à valider » en mobile (barre fixe en bas d'écran) :
+     hauteur de la barre compteur (cible tactile du bouton + respiration), puis
+     du bandeau de vignettes déployé (vignette 56px + padding).
+     Source unique : consommée par .draft-rail et par --draft-rail-space. */
+  --rail-bar-h: 3.5rem;
+  --rail-strip-h: 4.5rem;
+}
+
+/* Place occupée en bas d'écran par le rail, selon qu'il est déployé ou replié
+   (classe posée par mobile-accordion sur .recipes-container). Ce qui flotte
+   au-dessus du contenu s'en décale. Le :has() la laisse indéfinie — donc nulle
+   via la valeur de repli — quand aucun rail n'est rendu (visiteur non connecté). */
+.recipes-container:has(.draft-rail) {
+  --draft-rail-space: calc(var(--rail-bar-h) + var(--rail-strip-h));
+}
+
+.recipes-container:has(.draft-rail).mobile-accordion--collapsed {
+  --draft-rail-space: var(--rail-bar-h);
 }
 
 /* === Layout principal === */
@@ -20,8 +38,9 @@
 
 .recipes-main {
   min-width: 0;
-  /* Espace en bas pour que le bouton flottant ne cache pas la pagination */
-  padding-bottom: 5rem;
+  /* Espace en bas pour que ni le rail du menu ni le bouton flottant ne cachent
+     la pagination */
+  padding-bottom: calc(var(--draft-rail-space, 0px) + 5rem);
 }
 
 /* === Sidebar des filtres === */
@@ -99,7 +118,8 @@
 .filters-mobile-btn {
   display: flex;
   position: fixed;
-  bottom: 1.5rem;
+  /* Au-dessus du rail du menu (s'il est rendu) et de l'indicateur d'accueil iOS */
+  bottom: calc(var(--draft-rail-space, 0px) + 1.5rem + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   z-index: 150;
@@ -107,7 +127,7 @@
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-bg-white);
   border: none;
   border-radius: var(--radius-button);
   font-size: var(--font-size-base);
@@ -130,7 +150,7 @@
   min-width: 20px;
   height: 20px;
   padding: 0 4px;
-  background: #fff;
+  background: var(--color-bg-white);
   color: var(--color-primary);
   border-radius: 10px;
   font-size: 0.7rem;
@@ -153,7 +173,6 @@
 }
 
 .recipes-header {
-  margin-bottom: 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -161,9 +180,25 @@
   gap: 1rem;
 }
 
+/* La taille suit l'échelle fluide de la règle de base h1 (global.css).
+   inline-flex : centre verticalement l'icône avec le texte, quelle que soit
+   leur taille — l'espacement vient de la marge de .icon-title. */
 .recipes-header h1 {
+  display: inline-flex;
+  align-items: center;
   color: var(--color-ink); /* Brun caramel */
   margin: 0;
+}
+
+/* Actions empilées : « Créer un menu » se place sous « Ajouter une recette ».
+   align-items: stretch les met à la largeur du plus large, pour un bloc aligné —
+   chacun peut être absent (rôle, présence d'un menu à valider). */
+.recipes-header-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 /* === Filtres & Recherche === */
@@ -211,7 +246,10 @@
   font-size: 1rem;
   line-height: 1;
   padding: 0.3rem;
-  color: #999;
+  /* L'icône est le seul contenu du bouton submit : un contrôle fonctionnel,
+     soumis au seuil UI de 3:1, pas un ornement. #999 n'y répondait pas
+     (2,85:1 sur --color-bg-white, fond de la sidebar) ; ink-3 donne 6,70:1. */
+  color: var(--color-ink-3);
   transition: color 0.2s;
 }
 
@@ -274,6 +312,15 @@
   background-color: var(--color-bg-secondary);
 }
 
+/* Selects de filtres : 16px sur mobile pour éviter le zoom iOS au focus.
+   Ils n'ont pas la classe .form-select, donc le correctif global ne les couvre pas. */
+@media (max-width: 767px) {
+  .filter-group select,
+  .filter-select {
+    font-size: 16px;
+  }
+}
+
 /* Filtre checkbox (De saison) */
 .filter-checkbox {
   flex-direction: row;
@@ -305,51 +352,9 @@
   font-weight: 500;
   cursor: pointer;
   margin: 0;
-}
-
-/* Pill "Mes favoris" */
-.filter-quick-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.5rem 1rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-button);
-  background: var(--color-bg-white);
-  color: var(--color-ink);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-normal);
-  white-space: nowrap;
-  user-select: none;
-  align-self: flex-end;
-  margin-bottom: 0;
-}
-
-.filter-quick-pill:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-
-/* État actif : class serveur (chargement initial) OU checkbox réellement coché
-   Le sélecteur :checked + ciblage CSS est indépendant du Turbo Frame */
-#filter-favorites:checked + .filter-quick-pill,
-.filter-quick-pill.active {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: #fff;
-}
-
-/* Coeur du pill "Mes favoris" : 2x plus grand */
-.filter-quick-pill .pill-heart {
-  font-size: 1.5rem;
-  line-height: 1;
-}
-
-#filter-favorites:checked + .filter-quick-pill .pill-heart,
-.filter-quick-pill.active .pill-heart {
-  color: #fff;
 }
 
 /* Badge compteur (nb filtres ou nb tags) */
@@ -360,7 +365,7 @@
   width: 18px;
   height: 18px;
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-bg-white);
   border-radius: 50%;
   font-size: 0.7rem;
   font-weight: 700;
@@ -381,7 +386,9 @@
 
 .active-filters-label {
   font-size: var(--font-size-sm);
-  color: #888;
+  /* #888 échouait AA (3,54:1 sur --color-bg-white, fond de la sidebar) ;
+     ink-3 donne 6,70:1. */
+  color: var(--color-ink-3);
   white-space: nowrap;
   flex-shrink: 0;
   margin-right: 0.1rem;
@@ -393,7 +400,7 @@
   gap: 0.35rem;
   padding: 0.25rem 0.7rem;
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-bg-white);
   border: none;
   border-radius: var(--radius-button);
   font-size: var(--font-size-sm);
@@ -431,27 +438,73 @@
   margin-top: 0.25rem;
 }
 
-.filters-tags-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  margin-bottom: 0.85rem;
+/* ── Accordéon de tags (un par type) : <details>/<summary> natif ── */
+.filters-tags-accordion {
+  border-bottom: 1px solid var(--color-border-light);
 }
 
-.filters-tags-sublabel {
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+.filters-tags-accordion:last-child {
+  border-bottom: none;
+}
+
+.filters-tags-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.15rem;
+  cursor: pointer;
+  list-style: none;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
   color: var(--color-ink);
-  opacity: 0.55;
-  margin-bottom: 0.35rem;
+  user-select: none;
+}
+
+/* Masque le marqueur natif (triangle) sur tous les navigateurs */
+.filters-tags-summary::-webkit-details-marker {
+  display: none;
+}
+
+.filters-tags-summary:hover {
+  color: var(--color-primary);
+}
+
+.filters-tags-summary-label {
+  flex: 1;
+}
+
+/* Compteur de tags sélectionnés dans ce type */
+.filters-tags-summary-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background: var(--color-primary);
+  color: var(--color-bg-white);
+  border-radius: 9px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Chevron : pivote quand l'accordéon est ouvert */
+.filters-tags-chevron {
+  display: inline-flex;
+  color: var(--color-ink-3);
+  transition: transform var(--transition-normal);
+}
+
+.filters-tags-accordion[open] .filters-tags-chevron {
+  transform: rotate(180deg);
 }
 
 .filters-tags-list {
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
+  padding-bottom: 0.5rem;
 }
 
 /* Case à cocher tag */
@@ -466,6 +519,23 @@
 
 .filter-tag-check:hover {
   background: var(--color-bg-secondary);
+}
+
+/* Tiroir de filtres sur mobile : cases plus grandes et mieux espacées pour
+   éviter les erreurs de tap (l'espacement de 0.1rem était bien trop serré). */
+@media (max-width: 767px) {
+  .filters-tags-list {
+    gap: 0.35rem;
+  }
+
+  .filter-tag-check {
+    padding: 0.6rem 0.4rem;
+  }
+
+  .filter-tag-input {
+    width: 18px;
+    height: 18px;
+  }
 }
 
 .filter-tag-input {
@@ -489,56 +559,40 @@
   font-weight: 600;
 }
 
-/* Lien réinitialiser dans la barre filtres actifs */
-.active-filter-reset {
-  margin-left: auto;
-  color: #999;
-  font-size: var(--font-size-sm);
-  text-decoration: none;
-  white-space: nowrap;
-  flex-shrink: 0;
-  align-self: center;
-  padding: 0.2rem 0;
-}
-
-.active-filter-reset:hover {
-  color: var(--color-ink);
-  text-decoration: underline;
-}
-
-/* Lien "Effacer tous les filtres" ancien — rétro-compat */
-.reset-filters-link {
-  display: block;
-  text-align: right;
-  margin-top: 0.5rem;
-  font-size: var(--font-size-sm);
-  color: #999;
-  text-decoration: none;
-}
-
-.reset-filters-link:hover {
-  color: var(--color-ink);
-  text-decoration: underline;
-}
-
-/* Bouton "Effacer" compact dans le header sidebar */
+/* Bouton "Réinitialiser" dans le header sidebar — visible et explicite
+   (icône ✕ + libellé), ne s'affiche que si au moins un filtre est actif. */
 .reset-filters-btn {
-  padding: 0.25rem 0.75rem;
-  font-size: 0.75rem;
-  color: var(--color-ink-3);
-  background: none;
-  border: 1px solid var(--color-border);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.7rem;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-primary);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-button);
   text-decoration: none;
   white-space: nowrap;
-  transition: all 0.2s;
-  line-height: 1.4;
+  transition: all var(--transition-normal);
+  line-height: 1.2;
+}
+
+.reset-filters-btn svg {
+  flex-shrink: 0;
 }
 
 .reset-filters-btn:hover {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: #fff;
+  color: var(--color-bg-white);
+}
+
+/* Aucun filtre actif : bouton discret (rien à effacer) mais toujours présent */
+.reset-filters-btn--idle {
+  color: var(--color-ink-3);
+  background: transparent;
+  border-color: var(--color-border);
 }
 
 /* Rétro-compat : barre de recherche utilisée sur d'autres pages */
@@ -620,7 +674,9 @@
 
 .recipes-count {
   font-size: var(--font-size-sm);
-  color: #666;
+  /* #666 tenait tout juste AA (4,81:1 sur --color-bg-main) ; ink-3 donne 5,61:1
+     sur la même surface. */
+  color: var(--color-ink-3);
   margin-bottom: 1.25rem;
 }
 
@@ -649,6 +705,11 @@
   overflow: hidden;
   transition: transform var(--transition-normal), box-shadow var(--transition-normal);
   cursor: pointer;
+  /* Hauteur pleine + colonne flex : toutes les cartes d'une même rangée ont la
+     même hauteur (grille étirée), qu'il y ait des tags ou non. */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .recipe-card:hover {
@@ -665,6 +726,10 @@
 
 .recipe-card-body {
   padding: 1rem;
+  /* Occupe l'espace restant pour pousser le pied de carte tout en bas. */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .recipe-card-title {
@@ -681,11 +746,42 @@
 
 .recipe-card-meta {
   display: flex;
-  gap: 0.75rem;
+  align-items: center;
+  gap: 0.5rem;
   flex-wrap: wrap;
   margin-bottom: 0.75rem;
   font-size: var(--font-size-sm);
-  color: #666;
+  color: var(--color-ink-3);
+}
+
+/* Temps total : méta principale, mise en avant (icône + libellé) */
+.recipe-card-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.recipe-card-time svg {
+  color: var(--color-ink-3);
+  flex-shrink: 0;
+}
+
+/* Badge « De saison » sur la carte : pastille verte + feuille alignée.
+   Même padding vertical que les badges de régime (héritent de .badge) pour
+   garder une hauteur identique sur la ligne de méta. */
+.recipe-card-meta .badge-season {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.875rem;
+  background: var(--color-success-light);
+  color: var(--color-success-text);
+}
+
+.recipe-card-meta .badge-season svg {
+  flex-shrink: 0;
 }
 
 .recipe-card-tags {
@@ -701,17 +797,36 @@
   align-items: center;
   padding-top: 0.75rem;
   border-top: 1px solid var(--color-border);
+  /* Ancré en bas de la carte, aligné sur les autres cartes de la rangée. */
+  margin-top: auto;
 }
 
 .recipe-rating {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.35rem;
   font-size: var(--font-size-sm);
 }
 
 .recipe-rating-stars {
   color: var(--color-accent);
+}
+
+/* Note moyenne en clair, à côté des étoiles */
+.recipe-rating-value {
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.recipe-rating-count {
+  color: var(--color-ink-3);
+}
+
+/* Recette sans avis : mention discrète plutôt que « 0 étoile » */
+.recipe-rating-empty {
+  font-size: var(--font-size-sm);
+  color: var(--color-ink-4);
+  font-style: italic;
 }
 
 /* === Actions sociales (favoris, notes) === */
@@ -738,7 +853,7 @@
 
 .favorite-btn.favorited {
   background: var(--color-primary);
-  border-color: var(--color-primary);
+  border-color: var(--color-ink-3);
   color: var(--color-bg-white);
   animation: heart-pop 0.3s ease-out;
 }
@@ -754,58 +869,8 @@
   100% { transform: scale(1); }
 }
 
-/* === Formulaire recette (admin) === */
-
-.recipe-form-section {
-  background: var(--color-bg-white);
-  padding: 0.5rem 1.5rem;
-  border-radius: var(--radius-input);
-  border: 1px solid var(--color-border);
-  margin-bottom: 1.5rem;
-}
-
-.nested-fields {
-  border-radius: var(--radius-input);
-  display: flex;
-  width: 100%;
-  gap: 1rem;
-  align-items: end;
-}
-
-.nested-fields .form-group {
-  flex: auto;
-}
-
-.remove-preparation {
-  padding: 0.5rem 1rem;
-  background: var(--color-primary);
-  color: var(--color-bg-white);
-  border: none;
-  border-radius: var(--radius-button);
-  cursor: pointer;
-}
-
-.btn-accent {
-  padding: 0.75rem 1.5rem;
-  background: var(--color-accent); /* Vert basilic */
-  color: var(--color-bg-white);
-  border: none;
-  border-radius: var(--radius-button);
-  min-height: 44px;
-  cursor: pointer;
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  align-self: flex-start;
-  transition: background var(--transition-normal);
-}
-
-.btn-accent:hover {
-  background: var(--color-accent-hover);
-}
+/* Les cartes d'ingrédients (.preparation-*) sont définies dans la section
+   « Ingrédients — nested fields » du formulaire recette, plus bas. */
 
 /* === Responsive === */
 
@@ -817,9 +882,11 @@
     max-width: none;
   }
 
+  /* 3ᵉ colonne : rail « menu à valider » (.draft-rail, plus bas dans ce fichier).
+     Piste auto → largeur nulle quand aucun rail n'est rendu (visiteur non connecté). */
   .recipes-body {
     display: grid;
-    grid-template-columns: 270px 1fr;
+    grid-template-columns: 300px 1fr auto;
     gap: 0;
     align-items: start;
   }
@@ -829,127 +896,125 @@
     min-width: 0;
   }
 
-  /* Sidebar collée à gauche, pleine hauteur, fond quasi-blanc, fixe au scroll */
+  /* Sidebar collée à gauche, pleine hauteur, fond quasi-blanc, fixe au scroll.
+     Ancrée sous le header sticky pour ne pas passer dessous.
+     Densité aérée : tailles ≥ --font-size-sm pour rester lisibles sur desktop. */
   .recipes-sidebar {
     position: sticky;
-    top: 0;
+    top: var(--header-height);
     left: auto;
     width: auto;
     max-width: none;
-    height: 100vh;
+    height: calc(100vh - var(--header-height));
     max-height: none;
     background: var(--color-bg-white);
     border-radius: 0;
     border-right: 1px solid var(--color-border-light);
-    padding: 0.75rem 0.85rem;
-    font-size: var(--font-size-xs);
+    padding: 1.25rem 1.1rem;
+    font-size: var(--font-size-sm);
     overflow-x: hidden;
     transition: none;
     box-shadow: none !important;
     z-index: auto;
   }
 
-  /* ── Éléments compacts dans la sidebar ── */
+  /* ── Éléments de la sidebar (desktop) ── */
 
   .sidebar-header {
-    margin-bottom: 0.5rem;
-    padding-bottom: 0.35rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.6rem;
   }
 
   .sidebar-title {
-    font-size: 0.85rem;
+    font-size: var(--font-size-lg);
   }
 
   .filters-search-row {
-    gap: 0.25rem;
-    margin-bottom: 0.5rem;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
   }
 
   .search-field-wrapper .search-input {
-    padding: 0.4rem 2rem 0.4rem 0.6rem;
-    font-size: 0.78rem;
+    padding: 0.55rem 2.25rem 0.55rem 0.8rem;
+    font-size: var(--font-size-sm);
   }
 
   .search-inline-btn {
-    font-size: 0.85rem;
-    padding: 0.2rem;
+    font-size: 1rem;
+    padding: 0.3rem;
   }
 
   .filters-quick-column {
-    gap: 0.35rem;
-    margin-bottom: 0.5rem;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
   }
 
   .filter-group {
-    gap: 0.1rem;
+    gap: 0.3rem;
   }
 
   .filter-group label,
   .filter-label {
-    font-size: 0.72rem;
+    font-size: var(--font-size-sm);
   }
 
   .filter-group select,
   .filter-select {
-    padding: 0.25rem 0.4rem;
-    font-size: 0.72rem;
+    padding: 0.45rem 0.65rem;
+    font-size: var(--font-size-sm);
   }
 
   .filter-checkbox {
-    padding: 0.25rem 0.4rem;
+    padding: 0.45rem 0.65rem;
   }
 
   .filter-label-inline {
-    font-size: 0.72rem;
+    font-size: var(--font-size-sm);
   }
 
   .filters-section-title {
-    font-size: 0.68rem;
-    margin: 0.25rem 0 0.4rem;
-    padding-top: 0.4rem;
+    font-size: var(--font-size-xs);
+    margin: 0.75rem 0 0.5rem;
+    padding-top: 0.75rem;
   }
 
-  .filters-tags-sublabel {
-    font-size: 0.6rem;
-    margin-bottom: 0.15rem;
+  .filters-tags-summary {
+    font-size: var(--font-size-sm);
+    padding: 0.55rem 0.15rem;
   }
 
   .filter-tag-check {
-    padding: 0.15rem 0.1rem;
+    padding: 0.3rem 0.15rem;
   }
 
   .filter-tag-check-label {
-    font-size: 0.72rem;
+    font-size: var(--font-size-sm);
   }
 
   .filter-tag-input {
-    width: 12px;
-    height: 12px;
-  }
-
-  .filters-tags-group {
-    margin-bottom: 0.4rem;
+    width: 16px;
+    height: 16px;
   }
 
   .active-filters-bar {
-    gap: 0.25rem;
-    margin-top: 0.4rem;
-    padding-top: 0.4rem;
+    gap: 0.4rem;
+    margin-top: 0.85rem;
+    padding-top: 0.85rem;
   }
 
   .active-filter-badge {
-    padding: 0.1rem 0.4rem;
-    font-size: 0.68rem;
+    padding: 0.25rem 0.65rem;
+    font-size: var(--font-size-xs);
   }
 
   .sidebar-footer {
-    margin-top: 0.4rem;
-    padding-top: 0.35rem;
+    margin-top: 0.85rem;
+    padding-top: 0.6rem;
   }
 
   .reset-filters-btn {
-    font-size: 0.68rem;
-    padding: 0.2rem 0.6rem;
+    font-size: var(--font-size-xs);
+    padding: 0.35rem 0.7rem;
   }
 
   /* La sidebar est toujours visible, pas besoin du bouton flottant ni du backdrop */
@@ -1016,16 +1081,6 @@
   .recipe-actions {
     flex-direction: column;
   }
-
-  .nested-fields {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .nested-fields .form-group {
-    flex: none;
-    width: 100%;
-  }
 }
 
 /* ── Très petit écran : bouton flottant un peu plus compact ── */
@@ -1039,29 +1094,9 @@
 
 /* === Formulaires recettes (admin) === */
 
-.recipe-form-header {
-  margin-bottom: 2rem;
-}
-
-.recipe-form-header h1 {
-  color: var(--color-ink);
-  margin-top: 0.5rem;
-}
-
-.form-row {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.form-row .form-group {
-  flex: 1;
-  min-width: 200px;
-}
-
-.form-row .form-group-large {
-  flex: 2;
-}
+/* .form-row : définition canonique (grid) dans components.css. Le formulaire
+   recette (.rf-form) opte pour une disposition flex-wrap — voir la section
+   « Overrides de formulaire dans le contexte rf » plus bas. */
 
 .form-textarea {
   width: 100%;
@@ -1079,206 +1114,46 @@
   border-color: var(--color-primary);
 }
 
-/* Input natif masqué — déclenché par le label stylé */
-.photo-upload-input {
-  display: none;
-}
+/* Le champ natif est masqué visuellement par .sr-only (et non display: none)
+   pour rester atteignable au clavier : c'est .rf-dropzone qui porte son rendu
+   et son état de focus. */
 
-.photo-upload-hint {
-  display: block;
-  margin-top: 0.4rem;
-  font-size: var(--font-size-xs);
-  color: var(--color-ink-4);
-  font-style: italic;
-}
-
+/* Espacement porté par le gap du conteneur (.rf-photo-upload) */
 .photo-upload-notice {
-  margin-top: 0.5rem;
-  font-size: var(--font-size-xs);
-  color: var(--color-accent);
+  margin: 0;
+  font-size: var(--font-size-md);
+  color: var(--color-accent-deep);
   font-weight: 500;
-}
-
-.current-photo {
-  margin-top: 0.75rem;
 }
 
 .photo-preview {
-  border-radius: var(--radius-input);
-  border: 1px solid var(--color-border);
   display: block;
+  border: var(--border-thin);
+  border-radius: var(--radius-card);
 }
 
-.btn-change-photo {
-  display: inline-block;
-  margin-top: 0.75rem;
-  font-size: var(--font-size-sm);
+/* Aperçu du fichier qui vient d'être choisi (dépôt, collage ou clic) : à la
+   différence de la vignette Cloudinary déjà recadrée, l'image est brute — on
+   borne sa largeur et on laisse la hauteur suivre pour ne pas la déformer. */
+.photo-preview--chosen {
+  max-width: 200px;
+  height: auto;
 }
 
-.photo-upload-area {
-  margin-top: 1rem;
+/* Sans cette règle, le display: block ci-dessus l'emporterait sur l'attribut
+   hidden et l'aperçu vide s'afficherait avant tout choix. */
+.photo-preview[hidden] {
+  display: none;
 }
 
-/* === Tags grid === */
+/* Les capsules de tags (.tags-grid / .tag-checkbox) ne servent que dans le
+   formulaire de recette : leur définition canonique est dans la section
+   « Tags — capsules » plus bas, avec le reste des styles .rf-form. */
 
-.tags-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 0.75rem;
-}
+/* .icon-btn / .icon-btn-edit / .icon-btn-delete : voir components.css
+   (version canonique avec cibles tactiles et hover accessibles). */
 
-.tag-checkbox {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: var(--color-bg-secondary);
-  border: 2px solid var(--color-bg-secondary);
-  border-radius: var(--radius-badge);
-  cursor: pointer;
-  transition: all var(--transition-normal) ease;
-  font-size: 0.95rem;
-}
-
-.tag-checkbox:hover {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-bg-white);
-}
-
-.tag-checkbox input[type="checkbox"] {
-  margin: 0;
-  cursor: pointer;
-}
-
-.tag-checkbox input:checked + .tag-name {
-  color: var(--color-primary);
-  font-weight: 600;
-}
-
-.tag-checkbox:has(input:checked) {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-bg-white);
-}
-
-.tag-checkbox:has(input:checked) .tag-name {
-  color: var(--color-bg-white);
-}
-
-/* === Nested fields (ingrédients) === */
-
-.preparations-container {
-  margin-bottom: 0;
-}
-
-.preparation-fields {
-  display: flex;
-  width: 100%;
-  gap: 1rem;
-  align-items: center;
-  border-radius: var(--radius-input);
-}
-
-.preparation-ingredient {
-  flex: 1 1 0;
-  min-width: 0;
-}
-
-.preparation-quantity {
-  flex: 0 0 120px;
-  max-width: 120px;
-}
-
-.preparation-unit {
-  min-width: 50px;
-  color: var(--color-ink);
-  font-weight: 500;
-}
-
-.preparation-remove {
-  flex: 0 0 auto;
-  margin-left: auto;
-  align-items: self-end;
-}
-
-.remove-preparation {
-  width: 2rem;
-  height: 2rem;
-  border: none;
-  background: var(--color-primary);
-  color: var(--color-bg-white);
-  border-radius: var(--radius-button);
-  cursor: pointer;
-  font-size: var(--font-size-base);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background var(--transition-normal);
-}
-
-.remove-preparation:hover {
-  background: var(--color-primary-hover);
-}
-
-.btn-accent {
-  padding: 0.75rem 1.5rem;
-  background: var(--color-accent);
-  color: var(--color-bg-white);
-  border: none;
-  border-radius: var(--radius-button);
-  min-height: 44px;
-  cursor: pointer;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: background var(--transition-normal);
-}
-
-.btn-accent:hover {
-  background: var(--color-accent-hover);
-}
-
-.marked-for-deletion {
-  opacity: 0.5;
-  pointer-events: none;
-  background: #fee;
-}
-
-/* Boutons icônes pour modifier/supprimer */
-.icon-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0.25rem 0.5rem;
-  font-size: 1.25rem;
-  transition: transform 0.2s;
-}
-
-.icon-btn:hover {
-  transform: scale(1.2);
-}
-
-.icon-btn-edit:hover {
-  filter: brightness(0.8);
-}
-
-.icon-btn-delete:hover {
-  filter: brightness(0.8);
-}
-
-/* === Danger buttons (shared: ingredients, modals) === */
-
-.btn-danger {
-  background: var(--color-danger);
-  color: var(--color-bg-white);
-}
-
-.btn-danger:hover {
-  background: var(--color-danger-hover);
-}
+/* .btn-danger : voir components.css (définition canonique partagée). */
 
 .text-danger {
   color: var(--color-danger);
@@ -1294,8 +1169,8 @@
 }
 
 .empty-state-icon {
-  font-size: 3.5rem;
   margin-bottom: 1rem;
+  color: var(--color-ink-4);
 }
 
 .empty-state h2 {
@@ -1304,7 +1179,8 @@
 }
 
 .empty-state p {
-  color: #666;
+  /* 4,81:1 → 5,61:1 sur --color-bg-main, fond porté par .empty-state. */
+  color: var(--color-ink-3);
   margin-bottom: 1.5rem;
 }
 
@@ -1336,8 +1212,7 @@
 
 /* État favorié en compact : fond rouge explicite (spécificité plus haute) */
 .favorite-btn.favorite-btn-compact.favorited {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
+  background: darkred;
   color: var(--color-bg-white);
 }
 
@@ -1354,23 +1229,12 @@
   text-decoration: none;
   color: inherit;
   display: block;
+  /* Remplit la hauteur de la cellule de grille pour l'égalisation des cartes. */
+  height: 100%;
 }
 
 .recipe-card-link:hover {
   text-decoration: none;
-}
-
-/* === Meta items === */
-
-.meta-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  color: #666;
-}
-
-.meta-icon {
-  font-size: 1rem;
 }
 
 /* === Global rating on show page === */
@@ -1394,7 +1258,8 @@
 }
 
 .rating-value {
-  color: #666;
+  /* 4,81:1 → 5,61:1 sur --color-bg-main, fond du bloc de notation. */
+  color: var(--color-ink-3);
   font-size: var(--font-size-sm);
 }
 
@@ -1464,9 +1329,18 @@
   background: var(--color-primary);
 }
 
+/* Largeur de la colonne de droite — partagée par la photo du hero et par la
+   sidebar ingrédients. Ce sont deux grilles distinctes empilées : seule une
+   valeur commune garantit que leurs bords restent alignés, à toutes les
+   largeurs. Ne redéclarer que la variable, jamais la largeur en dur. */
+.rs-hero-inner,
+.rs-body {
+  --rs-aside-width: 340px;
+  grid-template-columns: 1fr var(--rs-aside-width);
+}
+
 .rs-hero-inner {
   display: grid;
-  grid-template-columns: 1fr 340px;
   max-width: 1400px;
   margin: 0 auto;
 }
@@ -1484,7 +1358,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1500,10 +1374,10 @@
 }
 
 .rs-title {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-size: 28px;
   font-weight: 400;
-  color: #FFFFFF;
+  color: var(--color-bg-white);
   line-height: 1.15;
   margin: 0;
 }
@@ -1512,7 +1386,7 @@
 
 .rs-meta-box {
   display: inline-flex;
-  border: 0.5px solid var(--rs-border-dark);
+  border: var(--border-width) solid var(--rs-border-dark);
   border-radius: var(--radius-button);
   overflow: hidden;
   align-self: flex-start;
@@ -1527,21 +1401,23 @@
 }
 
 .rs-meta-cell + .rs-meta-cell {
-  border-left: 0.5px solid var(--rs-border-dark);
+  border-left: var(--border-width) solid var(--rs-border-dark);
 }
 
 .rs-meta-value {
   font-size: 15px;
   font-weight: 500;
-  color: #FFFFFF;
+  color: var(--color-bg-white);
 }
 
 .rs-meta-label {
-  font-size: 9px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-ink-3);
+  /* Sur le hero sombre (--color-primary) : ink-4 (gris clair) passe AA, alors
+     qu'ink-3 (gris foncé) était quasi illisible (audit Lighthouse R1.3). */
+  color: var(--color-ink-4);
 }
 
 /* -- Badges hero (fond sombre) -- */
@@ -1555,25 +1431,18 @@
 .rs-badge {
   display: inline-block;
   padding: 3px 10px;
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   border-radius: var(--radius-button);
   background: var(--rs-bg-dark);
-  color: #D6D3D1;
-  border: 0.5px solid var(--rs-border-dark);
+  /* Était #D6D3D1, un gris FROID hérité de l'ancienne palette, sur une surface
+     sombre. --color-ink-on-dark porte exactement ce rôle et suit la teinte 70°
+     des neutres : 9,73:1 sur --rs-bg-dark, contre 10,18:1 avant — les deux très
+     au-dessus du seuil, on ne perd donc rien en lisibilité et on gagne la
+     cohérence de teinte avec le reste des surfaces sombres. */
+  color: var(--color-ink-on-dark);
+  border: var(--border-width) solid var(--rs-border-dark);
   white-space: nowrap;
-}
-
-.rs-badge--green {
-  background: rgba(236, 252, 203, 0.12);
-  color: #BEF264;
-  border-color: rgba(190, 242, 100, 0.2);
-}
-
-.rs-badge--amber {
-  background: rgba(251, 191, 36, 0.1);
-  color: var(--color-accent);
-  border-color: rgba(251, 191, 36, 0.2);
 }
 
 /* -- Boutons d'action hero -- */
@@ -1586,26 +1455,37 @@
   margin-top: 4px;
 }
 
+/* CTA accent de la recette (« Démarrer un menu » / « Ajouter au menu à valider »). Couleurs héritées de
+   .btn-accent (components.css) ; ici uniquement le gabarit compact, aligné sur
+   les boutons frères .rs-btn-fav / .rs-btn-icon. À utiliser avec .btn-accent. */
 .rs-btn-accent {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 9px 18px;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
-  background: var(--color-accent);
-  color: var(--color-accent-text);
-  border: none;
   border-radius: var(--radius-button);
   text-decoration: none;
   cursor: pointer;
   transition: background var(--transition-fast);
 }
 
-.rs-btn-accent:hover {
-  background: var(--color-accent-hover);
-  text-decoration: none;
-  color: var(--color-accent-text);
+/* État « recette déjà dans le menu » (CTA hero + CTA mobile persistant) :
+   vert confirmé pour signaler la présence, bascule en rouge au survol pour
+   annoncer le retrait. Rendu par button_to → <button> (pas de conflit a:hover). */
+.rs-btn-accent.is-in-draft,
+.rs-mobile-cta-btn.is-in-draft {
+  background: var(--color-success-light);
+  color: var(--color-success-text);
+  border: var(--border-width) solid transparent;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.rs-btn-accent.is-in-draft:hover,
+.rs-mobile-cta-btn.is-in-draft:hover {
+  background: var(--color-danger-light);
+  color: var(--color-danger-text);
 }
 
 /* Bouton favori variante hero */
@@ -1614,19 +1494,21 @@
   align-items: center;
   gap: 6px;
   padding: 9px 14px;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   background: transparent;
   color: var(--color-ink-4);
-  border: 0.5px solid var(--rs-border-dark);
+  border: var(--border-width) solid var(--rs-border-dark);
   border-radius: var(--radius-button);
   cursor: pointer;
   transition: color var(--transition-fast), border-color var(--transition-fast);
 }
 
 .rs-btn-fav:hover {
-  color: #FFFFFF;
-  border-color: #78716C;
+  color: var(--color-bg-white);
+  /* 3,26:1 sur --rs-bg-dark : le token de bordure survolée sur fond sombre,
+     là où #78716C était une copie en dur de l'ancien ink-3 rejeté par l'audit R1.3. */
+  border-color: var(--color-surface-dark-border-hover);
 }
 
 .rs-btn-fav.favorited {
@@ -1642,15 +1524,16 @@
   height: 38px;
   background: transparent;
   color: var(--color-ink-4);
-  border: 0.5px solid var(--rs-border-dark);
+  border: var(--border-width) solid var(--rs-border-dark);
   border-radius: var(--radius-button);
   cursor: pointer;
   transition: color var(--transition-fast), border-color var(--transition-fast);
 }
 
 .rs-btn-icon:hover {
-  color: #FFFFFF;
-  border-color: #78716C;
+  color: var(--color-bg-white);
+  /* 3,26:1 sur --rs-bg-dark, même bordure survolée que .rs-btn-fav. */
+  border-color: var(--color-surface-dark-border-hover);
 }
 
 /* -- Colonne droite — Photo -- */
@@ -1683,40 +1566,44 @@
 
 .rs-photo-stars {
   color: var(--color-accent);
-  font-size: 13px;
+  font-size: var(--font-size-sm);
 }
 
 .rs-photo-score {
-  color: #D6D3D1;
-  font-size: 11px;
+  /* Était #D6D3D1, un gris FROID hérité de l'ancienne palette, sur une surface
+     sombre. --color-ink-on-dark porte exactement ce rôle et suit la teinte 70°
+     des neutres : 9,73:1 sur --rs-bg-dark, contre 10,18:1 avant — les deux très
+     au-dessus du seuil, on ne perd donc rien en lisibilité et on gagne la
+     cohérence de teinte avec le reste des surfaces sombres. */
+  color: var(--color-ink-on-dark);
+  font-size: var(--font-size-xs);
 }
 
 /* === Zone 3 — Corps principal en deux colonnes === */
 
 .rs-body {
   display: grid;
-  grid-template-columns: 1fr 280px;
+  width: 100%;
   max-width: 1400px;
   margin: 0 auto;
   min-height: 400px;
-  min-width: 50%;
 }
 
 .rs-main {
   padding: 28px;
-  border-right: 0.5px solid var(--color-border);
+  border-right: var(--border-thin);
 }
 
 /* -- Titre de section générique -- */
 
 .rs-section-title {
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--color-ink-4);
+  color: var(--color-ink-3);
   padding-bottom: 8px;
-  border-bottom: 0.5px solid var(--color-border);
+  border-bottom: var(--border-thin);
   margin-bottom: 16px;
 }
 
@@ -1727,7 +1614,7 @@
   grid-template-columns: 32px 1fr;
   gap: 14px;
   padding: 16px 0;
-  border-bottom: 0.5px solid var(--color-border);
+  border-bottom: var(--border-thin);
 }
 
 .rs-step--last {
@@ -1741,8 +1628,8 @@
   align-items: center;
   justify-content: center;
   background: var(--color-primary);
-  color: #FFFFFF;
-  font-size: 12px;
+  color: var(--color-bg-white);
+  font-size: var(--font-size-sm);
   font-weight: 500;
   border-radius: var(--radius-button);
   margin-top: 2px;
@@ -1750,7 +1637,7 @@
 }
 
 .rs-step-text {
-  font-size: 13px;
+  font-size: var(--font-size-base);
   color: var(--color-ink-3);
   line-height: 1.6;
 }
@@ -1778,7 +1665,7 @@
   align-items: center;
   justify-content: center;
   padding: 0 20px;
-  border-right: 0.5px solid var(--color-border);
+  border-right: var(--border-thin);
   min-width: 90px;
 }
 
@@ -1790,14 +1677,14 @@
 }
 
 .rs-rating-stars-row {
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   color: var(--color-accent);
   margin: 4px 0;
 }
 
 .rs-rating-count {
-  font-size: 11px;
-  color: var(--color-ink-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
 }
 
 .rs-rating-right {
@@ -1816,7 +1703,7 @@
 }
 
 .rs-histo-label {
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   color: var(--color-ink-3);
   width: 12px;
   text-align: right;
@@ -1839,8 +1726,8 @@
 }
 
 .rs-histo-count {
-  font-size: 10px;
-  color: var(--color-ink-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
   width: 16px;
   flex-shrink: 0;
 }
@@ -1848,14 +1735,14 @@
 /* -- Formulaire d'avis -- */
 
 .rs-review-form {
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   border-radius: var(--radius-button);
   padding: 16px;
   margin-bottom: 16px;
 }
 
 .rs-review-form-title {
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--color-ink);
   margin: 0 0 10px;
@@ -1889,14 +1776,45 @@
   color: var(--color-accent);
 }
 
+/* Notation par étoiles : cibles plus grandes et mieux espacées au doigt. */
+@media (max-width: 767px) {
+  .rs-rating-input {
+    gap: 8px;
+  }
+
+  .rs-star-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--min-touch-target);
+    min-height: var(--min-touch-target);
+  }
+
+  .rs-star {
+    font-size: 28px;
+  }
+}
+
+/* Message d'erreur du formulaire d'avis, affiché sous le champ concerné. */
+.rs-form-error {
+  margin: -6px 0 12px;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-danger);
+}
+
+.rs-form-group .rs-form-error {
+  margin: 6px 0 0;
+}
+
 .rs-form-textarea {
   width: 100%;
   padding: 10px 12px;
-  font-size: 13px;
+  font-size: var(--font-size-base);
   font-family: inherit;
   color: var(--color-ink);
   background: var(--color-bg-secondary);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   border-radius: var(--radius-button);
   resize: vertical;
   min-height: 70px;
@@ -1919,10 +1837,10 @@
   align-items: center;
   justify-content: center;
   padding: 9px 18px;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   background: var(--color-primary);
-  color: #FFFFFF;
+  color: var(--color-bg-white);
   border: none;
   border-radius: var(--radius-button);
   cursor: pointer;
@@ -1941,7 +1859,7 @@
 
 .rs-review {
   padding: 14px 0;
-  border-bottom: 0.5px solid var(--color-border);
+  border-bottom: var(--border-thin);
 }
 
 .rs-review:last-child {
@@ -1966,41 +1884,50 @@
   height: 28px;
   border-radius: 50%;
   background: var(--color-bg-secondary);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: var(--color-ink-3);
   font-weight: 500;
   flex-shrink: 0;
 }
 
 .rs-review-author {
-  font-size: 13px;
+  font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--color-ink);
 }
 
 .rs-review-stars {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: var(--color-accent);
 }
 
+/* Date + action de suppression regroupées à droite de l'en-tête */
+.rs-review-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
 .rs-review-date {
-  font-size: 11px;
-  color: var(--color-ink-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
   flex-shrink: 0;
 }
 
 .rs-review-text {
-  font-size: 12px;
+  font-size: var(--font-size-base);
   color: var(--color-ink-3);
   line-height: 1.6;
 }
 
 .rs-review-delete {
-  margin-top: 6px;
+  display: flex;
+  align-items: center;
 }
 
 .rs-empty-reviews {
@@ -2014,43 +1941,14 @@
 .rs-admin-bar {
   display: flex;
   gap: 8px;
-  border-top: 0.5px solid var(--color-border);
+  border-top: var(--border-thin);
   padding-top: 16px;
   margin-top: 8px;
 }
 
-.rs-admin-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  font-size: 12px;
-  font-weight: 500;
-  background: var(--color-bg-white);
-  color: var(--color-ink-2);
-  border: 0.5px solid var(--color-border);
-  border-radius: var(--radius-button);
-  text-decoration: none;
-  cursor: pointer;
-  transition: border-color var(--transition-fast);
-}
-
-.rs-admin-btn:hover {
-  border-color: var(--color-border-strong);
-  text-decoration: none;
-  color: var(--color-ink);
-}
-
-.rs-admin-btn--danger {
-  background: var(--color-danger-light);
-  color: var(--color-danger-text);
-  border-color: #FECACA;
-}
-
-.rs-admin-btn--danger:hover {
-  border-color: var(--color-danger);
-  color: var(--color-danger-text);
-}
+/* Les deux actions utilisent les boutons canoniques du système
+   (.btn-primary / .btn-danger, cf. components.css) : même gabarit que
+   « Créer la recette » du formulaire. */
 
 .rs-admin-delete {
   display: inline;
@@ -2090,10 +1988,10 @@
   justify-content: center;
   background: transparent;
   color: var(--color-ink-3);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   border-radius: var(--radius-button);
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   transition: background var(--transition-fast), color var(--transition-fast);
   padding: 0;
@@ -2101,33 +1999,31 @@
 
 .rs-servings-btn:hover {
   background: var(--color-primary);
-  color: #FFFFFF;
+  color: var(--color-bg-white);
   border-color: var(--color-primary);
 }
 
 .rs-servings-val {
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--color-ink);
   min-width: 18px;
   text-align: center;
 }
 
-/* -- Groupes ingrédients par catégorie -- */
-
-.rs-ing-group {
-  margin-top: 16px;
+/* Steppers de portions : cible tactile agrandie sur mobile (recalcul des quantités). */
+@media (max-width: 767px) {
+  .rs-servings-btn {
+    width: 40px;
+    height: 40px;
+  }
 }
 
-.rs-ing-category {
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-ink-4);
-  padding-bottom: 6px;
-  border-bottom: 0.5px solid var(--color-border);
-  margin-bottom: 4px;
+/* -- Liste des ingrédients -- */
+
+.rs-ing-list {
+  margin-top: 16px;
+  border-top: var(--border-thin);
 }
 
 .rs-ing-row {
@@ -2135,7 +2031,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 7px 0;
-  border-bottom: 0.5px solid var(--color-border-light);
+  border-bottom: var(--border-width) solid var(--color-border-light);
 }
 
 .rs-ing-row:last-child {
@@ -2143,7 +2039,7 @@
 }
 
 .rs-ing-name {
-  font-size: 13px;
+  font-size: var(--font-size-base);
   color: var(--color-ink-2);
 }
 
@@ -2152,17 +2048,84 @@
   padding: 2px 8px;
   background: var(--color-bg-secondary);
   border-radius: 2px;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--color-ink-3);
   white-space: nowrap;
 }
 
 .rs-empty {
-  font-size: 13px;
-  color: var(--color-ink-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-ink-3);
   font-style: italic;
   padding: 16px 0;
+}
+
+/* === CTA persistant (mobile) === */
+/* Masqué par défaut : n'apparaît qu'en mobile (voir media query max-width: 767px).
+   Le hero porte déjà le CTA sur desktop. */
+
+.rs-mobile-cta {
+  display: none;
+}
+
+.rs-mobile-cta form {
+  margin: 0;
+}
+
+.rs-mobile-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--min-touch-target);
+  padding: 12px 18px;
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  border-radius: var(--radius-button);
+  text-decoration: none;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+/* === Toast de confirmation de partage (« Lien copié ») === */
+/* Créé à la volée par share_controller lors du repli presse-papier. */
+
+.share-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(1.5rem + env(safe-area-inset-bottom));
+  transform: translate(-50%, 1rem);
+  z-index: 300;
+  padding: 10px 18px;
+  background: var(--color-ink);
+  color: var(--color-bg-white);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  border-radius: var(--radius-button);
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+  pointer-events: none;
+}
+
+.share-toast.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* === Desktop : colonne INGRÉDIENTS sticky === */
+/* La sidebar reste visible pendant la lecture des étapes. align-self: start
+   empêche l'étirement de la cellule de grille (condition d'un sticky effectif). */
+@media (min-width: 768px) {
+  .rs-sidebar {
+    position: sticky;
+    /* Ancrée sous le header sticky pour ne pas passer dessous */
+    top: var(--header-height);
+    align-self: start;
+    max-height: calc(100vh - var(--header-height));
+    overflow-y: auto;
+  }
 }
 
 /* ============================================
@@ -2201,36 +2164,69 @@
     padding: 8px 10px;
   }
 
+  /* Le CTA du hero étant masqué (règle ci-dessous), il ne reste que favori +
+     partage : on conserve la rangée pour les garder sur une seule ligne, sans
+     retour à la ligne. */
   .rs-actions {
-    flex-direction: column;
+    flex-wrap: nowrap;
   }
 
-  .rs-actions > *,
+  /* Le favori occupe toute la largeur restante à gauche du partage */
+  .rs-actions .recipe-favorite-container {
+    flex: 1;
+    min-width: 0;
+  }
+
   .rs-actions .recipe-favorite-container,
-  .rs-actions .rs-btn-fav,
-  .rs-actions .rs-btn-accent {
+  .rs-actions .rs-btn-fav {
     width: 100%;
     justify-content: center;
     min-height: var(--min-touch-target);
     box-sizing: border-box;
   }
 
+  /* Le CTA « Ajouter/Retirer » du hero est repris par la barre persistante
+     (.rs-mobile-cta) : on le masque ici pour éviter le doublon. Favori + partage
+     restent dans le hero. On masque le lien direct (visiteur non connecté) ainsi
+     que le wrapper #draft-cta-hero (utilisateur connecté). */
+  .rs-actions .rs-btn-accent,
+  .rs-actions > div:has(.rs-btn-accent) {
+    display: none;
+  }
+
+  /* Cible tactile carrée : ne se comprime pas à côté du favori extensible */
   .rs-btn-icon {
     width: var(--min-touch-target);
     height: var(--min-touch-target);
-    align-self: flex-start;
+    flex: 0 0 auto;
   }
 
   .rs-body {
     grid-template-columns: 1fr;
     min-width: 100%;
+    /* Réserve la place du CTA fixe pour ne masquer aucun contenu (pagination, avis). */
+    padding-bottom: 6rem;
+  }
+
+  /* CTA menu persistant, ancré en bas de l'écran */
+  .rs-mobile-cta {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 150;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    background: var(--color-bg-white);
+    border-top: var(--border-thin);
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.08);
   }
 
   .rs-sidebar {
     order: -1;
     padding: 16px;
     border-top: none;
-    border-bottom: 0.5px solid var(--color-border);
+    border-bottom: var(--border-thin);
   }
 
   .rs-main {
@@ -2244,7 +2240,7 @@
 
   .rs-rating-left {
     border-right: none;
-    border-bottom: 0.5px solid var(--color-border);
+    border-bottom: var(--border-thin);
     padding: 0 0 12px;
     margin-bottom: 12px;
   }
@@ -2257,25 +2253,24 @@
     flex-direction: column;
   }
 
-  .rs-admin-btn {
+  /* Empilés : chaque action prend toute la largeur — y compris le bouton de
+     suppression, enveloppé dans le form généré par button_to. */
+  .rs-admin-bar .btn,
+  .rs-admin-delete,
+  .rs-admin-delete form {
     width: 100%;
-    justify-content: center;
-    min-height: var(--min-touch-target);
   }
 }
 
 /* Tablette (768px – 1024px) */
 @media (min-width: 768px) and (max-width: 1024px) {
-  .rs-hero-inner {
-    grid-template-columns: 1fr 260px;
+  .rs-hero-inner,
+  .rs-body {
+    --rs-aside-width: 260px;
   }
 
   .rs-hero-content {
     padding: 24px 20px;
-  }
-
-  .rs-body {
-    grid-template-columns: 1fr 240px;
   }
 
   .rs-main {
@@ -2318,80 +2313,244 @@
    Compact, bordures fines, typo serrée.
    ============================================ */
 
-/* === Back bar === */
-/* NOTE: .rf-back-bar et .rf-back-link supprimés — utilise .context-bar */
-
 /* ============================================
-   DRAFT STATUS BAR — Barre contextuelle menu brouillon
+   DRAFT RAIL — Menu à valider visible pendant la recherche
+   ============================================
+   Base mobile : barre fixe en bas d'écran (compteur repliable, bandeau de
+   vignettes, accès au menu). Desktop : colonne sombre à droite de .recipes-body,
+   pleine hauteur et fixe au scroll (voir le @media en fin de section).
+   La grille interne est décrite par zones : un seul ordre DOM sert les deux
+   gabarits (bouton à droite du compteur en mobile, sous la liste en desktop).
    ============================================ */
 
-.draft-status-bar {
-  display: flex;
+.draft-rail {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* Au-dessus du bouton flottant « Filtres » (150), sous le backdrop des filtres
+     (180) qui doit pouvoir le recouvrir quand le drawer s'ouvre. */
+  z-index: 160;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  /* Bandeau en piste auto : replié (display: none) il ne réserve aucune hauteur. */
+  grid-template-rows: var(--rail-bar-h) auto;
+  grid-template-areas:
+    "count action"
+    "list  list";
   align-items: center;
-  background: var(--color-bg-secondary);
-  border: 0.5px solid var(--color-border);
-  border-radius: var(--radius-card);
-  padding: 0.625rem 1rem;
-  margin-bottom: 1rem;
+  column-gap: 0.75rem;
+  padding: 0 1rem env(safe-area-inset-bottom, 0px);
+  background: var(--color-primary);
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.18);
 }
 
-.draft-bar-content {
+/* Compteur : <button> déclencheur de l'accordéon quand il y a des vignettes à
+   replier, <p> sinon — mêmes styles dans les deux cas (d'où le reset bouton). */
+.draft-rail-count {
+  grid-area: count;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.draft-bar-info {
-  display: flex;
-  align-items: center;
   gap: 0.5rem;
+  width: 100%;
   min-width: 0;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-bg-white);
+  text-align: left;
 }
 
-.draft-bar-icon {
-  font-size: 1.1rem;
-  flex-shrink: 0;
+/* Affordance réservée au cas où le compteur plie réellement le bandeau : en
+   desktop le JS le passe à disabled, et le <p> n'est pas cliquable. */
+button.draft-rail-count:not(:disabled) {
+  cursor: pointer;
 }
 
-.draft-bar-text {
-  font-size: var(--font-size-xs);
-  color: var(--color-ink-2);
-  white-space: nowrap;
+.draft-rail-count > span {
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.draft-bar-text strong {
-  color: var(--color-ink);
-  font-weight: 600;
-}
-
-.draft-bar-count {
-  color: var(--color-ink-3);
-  font-weight: 400;
-}
-
-.draft-bar-link {
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  color: var(--color-ink);
-  text-decoration: none;
   white-space: nowrap;
-  padding: 0.375rem 0.75rem;
-  border: 0.5px solid var(--color-border);
-  border-radius: var(--radius-button);
-  background: var(--color-bg-white);
-  transition: background var(--transition-fast), border-color var(--transition-fast);
 }
 
-.draft-bar-link:hover {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
+.draft-rail-chevron {
+  color: var(--color-ink-4);
+  transition: transform var(--transition-fast);
+}
+
+/* Replié, le chevron pointe vers le haut : le bandeau s'ouvre vers le haut. */
+.draft-rail-count[aria-expanded="false"] .draft-rail-chevron {
+  transform: rotate(180deg);
+}
+
+.draft-rail-list {
+  grid-area: list;
+  display: flex;
+  gap: 0.5rem;
+  /* Hauteur exacte du bandeau : vignette (56px, bordure comprise) + padding. */
+  height: var(--rail-strip-h);
+  margin: 0;
+  padding: 0.5rem 0;
+  list-style: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-surface-dark-border-hover) transparent;
+}
+
+.draft-rail-list li {
+  flex: 0 0 auto;
+}
+
+/* Bandeau replié — classe posée par mobile-accordion sur .recipes-container,
+   donc uniquement sous le point de rupture mobile. */
+.mobile-accordion--collapsed .draft-rail-list {
+  display: none;
+}
+
+.draft-rail-thumb {
+  display: block;
+  width: 56px;
+  height: 56px;
+  border: var(--border-width) solid var(--color-surface-dark-border);
+  border-radius: var(--radius-card-compact);
+  background: var(--color-surface-dark);
+  overflow: hidden;
+  transition: border-color var(--transition-fast);
+}
+
+.draft-rail-thumb:hover {
+  border-color: var(--color-bg-white);
+}
+
+.draft-rail-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Croix de retrait d'une vignette : ancrée sur le <li> et posée DANS le coin
+   de l'image — un débord serait rogné par le défilement du bandeau (overflow),
+   même contrainte que l'infobulle native du lien. Pastille overlay compacte,
+   comme les actions des cartes du menu (.mc-act-btn) : la cible tactile
+   canonique de 44px ne tient pas sur une vignette de 56px. */
+.draft-rail-item {
+  position: relative;
+}
+
+.draft-rail-remove {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
   color: var(--color-bg-white);
-  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.draft-rail-remove:hover,
+.draft-rail-remove:focus-visible {
+  background: var(--color-danger);
+}
+
+.draft-rail-btn {
+  grid-area: action;
+  white-space: nowrap;
+}
+
+/* authentication.css redéfinit .btn et est chargé après ce fichier dans le
+   manifest : à spécificité égale, son padding (0.75rem 1.5rem) et sa police
+   (1rem) écrasent .btn-sm. On rétablit le gabarit .btn-sm en portant la règle
+   sur .draft-rail (deux classes) — sans quoi le libellé se casse sur trois
+   lignes dans la colonne desktop.
+   La cible tactile de 44px, elle, vient déjà du .btn-sm mobile de components.css. */
+.draft-rail .draft-rail-btn {
+  padding: 0.375rem 0.875rem;
+  font-size: var(--font-size-xs);
+}
+
+/* ── Desktop : colonne sombre à droite, pleine hauteur, fixe au scroll ──
+   (la piste de grille qui l'accueille est déclarée avec .recipes-body, plus haut) */
+@media (min-width: 768px) {
+  .draft-rail {
+    position: sticky;
+    /* Ancré sous le header sticky pour ne pas passer dessous */
+    top: var(--header-height);
+    left: auto;
+    right: auto;
+    bottom: auto;
+    z-index: auto;
+    width: 120px;
+    height: calc(100vh - var(--header-height));
+    grid-template-columns: 1fr;
+    /* Compteur en haut et bouton en bas toujours visibles : seule la liste des
+       vignettes défile (piste 1fr bornée à 0 pour autoriser le scroll interne). */
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "count"
+      "list"
+      "action";
+    align-items: stretch;
+    row-gap: 0.75rem;
+    padding: 1rem 0.75rem;
+    box-shadow: none;
+  }
+
+  /* Colonne étroite : le libellé se déploie sur plusieurs lignes, centré. */
+  .draft-rail-count {
+    display: block;
+    font-size: var(--font-size-xs);
+    line-height: 1.3;
+    text-align: center;
+  }
+
+  .draft-rail-count > span {
+    white-space: normal;
+  }
+
+  /* Rien à replier en desktop : le compteur rend comme un simple libellé. */
+  .draft-rail-chevron {
+    display: none;
+  }
+
+  .draft-rail-list {
+    flex-direction: column;
+    height: auto;
+    min-height: 0;
+    padding: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .draft-rail-thumb {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+  }
+
+  /* Colonne étroite : padding horizontal resserré pour garder « Voir le menu »
+     sur une seule ligne. white-space: normal reste un filet si la police est
+     agrandie par l'utilisateur. */
+  .draft-rail .draft-rail-btn {
+    width: 100%;
+    padding-left: 0.375rem;
+    padding-right: 0.375rem;
+    white-space: normal;
+  }
 }
 
 /* ============================================
@@ -2413,7 +2572,7 @@
   height: 38px;
   padding: 0;
   border-radius: 50%;
-  border: 1.5px solid transparent;
+  border: 1.5px solid var(--color-border-strong);
   font-size: 1.1rem;
   cursor: pointer;
   background: rgba(255, 255, 255, 0.92);
@@ -2425,8 +2584,8 @@
 
 /* État : recette dans le brouillon */
 .draft-btn.draft-btn-compact.in-draft {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
+  background: var(--color-accent);
+  border-color: var(--color-accent-deep);
   color: var(--color-bg-white);
 }
 
@@ -2442,30 +2601,6 @@
 .draft-btn.draft-btn-compact.in-draft:hover {
   background: var(--color-primary-hover);
   border-color: var(--color-primary-hover);
-}
-
-/* ============================================
-   RESPONSIVE — Draft bar + Draft button
-   ============================================ */
-
-@media (max-width: 767px) {
-  .draft-status-bar {
-    padding: 0.5rem 0.75rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .draft-bar-content {
-    gap: 0.5rem;
-  }
-
-  .draft-bar-text {
-    font-size: 0.8rem;
-  }
-
-  .draft-bar-link {
-    font-size: 0.8rem;
-    padding: 0.3rem 0.6rem;
-  }
 }
 
 /* === Mini Hero sombre === */
@@ -2501,10 +2636,10 @@
 }
 
 .rf-hero-title {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-size: 24px;
   font-weight: 400;
-  color: #FFFFFF;
+  color: var(--color-bg-white);
   line-height: 1.15;
   margin: 0;
 }
@@ -2515,6 +2650,15 @@
   max-width: 820px;
   margin: 0 auto;
   padding: 20px 28px 32px;
+}
+
+/* Variante large, réservée aux pages en liste (brouillons IA) : 820 px est la
+   bonne mesure pour lire un formulaire, trop étroit pour une carte qui aligne
+   nom, statut et actions. Hero et body partagent la valeur pour rester alignés. */
+
+.rf-hero-inner--wide,
+.rf-body--wide {
+  max-width: 1080px;
 }
 
 /* === Formulaire === */
@@ -2534,43 +2678,67 @@
   padding-top: 0;
 }
 
+/* Ambre foncé plutôt que gris : les intitulés de section sont les repères qui
+   découpent un formulaire long, ils doivent accrocher l'œil avant les libellés
+   de champ. L'ambre est le seul accent coloré de la charte, et
+   --color-accent-text en est la déclinaison lisible sur fond clair
+   (5,94:1 sur --color-bg-main). Les familles de tags (.rf-tags-category)
+   restent en gris : elles vivent à l'intérieur d'une section, et c'est cet
+   écart de couleur qui porte la hiérarchie entre les deux niveaux. */
 .rf-section-label {
-  font-size: 10px;
-  font-weight: 500;
+  font-size: var(--font-size-base);
+  font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--color-ink-4);
+  color: var(--color-accent-text);
   padding-bottom: 6px;
-  border-bottom: 0.5px solid var(--color-border);
+  /* Le filet reprend la couleur du libellé, un cran plus épais que la bordure
+     fine des champs : il souligne le titre au lieu de séparer deux blocs. */
+  border-bottom: 2px solid var(--color-accent-text);
   margin-bottom: 12px;
 }
 
 /* === Overrides de formulaire dans le contexte rf === */
 
 .rf-form .form-label {
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--color-ink-2);
+  /* L'écart label ↔ champ est porté par le gap du .form-group : sans cette
+     remise à zéro, le margin-bottom global s'y ajoute (double espacement). */
+  margin-bottom: 0;
 }
 
+/* Le margin-bottom global de .form-group (authentication.css) s'ajoutait au gap
+   des rangées : ici l'espacement vertical est porté par .form-row et .rf-section. */
 .rf-form .form-group {
   gap: 4px;
+  margin-bottom: 0;
 }
 
+/* Le formulaire recette dispose ses champs en flex-wrap (2 à 3 par ligne selon
+   la largeur), contrairement au grid 2 colonnes canonique. */
 .rf-form .form-row {
+  display: flex;
+  flex-wrap: wrap;
   gap: 14px;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
 .rf-form .form-row:last-child {
   margin-bottom: 0;
 }
 
+.rf-form .form-row .form-group {
+  flex: 1;
+  min-width: 200px;
+}
+
 .rf-form .form-input,
 .rf-form .form-select {
   padding: 8px 12px;
-  font-size: 13px;
-  border: 0.5px solid var(--color-border);
+  font-size: var(--font-size-sm);
+  border: var(--border-thin);
   background: var(--color-bg-white);
   transition: border-color var(--transition-fast), background var(--transition-fast);
 }
@@ -2582,25 +2750,466 @@
   box-shadow: 0 0 0 2px var(--color-primary-light);
 }
 
+/* Blanc comme tous les autres champs : le beige du textarea se confondait avec
+   le fond de page, la zone de saisie la plus vaste du formulaire était aussi la
+   moins visible. Une seule couleur de champ, une seule règle de lecture. */
 .rf-form .form-textarea {
   padding: 8px 12px;
-  font-size: 13px;
-  border: 0.5px solid var(--color-border);
-  background: var(--color-bg-secondary);
+  font-size: var(--font-size-sm);
+  border: var(--border-thin);
+  background: var(--color-bg-white);
   line-height: 1.7;
   transition: border-color var(--transition-fast), background var(--transition-fast);
 }
 
 .rf-form .form-textarea:focus {
   border-color: var(--color-primary);
-  background: var(--color-bg-white);
   box-shadow: 0 0 0 2px var(--color-primary-light);
 }
 
-/* === Tags — sous-groupes style éditorial === */
+/* Champs du formulaire recette : 16px sur mobile pour éviter le zoom iOS au focus.
+   Bat la taille de base (.rf-form …, spécificité 0,2,0) via une media query placée après. */
+@media (max-width: 767px) {
+  .rf-form .form-input,
+  .rf-form .form-select,
+  .rf-form .form-textarea {
+    font-size: 16px;
+  }
+}
+
+/* === Nom de la recette — champ « trait » ===
+
+   Le titre de la recette se saisit comme un titre : pas de cadre, un simple
+   trait qui se colore au focus, et une taille de texte nettement supérieure au
+   reste du formulaire. Placé après la media query mobile ci-dessus (même
+   spécificité) pour que sa taille tienne aussi sur petit écran — 24px passe
+   largement le seuil des 16px qui déclenche le zoom iOS. */
+
+.rf-form .rf-name-input {
+  padding: 4px 0 10px;
+  font-size: var(--font-size-2xl);
+  font-weight: 600;
+  line-height: 1.25;
+  /* Même ambre que son filet et que les intitulés de section : le nom est le
+     titre de la recette, il appartient à la même famille de repères. Seule la
+     valeur saisie la prend — le placeholder reste gris, sinon un champ vide se
+     lirait comme un champ rempli. */
+  color: var(--color-accent-text);
+  border: none;
+  /* Même filet que les intitulés de section : 2px ambre. Le nom est le titre de
+     la recette, il ouvre le formulaire comme les sections le rythment. */
+  border-bottom: 2px solid var(--color-accent-text);
+  border-radius: 0;
+  background: transparent;
+}
+
+.rf-form .rf-name-input::placeholder {
+  color: var(--color-ink-4);
+  font-weight: 600;
+}
+
+/* Au survol le trait se renforce. Sans cette règle, le hover global de
+   .form-input (spécificité supérieure) l'éclaircirait au lieu de l'appuyer.
+   Il vire à l'anthracite adouci et non à un gris : depuis un ambre foncé, un
+   gris moyen se lirait comme un affadissement du trait, pas comme un appui. */
+.rf-form .rf-name-input:hover:not(:focus) {
+  border-bottom-color: var(--color-primary-hover);
+}
+
+/* Le trait remplace le cadre : ni anneau de focus ni fond, seule sa couleur
+   change — l'épaisseur, elle, ne bouge pas (le champ sauterait d'un pixel). */
+.rf-form .rf-name-input:focus {
+  border-bottom-color: var(--color-primary);
+  background: transparent;
+  box-shadow: none;
+}
+
+/* === Champ « valeur + unité » — cadre partagé ===
+
+   Un seul cadre autour du nombre et de son unité : l'input abandonne le sien au
+   profit du conteneur, qui porte aussi l'anneau de focus. Partagé par les durées
+   de la rangée des valeurs chiffrées et par la quantité de chaque ingrédient. */
+
+.rf-unit-field {
+  display: flex;
+  align-items: stretch;
+  border: var(--border-thin);
+  border-radius: var(--radius-input);
+  background: var(--color-bg-white);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.rf-unit-field:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+.rf-form .rf-unit-field .form-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Champ étroit : les flèches natives du number input mangeraient la place déjà
+   occupée par l'unité — et, pour les personnes, par les boutons − / +. */
+.rf-unit-field .form-input::-webkit-outer-spin-button,
+.rf-unit-field .form-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.rf-unit-field .form-input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Unité en lecture seule : simple suffixe gris, sans filet de séparation — elle
+   fait corps avec le nombre qu'elle qualifie, le cadre commun suffit à la tenir. */
+.rf-unit-suffix {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 0 10px;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-ink-3);
+  white-space: nowrap;
+}
+
+/* Unité d'une quantité d'ingrédient : un sélecteur qui se lit comme un suffixe.
+   Il partage le cadre du nombre qu'il qualifie (.rf-unit-field), donc pas de
+   bordure ni de fond propres, et il garde la typographie grise des mots du
+   formulaire — l'unité est un mot, la valeur est le nombre. Chevron dessiné
+   plutôt que natif, comme le sélecteur d'ingrédient de la même rangée.
+
+   Il n'apparaît comme un champ que là où il y a un choix : un groupe d'unités
+   qui n'en offre qu'une (les pièces) ou une ligne sans ingrédient le rendent
+   inerte, et il redevient le simple suffixe gris qu'il était. */
+.rf-unit-select {
+  flex-shrink: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  border-radius: 0;
+  padding: 0 26px 0 8px;
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23615B54' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-ink-3);
+  cursor: pointer;
+}
+
+/* Le cadre commun porte déjà le focus (:focus-within) : l'anneau reste discret
+   et vient à l'intérieur, sinon il déborderait du cadre. */
+.rf-unit-select:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+/* opacity : sans elle, Safari délave les sélecteurs désactivés jusqu'à rendre
+   l'unité illisible. */
+.rf-unit-select:disabled {
+  padding-right: 8px;
+  background-image: none;
+  color: var(--color-ink-4);
+  cursor: default;
+  opacity: 1;
+}
+
+/* L'input étant sans bordure, l'état d'erreur est porté par le cadre commun. */
+.has-error > .rf-unit-field {
+  border-color: var(--color-danger);
+  background: var(--color-danger-light);
+}
+
+/* === Rangée des valeurs chiffrées (personnes, durées) ===
+
+   « Pour 4 personnes · Préparation 20 min · Cuisson 15 min » : une phrase dont
+   les champs sont les mots. D'où le parti pris typographique de toute la rangée —
+   les mots (libellés, unités, ponctuation) en gris discret et graisse de texte,
+   les valeurs seules en évidence dans leur cadre. Les libellés restent donc en
+   ligne plutôt qu'empilés, et la rangée se replie groupe par groupe : un groupe
+   (libellé, champ, unité) n'est jamais coupé.
+
+   Elle occupe toute la largeur en écartant les groupes, pas en étirant les
+   cadres : un champ deux fois trop large laisse sa valeur flotter dans le vide,
+   alors que l'espace entre deux groupes, lui, articule la phrase. Le gap fait
+   office de minimum garanti (18 px), y compris une fois la rangée repliée. */
+
+.rf-measures {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 18px;
+  margin-bottom: 14px;
+}
+
+.rf-measure {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Les mots de la phrase : un seul traitement pour les libellés, les unités hors
+   cadre et la ponctuation. Ils accompagnent la valeur, ils ne la concurrencent
+   pas — et ne reviennent jamais à la ligne au milieu d'un mot. */
+.rf-measures .form-label,
+.rf-measure-unit,
+.rf-measure-sep {
+  font-size: var(--font-size-sm);
+  font-weight: 400;
+  color: var(--color-ink-3);
+  white-space: nowrap;
+}
+
+.rf-measure-sep {
+  color: var(--color-ink-4);
+}
+
+/* Largeurs de cadre explicites, taillées sur leur contenu : de quoi loger trois
+   chiffres sans jamais serrer. Elles sont indispensables — sans elles, la largeur
+   de référence qui décide du retour à la ligne serait celle, énorme, d'un
+   input[type=number] par défaut (~180 px), et la rangée se replierait sur deux
+   lignes avant même de manquer de place. */
+.rf-stepper {
+  width: 120px;
+}
+
+.rf-duration {
+  width: 108px;
+}
+
+/* Survol : la bordure se réchauffe, sauf si le champ est déjà mis en avant par
+   le focus. Réservé à cette rangée — les cadres de quantité, empilés par
+   dizaines dans la liste d'ingrédients, s'en passent très bien. */
+.rf-measure .rf-unit-field:hover:not(:focus-within) {
+  border-color: var(--color-ink-4);
+}
+
+/* La valeur est le seul texte en évidence de la rangée. Elle occupe tout le
+   cadre (moins l'unité) : aucune zone morte, on clique n'importe où pour saisir,
+   et le nombre reste centré. Chiffres tabulaires : sans eux, la largeur du
+   nombre change d'un clic à l'autre sur le stepper et la valeur tressaute. */
+.rf-form .rf-measure .form-input {
+  text-align: center;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Durée non renseignée : un tiret discret plutôt qu'un vide. Il s'efface dès
+   qu'on entre dans le champ — par défaut un placeholder reste affiché sous le
+   curseur tant qu'on n'a pas tapé. */
+.rf-duration .form-input::placeholder {
+  color: var(--color-ink-4);
+}
+
+.rf-duration .form-input:focus::placeholder {
+  color: transparent;
+}
+
+/* « min » : calé à droite du cadre, en retrait de taille et de couleur — c'est
+   une mention, pas une valeur. */
+.rf-measure .rf-unit-suffix {
+  padding: 0 12px 0 0;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-ink-4);
+}
+
+/* Stepper : les deux boutons occupent les extrémités du cadre sur toute sa
+   hauteur, le champ prend tout l'espace entre eux — la valeur est donc centrée
+   et la moindre zone cliquable du cadre mène à la saisie. */
+.rf-form .rf-stepper .form-input {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.rf-stepper-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 32px;
+  padding: 0;
+  border: none;
+  /* Rayon intérieur du cadre (4 px de rayon moins 1 px de bordure) : le fond de
+     survol épouse le coin arrondi au lieu d'y laisser un éclat blanc. */
+  border-radius: 3px;
+  background: none;
+  color: var(--color-ink-3);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  /* Sans cela, un double-clic un peu rapide sur « + » sélectionne le glyphe. */
+  user-select: none;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.rf-stepper-btn:hover:not(:disabled) {
+  background: var(--color-bg-secondary);
+  color: var(--color-ink);
+}
+
+/* Retour tactile à l'appui : le fond se fonce le temps du clic. */
+.rf-stepper-btn:active:not(:disabled) {
+  background: var(--color-bg-tertiary);
+}
+
+.rf-stepper-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Les erreurs des trois champs passent sous la rangée entière. */
+.rf-measures .field-errors {
+  flex-basis: 100%;
+}
+
+/* === Sélecteurs segmentés — régime, difficulté, budget, moments === */
+
+/* Rangée « intitulé à gauche, options à droite ». Les quatre rangées partagent
+   la même colonne d'intitulés : l'œil descend une seule verticale au lieu de
+   chercher où commence chaque groupe d'options. */
+.rf-form .rf-choice {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin-bottom: 12px;
+}
+
+.rf-form .rf-choice:last-child {
+  margin-bottom: 0;
+}
+
+/* Largeur fixe (et non « au contenu ») : les intitulés n'ont pas la même
+   longueur (« Budget » vs « Moment(s) du repas * »), donc sans cette largeur
+   commune les rangées d'options ne démarreraient pas au même endroit. */
+.rf-form .rf-choice > .form-label {
+  flex: 0 0 140px;
+}
+
+/* Une erreur passe sous la rangée entière, jamais entre l'intitulé et ses
+   options. */
+.rf-choice .field-errors {
+  flex: 1 0 100%;
+}
+
+/* La rangée : un cadre blanc dans lequel les options se partagent la place,
+   séparées par un filet. Le rail grisé sur lequel se posait une pastille claire
+   a été abandonné — il disait « sélectionné = clair » quelques centimètres
+   au-dessus des tags qui disent « sélectionné = anthracite ». Un seul signal de
+   sélection dans tout le formulaire : l'aplat anthracite.
+   Ce qui distingue une rangée d'options d'une grappe de capsules n'est donc plus
+   la couleur mais la forme : ici les options sont soudées dans un cadre unique
+   (jeu fermé, on en choisit une), là les capsules flottent librement (liste
+   ouverte, on picore). */
+.rf-segmented {
+  display: flex;
+  flex-wrap: wrap;
+  background: var(--color-bg-white);
+  border: var(--border-thin);
+  border-radius: var(--radius-input);
+  /* Les aplats des options aux extrémités suivent l'arrondi du cadre sans avoir
+     à porter eux-mêmes un rayon. */
+  overflow: hidden;
+}
+
+.rf-choice.has-error .rf-segmented {
+  border-color: var(--color-danger);
+}
+
+.rf-segment {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  /* Plancher de largeur : sans lui, un libellé d'un caractère (« € ») donnerait
+     une option deux fois plus étroite que ses voisines, et une cible au doigt
+     trop petite. */
+  min-width: 44px;
+  font-size: var(--font-size-sm);
+  color: var(--color-ink-3);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+/* Le filet de séparation est une ombre interne plutôt qu'une bordure : il ne
+   prend pas de place dans la boîte, donc toutes les options gardent la même
+   largeur, et il disparaît d'un trait dès que l'option est cochée — un aplat
+   anthracite n'a pas besoin qu'on lui souligne le bord. */
+.rf-segment + .rf-segment {
+  box-shadow: inset 1px 0 0 var(--color-border);
+}
+
+/* Le contrôle natif reste dans le DOM — donc focusable au clavier et exposé
+   aux lecteurs d'écran — mais tout l'état visuel est porté par l'option. */
+.rf-segment input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  margin: 0;
+  opacity: 0;
+}
+
+/* Le contour global des champs focusés se poserait sur un input de 0×0, donc
+   invisible : il est reporté sur l'option, seule chose que l'œil voit. */
+.rf-segment input:focus-visible {
+  outline: none;
+}
+
+/* Contour tracé vers l'intérieur : à l'extérieur, il serait rogné par
+   l'overflow du cadre sur les deux options des extrémités. */
+.rf-segment:has(input:focus-visible) {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: -2px;
+}
+
+.rf-segment:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-ink);
+}
+
+/* Sélectionné : le même aplat anthracite que les capsules de tags. */
+.rf-segment:has(input:checked) {
+  background: var(--color-primary);
+  color: var(--color-bg-white);
+  font-weight: 500;
+  box-shadow: none;
+}
+
+.rf-segment:has(input:checked):hover {
+  background: var(--color-primary-hover);
+}
+
+/* Sur l'aplat anthracite, un contour anthracite ne se verrait pas : le focus
+   clavier repasse en blanc dès que l'option est cochée. */
+.rf-segment:has(input:checked:focus-visible) {
+  outline-color: var(--color-bg-white);
+}
+
+/* === Tags — capsules ===
+
+   Les tags sont un vocabulaire ouvert et nombreux (une quarantaine, répartis en
+   quatre familles) : contrairement aux caractéristiques, ils ne tiennent pas sur
+   une piste segmentée. Chaque tag est donc une capsule autonome, posée à plat sur
+   le fond de la page, et les familles se lisent grâce à leur intitulé en
+   capitales. L'arrondi complet (999px, comme les compteurs de groupe de
+   tags.css) les distingue au premier coup d'œil des contrôles rectangulaires du
+   formulaire : ici on picore dans une liste, on ne choisit pas dans un jeu fermé. */
 
 .rf-tags-group {
-  margin-bottom: 10px;
+  margin-bottom: 18px;
 }
 
 .rf-tags-group:last-child {
@@ -2608,192 +3217,286 @@
 }
 
 .rf-tags-category {
-  font-size: 10px;
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
   letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--color-ink-4);
-  margin-bottom: 6px;
+  color: var(--color-ink-3);
+  margin-bottom: 10px;
 }
 
-.rf-form .tags-grid {
-  gap: 6px;
-  margin-top: 0;
+.tags-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.rf-form .tag-checkbox {
-  padding: 4px 10px;
-  font-size: 12px;
-  border: 0.5px solid var(--color-border);
+.tag-checkbox {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 16px;
   background: var(--color-bg-white);
-  border-radius: var(--radius-button);
-  transition: all var(--transition-fast);
+  border: var(--border-thin);
+  border-radius: 999px;
+  font-size: var(--font-size-sm);
+  line-height: 1.2;
+  color: var(--color-ink-2);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast),
+    color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.rf-form .tag-checkbox:hover {
-  border-color: var(--color-primary);
+/* Le contrôle natif reste dans le DOM — focusable au clavier et exposé aux
+   lecteurs d'écran — mais tout l'état visuel est porté par la capsule. */
+.tag-checkbox input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  margin: 0;
+  opacity: 0;
+}
+
+/* Le contour global des champs focusés se poserait sur un input de 0×0, donc
+   invisible : il est reporté sur la capsule, seule chose que l'œil voit. */
+.tag-checkbox input:focus-visible {
+  outline: none;
+}
+
+.tag-checkbox:has(input:focus-visible) {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.tag-checkbox:hover {
+  border-color: var(--color-border-strong);
   background: var(--color-bg-secondary);
   color: var(--color-ink);
 }
 
-.rf-form .tag-checkbox:has(input:checked) {
+/* Sélectionné : aplat anthracite, comme partout ailleurs dans la charte. */
+.tag-checkbox:has(input:checked) {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: #FFFFFF;
+  color: var(--color-bg-white);
+  box-shadow: var(--shadow-sm);
 }
 
-.rf-form .tag-checkbox:has(input:checked) .tag-name {
-  color: #FFFFFF;
+.tag-checkbox:has(input:checked):hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
 }
 
 /* === Photo === */
 
-.rf-photo-upload {
+/* .rf-photo est une colonne flex : sans align-items, l'aperçu et le bouton
+   « Changer de photo » (inline-flex) seraient étirés sur toute la largeur. */
+.rf-form .rf-photo {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-}
-
-.rf-btn-outline {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 9px 18px;
-  font-size: 12px;
-  font-weight: 500;
-  background: var(--color-bg-white);
-  color: var(--color-ink-2);
-  border: 0.5px solid var(--color-border);
-  border-radius: var(--radius-button);
-  cursor: pointer;
-  transition: border-color var(--transition-fast), color var(--transition-fast);
-  align-self: flex-start;
-}
-
-.rf-btn-outline:hover {
-  border-color: var(--color-primary);
-  color: var(--color-ink);
-}
-
-.rf-btn-photo {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 9px 18px;
-  font-size: 12px;
-  font-weight: 500;
-  background: var(--color-primary);
-  color: #FFFFFF;
-  border: none;
-  border-radius: var(--radius-button);
-  cursor: pointer;
-  align-self: flex-start;
-  transition: background var(--transition-fast);
-}
-
-.rf-btn-photo:hover {
-  background: var(--color-primary-hover);
-}
-
-.rf-hint {
-  display: block;
-  margin-top: 4px;
-  font-size: 11px;
-  color: var(--color-ink-4);
-  font-style: italic;
-}
-
-.rf-form .current-photo {
-  margin-bottom: 8px;
-}
-
-.rf-form .photo-preview {
-  border-radius: var(--radius-card);
-  border: 0.5px solid var(--color-border);
-}
-
-/* === Ingrédients — nested fields === */
-
-.rf-form .preparations-container {
-  margin-bottom: 10px;
-}
-
-.rf-form .nested-fields {
-  padding: 8px 0;
-  border-bottom: 0.5px solid var(--color-border-light);
+  align-items: flex-start;
   gap: 10px;
 }
 
-.rf-form .nested-fields:last-child {
-  border-bottom: none;
+/* La zone de dépôt, elle, occupe toute la largeur du formulaire. */
+.rf-form .rf-photo-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
 }
 
-.rf-form .remove-preparation {
-  width: 28px;
-  height: 28px;
-  font-size: 12px;
-  background: transparent;
-  color: var(--color-ink-4);
-  border: 0.5px solid var(--color-border);
-  border-radius: var(--radius-button);
-  transition: all var(--transition-fast);
+/* La zone d'upload est masquée tant qu'une photo est en place : il faut battre
+   le display: flex ci-dessus, sinon l'attribut hidden reste sans effet. */
+.rf-form .rf-photo-upload[hidden] {
+  display: none;
 }
 
-.rf-form .remove-preparation:hover {
-  background: var(--color-danger-light);
-  color: var(--color-danger);
-  border-color: var(--color-danger);
+/* === Zone de dépôt de la photo === */
+
+.rf-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  padding: 26px 20px;
+  border: var(--border-width) dashed var(--color-border-strong);
+  border-radius: var(--radius-input);
+  background: var(--color-bg-white);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
 }
 
-.rf-form .preparations-actions {
-  margin-top: 10px;
-  margin-bottom: 0;
+.rf-dropzone:hover {
+  border-color: var(--color-ink-3);
+}
+
+/* Survol d'un fichier glissé (classe posée par image_preview_controller) et
+   focus clavier sur le champ fichier masqué : même mise en avant. */
+.rf-dropzone.is-dragging,
+.rf-photo-upload:has(.photo-upload-input:focus-visible) .rf-dropzone {
+  border-color: var(--color-primary);
+}
+
+/* Le contenu ne capte ni le clic ni le survol : sans cela, passer d'un enfant à
+   l'autre en glissant émet un dragleave parasite qui fait clignoter la zone. */
+.rf-dropzone > * {
+  pointer-events: none;
+}
+
+.rf-dropzone-icon {
+  color: var(--color-ink-3);
+}
+
+.rf-dropzone-title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.rf-dropzone-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
+}
+
+/* === Ingrédients — nested fields ===
+   Un ingrédient = une rangée. Base mobile : le nom et sa croix sur une ligne,
+   la quantité en dessous. Sur écran large les trois éléments se réalignent sur
+   une seule ligne (cf. media query en fin de section).
+
+   Pas de carte autour : elle était blanche et ne contenait que des champs
+   blancs — un cadre sans contenu propre, qui décalait en prime les champs de
+   12px vers l'intérieur par rapport au reste du formulaire. Les champs se
+   détachent d'eux-mêmes sur le fond beige de la page ; ce qui tient la rangée
+   ensemble, c'est la proximité, donc l'écart interne (8px) doit rester
+   nettement inférieur à l'écart entre deux ingrédients (16px). */
+
+.preparations-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.preparation-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "ingredient remove"
+    "quantity   quantity";
+  align-items: center;
   gap: 8px;
 }
 
-/* Bouton ajouter un ingrédient */
-.rf-btn-add {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 9px 18px;
-  font-size: 12px;
-  font-weight: 500;
-  background: var(--color-primary);
-  color: #FFFFFF;
-  border: none;
-  border-radius: var(--radius-button);
-  cursor: pointer;
-  min-height: 40px;
-  transition: background var(--transition-fast);
+/* Ligne marquée pour suppression : toujours soumise (donc dans le DOM) mais
+   masquée. Nécessaire pour battre le display: grid ci-dessus. */
+.preparation-fields[hidden] {
+  display: none;
 }
 
-.rf-btn-add:hover {
-  background: var(--color-primary-hover);
+.preparation-ingredient {
+  grid-area: ingredient;
 }
 
-/* Bouton créer un ingrédient */
-.rf-btn-create {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 9px 18px;
-  font-size: 12px;
-  font-weight: 500;
+/* Valeur courte : largeur fixe, qui sert aussi de gabarit à la colonne « quantité »
+   de la grille sur écran large. Elle tient la valeur la plus longue, plus son
+   unité et le chevron de son sélecteur — au-delà, c'est de l'air qui éloigne
+   inutilement le nombre de la croix. */
+.preparation-quantity {
+  grid-area: quantity;
+  width: 148px;
+}
+
+/* Une ligne d'ingrédient et les deux boutons qui closent la liste appartiennent
+   au même empilement : ils partagent donc la hauteur des boutons (.btn, 44px),
+   sinon la section descend en marches d'escalier. Le padding vertical des champs
+   reste inchangé, c'est la hauteur minimale qui les met au gabarit. */
+.rf-form .preparation-ingredient .form-select,
+.preparation-quantity .rf-unit-field {
+  min-height: var(--min-touch-target);
+}
+
+/* Chevron dessiné plutôt que la flèche native, collée au bord dans la plupart
+   des navigateurs : elle respire ici des mêmes 12px que le texte du champ. */
+.rf-form .preparation-ingredient .form-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 32px;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23615B54' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+.preparation-remove {
+  grid-area: remove;
+}
+
+/* Quantité + unité : cadre partagé .rf-unit-field (défini plus haut avec les
+   overrides de formulaire), y compris son état d'erreur. */
+
+/* Croix de suppression : bouton icône canonique (components.css) débarrassé de
+   son cadre — la rangée se lit sans qu'on encadre chacun de ses éléments — et
+   de sa marge horizontale. L'icône passe en ink-3 : le gris ink-4 par défaut
+   tenait sur le blanc de l'ancienne carte, il descend à 2,3:1 sur le beige de
+   la page, sous le seuil de 3:1 attendu d'un contrôle. */
+.preparation-remove .icon-btn {
+  margin: 0;
+  border-color: transparent;
   background: transparent;
   color: var(--color-ink-3);
-  border: 1px dashed var(--color-border-strong);
-  border-radius: var(--radius-button);
-  cursor: pointer;
-  min-height: 40px;
-  transition: all var(--transition-fast);
 }
 
-.rf-btn-create:hover {
-  background: var(--color-primary);
-  color: #FFFFFF;
-  border-style: solid;
-  border-color: var(--color-primary);
+/* Spécificité 0,3,0 : bat aussi le fond gris de .icon-btn:hover en mobile. */
+.preparation-remove .icon-btn:hover {
+  background: var(--color-danger-light);
+  border-color: transparent;
+  color: var(--color-danger);
+}
+
+/* Écran large : nom, quantité et croix se réalignent sur une seule ligne. La
+   colonne « quantité » est dimensionnée par la largeur de .preparation-quantity. */
+@media (min-width: 768px) {
+  .preparation-fields {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas: "ingredient quantity remove";
+  }
+
+  /* Base nulle plutôt que auto : les deux boutons occupent la même largeur quel
+     que soit celle de leur libellé, sinon « Créer un nouvel ingrédient » serait
+     le plus large des deux alors que c'est le geste le plus rare. */
+  .rf-form .preparations-actions .btn {
+    flex: 1 1 0;
+  }
+}
+
+/* Les deux actions se font face sur une seule rangée et se partagent la largeur
+   à parts égales (cf. media query desktop plus bas) ; sous 768px elles
+   s'empilent, chacune sur toute la largeur. Ce qui les distingue n'est donc pas
+   leur encombrement mais leur traitement — tirets contre bouton plein — et leur
+   picto. */
+.rf-form .preparations-actions {
+  margin-top: 16px;
+  margin-bottom: 0;
+  gap: 10px;
+}
+
+/* Ajout d'une ligne : le trait en tirets dit « la liste continue ici » — même
+   geste que la zone de dépôt photo (.rf-dropzone) ou l'ajout d'un repas dans un
+   menu (.mc-add-btn). Il libère surtout l'aplat anthracite, qui doit rester
+   l'apanage de l'action finale : deux boutons noirs identiques dans un même
+   écran, l'un pour ajouter une ligne et l'autre pour créer la recette, se
+   disputaient le même poids alors qu'ils n'engagent pas du tout autant. */
+.rf-form .rf-add-ingredient {
+  background: var(--color-bg-white);
+  border: var(--border-width) dashed var(--color-border-strong);
+  color: var(--color-ink-2);
+}
+
+/* Au survol, l'ambre de la charte : la zone s'annonce cliquable sans se
+   remplir, et reprend l'accent déjà porté par les intitulés de section. */
+.rf-form .rf-add-ingredient:hover {
+  border-color: var(--color-accent-deep);
+  color: var(--color-accent-text);
+  background: var(--color-bg-white);
 }
 
 /* === Actions du formulaire === */
@@ -2806,23 +3509,331 @@
   margin-top: 4px;
 }
 
-.rf-actions .btn-primary {
-  padding: 11px 28px;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
+/* Source d'un import IA : rappel posé en tête du formulaire de validation pour
+   rouvrir la page d'origine et confronter ce que l'IA a extrait. Pense-bête et
+   pas bandeau — il ne doit pas repousser le premier champ vers le bas. */
+
+.rf-source {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-bottom: 16px;
+  padding: 9px 14px;
+  background: var(--color-info-light);
+  border: 1px solid var(--color-info-border);
+  border-radius: var(--radius-input);
 }
 
-.rf-cancel-link {
+.rf-source__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-info-text);
+}
+
+/* L'adresse occupe la place restante et se tronque plutôt que de casser la
+   ligne ; sous 240px disponibles elle passe à la ligne (base flex) au lieu de
+   se réduire à trois caractères. Soulignée d'emblée pour se lire comme un lien
+   — le survol en assombrit l'encre via la règle globale des liens texte. */
+.rf-source__link {
+  flex: 1 1 240px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 12px;
-  color: var(--color-ink-4);
-  text-decoration: none;
+  color: var(--color-info-text);
+  text-decoration: underline;
+}
+
+/* === Visionneuse de la source (import photo) ===
+
+   Valider un import photo, c'est recopier une page : elle doit rester lisible
+   pendant toute la saisie, pas s'ouvrir à chaque doute. Elle occupe donc une
+   colonne collée au défilement, à droite du formulaire — qui garde sa mesure de
+   820 px et sa position, repli ou pas : rien ne se déplace sous les yeux quand on
+   replie la source.
+
+   Deux régimes, un seul balisage. En dessous de 1200 px les deux colonnes ne
+   tiennent plus (miroir de WIDE_SCREEN dans source_viewer_controller.js) : la
+   visionneuse redevient une superposition, l'aside faisant office de voile. */
+
+/* Largeur plancher de la colonne : en deçà, une page photographiée n'offre plus
+   assez de prise au premier coup d'œil. Au-delà, elle est fluide — voir la grille
+   du régime deux colonnes, qui lui donne tout ce que le formulaire ne prend pas. */
+.rf-split {
+  --source-viewer-min-width: 380px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  /* Indispensable au sticky de la colonne : étirée sur la hauteur de la ligne,
+     elle n'aurait aucune marge de manœuvre pour se décoller. */
+  align-items: start;
+}
+
+/* Borné, jamais centré : le formulaire reste aligné sur le titre du hero et ne
+   bouge pas d'un pixel quand la source se replie. */
+.rf-split__main {
+  min-width: 0;
+  max-width: 820px;
+}
+
+/* .rf-body est un item flex de .main-content : ses marges automatiques y absorbent
+   l'espace libre, ce qui le dimensionne sur son contenu au lieu de l'étirer. Or une
+   grille n'y contribue pas la largeur que le formulaire seul y contribue — sans
+   cette largeur explicite, la colonne du formulaire se réduirait à ses champs les
+   plus larges. C'est la contrepartie de la grille, donc réservé aux pages qui en
+   ont une : les autres formulaires gardent le dimensionnement d'origine. */
+.rf-body--split {
+  width: 100%;
+}
+
+/* Les deux états par défaut sont portés par le CSS et non par le contrôleur —
+   colonne ouverte sur grand écran, languette seule en dessous : au chargement,
+   rien ne clignote le temps que Stimulus s'attache. Le contrôleur ne pose une
+   classe que pour l'écart au défaut de la largeur courante, d'où deux noms
+   symétriques : .is-source-open (ouverte alors qu'elle serait masquée),
+   .is-source-hidden (repliée alors qu'elle serait ouverte). */
+
+/* Superposition (régime par défaut) : l'aside est le voile, la plaque blanche se
+   centre dedans. Masquée tant que la languette n'a pas été actionnée. */
+.rf-viewer {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9990;
+  padding: 12px;
+  background: rgba(28, 25, 22, 0.55);
+}
+
+.is-source-open .rf-viewer {
+  display: block;
+}
+
+.rf-viewer__inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  overflow: hidden;
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-lg);
+}
+
+/* En-tête : l'intitulé dans le registre ambré des sections du formulaire — la
+   source est une pièce du même écran, pas un module étranger. */
+.rf-viewer__head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px 4px 14px;
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.rf-viewer__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  /* Pousse les deux actions contre le bord droit. */
+  margin-right: auto;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-accent-text);
+}
+
+/* Le cadre porte les gestes, l'image ne fait que suivre : d'où le débordement
+   masqué ici et la transformation là. Fond beige soutenu — une page de livre
+   photographiée est claire, elle a besoin d'un cadre pour se détacher. */
+.rf-viewer__frame {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--color-bg-tertiary);
+  cursor: zoom-in;
+  /* Le glisser déplace l'image ; sans cela le navigateur y verrait un défilement
+     ou un glisser-déposer natif. */
+  touch-action: none;
+}
+
+.rf-viewer__frame.is-zoomed {
+  cursor: grab;
+}
+
+.rf-viewer__frame.is-panning {
+  cursor: grabbing;
+}
+
+.rf-viewer__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  /* Le zoom part du centre : c'est ce repère que suppose le calcul de la
+     translation dans le contrôleur. */
+  transform-origin: center center;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Contrôles de zoom dans l'en-tête, et non flottant sur le bas de l'image : la
+   colonne fait la hauteur de l'écran mais démarre sous le hero, donc son pied
+   passe sous la ligne de flottaison tant qu'on n'a pas défilé — une commande qui
+   ne se voit qu'après avoir défilé ne se découvre pas. Groupés sur un aplat
+   blanc, ils se distinguent des deux actions du panneau (plein écran, masquer). */
+.rf-viewer__zoom {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-right: 2px;
+  padding: 2px;
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-button);
+}
+
+/* Le niveau de zoom est aussi le bouton qui le remet à 100 % : chiffres à largeur
+   fixe pour que la barre ne tremble pas pendant qu'on tourne la molette. */
+.rf-viewer__level {
+  min-width: 58px;
+  height: var(--min-touch-target);
+  background: transparent;
+  border: 0;
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-3);
+  cursor: pointer;
   transition: color var(--transition-fast);
 }
 
-.rf-cancel-link:hover {
+.rf-viewer__level:hover {
   color: var(--color-ink);
-  text-decoration: none;
+}
+
+/* Languette de rappel, collée au bord droit : la seule trace de la source quand
+   elle est repliée, et la porte d'entrée sur les écrans étroits. Le chevron dit
+   d'où le panneau revient. Même étage que les autres éléments flottants de page
+   (bouton « Filtres » du catalogue), donc sous le header. */
+.rf-viewer-handle {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: var(--min-touch-target);
+  padding: 0 10px;
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-border);
+  border-right: 0;
+  border-radius: var(--radius-card) 0 0 var(--radius-card);
+  box-shadow: -2px 0 8px rgba(28, 25, 22, 0.09);
+  color: var(--color-ink-3);
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.rf-viewer-handle:hover {
+  color: var(--color-accent-text);
+  border-color: var(--color-accent-deep);
+}
+
+.is-source-open .rf-viewer-handle {
+  display: none;
+}
+
+/* Deux colonnes : la place existe, la source devient une colonne du document au
+   lieu d'une superposition. C'est ici, et ici seulement, que le formulaire de
+   validation s'élargit — hero compris, pour que le titre reste aligné sur lui. */
+@media (min-width: 1200px) {
+  /* Large mesure, réservée à cette page : le formulaire garde ses 820 px et tout
+     le reste va à la source, qui est ici l'autre moitié du travail. Le plafond
+     n'est donc pas celui d'un texte à lire mais celui de l'image à confronter —
+     au-delà, on afficherait un import de 1600 px à moins de deux fois sa
+     définition, et les deux colonnes s'écarteraient trop pour un aller-retour du
+     regard. Hero comprise : le titre suit la mesure du formulaire, comme sur les
+     autres pages. */
+  .rf-hero-inner--split,
+  .rf-body--split {
+    max-width: 1680px;
+  }
+
+  /* Le formulaire prend sa mesure de lecture, la source prend le reste : c'est
+     elle qui profite de la largeur de l'écran, puisque c'est elle qu'on déchiffre.
+     Les deux pistes savent se réduire — la source jusqu'à son plancher, puis le
+     formulaire — pour que rien ne déborde entre 1200 et 1280 px. */
+  .rf-split:not(.is-source-hidden) {
+    grid-template-columns: minmax(0, 820px) minmax(var(--source-viewer-min-width), 1fr);
+  }
+
+  .rf-split:not(.is-source-hidden) .rf-viewer {
+    display: block;
+    position: sticky;
+    /* inset remis à auto avant tout : le régime superposé l'avait cloué aux
+       quatre bords, et un `bottom` résiduel fait dériver un élément sticky. */
+    inset: auto;
+    /* Ancrée sous le header sticky, elle tient la hauteur de l'écran : la source
+       reste entière sous les yeux, des mesures jusqu'aux tags. */
+    top: calc(var(--header-height) + 16px);
+    height: calc(100vh - var(--header-height) - 32px);
+    padding: 0;
+    background: none;
+    z-index: auto;
+  }
+
+  .rf-split:not(.is-source-hidden) .rf-viewer-handle {
+    display: none;
+  }
+
+  /* Plaque à même la colonne : plus de voile à surplomber, l'ombre s'allège. */
+  .rf-viewer__inner {
+    max-width: none;
+    box-shadow: var(--shadow-md);
+  }
+}
+
+/* Abandon d'un import IA : action destructive tenue à distance des actions du
+   formulaire, sous une séparation nette — on ne supprime pas un import d'un
+   clic voisin de « Publier ». */
+.rf-discard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.rf-discard__hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-ink-3);
+}
+
+.rf-discard__btn {
+  padding-left: 0;
+  padding-right: 0;
+  color: var(--color-danger);
+  white-space: nowrap;
+}
+
+.rf-discard__btn:hover {
+  color: var(--color-danger-hover);
+  text-decoration: underline;
 }
 
 /* ============================================
@@ -2831,8 +3842,6 @@
 
 /* Mobile (max-width: 767px) */
 @media (max-width: 767px) {
-  /* NOTE: .rf-back-bar responsive supprimé — utilise .context-bar */
-
   .rf-hero {
     padding: 14px 16px 16px;
   }
@@ -2853,57 +3862,99 @@
     margin-bottom: 10px;
   }
 
+  /* Une ligne par champ : à cette largeur, deux champs côte à côte laissent
+     trop peu de place au libellé comme à la valeur. */
   .rf-form .form-row {
-    flex-direction: column;
-    gap: 0;
-  }
-
-  .rf-form .form-row .form-group {
-    flex: none;
-    width: 100%;
-    min-width: auto;
-  }
-
-  .rf-form .nested-fields {
-    flex-direction: column;
-    align-items: stretch;
     gap: 10px;
   }
 
-  .rf-form .nested-fields .form-group {
-    flex: none;
+  .rf-form .form-row .form-group {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  /* La phrase des valeurs chiffrées tient rarement sur une ligne à cette
+     largeur : elle se replie groupe par groupe, et la ponctuation qui séparait
+     « personnes » de « Préparation » n'a alors plus rien à séparer. */
+  .rf-measure-sep {
+    display: none;
+  }
+
+  /* Repliée, la rangée n'a plus de ligne à occuper : chaque groupe prend la
+     largeur disponible et son cadre s'étire — plus confortable au doigt que
+     trois petits champs perdus au milieu du vide. */
+  .rf-measure {
+    flex: 1 1 auto;
+  }
+
+  /* Cibles tactiles : cadres à hauteur de doigt et boutons de stepper élargis
+     (ils s'étirent déjà sur toute la hauteur du cadre). */
+  .rf-measure .rf-unit-field {
+    flex-grow: 1;
+    min-height: var(--min-touch-target);
+  }
+
+  .rf-stepper-btn {
+    flex-basis: 42px;
+    font-size: 17px;
+  }
+
+  /* La colonne d'intitulés de 140px ne laisse plus assez de place aux options
+     à cette largeur : l'intitulé reprend sa ligne entière, la rangée d'options
+     s'étale dessous. */
+  .rf-form .rf-choice > .form-label {
+    flex: 1 0 100%;
+  }
+
+  /* Une ligne par champ, sur toute la largeur de l'écran : le cadre s'étire et
+     ses options s'y partagent la place à parts égales. */
+  .rf-segmented {
     width: 100%;
+    flex-wrap: nowrap;
   }
 
-  .rf-form .preparation-quantity {
-    flex: none;
-    max-width: none;
+  /* min-width: 0 lève le plancher de 44px ET la largeur minimale implicite d'un
+     élément flex — sans quoi les cinq moments déborderaient de l'écran au lieu
+     de se répartir. La hauteur, elle, reste à hauteur de doigt. */
+  .rf-segment {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 38px;
+    padding: 6px 4px;
+    font-size: var(--font-size-xs);
   }
 
-  .rf-form .preparations-actions {
-    flex-direction: column;
+  /* Filet de sécurité sur les écrans les plus étroits : un libellé qui ne tient
+     pas dans sa part s'abrège au lieu de pousser la piste hors de l'écran. */
+  .rf-segment-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  .rf-btn-add,
-  .rf-btn-create {
+  /* Les capsules restent à leur largeur de contenu (elles se replient au fil du
+     texte) mais gagnent la hauteur de doigt des autres contrôles du formulaire. */
+  .tag-checkbox {
+    min-height: 38px;
+    padding: 8px 16px;
+  }
+
+  /* .preparations-actions passe déjà en colonne via components.css */
+  .rf-form .preparations-actions .btn,
+  .rf-actions .btn {
     width: 100%;
   }
 
   .rf-actions {
     flex-direction: column;
+    align-items: stretch;
     gap: 10px;
     padding-top: 16px;
   }
 
-  .rf-actions .btn-primary {
-    width: 100%;
-    justify-content: center;
-    min-height: var(--min-touch-target);
-  }
-
-  .rf-cancel-link {
-    font-size: 13px;
-    text-align: center;
+  .rf-discard {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
   }
 }
 
@@ -2919,5 +3970,1166 @@
 
   .rf-body {
     padding: 16px 20px 32px;
+  }
+}
+
+/* ============================================
+   IMPORT IA — Panneau de revue des ingrédients
+   ============================================ */
+
+/* === Badge brouillon === */
+
+.badge--draft {
+  background: var(--color-accent-light);
+  color: var(--color-accent-text);
+  border: 1px solid var(--color-accent-border);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 20px;
+  vertical-align: middle;
+  margin-left: 10px;
+}
+
+.badge--source {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--color-info-light);
+  color: var(--color-info-text);
+  border: 1px solid var(--color-info-border);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Badge de source cliquable (import par lien) : il ouvre la page d'origine.
+   Le survol renforce la bordure et souligne le libellé — la pastille garde sa
+   forme et sa couleur. Sélecteur doublé (.badge.badge--source-link) pour passer
+   devant la règle globale a:not([class*="btn"]):hover, qui repeindrait le
+   libellé en encre sombre. */
+
+.badge.badge--source-link:hover,
+.badge.badge--source-link:focus-visible {
+  color: var(--color-info-text);
+  border-color: var(--color-info);
+  text-decoration: underline;
+}
+
+/* === Section publication === */
+
+.rf-publish-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 20px 24px;
+  background: var(--color-success-light);
+  border: 1px solid #A3E635;
+  border-radius: var(--radius-input);
+}
+
+.rf-publish-hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-success-text);
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .rf-publish-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* === Panneau IA ===
+   Le panneau se lit en colonnes, pas en boutons. Chaque ligne est une phrase :
+   ce que l'IA a lu → l'ingrédient du catalogue visé → l'action. Les quatre
+   colonnes sont communes à toutes les lignes et à leurs blocs imbriqués
+   (suggestions floues, repli), qui reprennent la même sous-grille : la colonne
+   d'action tombe donc toujours à la même abscisse, quel que soit l'état de la
+   ligne. C'est cet alignement — et non des boîtes autour des boutons — qui
+   regroupe l'information et rend la liste scannable.
+
+   Deux variables suffisent à le tenir : la largeur de la colonne d'action et
+   celle de la flèche. Aucune valeur en dur ailleurs, sinon l'alignement se
+   défait au premier ajustement. */
+
+.ai-panel {
+  --ai-action-col: 148px;
+  --ai-arrow-col: 16px;
+  --ai-gap: 16px;
+
+  margin-bottom: 24px;
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+/* En-tête : le titre, ce qu'il reste à faire, et la consigne. */
+
+.ai-panel__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px var(--ai-gap);
+  padding: 16px 20px 14px;
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ai-panel__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+/* L'ambre signe l'origine IA du panneau — le seul accent coloré de la charte,
+   posé sur une icône décorative et non sur une commande. */
+.ai-panel__title-icon {
+  color: var(--color-accent-text);
+}
+
+.ai-panel__count {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-ink-2);
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-border);
+  padding: 1px 9px;
+  border-radius: 20px;
+}
+
+/* Les deux compteurs d'état, poussés à droite du titre : combien de lignes se
+   règlent d'un clic, combien attendent une décision. Seul le second est ambré —
+   c'est le seul endroit du panneau où le regard doit s'arrêter, et c'est la
+   même couleur que le filet des lignes concernées. */
+.ai-panel__states {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.ai-panel__state {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-ink-2);
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-border);
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.ai-panel__state--todo {
+  color: var(--color-accent-text);
+  background: var(--color-accent-light);
+  border-color: var(--color-accent-border);
+}
+
+.ai-panel__hint {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-ink-3);
+}
+
+/* Intitulés de colonnes : ils nomment ce que la ligne compare avant qu'on en
+   lise une seule. Ils partagent le gabarit de grille des lignes, sans quoi ils
+   désigneraient des colonnes qui n'existent pas. */
+.ai-panel__columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--ai-arrow-col) minmax(0, 1fr) var(--ai-action-col);
+  gap: var(--ai-gap);
+  padding: 9px 20px;
+  background: var(--color-bg-main);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+
+/* Placé explicitement : la colonne de la flèche n'a pas d'intitulé, et un
+   élément vide pour la sauter serait un élément de plus à maintenir. */
+.ai-panel__column-target {
+  grid-column: 3;
+}
+
+/* === Lignes d'ingrédients IA === */
+
+/* Correction : display:grid côté CSS auteur écrase l'attribut HTML hidden
+   sur les éléments d'agent utilisateur. On force display:none ici.
+   fuzzyOptions y manquait : « Aucun de ces résultats » masquait bien les
+   suggestions côté JS, mais leur display les rendait quand même — la ligne
+   affichait alors ses suggestions ET son repli, deux jeux d'actions
+   concurrents sur une même décision. */
+[data-ai-panel-target="fuzzyOptions"][hidden],
+[data-ai-panel-target="noMatchFallback"][hidden],
+[data-ai-panel-target="search"][hidden] {
+  display: none !important;
+}
+
+.ai-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--ai-arrow-col) minmax(0, 1fr) var(--ai-action-col);
+  align-items: center;
+  gap: 10px var(--ai-gap);
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--color-border-light);
+  min-height: 62px;
+  transition: background var(--transition-fast);
+}
+
+.ai-row:last-child {
+  border-bottom: none;
+}
+
+/* Le survol n'a rien à dire sur une ligne déjà ajoutée, dont le fond porte
+   justement l'information — et il l'emporterait en spécificité. */
+.ai-row:not(.ai-row--done):hover {
+  background: var(--color-bg-main);
+}
+
+/* Filet ambre : cette ligne attend une décision (suggestion à départager ou
+   ingrédient absent du catalogue). Les lignes que l'IA a résolues restent
+   muettes — l'ambre ne sert qu'à diriger le regard vers ce qui reste à faire.
+   En ombre interne plutôt qu'en bordure : la ligne garde sa hauteur et son
+   padding quel que soit son état. */
+.ai-row--decide {
+  box-shadow: inset 3px 0 0 var(--color-accent-deep);
+}
+
+/* Ligne ajoutée au formulaire. Déclarée après --decide, à spécificité égale :
+   le vert remplace l'ambre sur une ligne qui portait les deux. */
+.ai-row--done {
+  background: var(--color-success-light);
+  box-shadow: inset 3px 0 0 var(--color-success);
+}
+
+/* Colonne 1 : ce que l'IA a lu dans la recette */
+
+.ai-row__detected {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* Le nom détecté se replie plutôt qu'il ne se tronque : c'est lui qu'on compare
+   à la proposition du catalogue, une ellipse en pleine comparaison ferait
+   perdre le seul mot qui tranche. */
+.ai-row__name {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+}
+
+/* La quantité en pastille, pour qu'elle ne se lise pas comme la fin du nom :
+   « courgettes 600 g » n'est pas un ingrédient. */
+.ai-row__qty {
+  flex-shrink: 0;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-ink-2);
+  background: var(--color-bg-tertiary);
+  padding: 2px 9px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* Colonne 2 : le sens de lecture de la ligne, rien de plus */
+
+.ai-row__arrow {
+  display: flex;
+  color: var(--color-ink-4);
+}
+
+/* Colonnes 3 et 4 : la cible et l'action.
+   Réunies sous un même parent parce que le contrôleur Stimulus y substitue le
+   badge « Ajouté » d'un seul remplacement. Sa sous-grille reprend exactement
+   les deux dernières colonnes de la ligne. */
+
+.ai-row__right {
+  grid-column: 3 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--ai-action-col);
+  align-items: center;
+  gap: 8px var(--ai-gap);
+}
+
+/* Un seul bouton plein par décision, à la largeur de sa colonne : d'une ligne à
+   l'autre ils forment une colonne franche au lieu d'une mosaïque de tailles. */
+.ai-row__right .btn {
+  width: 100%;
+}
+
+/* La cible et son échappatoire. « Choisir un autre », « Aucun de ces
+   résultats » et « Créer » changent l'ingrédient visé, pas l'action à mener :
+   ils vivent donc sous la cible et jamais dans la colonne des boutons. */
+.ai-row__target {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ai-row__match,
+.ai-row__fuzzy-name {
+  font-size: var(--font-size-base);
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+}
+
+/* Unité de base de l'ingrédient du catalogue, collée à son nom (match exact,
+   suggestion floue, résultat de recherche). C'est elle qu'on compare à l'unité
+   détectée avant de confirmer : « 2 tranches » face à « Jambon blanc (g) »
+   prévient les 2 g de jambon que la reprise brute du nombre produirait. */
+.ai-row__unit {
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
+  white-space: nowrap;
+}
+
+/* Aucune conversion possible vers cette unité : la quantité détectée partirait
+   telle quelle. L'unité passe en alerte et porte l'explication en title. */
+.ai-row__unit--mismatch {
+  color: var(--color-warning-text);
+  background: var(--color-warning-light);
+  padding: 1px 6px;
+  border-radius: 20px;
+  cursor: help;
+}
+
+/* Conversion obtenue par une densité que l'IA a estimée : la quantité est juste
+   à cette estimation près. Ce n'est pas une alerte — le nombre est exploitable —
+   mais ça se signale, en info et non en avertissement, avec la même explication
+   en title. Le tilde dit « à peu près » sans occuper de place. */
+.ai-row__unit--estimated {
+  color: var(--color-info-text);
+  background: var(--color-info-light);
+  padding: 1px 6px;
+  border-radius: 20px;
+  cursor: help;
+}
+
+.ai-row__unit--estimated::before {
+  content: "≈ ";
+}
+
+/* Suggestions à départager, et actions de repli : deux blocs qui occupent les
+   deux colonnes de droite et y refont la même sous-grille. Chaque suggestion
+   est une sous-ligne « nom + bouton » — l'alignement remplace la mini-carte
+   qui entourait autrefois chaque bouton. */
+
+.ai-row__fuzzy,
+.ai-row__no-match-fallback {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--ai-action-col);
+  align-items: center;
+  gap: 8px var(--ai-gap);
+}
+
+.ai-row__fuzzy-label {
+  grid-column: 1 / -1;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+
+.ai-row__no-match {
+  font-size: var(--font-size-base);
+  color: var(--color-ink-3);
+}
+
+/* Les échappatoires en texte : une seule et même mécanique pour les trois.
+   Ce ne sont pas des boutons — les avoir traitées comme tels, dans trois
+   variantes différentes, est ce qui rendait la colonne de droite illisible. */
+.ai-row__alt-btn {
+  justify-self: start;
+  padding: 2px 0;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  color: var(--color-ink-3);
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-strong);
+  text-underline-offset: 2px;
+  text-align: left;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.ai-row__alt-btn:hover {
+  color: var(--color-ink);
+  text-decoration-color: currentColor;
+}
+
+/* Recherche manuelle dans le catalogue : dépliée sous la ligne, sur toute
+   sa largeur (la ligne est une grille à quatre colonnes). */
+
+.ai-row__search {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--color-border);
+}
+
+/* Champ + croix de fermeture sur une même ligne */
+
+.ai-row__search-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 16 px et pas moins : sous cette taille, iOS zoome sur le champ à la mise au
+   point et laisse la page décalée. */
+.ai-row__search-input {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-size-base);
+}
+
+.ai-row__search-close {
+  flex-shrink: 0;
+}
+
+.ai-row__search-results {
+  display: grid;
+  gap: 4px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+/* Chaque résultat : une cible pleine largeur, alignée à gauche comme une liste */
+
+.ai-row__search-item {
+  text-align: left;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  color: var(--color-ink);
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-button);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.ai-row__search-item:hover {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border-strong);
+}
+
+.ai-row__search-empty {
+  margin: 0;
+  padding: 6px 2px;
+  font-size: var(--font-size-sm);
+  font-style: italic;
+  color: var(--color-ink-3);
+}
+
+/* Badge ✓ Ajouté — posé par le contrôleur à la place de la cible et du bouton.
+   Fond blanc et non vert : la ligne entière ayant viré au vert, un badge vert
+   clair s'y dissoudrait. */
+
+.ai-row__done-badge {
+  grid-column: 1 / -1;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-success-text);
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-success-border);
+  padding: 5px 14px;
+  border-radius: 20px;
+}
+
+/* Ligne posée avec une quantité que la conversion n'a pas su traduire : elle
+   est bien ajoutée (d'où le ✓), mais le nombre reste à revoir dans le
+   formulaire — la ligne disparaît ensuite, le badge est le dernier rappel. */
+.ai-row__done-badge--warn {
+  color: var(--color-warning-text);
+  border-color: var(--color-warning-border);
+  cursor: help;
+}
+
+/* Quantité obtenue par une densité estimée : la ligne est réglée, mais le nombre
+   n'est juste qu'à l'estimation près. Même réserve que le badge d'unité, même
+   registre d'information — et non d'avertissement. */
+.ai-row__done-badge--estimated {
+  color: var(--color-info-text);
+  border-color: var(--color-info-border);
+  cursor: help;
+}
+
+/* Mobile : la grille se replie en une colonne. Les intitulés de colonnes et la
+   flèche n'ont alors plus rien à désigner, et les boutons prennent toute la
+   largeur — la cible de touche vaut mieux que l'alignement, qui n'existe plus. */
+
+@media (max-width: 640px) {
+  .ai-panel__columns {
+    display: none;
+  }
+
+  .ai-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .ai-row__arrow {
+    display: none;
+  }
+
+  .ai-row__right,
+  .ai-row__fuzzy,
+  .ai-row__no-match-fallback {
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ============================================
+   PAGE BROUILLONS IA — /recipe_drafts
+   ============================================ */
+
+/* Barre du haut : compteur + bouton Importer */
+
+.draft-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.draft-toolbar__count {
+  font-size: 13px;
+  color: var(--color-ink-3);
+  margin: 0;
+}
+
+/* Côté droit de la barre : tri puis import. Le wrap évite que les deux se
+   chevauchent sur les écrans étroits. */
+
+/* align-items: stretch (et non center) : le sélecteur de tri prend la hauteur
+   de la ligne, donc celle du bouton d'import voisin — le plus haut des deux.
+   Aucune hauteur codée en dur à retoucher si le bouton change de taille. */
+
+.draft-toolbar__actions {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+}
+
+/* Tri de la liste — formulaire sans bouton d'envoi (filter-form le soumet au
+   changement du sélecteur), donc libellé et sélecteur suffisent. Il relaie la
+   hauteur de la ligne à ses deux enfants. */
+
+.draft-sort {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  margin: 0;
+}
+
+/* Étiré comme le sélecteur : son texte se recentre lui-même. */
+.draft-sort__label {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: var(--color-ink-3);
+  white-space: nowrap;
+}
+
+/* .filter-select passe en pleine largeur sous 768px — c'est la règle des
+   filtres du catalogue d'ingrédients, qui s'empilent en colonne. Ici le
+   sélecteur reste en ligne avec son libellé : il se dimensionne sur son
+   contenu, et c'est la barre d'outils qui gère l'empilement. */
+@media (max-width: 767px) {
+  .draft-sort .filter-select {
+    width: auto;
+    min-width: 0;
+  }
+}
+
+/* État vide */
+
+.draft-empty {
+  text-align: center;
+  padding: 64px 24px;
+}
+
+.draft-empty__text {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-ink-2);
+  margin: 0 0 6px 0;
+}
+
+.draft-empty__hint {
+  font-size: 13px;
+  color: var(--color-ink-3);
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* Liste de cards */
+
+.draft-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.draft-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 24px;
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.draft-card:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* Partie gauche : nom + méta */
+
+.draft-card__main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Nom sur 2 lignes maximum : un titre long respire au lieu d'être coupé net,
+   l'ellipsis du line-clamp ne servant que de garde-fou au-delà. */
+
+.draft-card__name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-ink);
+  margin: 0 0 5px 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.draft-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.draft-card__sep {
+  color: var(--color-ink-4);
+  font-size: 12px;
+}
+
+.draft-card__date {
+  font-size: 12px;
+  color: var(--color-ink-3);
+}
+
+/* Partie droite : actions.
+   Grille à colonnes égales plutôt que flex : les deux boutons font la même
+   largeur quel que soit leur libellé (« Compléter » ou « Valider » selon la
+   complétude du brouillon), donc la colonne d'actions ne bouge plus d'une carte
+   à l'autre. La largeur commune se cale sur le plus long des deux libellés en
+   desktop, et sur la moitié de la carte en mobile (.draft-card__actions passe
+   alors en width: 100%). */
+
+.draft-card__actions {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* button_to génère un <form> — on neutralise ses marges */
+.draft-card__actions form {
+  margin: 0;
+}
+
+/* C'est le <form> de button_to qui est la colonne de la grille : son bouton
+   doit l'occuper entièrement pour faire la même largeur que le lien voisin. */
+.draft-card__actions .btn {
+  width: 100%;
+}
+
+/* Mini-photo (ou placeholder si aucune photo importée) */
+
+.draft-card__thumb {
+  flex-shrink: 0;
+}
+
+.draft-card__thumb-img {
+  display: block;
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: var(--radius-card-compact);
+  border: 1px solid var(--color-border);
+}
+
+.draft-card__thumb-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-card-compact);
+  border: 1px dashed var(--color-border-strong);
+  background: var(--color-bg-secondary);
+  color: var(--color-ink-4);
+}
+
+/* Priorisation visuelle : liseré ambre à compléter, vert prêt à valider.
+   box-shadow inset ⇒ pas de décalage de mise en page et respect du border-radius. */
+
+.draft-card--todo {
+  box-shadow: inset 3px 0 0 var(--color-warning);
+}
+
+.draft-card--ready {
+  box-shadow: inset 3px 0 0 var(--color-success);
+}
+
+.draft-card--todo:hover {
+  box-shadow: inset 3px 0 0 var(--color-warning), 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.draft-card--ready:hover {
+  box-shadow: inset 3px 0 0 var(--color-success), 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* Statut de complétude */
+
+.draft-status {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 0 0;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.draft-status--ready {
+  color: var(--color-success-text);
+}
+
+.draft-status__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--color-warning-text);
+}
+
+/* Liste des champs manquants (chips) */
+
+.draft-missing {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.draft-missing__item {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: var(--color-warning-light);
+  color: var(--color-warning-text);
+  border: 1px solid var(--color-warning-border);
+}
+
+/* Mobile */
+
+@media (max-width: 640px) {
+  .draft-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  /* La barre passe en colonne : tri et import se partagent la ligne du bas. */
+  .draft-toolbar__actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .draft-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .draft-card__actions {
+    width: 100%;
+  }
+}
+
+/* ============================================
+   IMPORT IA — Page recipe_imports/new
+   ============================================ */
+
+.import-wrapper {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 0 0 3rem;
+}
+
+/* === Onglets source === */
+
+.import-tabs {
+  display: flex;
+  gap: 0;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-input);
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.import-tab {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--color-bg-white);
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-ink-3);
+  transition: background 0.15s, color 0.15s;
+  letter-spacing: 0.01em;
+}
+
+.import-tab + .import-tab {
+  border-left: 1.5px solid var(--color-border);
+}
+
+.import-tab:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-ink);
+}
+
+.import-tab--active {
+  background: var(--color-primary);
+  color: var(--color-bg-white);
+  font-weight: 600;
+}
+
+.import-tab--active:hover {
+  background: var(--color-primary);
+  color: var(--color-bg-white);
+}
+
+/* === Sections URL / Photo === */
+
+.import-section {
+  margin-bottom: 1.5rem;
+}
+
+.import-hint {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--color-ink-3);
+  line-height: 1.5;
+}
+
+.import-hint strong {
+  color: var(--color-ink-2);
+}
+
+/* Indice de geste (dépôt, collage) : un cran plus discret que l'aide format. */
+.import-hint--gesture {
+  margin-top: 4px;
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-4);
+}
+
+/* === Zone d'upload photo === */
+
+.import-file-zone {
+  position: relative;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-input);
+  background: var(--color-bg-secondary);
+  transition: border-color 0.2s, background 0.2s;
+  cursor: pointer;
+}
+
+/* Le survol d'un fichier glissé (classe posée par import_source_controller)
+   reprend la mise en avant du survol souris : pendant un drag, :hover ne
+   s'applique pas. */
+.import-file-zone:hover,
+.import-file-zone:focus-within,
+.import-file-zone.is-dragging {
+  border-color: var(--color-primary);
+  background: var(--color-bg-white);
+}
+
+.import-file-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.import-file-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 2.5rem 1rem;
+  cursor: pointer;
+}
+
+.import-file-label__icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.import-file-label__text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-ink-2);
+}
+
+/* === Bouton et notice === */
+
+.import-actions {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.import-submit-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.import-notice {
+  font-size: 13px;
+  color: var(--color-ink-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+}
+
+/* === Aperçu de la photo sélectionnée === */
+
+.import-file-preview {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-input);
+  background: var(--color-bg-white);
+}
+
+.import-file-preview__img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: var(--radius-card-compact);
+  flex-shrink: 0;
+}
+
+.import-file-preview__info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+}
+
+.import-file-preview__name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-ink-2);
+  word-break: break-word;
+}
+
+/* Poids du fichier réellement envoyé : une information de service, discrète. */
+.import-file-preview__size {
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-4);
+}
+
+.import-file-preview__change {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.import-file-preview__change:hover {
+  color: var(--color-primary-hover);
+}
+
+/* === Réassurance et erreur === */
+
+.import-reassure {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--color-success-text);
+  background: var(--color-success-light);
+  border-radius: var(--radius-input);
+}
+
+.import-reassure .svg-icon {
+  flex-shrink: 0;
+}
+
+.import-error {
+  margin: 0;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-danger-text);
+  background: var(--color-danger-light);
+  border: 1px solid var(--color-danger-border);
+  border-radius: var(--radius-input);
+}
+
+/* === État de chargement du bouton === */
+
+.import-submit-btn {
+  gap: 8px;
+}
+
+.import-submit-btn:disabled {
+  opacity: 0.85;
+  cursor: progress;
+}
+
+.import-submit-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-top-color: var(--color-bg-white);
+  border-radius: 50%;
+  animation: import-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes import-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* === Page d'attente d'un import === */
+
+/* .rf-body est en fit-content : sans width 100%, ce bloc rétrécirait la page. */
+.import-waiting {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.25rem;
+  padding: 3rem 0;
+}
+
+/* Même animation que le spinner du bouton, mais posé sur fond clair : les
+   couleurs viennent donc de la bordure et de la teinte principale. */
+.import-waiting__spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: import-spin 0.9s linear infinite;
+}
+
+.import-waiting__step {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+.import-waiting__hint {
+  font-size: 14px;
+  color: var(--color-ink-3);
+  max-width: 42ch;
+  margin: 0;
+}
+
+/* Une rotation continue peut gêner : on la ralentit sans la supprimer, le
+   mouvement restant le seul signe que le travail est en cours. */
+@media (prefers-reduced-motion: reduce) {
+  .import-waiting__spinner {
+    animation-duration: 2.4s;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 640px) {
+  .import-wrapper {
+    padding: 0 0 2rem;
+  }
+
+  .import-tab {
+    font-size: 13px;
+    padding: 10px 10px;
   }
 }

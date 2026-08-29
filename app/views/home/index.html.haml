@@ -2,7 +2,8 @@
 %section.hero-section
   -# Image de fond avec overlay gradient
   .hero-background
-    = image_tag "backgrounds/kitchen_2.jpg", alt: "Cuisine moderne EasyMeal"
+    -# Image LCP de l'accueil : servie en WebP, priorité de chargement haute, PAS de lazy.
+    = image_tag "backgrounds/kitchen_2.webp", alt: "Cuisine moderne EasyMeal", width: 1600, height: 1600, fetchpriority: "high"
 
   -# Contenu principal
   .hero-content
@@ -11,7 +12,7 @@
       = image_tag "logos/logo_EasyMeal.svg", alt: "EasyMeal - Planification de repas simplifiée"
 
     - if user_signed_in?
-      - greeting = random_greeting(current_user)
+      - greeting = random_greeting(current_user, active_menu: @active_menu, draft: @draft)
       .hero-greeting
         %p.hero-greeting-text= greeting.text
         %p.hero-greeting-subtext= greeting.subtext

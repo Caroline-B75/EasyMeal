@@ -528,7 +528,7 @@ alias gmerge='git merge --no-ff'
 
 # ⭐ SCORE GLOBAL + rapport HTML (ouvre tmp/rubycritic/overview.html)
 
-bundle exec rubycritic app
+bundle exec rubycritic app --no-browser
 explorer.exe "C:\Caroline\easymeal\tmp\rubycritic\overview.html"
 
 # 🏗️ Bonnes pratiques Rails spécifiques

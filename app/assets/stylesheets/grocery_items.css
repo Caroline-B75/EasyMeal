@@ -6,34 +6,6 @@
    Design Slate Craft Premium.
    ============================================ */
 
-/* ── Actions en haut de page ───────────────────────────── */
-.grocery-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-}
-
-/* ── En-tête liste de courses ──────────────────────────── */
-.grocery-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.grocery-title {
-  font-size: var(--font-size-2xl);
-  font-weight: 600;
-  color: var(--color-ink);
-  margin: 0;
-}
-
-.grocery-header-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
 /* ── Contrôles liste (tout fermer/ouvrir) ───────────────── */
 .grocery-list-controls {
   display: flex;
@@ -45,7 +17,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   color: var(--color-ink-3);
   padding: 0.25rem 0;
   text-decoration: underline dotted;
@@ -56,31 +28,9 @@
   color: var(--color-ink);
 }
 
-/* ── Couleurs par rayon ─────────────────────────────────── */
-.grocery-section                                                { --section-color: #9E9E9E; }
-.grocery-section[data-category="fruits_legumes"]                { --section-color: #5A8A5B; }
-.grocery-section[data-category="boucherie_viande"]              { --section-color: #B05B5B; }
-.grocery-section[data-category="charcuterie_traiteur"]          { --section-color: #C4768A; }
-.grocery-section[data-category="poissonnerie"]                  { --section-color: #4E7FA8; }
-.grocery-section[data-category="fromagerie_coupe"]              { --section-color: #C49A27; }
-.grocery-section[data-category="boulangerie_patisserie"]        { --section-color: #B08060; }
-.grocery-section[data-category="produits_laitiers"]             { --section-color: #6A9BB5; }
-.grocery-section[data-category="produits_frais_libre_service"]  { --section-color: #6B9B72; }
-.grocery-section[data-category="glaces_desserts_glaces"]        { --section-color: #7AABC0; }
-.grocery-section[data-category="legumes_surgeles"]              { --section-color: #4E8A8A; }
-.grocery-section[data-category="viandes_poissons_surgeles"]     { --section-color: #6E8A9E; }
-.grocery-section[data-category="produits_aperitifs_surgeles"]   { --section-color: #C47845; }
-.grocery-section[data-category="epicerie_salee"]                { --section-color: #8A7055; }
-.grocery-section[data-category="epicerie_sucree"]               { --section-color: #9B7AB5; }
-.grocery-section[data-category="boissons"]                      { --section-color: #3D85C8; }
-.grocery-section[data-category="petit_dejeuner"]                { --section-color: #C49A27; }
-.grocery-section[data-category="produits_monde"]                { --section-color: #B08040; }
-.grocery-section[data-category="hygiene_beaute"]                { --section-color: #B87A8A; }
-.grocery-section[data-category="entretien_maison"]              { --section-color: #7A8A9E; }
-.grocery-section[data-category="papeterie_fournitures"]         { --section-color: #6E9B9B; }
-.grocery-section[data-category="autre"]                        { --section-color: #9E9E9E; }
-
 /* ── Sections par rayon (accordéon) ─────────────────────── */
+/* La couleur du rayon vient de la palette partagée (--category-color,
+   components.css), posée sur le data-category que porte déjà la section. */
 .grocery-section {
   margin-bottom: 1.75rem;
 }
@@ -92,8 +42,8 @@
   width: 100%;
   background: none;
   border: none;
-  border-bottom: 0.5px solid var(--color-border);
-  border-left: 2.5px solid var(--section-color);
+  border-bottom: var(--border-thin);
+  border-left: 2.5px solid var(--category-color);
   cursor: pointer;
   padding: 0 0 0.375rem 0.625rem;
   margin: 0 0 0.5rem;
@@ -110,13 +60,15 @@
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--section-color);
+  /* Texte en ink (AA) : l'identité couleur du rayon reste portée par le liseré
+     gauche et la pastille de compteur (--category-color en décor). */
+  color: var(--color-ink);
 }
 
 .grocery-section-count {
   font-size: var(--font-size-base);
-  color: var(--section-color);
-  background: color-mix(in srgb, var(--section-color) 12%, var(--color-bg-secondary));
+  color: var(--color-ink);
+  background: color-mix(in srgb, var(--category-color) 12%, var(--color-bg-secondary));
   border-radius: 999px;
   padding: 0.1em 0.45em;
   font-weight: 500;
@@ -157,12 +109,13 @@
   padding: 0.625rem 0.875rem;
   background: var(--color-bg-white);
   border-radius: var(--radius-card-compact);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   transition: background var(--transition-fast), opacity var(--transition-fast);
 }
 
 .grocery-item--checked {
-  opacity: 0.5;
+  /* Pas d'opacité globale : elle faisait chuter le contraste du texte sous AA.
+     L'état « fait » reste signalé par le fond, le barré du nom et la coche. */
   background: var(--color-bg-secondary);
 }
 
@@ -199,7 +152,7 @@
 .btn-checkbox--checked {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: white;
+  color: var(--color-bg-white);
   animation: checkPop 0.25s ease-out;
 }
 
@@ -219,8 +172,16 @@
   100% { transform: scale(1); }
 }
 
-.grocery-item-name {
+/* Colonne nom + badge : occupe l'espace flexible de la ligne, le badge passe dessous. */
+.grocery-item-main {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.grocery-item-name {
   min-width: 0;
   font-size: var(--font-size-base);
   color: var(--color-ink);
@@ -231,9 +192,18 @@
   transition: color var(--transition-fast), text-decoration var(--transition-fast);
 }
 
+/* Badge « Était X — déjà acheté ? » : réutilise le palette ambre de .badge-amber,
+   ajoute juste le positionnement dans la colonne (calé à gauche, texte pouvant passer à la ligne). */
+.grocery-item-badge {
+  align-self: flex-start;
+  white-space: normal;
+  font-size: var(--font-size-xs);
+  padding: 0.1em 0.5em;
+}
+
 .grocery-item-name--checked {
   text-decoration: line-through;
-  color: var(--color-ink-4);
+  color: var(--color-ink-3);
 }
 
 /* ── Quantité éditable ──────────────────────────────────── */
@@ -254,6 +224,14 @@
 .grocery-item-qty:hover {
   color: var(--color-primary);
   border-bottom-color: var(--color-primary);
+}
+
+/* Sur écran tactile (pas de survol), rendre l'affordance « quantité éditable »
+   permanente : sinon rien n'indique qu'on peut la modifier au doigt. */
+@media (hover: none) {
+  .grocery-item-qty {
+    border-bottom-color: var(--color-border-strong);
+  }
 }
 
 /* Masqué par défaut — affiché via .is-editing (aucun flash avant Stimulus) */
@@ -308,7 +286,7 @@
 
 .grocery-qty-save-btn {
   background: var(--color-primary);
-  color: white;
+  color: var(--color-bg-white);
 }
 
 .grocery-qty-save-btn:hover {
@@ -353,29 +331,29 @@
   color: var(--color-ink-3);
   background: var(--color-bg-secondary);
   border-radius: var(--radius-card);
-  border: 0.5px dashed var(--color-border-strong);
+  border: var(--border-width) dashed var(--color-border-strong);
 }
 
 /* ── Ajout manuel ───────────────────────────────────────── */
 .grocery-add-manual {
   margin-top: 2rem;
   padding-top: 1.5rem;
-  border-top: 0.5px solid var(--color-border);
+  border-top: var(--border-thin);
 }
 
 .grocery-add-manual-label {
-  font-size: 0.6875rem;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--color-ink-4);
+  color: var(--color-ink-3);
   margin-bottom: 1rem;
 }
 
 .grocery-add-form {
   background: var(--color-bg-white);
   border-radius: var(--radius-card);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   padding: 1.25rem 1.5rem;
 }
 
@@ -389,24 +367,96 @@
 .grocery-add-row .form-group {
   flex: 1;
   min-width: 120px;
+  /* Annule le margin-bottom global de .form-group (hérité d'authentication.css) :
+     dans cette rangée flex alignée en bas, ce margin décalait les champs vers le
+     haut par rapport au bouton (l'alignement flex se fait sur la boîte de marge). */
+  margin-bottom: 0;
 }
 
 .grocery-add-submit {
   flex-shrink: 0;
   align-self: flex-end;
-  padding-bottom: 0.125rem;
+}
+
+/* Le bouton doit avoir exactement la hauteur des champs pour s'aligner sur eux
+   (rangée alignée en bas). Mêmes marges internes verticales que .form-input ;
+   on ajoute une bordure transparente pour compenser celle des champs (1px) et
+   on lève le plancher min-height de .btn. La hauteur reste > 44px (cible tactile). */
+.grocery-add-submit .btn {
+  min-height: 0;
+  border: var(--border-width) solid transparent;
+}
+
+/* ── Desktop : liste resserrée ──────────────────────────── */
+/* Sur grand écran, .grocery-item-main (flex: 1) étire chaque ligne sur toute
+   la largeur du .mc-page-wrap, créant un grand vide entre le nom et la
+   quantité/suppression. On resserre la liste et le formulaire d'ajout pour
+   qu'ils se lisent comme une liste de courses plutôt qu'un tableau étiré. */
+@media (min-width: 768px) {
+  #grocery_list,
+  .grocery-add-manual {
+    max-width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
 
 /* ── Responsive ─────────────────────────────────────────── */
-@media (max-width: 768px) {
-  .grocery-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
+@media (max-width: 767px) {
+  /* Moins de vide au-dessus du premier rayon : ce lien est le seul élément
+     entre le titre et la liste, il n'a pas besoin d'autant d'air qu'en desktop. */
+  .grocery-list-controls {
+    margin-bottom: 0.375rem;
+  }
+
+  /* Rayons plus resserrés : sur petit écran, l'espace entre deux rayons
+     ne doit pas ajouter plus de vide que l'espace interne d'un rayon. */
+  .grocery-section {
+    margin-bottom: 1rem;
   }
 
   .grocery-item {
     flex-wrap: wrap;
+  }
+
+  /* Cibles tactiles cœur du parcours « je coche au supermarché », une main :
+     la coche et la suppression doivent faire au moins 44px au doigt. */
+  .btn-checkbox {
+    width: var(--min-touch-target);
+    height: var(--min-touch-target);
+    min-width: var(--min-touch-target);
+    min-height: var(--min-touch-target);
+  }
+
+  .btn-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--min-touch-target);
+    min-height: var(--min-touch-target);
+  }
+
+  /* Boutons enregistrer/annuler de la quantité : cible tactile confortable. */
+  .grocery-qty-save-btn,
+  .grocery-qty-cancel-btn {
+    width: var(--min-touch-target);
+    height: var(--min-touch-target);
+  }
+
+  /* En-tête de rayon (accordéon) : hauteur suffisante pour ouvrir/fermer au pouce. */
+  .grocery-section-header {
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+  }
+
+  /* Zone tactile un peu plus haute autour de la quantité éditable. */
+  .grocery-item-qty {
+    padding: 0.35rem 0.25rem;
+  }
+
+  /* « Tout fermer / ouvrir » : un peu plus de surface tappable. */
+  .btn-text-sm {
+    padding: 0.5rem 0.25rem;
   }
 
   .grocery-add-manual {
@@ -439,12 +489,22 @@
   .grocery-add-form .form-input,
   .grocery-add-form .form-select {
     padding: 0.3rem 0.5rem;
-    font-size: var(--font-size-sm);
+    /* 16px : évite le zoom iOS au focus lors de l'ajout d'un article en rayon. */
+    font-size: 16px;
   }
 
+  /* Édition inline de la quantité : même protection anti-zoom iOS sur mobile. */
+  .grocery-qty-input {
+    font-size: 16px;
+  }
+
+  /* La rangée est empilée avec un gap serré (0.15rem) adapté aux paires
+     label/champ. Le bouton n'appartient à aucune paire : on lui rend de l'air
+     pour le détacher du dernier champ (« Rayon ») et éviter le tap accidentel. */
   .grocery-add-submit {
     width: 100%;
     align-self: stretch;
+    margin-top: 0.75rem;
   }
 
   .grocery-add-submit .btn {

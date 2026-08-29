@@ -1,4 +1,16 @@
 # This file is copied to spec/ when you run 'rails generate rspec:install'
+require 'simplecov'
+SimpleCov.start do
+  add_filter "/spec/"
+  add_filter "/config/"
+
+  add_group "Models", "app/models"
+  add_group "Controllers", "app/controllers"
+  add_group "Services", "app/services"
+  add_group "Helpers", "app/helpers"
+  add_group "Concerns", "app/.*/concerns"
+end
+
 require 'spec_helper'
 ENV['RAILS_ENV'] ||= 'test'
 require_relative '../config/environment'
@@ -9,6 +21,22 @@ abort("The Rails environment is running in production mode!") if Rails.env.produ
 # return unless Rails.env.test?
 require 'rspec/rails'
 # Add additional requires below this line. Rails is not loaded until this point!
+
+# Identité Cloudinary propre aux tests, imposée et non héritée du .env.
+#
+# Aucun appel réseau n'a lieu — le stockage est local en test et
+# Cloudinary::Utils ne fait que composer des URL —, mais cette composition exige
+# un cloud_name : sans lui le gem lève CloudinaryException. Le lire dans
+# l'environnement rendait la suite verte sur un poste de développement et rouge
+# en CI, où aucun secret n'existe.
+#
+# On fixe donc des valeurs de test. La suite donne ainsi le même résultat partout,
+# et aucun test ne peut atteindre le vrai compte Cloudinary.
+Cloudinary.config do |cloudinary|
+  cloudinary.cloud_name = "easymeal-test"
+  cloudinary.api_key    = "cle-de-test"
+  cloudinary.api_secret = "secret-de-test"
+end
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
 # spec/support/ and its subdirectories. Files matching `spec/**/*_spec.rb` are
@@ -64,6 +92,24 @@ RSpec.configure do |config|
   #
   # To enable this behaviour uncomment the line below.
   # config.infer_spec_type_from_file_location!
+
+  # Raccourcis FactoryBot (create/build/...) sans préfixe FactoryBot.
+  config.include FactoryBot::Syntax::Methods
+
+  # Helpers Devise pour authentifier dans les request specs (sign_in)
+  config.include Devise::Test::IntegrationHelpers, type: :request
+
+  # L'adaptateur :test met les jobs en file sans les exécuter (voir
+  # config/environments/test.rb). perform_enqueued_jobs les déroule quand une
+  # spec veut suivre le parcours jusqu'au bout.
+  config.include ActiveJob::TestHelper
+
+  # RSpec n'appelle pas les crochets Minitest d'ActiveJob::TestHelper : sans ce
+  # vidage, la file se reporterait d'un exemple à l'autre.
+  config.before do
+    clear_enqueued_jobs
+    clear_performed_jobs
+  end
 
   # Filter lines from Rails gems in backtraces.
   config.filter_rails_from_backtrace!

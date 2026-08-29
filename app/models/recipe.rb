@@ -1,6 +1,15 @@
 # Représente une recette de cuisine avec ses ingrédients, temps de préparation, difficulté, etc.
 # Une recette peut avoir plusieurs ingrédients (via preparations) et être dans plusieurs menus
 class Recipe < ApplicationRecord
+  # === Concerns ===
+  # Moments du repas : vocabulaire partagé, validations et scope de filtre
+  include HasMealTypes
+  # Normalise meal_types avant validation (cases à cocher → array propre)
+  include AttributeCleaner
+  # Libellés français des enums (régime, difficulté, budget) : Recipe.enum_label,
+  # .enum_options pour les sélecteurs, human_enum_value pour une recette donnée
+  include EnumLabels
+
   # === Associations ===
   has_many :preparations, dependent: :destroy
   has_many :ingredients, through: :preparations
@@ -10,6 +19,13 @@ class Recipe < ApplicationRecord
   has_many :favorited_by_users, through: :favorite_recipes, source: :user
   has_many :reviews, dependent: :destroy
 
+  # Les tentatives d'import qui ont produit cette recette. Une seule en
+  # pratique, mais la colonne recipe_id n'est pas unique : has_many garantit
+  # qu'aucune trace ne reste accrochée derrière la clé étrangère. Un import
+  # perd son objet en même temps que sa recette — sa page d'attente n'aurait
+  # plus où emmener — il part donc avec elle plutôt que de survivre orphelin.
+  has_many :recipe_imports, dependent: :destroy
+
   # Menus contenant cette recette
   has_many :menu_recipes, dependent: :destroy
   has_many :menus, through: :menu_recipes
@@ -17,12 +33,26 @@ class Recipe < ApplicationRecord
   # Photo de la recette via ActiveStorage
   has_one_attached :photo
 
+  # Page photographiée à l'import IA, conservée comme pièce de référence du
+  # brouillon : pendant la validation, elle permet de relire une quantité
+  # douteuse. Ce n'est pas une photo du plat — elle ne remplace jamais `photo`,
+  # seule image du catalogue. Aucune migration : ActiveStorage range les deux
+  # pièces jointes dans active_storage_attachments, distinguées par leur nom.
+  has_one_attached :source_photo
+
+  # Nom de remplacement attribué à un brouillon dont l'IA n'a pas extrait de titre.
+  # Sert aussi de sentinelle pour détecter un titre encore à compléter (cf. draft_missing_fields).
+  PLACEHOLDER_NAME = "Recette sans titre".freeze
+
   # Nested attributes pour créer/modifier les ingrédients via le formulaire
   accepts_nested_attributes_for :preparations,
                                 allow_destroy: true,
                                 reject_if: :all_blank
 
   # === Enums ===
+
+  # Statut de publication (draft = importé IA en attente de validation, published = visible)
+  enum :status, { draft: 0, published: 1 }, default: :published
 
   # Régimes alimentaires (aligné avec UC1 et User.default_diet)
   enum :diet, {
@@ -63,10 +93,17 @@ class Recipe < ApplicationRecord
   validates :prep_time_minutes, numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
   validates :cook_time_minutes, numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
 
-  # Validation custom : une recette doit avoir au moins un ingrédient
-  validate :must_have_at_least_one_ingredient
+  # Les règles sur meal_types (au moins un moment, vocabulaire fermé) sont
+  # portées par le concern HasMealTypes.
+
+  # Validation custom : une recette doit avoir au moins un ingrédient (sauf brouillon IA)
+  validate :must_have_at_least_one_ingredient, unless: :draft?
 
   # === Scopes ===
+
+  # Filtres par statut de publication
+  scope :published, -> { where(status: :published) }
+  scope :draft, -> { where(status: :draft) }
 
   # Recherche par nom, tags ou ingrédients
   scope :search, ->(query) {
@@ -82,7 +119,7 @@ class Recipe < ApplicationRecord
   # Ex : compatible_with(:vegetarien) inclut aussi les recettes vegan
   # À utiliser TOUJOURS à la place de .where(diet: ...) pour les pools de menu
   scope :compatible_with, ->(diet) {
-    where(diet: DIET_COMPATIBILITY.fetch(diet.to_s, [diet.to_s]))
+    where(diet: DIET_COMPATIBILITY.fetch(diet.to_s, [ diet.to_s ]))
   }
 
   # Filtrer par régime exact (usage catalogue/filtre UI uniquement)
@@ -90,6 +127,8 @@ class Recipe < ApplicationRecord
 
   # Filtrer par difficulté
   scope :by_difficulty, ->(difficulty_value) { where(difficulty: difficulty_value) if difficulty_value.present? }
+
+  # Le scope for_meal_type est fourni par le concern HasMealTypes.
 
   # Filtrer par temps total maximum (en minutes)
   scope :with_total_time_lte, ->(max_minutes) {
@@ -147,6 +186,31 @@ class Recipe < ApplicationRecord
     (prep_time_minutes || 0) + (cook_time_minutes || 0)
   end
 
+  # Champs essentiels encore manquants sur un brouillon importé, à compléter
+  # avant validation. Retourne la liste des libellés (vide ⇒ prêt à valider).
+  # Utilisé par la liste des brouillons pour prioriser ce qui reste à faire.
+  def draft_missing_fields
+    missing = []
+    missing << "Titre"           if name.blank? || name == PLACEHOLDER_NAME
+    missing << "Ingrédients"     if preparations.empty?
+    missing << "Instructions"    if instructions.blank?
+    missing << "Moment du repas" if meal_types.blank?
+    missing
+  end
+
+  # Un brouillon est prêt à valider lorsqu'il ne manque aucun champ essentiel.
+  def draft_ready?
+    draft_missing_fields.empty?
+  end
+
+  # Import par lien dont la page d'origine reste consultable : la liste des
+  # brouillons en fait un badge cliquable, le formulaire de validation un lien
+  # de référence. Les vieux imports enregistrés sans source_url retombent sur
+  # un affichage sans lien.
+  def imported_from_link?
+    source_type == "url" && source_url.present?
+  end
+
   # Vérifie si la recette est de saison pour un mois donné
   # Utilise le champ season_months (integer[]) de chaque ingrédient
   def seasonal_for_month?(month)
@@ -188,7 +252,7 @@ class Recipe < ApplicationRecord
 
   # Nom lisible du régime en français
   def diet_human
-    I18n.t("activerecord.attributes.recipe.diets.#{diet}", default: diet.humanize)
+    human_enum_value(:diet, "Non renseigné")
   end
 
   # Nom lisible de la difficulté en français
@@ -202,14 +266,6 @@ class Recipe < ApplicationRecord
   end
 
   private
-
-  # Génère le label i18n d'une valeur d'enum, avec fallback si nil
-  def human_enum_value(field, nil_label) # :reek:NilCheck
-    value = send(field)
-    return nil_label if value.nil?
-
-    I18n.t("activerecord.attributes.recipe.#{field.to_s.pluralize}.#{value}", default: value.humanize)
-  end
 
   # Validation : une recette doit avoir au moins un ingrédient
   def must_have_at_least_one_ingredient

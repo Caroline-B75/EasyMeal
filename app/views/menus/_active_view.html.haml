@@ -1,25 +1,16 @@
--# UC3 — Vue menu actif : grille de recettes en lecture seule (même layout que le brouillon)
--# Bouton d'accès à la liste de courses au lieu de "Valider et générer"
+-# UC3/UC7 — Vue menu actif : même grille de cartes que le brouillon, recentrée
+-# sur la vie du menu validé — le jour reste annotable (pure information, la
+-# liste de courses n'y est pas sensible) et les cartes se réorganisent (drag &
+-# drop, ⬆️/⬇️ au doigt) ; moment, personnes et composition sont figés.
+-# menu-customize est le même contrôleur que sur le brouillon : drag & drop et
+-# teinte de jour y sont identiques.
 -# menu : Menu(status: :active)
 -# menu_recipes : collection ordonnée des MenuRecipe
 
-.mc-page-outer
+.mc-page-outer{ data: { controller: "menu-customize",
+                        menu_customize_reorder_url_value: reorder_menu_menu_recipes_path(menu) } }
   .mc-page-wrap
 
-    .mc-page-header
-      .mc-page-title Mon menu
-      .mc-page-hint= "#{menu_recipes.size} repas"
+    = render "menus/page_head", menu: menu, menu_recipes: menu_recipes
 
-    .mc-card-grid
-      - if menu_recipes.any?
-        - menu_recipes.each do |mr|
-          = render "menu_recipe_card_readonly", menu_recipe: mr
-      - else
-        .mc-empty-grid
-          %p.mc-empty-text Aucun repas dans ce menu.
-
-    -# ── Bouton d'accès à la liste de courses ─────────────
-    .mc-validate-zone
-      = link_to grocery_menu_path(menu), class: "mc-btn-validate" do
-        Voir la liste de courses
-        = svg_icon("list", size: 15)
+    = render "menus/active_meals", menu: menu, menu_recipes: menu_recipes

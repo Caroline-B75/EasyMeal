@@ -6,7 +6,18 @@
    pour une gestion centralisée des couleurs.
    ============================================ */
 
-/* === BOUTONS === */
+/* === BOUTONS ===
+   Système de boutons unique — source de vérité.
+   Base       : .btn
+   Variantes  : .btn-primary   → action principale (anthracite)
+                .btn-secondary → action neutre
+                .btn-white     → action neutre sur fond clair (blanc franc + bordure fine)
+                .btn-accent    → unique CTA accent (ambre) — cf. « Démarrer un menu »
+                .btn-danger    → action destructive (rouge)
+                .btn-link      → variante « ghost » / tertiaire (transparent, sans bordure)
+   Tailles    : .btn-sm / .btn-md / .btn-lg (+ .btn-icon pour un padding icône compact)
+   Sémantique couleur : une action principale = anthracite partout ; l'ambre est
+   réservé au seul CTA accent et aux accents décoratifs (étoiles/saison, badges). */
 
 .btn {
   padding: 0.75rem 1.5rem;
@@ -19,7 +30,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  gap: 0.5rem; /* espace icône ↔ libellé pour les boutons avec icône SVG */
+  transition: background var(--transition-fast), color var(--transition-fast),
+              border-color var(--transition-fast), box-shadow var(--transition-fast),
+              transform var(--transition-fast);
   border: none;
   cursor: pointer;
   font-size: var(--font-size-base);
@@ -28,25 +42,70 @@
 
 .btn-primary {
   background: var(--color-primary);
-  color: #FFFFFF;
+  color: var(--color-bg-white);
   border: none;
 }
 
 .btn-primary:hover {
   background: var(--color-primary-hover);
-  color: #FFFFFF;
+  color: var(--color-bg-white);
   text-decoration: none;
 }
 
 .btn-secondary {
   background: var(--color-secondary);
   color: var(--color-secondary-text);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
 }
 
+/* Survol des boutons clairs : on garde le fond (le virer en gris le rapprochait
+   trop du fond de page). Feedback discret et moderne par légère élévation
+   (ombre + montée d'1px), bordure plus marquée et texte assombri. */
 .btn-secondary:hover {
-  background: var(--color-secondary-hover);
+  background: var(--color-secondary);
+  color: var(--color-ink);
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+/* Variante claire du bouton neutre : blanc franc et bordure fine — même langage
+   visuel que le bouton secondaire du hero d'accueil (.btn-hero--secondary, qui en
+   est la déclinaison à l'échelle du hero). À préférer à .btn-secondary là où le
+   beige se confondrait avec le fond de la page (--color-bg-main / -secondary).
+   Sélecteur composé avec .btn (deux classes) : authentication.css redéfinit .btn
+   avec border: none et est chargé après ce fichier — à spécificité égale la
+   bordure serait perdue, et un bouton blanc sans bordure disparaîtrait sur les
+   fonds clairs de l'app. */
+.btn.btn-white {
+  background: var(--color-bg-white);
   color: var(--color-secondary-text);
+  border: var(--border-thin);
+}
+
+/* Même feedback discret que .btn-secondary : le blanc reste, l'affordance passe
+   par l'élévation et une bordure plus marquée. */
+.btn.btn-white:hover {
+  color: var(--color-ink);
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+/* Unique CTA accent de l'app (ambre). Texte en --color-ink : accent-text
+   (#92400E) ne passe que 4,24:1 sur l'ambre et échoue sur accent-hover ;
+   ink passe AA sur les deux fonds (cf. audit R1.3). */
+.btn-accent {
+  background: var(--color-accent);
+  color: var(--color-ink);
+  border: none;
+}
+
+.btn-accent:hover {
+  background: var(--color-accent-hover);
+  color: var(--color-ink);
   text-decoration: none;
 }
 
@@ -65,13 +124,40 @@
 
 .btn-danger {
   background: var(--color-danger);
-  color: #FFFFFF;
+  color: var(--color-bg-white);
   border: none;
 }
 
 .btn-danger:hover {
   background: var(--color-danger-hover);
-  color: #FFFFFF;
+  color: var(--color-bg-white);
+}
+
+/* Tailles partagées du système (utilisées avec .btn) */
+.btn-sm {
+  padding: 0.375rem 0.875rem;
+  font-size: var(--font-size-xs);
+  min-height: unset;
+}
+
+/* Taille intermédiaire, pour une action posée dans une ligne de liste : la
+   taille par défaut (16 px, 44 px de haut) écrase une liste dense, et .btn-sm
+   n'y offre plus une cible confortable — c'est ce manque qui poussait les
+   composants à se fabriquer des boutons rétrécis maison. */
+.btn-md {
+  padding: 0.5rem 1.125rem;
+  font-size: var(--font-size-sm);
+  min-height: 38px;
+}
+
+.btn-lg {
+  padding: 0.875rem 2rem;
+  font-size: var(--font-size-lg);
+}
+
+.btn-icon {
+  padding: 0.375rem 0.625rem;
+  font-size: var(--font-size-xs);
 }
 
 /* Boutons icône */
@@ -82,7 +168,7 @@
   border-radius: var(--radius-icon-btn);
   color: var(--color-ink-4);
   background: transparent;
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   width: var(--min-touch-target);
   height: var(--min-touch-target);
   cursor: pointer;
@@ -123,9 +209,15 @@
     font-size: var(--font-size-sm);
   }
 
+  /* .btn-sm annule min-height pour rester compact en desktop ; au doigt, il faut
+     rétablir une cible tactile d'au moins 44px. */
+  .btn-sm {
+    min-height: var(--min-touch-target);
+  }
+
   .icon-btn {
-    min-width: 40px;
-    min-height: 40px;
+    min-width: var(--min-touch-target);
+    min-height: var(--min-touch-target);
     width: 32px;
     height: 32px;
     border-radius: var(--radius-icon-btn);
@@ -143,11 +235,33 @@
   }
 }
 
+/* Variante discrète : icône seule, sans cadre ni fond, pour une action
+   secondaire glissée dans un en-tête (ex. supprimer son avis). La cible
+   tactile de 44px est conservée, seul le cadre disparaît.
+   Placée après le bloc responsive pour neutraliser le fond appliqué à
+   `.icon-btn` en mobile. */
+.icon-btn--quiet {
+  border-color: transparent;
+  background: transparent;
+  margin: 0;
+}
+
+/* Suppression discrète : rouge dès le repos, atténué tant qu'on ne survole pas. */
+.icon-btn-delete.icon-btn--quiet {
+  color: var(--color-danger);
+  opacity: 0.65;
+}
+
+.icon-btn-delete.icon-btn--quiet:hover {
+  opacity: 1;
+  background: var(--color-danger-light);
+}
+
 /* === CARDS === */
 
 .card {
   background: var(--color-bg-white);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   border-radius: var(--radius-card);
   box-shadow: none;
   padding: 2rem;
@@ -158,7 +272,7 @@
   border-radius: var(--radius-card-compact);
   padding: 1rem;
   box-shadow: none;
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
 }
 
 .card-header {
@@ -180,7 +294,7 @@
 
 .card-subtitle {
   font-size: var(--font-size-xs);
-  color: var(--color-ink-4);
+  color: var(--color-ink-3);
   font-style: italic;
   font-weight: 400;
   margin-top: 0.125rem;
@@ -206,14 +320,52 @@
 .badge-orange {
   background: var(--color-bg-secondary);
   color: var(--color-ink-3);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
 }
 
-/* Badge de catégorie (rayon) - Charte graphique EasyMeal */
+/* === PALETTE DES RAYONS ===
+   Une couleur par rayon de supermarché, portée par l'attribut data-category
+   (la clé de l'enum Ingredient#category). Partagée par les deux écrans qui
+   affichent des rayons — sections de la liste de courses et badges du catalogue
+   d'ingrédients — pour qu'un rayon garde la même couleur de l'un à l'autre.
+
+   Décor uniquement : ces teintes n'ont pas le contraste d'un texte, le libellé
+   reste écrit en toutes lettres et en --color-ink. La couleur différencie d'un
+   coup d'œil, elle ne porte jamais l'information à elle seule.
+
+   Le repli gris couvre « Autre » et le rayon absent (ligne de courses libre). */
+[data-category]                                { --category-color: #9E9E9E; }
+[data-category="fruits_legumes"]               { --category-color: #5A8A5B; }
+[data-category="boucherie_viande"]             { --category-color: #B05B5B; }
+[data-category="charcuterie_traiteur"]         { --category-color: #C4768A; }
+[data-category="poissonnerie"]                 { --category-color: #4E7FA8; }
+[data-category="fromagerie_coupe"]             { --category-color: #C49A27; }
+[data-category="boulangerie_patisserie"]       { --category-color: #B08060; }
+[data-category="produits_laitiers"]            { --category-color: #6A9BB5; }
+[data-category="produits_frais_libre_service"] { --category-color: #6B9B72; }
+[data-category="glaces_desserts_glaces"]       { --category-color: #7AABC0; }
+[data-category="legumes_surgeles"]             { --category-color: #4E8A8A; }
+[data-category="viandes_poissons_surgeles"]    { --category-color: #6E8A9E; }
+[data-category="produits_aperitifs_surgeles"]  { --category-color: #C47845; }
+[data-category="epicerie_salee"]               { --category-color: #8A7055; }
+[data-category="epicerie_sucree"]              { --category-color: #9B7AB5; }
+[data-category="boissons"]                     { --category-color: #3D85C8; }
+[data-category="petit_dejeuner"]               { --category-color: #C49A27; }
+[data-category="produits_monde"]               { --category-color: #B08040; }
+[data-category="hygiene_beaute"]               { --category-color: #B87A8A; }
+[data-category="entretien_maison"]             { --category-color: #7A8A9E; }
+[data-category="papeterie_fournitures"]        { --category-color: #6E9B9B; }
+
+/* Badge de catégorie (rayon) - Charte graphique EasyMeal
+   Même vocabulaire visuel que les sections de la liste de courses : liseré
+   coloré à gauche, aplat très dilué, texte en encre pleine. */
 .category-badge {
-  background: var(--color-bg-secondary);
-  color: var(--color-ink-3);
-  border: 0.5px solid var(--color-border);
+  /* Sans rayon, les deux termes du mélange sont identiques : le badge retombe
+     exactement sur le beige neutre d'avant la couleur. */
+  background: color-mix(in srgb, var(--category-color, var(--color-bg-secondary)) 12%, var(--color-bg-secondary));
+  color: var(--color-ink);
+  border: var(--border-thin);
+  border-left: 2.5px solid var(--category-color, var(--color-border-strong));
   padding: 0.375rem 0.875rem;
   border-radius: var(--radius-badge);
   font-size: var(--font-size-sm);
@@ -225,14 +377,14 @@
 .badge-beige {
   background: var(--color-bg-secondary);
   color: var(--color-ink-3);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
 }
 
 /* Badges de régime alimentaire */
 .badge-omnivore {
   background: var(--color-bg-secondary);
   color: var(--color-ink-3);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   border-radius: var(--radius-badge);
   font-size: 0.75rem;
   font-weight: 500;
@@ -281,15 +433,15 @@
   font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--color-ink-4);
+  color: var(--color-ink-3);
   padding-bottom: 6px;
-  border-bottom: 0.5px solid var(--color-border);
+  border-bottom: var(--border-thin);
   margin-bottom: 1rem;
 }
 
 .badge-red {
   background: var(--color-danger);
-  color: white;
+  color: var(--color-bg-white);
 }
 
 .badge-green {
@@ -321,7 +473,7 @@
   }
 
   .month-tag {
-    font-size: 0.625rem;
+    font-size: var(--font-size-xs);
     padding: 0.125rem 0.375rem;
   }
 }
@@ -354,6 +506,10 @@
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
   max-width: 500px;
   width: 100%;
+  /* Plafonne la hauteur et rend le contenu défilable : une modale longue (ou un
+     écran en paysage) ne déborde plus hors de l'écran. */
+  max-height: 90dvh;
+  overflow-y: auto;
   animation: slideUp 0.3s ease-out;
 }
 
@@ -521,6 +677,13 @@
   gap: 1rem;
 }
 
+/* .form-group porte un margin-bottom global (authentication.css) : ici
+   l'espacement vertical est déjà assuré par le gap des conteneurs flex
+   (.slideout-form-content et .optional-fields-content), le margin s'y ajoutait. */
+.ingredient-form-slideout .form-group {
+  margin-bottom: 0;
+}
+
 .slideout-form-actions {
   display: flex;
   gap: 0.75rem;
@@ -566,18 +729,6 @@
   gap: 1rem;
 }
 
-/* Grille des mois compacte */
-.months-grid-compact {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.5rem;
-}
-
-.months-grid-compact .month-checkbox {
-  font-size: var(--font-size-sm);
-  padding: 0.375rem 0.5rem;
-}
-
 /* Bouton créer un ingrédient */
 .preparations-actions {
   display: flex;
@@ -587,43 +738,14 @@
   margin-bottom: 1rem;
 }
 
-.btn-create-ingredient {
-  background: none;
-  border: 1px dashed var(--color-border-strong);
-  color: var(--color-ink-3);
-  padding: 0.75rem 1.5rem;
-  border-radius: var(--radius-button);
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  cursor: pointer;
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.btn-create-ingredient:hover {
-  background: var(--color-primary);
-  color: #FFFFFF;
-  border-style: solid;
-  border-color: var(--color-primary);
-}
-
 /* Responsive slideout */
 @media (max-width: 767px) {
   .slideout-panel {
     max-width: 100%;
   }
-  
+
   .preparations-actions {
     flex-direction: column;
-  }
-  
-  .btn-create-ingredient {
-    width: 100%;
-    text-align: center;
   }
 }
 
@@ -677,10 +799,22 @@
   margin-bottom: 1rem;
 }
 
+/* Label de formulaire — définition canonique unique, utilisée par toutes les
+   vues. Les formulaires recette la surchargent via .rf-form (voir recipes.css)
+   et l'espacement propre à l'auth via .auth-form (voir authentication.css). */
 .form-label {
+  display: block;
   font-weight: 600;
   color: var(--color-ink);
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-sm);
+  margin-bottom: 0.5rem;
+}
+
+/* Astérisque « champ requis » (simple_form) */
+.form-label abbr[title] {
+  color: var(--color-danger);
+  text-decoration: none;
+  margin-left: 0.125rem;
 }
 
 .form-hint {
@@ -693,7 +827,7 @@
 .form-select,
 .form-textarea {
   padding: 0.75rem 1rem;
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   border-radius: var(--radius-input);
   font-size: var(--font-size-base);
   background: var(--color-bg-white);
@@ -725,7 +859,7 @@
 
 
 .form-errors {
-  background: #fef2f2;
+  background: var(--color-danger-light);
   border: 2px solid var(--color-danger);
   border-radius: var(--radius-card-compact);
   padding: 1rem;
@@ -768,7 +902,7 @@
 .has-error .form-select,
 .has-error .form-textarea {
   border-color: var(--color-danger);
-  background: #fef2f2;
+  background: var(--color-danger-light);
 }
 
 .form-group.has-error .form-input:focus,
@@ -777,7 +911,7 @@
 .has-error .form-input:focus,
 .has-error .form-select:focus,
 .has-error .form-textarea:focus {
-  box-shadow: 0 0 0 2px rgba(28, 25, 23, 0.08);
+  box-shadow: 0 0 0 2px rgba(28, 25, 22, 0.08);
 }
 
 .form-group.has-error .form-label,
@@ -836,22 +970,6 @@ span.error {
 }
 
 /* Checkboxes et radio buttons */
-.checkbox-group,
-.radio-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.checkbox-label,
-.radio-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  user-select: none;
-}
-
 input[type="checkbox"],
 input[type="radio"] {
   width: 18px;
@@ -863,7 +981,13 @@ input[type="radio"] {
 /* Grille de checkboxes (pour les mois) */
 .months-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  /* Le nombre de colonnes suit la largeur du conteneur (formulaire pleine page
+     ou slideout de 480 px), pas celle du viewport : une colonne ne descend
+     jamais sous 5rem et ne dépasse jamais un sixième de la ligne, ce qui donne
+     6 colonnes au large, 4 dans le slideout et 3 sur mobile — sans media query,
+     donc sans risque de débordement dans un conteneur étroit. */
+  grid-template-columns: repeat(auto-fill, minmax(max(5rem, (100% - 5 * 0.5rem) / 6), 1fr));
+  gap: 0.5rem;
   padding: 0.75rem;
   background: var(--color-bg-main);
   border-radius: var(--radius-card-compact);
@@ -902,10 +1026,6 @@ input[type="radio"] {
     grid-template-columns: 1fr;
   }
 
-  .form-label {
-    font-size: var(--font-size-sm);
-  }
-
   .form-input,
   .form-select,
   .form-textarea {
@@ -919,27 +1039,12 @@ input[type="radio"] {
   .form-actions .btn {
     width: 100%;
   }
-
-  .months-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .checkbox-group,
-  .radio-group {
-    flex-direction: column;
-  }
-}
-
-@media (min-width: 768px) and (max-width: 1024px) {
-  .months-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
 }
 
 /* === UTILITIES === */
 
 .text-muted {
-  color: var(--color-ink-4);
+  color: var(--color-ink-3);
   font-style: italic;
   font-size: var(--font-size-sm);
 }
@@ -1002,9 +1107,11 @@ input[type="radio"] {
 .icon-lg   { width: 32px; height: 32px; }
 .icon-xl   { width: 48px; height: 48px; }
 
-/* Icône de titre (h1, h2) — légèrement plus grande */
+/* Icône de titre (h1, h2) — légèrement plus grande que le texte.
+   Dimensionnée en em : elle suit la taille fluide du titre qui la porte,
+   donc elle rétrécit avec lui sur mobile sans media query. */
 .icon-title {
-  width: 50px;
-  height: 50px;
-  margin-right: 0.5rem;
+  width: 1.4em;
+  height: 1.4em;
+  margin-right: 0.4em;
 }

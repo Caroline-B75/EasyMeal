@@ -7,7 +7,9 @@
   -# ── En-tête page ─────────────────────────────────────────
   .mi-page-top
     %h1.mi-page-title Mes menus
-    - if @draft
+    - if @drafts.any?
+      -# Un brouillon existe : on prévient avant de le remplacer.
+      - next_draft = @drafts.first
       .mi-draft-guard{ data: { controller: "modal" } }
         %a.mi-btn-new{ href: "#", data: { action: "click->modal#open" } }
           = svg_icon("plus", size: 14)
@@ -16,69 +18,41 @@
           .modal-container
             .modal-content
               .modal-header.mn-modal-header
-                %h3 Brouillon en cours
+                %h3 Préparer un nouveau menu
                 %button.mn-modal-close{ type: "button", data: { action: "click->modal#close" }, "aria-label": "Fermer" } ×
               .modal-body
-                %p Tu avais déjà un brouillon en attente :
+                %p Tu as déjà un menu à valider. Créer un nouveau menu le remplacera définitivement.
                 .mn-draft-guard-preview
-                  %span.mn-draft-guard-name= @draft.name.presence || "Menu sans nom"
-                  %span.mn-draft-guard-meta= "#{@draft.menu_recipes.size} repas · #{@draft.default_people} pers. · #{menu_diet_label(@draft.diet)}"
-                %p Souhaites-tu le reprendre ou créer un nouveau menu ?
+                  %span.mn-draft-guard-name= next_draft.name.presence || "Menu sans nom"
+                  %span.mn-draft-guard-meta= "#{next_draft.menu_recipes.size} repas · #{next_draft.default_people} pers. · #{menu_diet_label(next_draft.diet)}"
+                %p Tu peux continuer celui-ci ou repartir sur une nouvelle génération.
               .mn-draft-guard-actions
-                = link_to new_menu_path, class: "btn btn-secondary" do
-                  Nouveau menu
-                = link_to menu_path(@draft), class: "btn btn-primary" do
-                  Reprendre le brouillon
+                - if current_user.preferences_configured?
+                  = button_to menus_path, method: :post, class: "btn btn-secondary",
+                              form: { style: "display: inline" } do
+                    Remplacer
+                - else
+                  = link_to new_menu_path, class: "btn btn-secondary" do
+                    Remplacer
+                = link_to menu_path(next_draft), class: "btn btn-primary" do
+                  Continuer
     - else
-      = link_to new_menu_path, class: "mi-btn-new" do
-        = svg_icon("plus", size: 14)
-        Créer un menu
+      - if current_user.preferences_configured?
+        = button_to menus_path, method: :post, class: "mi-btn-new",
+                    form: { style: "display: inline-flex" } do
+          = svg_icon("plus", size: 14)
+          Créer un menu
+      - else
+        = link_to new_menu_path, class: "mi-btn-new" do
+          = svg_icon("plus", size: 14)
+          Créer mon premier menu
 
-  -# ── Brouillon en cours ────────────────────────────────────
-  - if @draft
+  -# ── Brouillon à valider ──────────────────────────────────
+  - if @drafts.any?
     .mi-section
-      .mi-section-label Brouillon en cours
-      .mi-draft-card{ id: "menu_#{@draft.id}" }
-        .mi-draft-card-header{ data: { action: "click->menus-index#toggleDraft" } }
-          .mi-draft-card-left
-            .mi-draft-card-top
-              %span.mi-draft-badge Brouillon
-              %span.mi-draft-card-name= @draft.name.presence || "Menu sans nom"
-            .mi-draft-card-meta
-              %span= menu_diet_label(@draft.diet)
-              %span ·
-              %span= "#{@draft.default_people} pers."
-              %span ·
-              %span= "#{@draft.menu_recipes.size} repas"
-          .mi-draft-card-right
-            = svg_icon("chevron-down", size: 16, css_class: "mi-expand-icon")
-
-        .mi-draft-expanded
-          - if @draft.menu_recipes.any?
-            .mi-history-recipes
-              - @draft.menu_recipes.each do |mr|
-                .mi-hist-recipe-card
-                  .mi-hist-recipe-img
-                    - if mr.recipe.photo.attached?
-                      = image_tag mr.recipe.photo.variant(resize_to_fill: [192, 96]),
-                                 class: "mi-hist-recipe-photo"
-                    - else
-                      = image_tag "photo_par_defaut_recette.png", alt: mr.recipe.name, class: "mi-hist-recipe-photo"
-                  .mi-hist-recipe-body
-                    .mi-hist-recipe-name= mr.recipe.name
-                    - total_time = mr.recipe.total_time_minutes
-                    - if total_time > 0
-                      .mi-hist-recipe-time= "#{total_time} min"
-
-          .mi-draft-card-actions
-            = link_to menu_path(@draft), class: "mi-btn-sm" do
-              = svg_icon("edit", size: 11)
-              Personnaliser
-            = link_to "Modifier les paramètres", edit_menu_path(@draft), class: "mi-btn-sm"
-            = button_to menu_path(@draft), method: :delete, class: "mi-btn-sm-danger",
-                        form: { data: { turbo_confirm: "Supprimer ce brouillon ?" } } do
-              = svg_icon("trash", size: 11)
-              Supprimer
+      .mi-section-label= menu_draft_section_label(@drafts.first)
+      - @drafts.each do |draft|
+        = render "draft_card", draft: draft
 
   -# ── Menu actif (hero card sur fond sombre) ───────────────
   - if @active
@@ -89,19 +63,23 @@
           .mi-hero-card-info
             .mi-hero-card-badges
               .mi-hero-card-badges-left
-                %span.mi-badge-active En cours
-                %span.mi-hero-date= "Créé le #{french_date(@active.created_at)}"
-              .mi-hero-card-badges-right
+                %span.mi-badge-active Actif
+                %span.mi-hero-date= "Créé le #{l(@active.created_at.to_date, format: :long)}"
+              -# Les deux actions de consultation sont groupées : en mobile elles
+              -# occupent seules une 2e ligne, à parts égales.
+              .mi-hero-card-badges-actions
                 = link_to menu_path(@active), class: "mi-btn-hero-primary" do
                   = svg_icon("book-open", size: 13)
                   Voir le menu
                 = link_to grocery_menu_path(@active), class: "mi-btn-hero-primary" do
                   = svg_icon("list", size: 13)
                   Voir la liste de courses
-                = button_to menu_path(@active), method: :delete, class: "mi-btn-hero-danger",
-                            form: { data: { turbo_confirm: "Supprimer ce menu ?" } } do
-                  = svg_icon("trash", size: 13)
-                  Supprimer
+              -# Suppression hors du groupe d'actions : en mobile elle remonte sur
+              -# la ligne du badge/date (voir menus.css, media 640px).
+              = button_to menu_path(@active), method: :delete, class: "mi-btn-hero-danger",
+                          title: "Supprimer le menu", "aria-label": "Supprimer le menu",
+                          form: { data: { turbo_confirm: "Supprimer ce menu ?" } } do
+                = svg_icon("trash-fill", size: 24, fill: "currentColor", stroke: "none")
             %h2.mi-hero-menu-name= @active.name.presence || "Menu sans nom"
         -# Mini-cartes des recettes du menu
         - if @active.menu_recipes.any?
@@ -111,11 +89,7 @@
               - @active.menu_recipes.each do |mr|
                 = link_to recipe_path(mr.recipe), class: "mi-recipe-card-mini", data: { turbo_prefetch: "false" } do
                   .mi-recipe-card-mini-img
-                    - if mr.recipe.photo.attached?
-                      = image_tag mr.recipe.photo.variant(resize_to_fill: [280, 140]),
-                                 class: "mi-recipe-card-mini-photo"
-                    - else
-                      = image_tag "photo_par_defaut_recette.png", alt: mr.recipe.name, class: "mi-recipe-card-mini-photo"
+                    = recipe_photo_tag(mr.recipe, width: 280, height: 140, css_class: "mi-recipe-card-mini-photo")
                   .mi-recipe-card-mini-body
                     .mi-recipe-card-mini-name= mr.recipe.name
                     .mi-recipe-card-mini-meta
@@ -152,9 +126,10 @@
               = "Afficher #{older_archived.size} menus plus anciens"
 
   -# ── État vide ────────────────────────────────────────────
-  - if @draft.nil? && @active.nil? && @archived.empty?
+  - if @drafts.empty? && @active.nil? && @archived.empty?
     .mi-empty
-      .mi-empty-icon 🍽
+      .mi-empty-icon
+        = svg_icon(:utensils, size: 48)
       %h2.mi-empty-title Aucun menu pour l'instant
       %p.mi-empty-text Génère ton premier menu personnalisé en quelques secondes.
       = link_to new_menu_path, class: "btn btn-primary" do

@@ -1,0 +1,25 @@
+-# Repas du menu actif (UC3/UC7) : la grille partage ses cartes avec le
+-# brouillon (menus/_menu_recipe_card), en mode figé — seuls le jour et l'ordre
+-# restent modifiables. Pendant du bloc #draft_meals : remplacé d'un seul
+-# tenant par le Turbo Stream des ⬆️/⬇️ (menus/refresh_active), pour que
+-# l'ordre des cartes et l'état des flèches aux extrémités retombent juste.
+-#
+-# Locals :
+-#   menu         : Menu (status: :active)
+-#   menu_recipes : collection ordonnée des MenuRecipe
+#active_meals
+  - if menu_recipes.any?
+    .mc-card-grid{ data: { menu_customize_target: "grid" } }
+      - menu_recipes.each do |meal|
+        = render "menus/menu_recipe_card", menu_recipe: meal, menu: menu, meals: menu_recipes
+  - else
+    .mc-empty-grid
+      %p.mc-empty-text Aucun repas dans ce menu.
+
+  -# ── Bouton d'accès à la liste de courses ─────────────
+  -# Sticky comme la validation du brouillon : c'est l'action principale de
+  -# la page, elle doit rester atteignable pendant le défilement.
+  .mc-validate-zone{ class: ("mc-validate-zone--sticky" if menu_recipes.any?) }
+    = link_to grocery_menu_path(menu), class: "mc-btn-validate" do
+      Voir la liste de courses
+      = svg_icon("list", size: 15)

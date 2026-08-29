@@ -1,0 +1,22 @@
+-# Turbo Stream : retrait d'un repas via la croix d'une vignette du rail (UC2).
+-# La croix ne vit que sur l'index du catalogue : pas de CTA de fiche recette à
+-# rafraîchir ici, contrairement au toggle. Une cible absente de la page (carte
+-# hors des résultats courants) est ignorée côté client (no-op).
+
+-# 1. Bouton draft compact sur la carte de la recette, si elle est affichée.
+-#    in_draft est réévalué côté contrôleur : un autre exemplaire de la recette
+-#    peut encore occuper le contexte de moment (UC7).
+= turbo_stream.replace "draft-btn-#{@recipe.id}" do
+  = render "recipes/draft_button", recipe: @recipe,
+                                    in_draft: @in_draft,
+                                    container_id: "draft-btn-#{@recipe.id}",
+                                    meal_type: context_meal_type
+
+-# 2. Rail « menu à valider » : compteur + vignettes
+= turbo_stream.replace "draft-rail" do
+  = render "recipes/draft_rail", draft: @draft, meals: @draft_meals
+
+-# 3. Affiche le flash de confirmation (wrapper #flash préservé pour les remplacements suivants)
+= turbo_stream.update "flash" do
+  .flash-message.notice{ data: { controller: "flash" } }
+    = draft_change_notice(recipe_name: @recipe.name, count: @draft_meals.size, added: false)

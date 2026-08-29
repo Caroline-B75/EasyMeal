@@ -5,11 +5,14 @@
 /* === Global Body Styles === */
 html {
   height: 100%;
+  /* Header sticky : une cible d'ancre (skip-link → #main-content) s'arrête sous
+     le header au lieu d'être masquée par lui. */
+  scroll-padding-top: var(--header-height);
 }
 
 body {
   background: var(--color-bg-main);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: var(--font-sans);
   color: var(--color-ink-2);
   margin: 0;
   padding: 0;
@@ -17,6 +20,40 @@ body {
   min-height: 100%;
   display: flex;
   flex-direction: column;
+  /* Lissage des polices : déclaré une seule fois, ici. */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* === Titres === */
+/* Fraunces sur les titres. Spécificité 0,0,1 : cette règle ne couvre que les
+   titres nus. Les classes de titre des feuilles de fin de cascade (menus.css,
+   recipes.css) portent leur propre font-family — elles ont été basculées sur le
+   MÊME token plutôt que laissées sur leur Georgia en dur, ce qui évite d'avoir à
+   surenchérir en spécificité ici. Aucun !important, aucune classe utilitaire.
+
+   Pas de font-variation-settings, volontairement. Fraunces a un axe de taille
+   optique (opsz) que font-optical-sizing:auto — la valeur par défaut — ajuste
+   déjà d'après la font-size : empattements plus fins sur les grands titres,
+   formes plus robustes en petit. Or écrire font-variation-settings ÉCRASE ce
+   réglage automatique, et il faudrait alors répéter un 'opsz' correct sur chacune
+   des dix classes de titre, qui vont de 17px à 28px. On laisse donc faire le
+   navigateur. Les deux autres axes ne justifient pas d'y toucher : SOFT n'est pas
+   embarqué (voir fonts.css.erb) et WONK ne modifie visiblement que l'esperluette.
+
+   font-weight 500 : Fraunces est une variable 100-900, et le gras par défaut du
+   navigateur (700) est trop lourd pour un display serif à ces tailles. */
+h1, h2, h3 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+}
+
+/* Base responsive pour tout h1 : sans cette règle, un titre sans font-size
+   explicite hérite du défaut navigateur (2em, soit 32px) — identique sur mobile.
+   Spécificité 0,0,1 : les classes de titre existantes gardent la main. */
+h1 {
+  font-size: var(--font-size-h1);
+  line-height: 1.2;
 }
 
 /* === Utility Classes === */
@@ -33,7 +70,9 @@ body.home-page {
 .flash-messages,
 #flash {
   position: fixed;
-  top: 1.5rem;
+  /* env(safe-area-inset-bottom) : en PWA installée sur écran à encoche, le toast
+    reste au-dessus de la zone système en bas d'écran. */
+  bottom: calc(1.5rem + env(safe-area-inset-bottom));
   right: 1.5rem;
   z-index: 9999;
   max-width: 420px;
@@ -64,33 +103,38 @@ body.home-page {
   }
 }
 
+/* Les quatre toasts tiraient leurs fonds et leurs textes de valeurs en dur qui
+   divergeaient des tokens de même rôle — une seconde palette clandestine (le
+   vert des toasts n'était même pas celui du design system). Ils passent tous sur
+   les tokens : si un fond paraît trop pâle, on ajuste le token, pas la règle. */
+
 /* Notice (Success) */
 p.notice,
 .flash-message.notice {
-  background-color: #d1fae5;
-  color: #065f46;
+  background-color: var(--color-success-light);
+  color: var(--color-success-text);
   border-left-color: var(--color-success);
 }
 
 /* Alert (Error) */
 p.alert,
 .flash-message.alert {
-  background-color: #fee2e2;
-  color: #991b1b;
+  background-color: var(--color-danger-light);
+  color: var(--color-danger-text);
   border-left-color: var(--color-danger);
 }
 
 /* Info */
 .flash-message.info {
-  background-color: #dbeafe;
-  color: #1e40af;
+  background-color: var(--color-info-light);
+  color: var(--color-info-text);
   border-left-color: var(--color-info);
 }
 
 /* Warning */
 .flash-message.warning {
-  background-color: #fef3c7;
-  color: #92400e;
+  background-color: var(--color-warning-light);
+  color: var(--color-warning-text);
   border-left-color: var(--color-warning);
 }
 
@@ -106,11 +150,11 @@ body > p.alert {
 }
 
 body > p.notice {
-  border-bottom-color: var(--success-border);
+  border-bottom-color: var(--color-success);
 }
 
 body > p.alert {
-  border-bottom-color: var(--error-border);
+  border-bottom-color: var(--color-danger);
 }
 
 /* Hide empty flash messages */
@@ -124,7 +168,7 @@ p.alert:empty,
 @media (max-width: 640px) {
   .flash-messages,
   #flash {
-    top: 1rem;
+    bottom: calc(1rem + env(safe-area-inset-bottom));
     right: 1rem;
     left: 1rem;
     max-width: none;
@@ -141,15 +185,6 @@ p.alert:empty,
    GLOBAL LAYOUT ADJUSTMENTS
    ============================================ */
 
-/* Remove default body margins for auth pages */
-body {
-  margin: 0;
-  padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
 /* Link styles */
 a {
   color: var(--color-ink-3);
@@ -157,12 +192,89 @@ a {
   transition: var(--transition-normal);
 }
 
-a:hover {
+/* Survol des liens TEXTE uniquement. On exclut les <a> stylés en boutons
+   (toute classe contenant « btn ») : sinon la couleur ink rendait le libellé
+   illisible sur les boutons foncés/colorés au survol.
+   Pas de soulignement au survol : sur la nav, les cartes de recette et les
+   liens divers il alourdissait inutilement le rendu ; l'affordance passe par
+   le changement de couleur (et les composants gèrent leur propre survol). */
+a:not([class*="btn"]):hover {
   color: var(--color-ink);
-  text-decoration: underline;
 }
 
 /* Simple reset for better consistency */
 *, *::before, *::after {
   box-sizing: border-box;
+}
+
+/* ============================================
+   ACCESSIBILITÉ GLOBALE (R1.3)
+   ============================================ */
+
+/* --- Skip-link « Aller au contenu » ---
+   Hors écran par défaut, ramené dans le flux visuel uniquement au focus clavier. */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 10000;
+  padding: 0.75rem 1.25rem;
+  background: var(--color-primary);
+  color: var(--color-bg-white);
+  font-weight: 600;
+  border-radius: 0 0 var(--radius-button) 0;
+  text-decoration: none;
+}
+
+/* Même contour que tous les autres éléments focusables. L'ambre utilisé ici
+   auparavant était le seul contour non conforme du bloc accessibilité :
+   outline-offset le pose en partie sur le fond de page, où il ne dépassait pas
+   1,40:1 (seuil UI : 3:1). L'anthracite y atteint 14,65:1. */
+.skip-link:focus,
+.skip-link:focus-visible {
+  left: 0;
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Forcer le texte blanc au survol/focus : la règle globale a:hover le
+   repasserait en anthracite (invisible sur ce fond foncé). */
+.skip-link:hover,
+.skip-link:focus {
+  color: var(--color-bg-white);
+  text-decoration: none;
+}
+
+/* --- Focus visible cohérent sur tous les éléments interactifs ---
+   Uniquement au focus clavier (:focus-visible), pour ne pas gêner la souris. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+.active-filter-badge:focus-visible,
+.filter-tag-check-label:focus-visible,
+.recipe-card-link:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Le conteneur principal reçoit le focus via le skip-link (tabindex=-1) mais
+   ne doit pas afficher de contour visible (ce n'est pas un contrôle interactif). */
+#main-content:focus {
+  outline: none;
+}
+
+/* --- Réduction des animations (préférence système) ---
+   Neutralise animations et transitions décoratives sur tout le site. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

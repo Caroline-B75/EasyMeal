@@ -31,8 +31,9 @@ Rails.application.configure do
   # Disable request forgery protection in test environment.
   config.action_controller.allow_forgery_protection = false
 
-  # Configure cloudinary as the Active Storage service for Rails
-  config.active_storage.service = :cloudinary
+  # Stockage local des pièces jointes : la suite ne doit pas uploader vers
+  # Cloudinary (réseau scellé par WebMock, et rien à laisser derrière soi).
+  config.active_storage.service = :test
 
   # Disable caching for Action Mailer templates even if Action Controller
   # caching is enabled.
@@ -64,4 +65,10 @@ Rails.application.configure do
 
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
+
+  # Les jobs sont mis en file sans être exécutés : une spec vérifie soit la mise
+  # en file, soit le travail lui-même (perform_enqueued_jobs), jamais les deux
+  # par accident. L'adaptateur :async par défaut les lancerait dans des threads,
+  # source de tests intermittents.
+  config.active_job.queue_adapter = :test
 end

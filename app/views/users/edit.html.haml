@@ -1,0 +1,56 @@
+-# Formulaire d'administration d'un utilisateur (admin only)
+- content_for :title, "Modifier un utilisateur"
+
+.users-container.users-container--narrow
+  = context_bar_back(users_path, "Retour aux utilisateurs", variant: :narrow)
+
+  .users-form-card
+    .users-form-header
+      .users-avatar.users-avatar--large= user_initials(@user)
+      .users-form-title
+        %span.users-kicker ADMIN
+        %h1= "Modifier #{@user.first_name} #{@user.last_name}"
+        %p= @user.email
+
+    = form_with model: @user, url: user_path(@user), method: :patch, class: "users-form" do |f|
+      .users-form-grid
+        .form-group
+          = f.label :first_name, "Prénom", class: "form-label"
+          = f.text_field :first_name, class: "form-input"
+          = field_errors(@user, :first_name)
+        .form-group
+          = f.label :last_name, "Nom", class: "form-label"
+          = f.text_field :last_name, class: "form-input"
+          = field_errors(@user, :last_name)
+        .form-group
+          = f.label :username, "Nom d'utilisateur", class: "form-label"
+          = f.text_field :username, class: "form-input"
+          = field_errors(@user, :username)
+        .form-group
+          = f.label :email, "Email", class: "form-label"
+          = f.email_field :email, class: "form-input"
+          = field_errors(@user, :email)
+        .form-group
+          = f.label :gender, "Genre", class: "form-label"
+          = f.select :gender, [["Femme", "female"], ["Homme", "male"]], {}, class: "form-select"
+          = field_errors(@user, :gender)
+        .form-group
+          = f.label :default_diet, "Régime par défaut", class: "form-label"
+          = f.select :default_diet, User.default_diets.keys.map { |diet| [menu_diet_label(diet), diet] }, {}, class: "form-select"
+          = field_errors(@user, :default_diet)
+        .form-group
+          = f.label :default_people, "Personnes par repas", class: "form-label"
+          = f.number_field :default_people, min: 1, class: "form-input"
+          = field_errors(@user, :default_people)
+
+      .users-form-flags
+        %label.users-checkbox
+          = f.check_box :admin
+          %span Administrateur
+        %label.users-checkbox
+          = f.check_box :preferences_configured
+          %span Préférences configurées
+
+      .users-form-actions
+        = f.submit "Enregistrer", class: "btn btn-primary"
+        = link_to "Annuler", users_path, class: "btn btn-secondary"

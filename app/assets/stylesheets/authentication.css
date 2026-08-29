@@ -27,8 +27,8 @@
   right: 0;
   bottom: 0;
   background-image: 
-    radial-gradient(circle at 20% 50%, rgba(28, 25, 23, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(28, 25, 23, 0.02) 0%, transparent 50%);
+    radial-gradient(circle at 20% 50%, rgba(28, 25, 22, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(28, 25, 22, 0.02) 0%, transparent 50%);
 }
 
 @keyframes gradientShift {
@@ -98,10 +98,10 @@
   margin-bottom: 1.5rem;
 }
 
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+/* .form-row : définition canonique dans components.css (grid 2 colonnes).
+   Seul l'espacement propre à l'auth est surchargé ici (les .form-group internes
+   portent déjà leur marge basse). */
+.auth-form .form-row {
   margin-bottom: 0;
 }
 
@@ -119,23 +119,8 @@
   margin-bottom: 0;
 }
 
-/* ============================================
-   FORM LABELS
-   ============================================ */
-
-.form-label {
-  display: block;
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  color: var(--color-ink);
-  margin-bottom: 0.5rem;
-}
-
-.form-label abbr[title] {
-  color: var(--color-danger);
-  text-decoration: none;
-  margin-left: 0.125rem;
-}
+/* .form-label et .form-label abbr[title] : définition canonique unique dans
+   components.css (identique à l'ancienne version auth). Ne pas redupliquer ici. */
 
 /* ============================================
    FORM INPUTS
@@ -148,7 +133,7 @@
   line-height: 1.5;
   color: var(--color-ink);
   background-color: var(--color-bg-white);
-  border: 0.5px solid var(--color-border);
+  border: var(--border-thin);
   border-radius: var(--radius-input);
   transition: var(--transition-normal);
   outline: none;
@@ -157,6 +142,55 @@
 
 .form-input::placeholder {
   color: var(--color-ink-4);
+}
+
+/* ============================================
+   ŒIL D'AFFICHAGE DU MOT DE PASSE
+   ============================================ */
+
+/* Le conteneur est posé par le contrôleur `password-visibility` autour du seul
+   champ : c'est ce qui permet d'ancrer le bouton sur le champ, et non sur le
+   groupe, dont la hauteur dépend du libellé et de l'aide. */
+.password-field__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Le texte s'arrête avant le bouton : sans cette réserve, un mot de passe long
+   passerait dessous. */
+.password-field__control .form-input {
+  padding-right: 2.75rem;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.375rem;
+  color: var(--color-ink-4);
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm, 6px);
+  cursor: pointer;
+  transition: var(--transition-normal);
+}
+
+.password-toggle:hover {
+  color: var(--color-ink-2);
+}
+
+/* Une seule des deux icônes est visible à la fois : l'œil quand le mot de passe
+   est masqué (« cliquer pour voir »), l'œil barré quand il est lisible. */
+.password-toggle__icon--hide,
+.password-field--visible .password-toggle__icon--show {
+  display: none;
+}
+
+.password-field--visible .password-toggle__icon--hide {
+  display: block;
 }
 
 .form-input:focus {
@@ -202,7 +236,7 @@
 
 /* Error notification */
 .error_notification {
-  background-color: #fef2f2;
+  background-color: var(--color-danger-light);
   border-left: 4px solid var(--color-danger);
   padding: 1rem 1.25rem;
   margin-bottom: 1.5rem;
@@ -210,7 +244,7 @@
 }
 
 .error_notification p {
-  color: #991b1b;
+  color: var(--color-danger-text);
   font-size: 0.875rem;
   margin: 0;
   font-weight: 500;
@@ -239,7 +273,7 @@
 
 .btn-primary {
   background: var(--color-primary);
-  color: #FFFFFF;
+  color: var(--color-bg-white);
   box-shadow: var(--shadow-sm);
 }
 
@@ -416,7 +450,8 @@
 
   .form-input {
     padding: 0.625rem 0.875rem;
-    font-size: 0.9375rem;
+    /* 16px minimum : en-dessous, iOS zoome automatiquement au focus du champ. */
+    font-size: 1rem;
   }
 
   .btn-large {
@@ -424,25 +459,5 @@
   }
 }
 
-/* ============================================
-   ACCESSIBILITY
-   ============================================ */
-
-/* Focus visible for keyboard navigation */
-.form-input:focus-visible,
-.btn:focus-visible,
-.auth-link:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
+/* Accessibilité (focus visible, reduced-motion) : règles globales centralisées
+   dans global.css — ne pas dupliquer ici. */

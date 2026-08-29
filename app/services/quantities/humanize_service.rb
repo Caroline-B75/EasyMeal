@@ -12,7 +12,7 @@ module Quantities
   #
   # @example
   #   Quantities::HumanizeService.call(quantity: 1500, unit_group: :mass)
-  #   # => { value: "1,5", unit: "kg", display: "1,5 kg" }
+  #   # => { value: 1.5, unit: "kg", display: "1,5 kg" }
   #
   class HumanizeService
     # Seuils de conversion
@@ -59,9 +59,9 @@ module Quantities
     # Conversion générique seuil/unité (utilisé par mass et volume)
     def humanize_with_threshold(threshold, small_unit:, large_unit:)
       if @quantity >= threshold
-        { value: format_number(@quantity / 1000.0), unit: large_unit }
+        { value: rounded_number(@quantity / 1000.0), unit: large_unit }
       else
-        { value: format_number(@quantity), unit: small_unit }
+        { value: rounded_number(@quantity), unit: small_unit }
       end
     end
 
@@ -75,13 +75,13 @@ module Quantities
 
       if cac_remainder.zero?
         # Divisible exactement par 3 → afficher en càs
-        { value: format_integer(cas_count), unit: "càs" }
+        { value: cas_count, unit: "càs" }
       elsif cas_count.zero?
         # Moins de 3 càc → afficher en càc
-        { value: format_number(cac_remainder), unit: "càc" }
+        { value: rounded_number(cac_remainder), unit: "càc" }
       else
-        # Mix càs + càc (ex: "1 càs 2 càc")
-        { value: "#{format_integer(cas_count)} càs #{format_number(cac_remainder)}", unit: "càc" }
+        # Au-delà d'une cuillère à soupe, les fractions restent plus lisibles en càs.
+        { value: rounded_number(@quantity / CAC_PER_CAS.to_f), unit: "càs" }
       end
     end
 
@@ -91,26 +91,32 @@ module Quantities
       pincees = 1 if pincees.zero? && @quantity > 0
 
       unit = pincees > 1 ? "pincées" : "pincée"
-      { value: format_integer(pincees), unit: unit }
+      { value: pincees, unit: unit }
     end
 
     # === NOMBRE (pièces) ===
     def humanize_count
-      rounded = @quantity.round
-      # Arrondir à l'entier si très proche, sinon 1 décimale
-      if (@quantity - rounded).abs < 0.1
-        { value: format_integer(rounded), unit: "" }
+      if integer_like?(@quantity) || @quantity >= 2
+        { value: @quantity.round, unit: "" }
       else
-        { value: format_number(@quantity, max_decimals: 1), unit: "" }
+        { value: rounded_number(@quantity, max_decimals: 1), unit: "" }
       end
     end
 
     # Fallback pour les groupes inconnus
     def fallback_display
-      { value: format_number(@quantity), unit: "" }
+      { value: rounded_number(@quantity), unit: "" }
     end
 
     # === FORMATAGE ===
+
+    def rounded_number(number, max_decimals: 2)
+      decimals = max_decimals
+      decimals += 1 while number.positive? && number.round(decimals).zero? && decimals < 6
+
+      rounded = number.round(decimals)
+      integer_like?(rounded) ? rounded.to_i : rounded
+    end
 
     # Formate un nombre avec virgule française, sans zéros inutiles
     # @param number [Numeric] le nombre à formater
@@ -118,8 +124,14 @@ module Quantities
     def format_number(number, max_decimals: 2)
       return "0" if number.zero?
 
-      # Arrondir selon le nombre de décimales demandé
-      rounded = number.round(max_decimals)
+      # Une quantité positive mais minuscule ne doit jamais s'afficher « 0 » :
+      # on augmente la précision jusqu'à obtenir un chiffre significatif (plafond à 6
+      # décimales pour éviter une boucle sur des valeurs infinitésimales).
+      decimals = max_decimals
+      decimals += 1 while number.round(decimals).zero? && decimals < 6
+
+      # Arrondir selon le nombre de décimales retenu
+      rounded = number.round(decimals)
 
       # Convertir en string et remplacer le point par une virgule
       # Supprimer les zéros inutiles après la virgule
@@ -136,9 +148,14 @@ module Quantities
       number.to_i.to_s
     end
 
+    def integer_like?(number)
+      number.to_f == number.to_i
+    end
+
     # Construit le résultat final
     def build_result(value, unit)
-      display = unit.present? ? "#{value} #{unit}".strip : value.to_s
+      display_value = format_number(value)
+      display = unit.present? ? "#{display_value} #{unit}".strip : display_value
 
       {
         value: value,
