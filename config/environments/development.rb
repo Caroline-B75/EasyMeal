@@ -84,5 +84,17 @@ Rails.application.configure do
     Bullet.enable        = true
     Bullet.rails_logger  = true
     Bullet.add_footer    = true
+
+    # Fausse alerte venue de Rails lui-même, pas du projet : après chaque envoi de
+    # photo, ActiveStorage::Blob#touch_attachments fait `attachments.includes(:record)`
+    # pour rafraîchir le updated_at des enregistrements attachés. Avec une seule
+    # pièce jointe, Bullet y voit un eager loading inutile — mais ce `includes` vit
+    # dans le code de la gem (activestorage/app/models/active_storage/blob.rb), hors
+    # d'atteinte. L'alerte n'apparaissait pas tant que l'analyse tournait dans un job
+    # de fond ; elle est devenue visible en passant en ligne (cf. config/application.rb).
+    # Sans cette mise à l'écart, chaque upload crie au loup et on apprend à ignorer Bullet.
+    Bullet.add_safelist type: :unused_eager_loading,
+                        class_name: "ActiveStorage::Attachment",
+                        association: :record
   end
 end

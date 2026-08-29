@@ -1,20 +1,9 @@
 import { Controller } from "@hotwired/stimulus"
-import { assignFile, acceptsFile, clipboardImage, readImageUrl } from "photo_input"
-import { downscaleImage } from "image_downscale"
+import { acceptPhoto, forgetPhoto, clipboardImage, readImageUrl } from "photo_input"
 
 // Un texte collé n'est pris pour une adresse de recette que s'il ressemble à une
 // URL complète, d'un seul tenant : sinon on laisse le collage au navigateur.
 const HTTP_URL = /^https?:\/\/\S+$/i
-
-// Dépôt et collage n'ont pas le filtre du sélecteur natif : il faut le refuser
-// nous-mêmes, plutôt que d'envoyer un format que l'IA ne saura pas lire.
-const UNSUPPORTED_FILE_ERROR = "Format non accepté : choisis une image JPG, PNG ou WebP."
-
-// Garde-fou dur, appliqué au fichier choisi : la réduction ci-dessous est une
-// optimisation qui peut échouer, et un fichier de cette taille ne doit jamais
-// partir vers le serveur, réduit ou non.
-const MAX_FILE_BYTES = 20 * 1024 * 1024
-const OVERSIZED_FILE_ERROR = "Photo trop lourde (20 Mo maximum) : choisis une image plus légère."
 
 // Ce que dit le bouton une fois cliqué. L'envoi ne dure plus que le temps de
 // déposer la commande — et, pour une photo, de la téléverser : l'extraction se
@@ -117,8 +106,7 @@ export default class extends Controller {
 
   // Réinitialise la sélection de photo et réaffiche la zone de dépôt.
   clearPhoto() {
-    this.pendingPhoto = null
-    this.fileInputTarget.value = ""
+    forgetPhoto(this.fileInputTarget)
     this.previewImgTarget.removeAttribute("src")
     this.previewTarget.hidden = true
     this.fileZoneTarget.hidden = false
@@ -167,30 +155,12 @@ export default class extends Controller {
   // réduction avant de le confier au champ. Retourne false si le fichier est
   // refusé — l'aperçu, lui, attend la fin de la réduction.
   adoptPhoto(file) {
-    // Dépôt et collage contournent le filtre du sélecteur natif : sans ce mot,
-    // déposer un PDF donnerait l'impression que rien ne s'est passé.
-    if (!acceptsFile(this.fileInputTarget, file)) {
-      this.showError(UNSUPPORTED_FILE_ERROR)
+    const rejection = acceptPhoto(this.fileInputTarget, file, (photo) => this.showPreview(photo))
+    if (rejection) {
+      this.showError(rejection)
       return false
     }
 
-    if (file.size > MAX_FILE_BYTES) {
-      this.showError(OVERSIZED_FILE_ERROR)
-      return false
-    }
-
-    // Le champ reçoit d'abord l'original : la réduction est asynchrone, et un
-    // envoi lancé entre-temps doit partir avec la photo brute plutôt qu'à vide.
-    assignFile(this.fileInputTarget, file)
-    this.pendingPhoto = file
-
-    downscaleImage(file).then((photo) => {
-      // Photo retirée ou remplacée pendant la réduction : ce résultat est périmé.
-      if (this.pendingPhoto !== file) return
-
-      assignFile(this.fileInputTarget, photo)
-      this.showPreview(photo)
-    })
     return true
   }
 

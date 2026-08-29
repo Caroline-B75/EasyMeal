@@ -19,6 +19,12 @@ class RecipeImport < ApplicationRecord
   # pour la validation.
   has_one_attached :source_photo
 
+  # Format, poids et définition acceptés par Cloudinary : une photo hors limites
+  # doit être refusée ici, tant que l'utilisatrice est devant le formulaire — pas
+  # au fond du job, où l'upload échouerait sans rien lui dire d'utile.
+  include PhotoLimits
+  validates_photos :source_photo
+
   # Les deux portes d'entrée de l'import. Le formulaire n'en propose pas d'autre,
   # mais un import n'a pas à faire confiance à ce qu'on lui soumet.
   SOURCE_TYPES = %w[url photo].freeze

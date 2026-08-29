@@ -1,14 +1,17 @@
 // Réduction d'une photo dans le navigateur, avant tout envoi.
 //
-// Une photo de téléphone (4000×3000, 5 à 15 Mo) part sinon telle quelle vers le
-// serveur, qui l'encode en base64 pour l'API Claude : upload lent, requête
-// énorme et tokens image gaspillés pour une précision dont la lecture d'un
-// texte de recette n'a aucun besoin — ~1600 px sur le grand côté suffisent.
+// Une photo de téléphone (4000×3000, 5 à 15 Mo, parfois 48 MP) part sinon telle
+// quelle vers le serveur. Deux raisons de ne jamais laisser faire : Cloudinary
+// refuse au-delà de 10 Mo ou de 25 mégapixels (cf. PhotoLimits), et l'import IA
+// encode la photo en base64 pour l'API Claude — requête énorme et tokens image
+// gaspillés pour une précision dont ni la lecture d'un texte de recette ni
+// l'affichage du catalogue n'ont besoin. ~1600 px sur le grand côté suffisent
+// aux deux : la plus grande vignette servie est un 680×560 en écran retina.
 //
 // Le canvas natif fait tout le travail : aucune dépendance. Et la réduction
 // reste une optimisation, jamais un passage obligé — au moindre accroc (format
 // exotique, mémoire), on rend le fichier d'origine plutôt que de bloquer
-// l'import.
+// l'envoi. C'est pourquoi les plafonds sont aussi vérifiés côté serveur.
 
 const MAX_EDGE = 1600
 const JPEG_QUALITY = 0.85

@@ -1,17 +1,19 @@
 import { Controller } from "@hotwired/stimulus"
-import { assignFile, acceptsFile, clipboardImage, readImageUrl } from "photo_input"
+import { acceptPhoto, clipboardImage, readImageUrl } from "photo_input"
 
 // Zone de dépôt de la photo. Trois façons de choisir un fichier — clic (la zone
 // est le label du champ), glisser-déposer, collage d'une capture d'écran
-// n'importe où sur la page — qui aboutissent toutes à la même vignette et au
-// même message. Gère aussi la bascule vers la zone de dépôt quand une photo
-// déjà en place doit être remplacée.
+// n'importe où sur la page — qui aboutissent toutes au même contrôle, à la même
+// réduction, à la même vignette et au même message. Gère aussi la bascule vers
+// la zone de dépôt quand une photo déjà en place doit être remplacée.
 export default class extends Controller {
   static targets = ["input", "notice", "uploadArea", "changeButton", "dropzone", "preview"]
 
-  // Sélection au clic : le fichier est déjà dans le champ.
+  // Sélection au clic : le fichier est déjà dans le champ, mais il doit passer
+  // par le même contrôle que les deux autres gestes — le sélecteur natif filtre
+  // les formats, pas le poids ni la définition.
   showFilename(event) {
-    this.announce(event.target.files[0])
+    this.adopt(event.target.files[0])
   }
 
   dragOver(event) {
@@ -51,24 +53,20 @@ export default class extends Controller {
     if (this.hasChangeButtonTarget) this.changeButtonTarget.hidden = true
   }
 
-  // Fichier venu d'un dépôt ou d'un collage : il n'entre dans le formulaire
-  // qu'une fois réinjecté dans le champ fichier.
+  // Passage obligé des trois gestes : le fichier entre dans le champ, puis y est
+  // remplacé par sa version réduite. La vignette et le message n'annoncent que
+  // ce fichier-là — celui qui partira vraiment.
   adopt(file) {
-    // Ces deux gestes contournent le filtre du sélecteur natif : sans ce mot,
-    // déposer un PDF donnerait l'impression que rien ne s'est passé.
-    if (!acceptsFile(this.inputTarget, file)) {
-      this.previewTarget.hidden = true
-      this.notify("Ce fichier n'est pas une image : choisis un JPEG ou un PNG.")
-      return
-    }
+    if (!file) return
 
-    assignFile(this.inputTarget, file)
-    this.announce(file)
+    const rejection = acceptPhoto(this.inputTarget, file, (photo) => this.announce(photo))
+    if (!rejection) return
+
+    this.previewTarget.hidden = true
+    this.notify(rejection)
   }
 
   announce(file) {
-    if (!file) return
-
     this.showPreview(file)
     this.notify(`Tu as ajouté l'image : ${file.name}`)
   }

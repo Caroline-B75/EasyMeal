@@ -43,7 +43,16 @@ module Easymeal
     config.i18n.default_locale = :fr
     config.i18n.available_locales = [ :fr ]
 
-    # Utiliser ImageMagick au lieu de Vips pour le traitement d'images
-    config.active_storage.variant_processor = :mini_magick
+    # Aucune analyse des pièces jointes. Par défaut, ActiveStorage enfile un job
+    # qui RETÉLÉCHARGE chaque photo depuis Cloudinary pour en extraire largeur et
+    # hauteur : de la bande passante facturée à chaque envoi, pour une métadonnée
+    # que le projet ne lit jamais (les vignettes passent par les URL de
+    # transformation Cloudinary, cf. RecipesHelper, et non par .variant()).
+    #
+    # Sans analyseur enregistré, ActiveStorage retombe sur son NullAnalyzer, dont
+    # analyze_later? vaut false : l'analyse devient un simple UPDATE en ligne, sans
+    # job ni téléchargement. C'est aussi ce qui dispense le serveur d'ImageMagick
+    # et de libvips — les plafonds de photo se contrôlent sans eux (cf. PhotoLimits).
+    config.active_storage.analyzers = []
   end
 end

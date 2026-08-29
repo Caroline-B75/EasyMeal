@@ -90,6 +90,8 @@ fr:
       review:
         rating: La note
         content: Le commentaire
+      recipe_import:
+        source_photo: La photo
       recipe:
         name: Nom
         diet: Régime alimentaire
@@ -101,6 +103,8 @@ fr:
         appliance: Appareil
         instructions: Instructions
         meal_types: Moment du repas
+        photo: La photo
+        source_photo: La photo de la page
         # Valeurs des enums de Recipe — libellés lus par Recipe.enum_label,
         # donc partagés par la fiche recette, les filtres et le formulaire.
         diets:

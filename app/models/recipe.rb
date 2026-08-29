@@ -9,6 +9,8 @@ class Recipe < ApplicationRecord
   # Libellés français des enums (régime, difficulté, budget) : Recipe.enum_label,
   # .enum_options pour les sélecteurs, human_enum_value pour une recette donnée
   include EnumLabels
+  # Plafonds Cloudinary (format, poids, définition) sur les photos déposées
+  include PhotoLimits
 
   # === Associations ===
   has_many :preparations, dependent: :destroy
@@ -95,6 +97,9 @@ class Recipe < ApplicationRecord
 
   # Les règles sur meal_types (au moins un moment, vocabulaire fermé) sont
   # portées par le concern HasMealTypes.
+
+  # Les deux images d'une recette passent par les mêmes plafonds Cloudinary.
+  validates_photos :photo, :source_photo
 
   # Validation custom : une recette doit avoir au moins un ingrédient (sauf brouillon IA)
   validate :must_have_at_least_one_ingredient, unless: :draft?
@@ -269,8 +274,8 @@ class Recipe < ApplicationRecord
 
   # Validation : une recette doit avoir au moins un ingrédient
   def must_have_at_least_one_ingredient
-    if preparations.reject(&:marked_for_destruction?).empty?
-      errors.add(:base, "Une recette doit contenir au moins un ingrédient")
-    end
+    return if preparations.reject(&:marked_for_destruction?).any?
+
+    errors.add(:base, "Une recette doit contenir au moins un ingrédient")
   end
 end

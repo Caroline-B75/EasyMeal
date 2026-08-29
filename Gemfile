@@ -28,8 +28,11 @@ gem "pundit", "~> 2.5.2"
 gem "ransack", "~> 4.4.1"
 gem "pagy", "~> 9.3"  # ⚠️ Downgrade recommandé de 43.2.7 → 9.3
 
-# Uploads / images
-gem "image_processing", "~> 1.14.0"
+# Uploads / images. Aucune bibliothèque de traitement d'image côté serveur :
+# les vignettes sont produites par les URL de transformation Cloudinary
+# (cf. RecipesHelper), et l'analyse des pièces jointes est désactivée
+# (cf. config/application.rb). image_processing — et avec lui mini_magick et
+# ruby-vips — n'aurait servi qu'à .variant(), que le projet n'utilise pas.
 gem "cloudinary", "~> 2.4.3"
 gem "activestorage-cloudinary-service", "~> 0.2.3"
 

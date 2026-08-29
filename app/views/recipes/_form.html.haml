@@ -113,13 +113,21 @@
           %label.rf-dropzone{ for: "recipe_photo", data: { image_preview_target: "dropzone", action: "dragover->image-preview#dragOver dragleave->image-preview#dragLeave drop->image-preview#dropFile" } }
             = svg_icon(:camera, size: 24, css_class: "rf-dropzone-icon")
             %span.rf-dropzone-title Dépose une photo ici
-            %span.rf-dropzone-hint ou clique pour choisir, ou colle une capture (Ctrl+V) — JPEG/PNG, 800×600 minimum
-          = f.file_field :photo, accept: "image/*", id: "recipe_photo", class: "photo-upload-input sr-only", data: { image_preview_target: "input", action: "change->image-preview#showFilename" }
+            %span.rf-dropzone-hint ou clique pour choisir, ou colle une capture (Ctrl+V) — JPG/PNG/WebP, 800×600 minimum
+          -# accept liste les formats que Cloudinary sait servir (cf. PhotoLimits) :
+          -# le sélecteur natif s'en sert, et acceptPhoto le relit pour filtrer le
+          -# dépôt et le collage, qui le contournent.
+          = f.file_field :photo, accept: "image/jpeg,image/png,image/webp", id: "recipe_photo", class: "photo-upload-input sr-only", data: { image_preview_target: "input", action: "change->image-preview#showFilename" }
           -# Vignette du fichier choisi, lue par le navigateur : rien n'est
           -# envoyé tant que le formulaire n'est pas soumis.
           %img.photo-preview.photo-preview--chosen{ hidden: true, alt: "Aperçu de la photo choisie",
               data: { image_preview_target: "preview" } }
           %p.photo-upload-notice{ data: { image_preview_target: "notice" }, hidden: true }
+
+        -# Hors de la zone d'upload, que le formulaire masque quand une photo est
+        -# déjà en place : un fichier refusé par le serveur (format, poids,
+        -# définition) doit se lire dans tous les cas.
+        = field_errors(recipe, :photo)
 
     -# Section : Caractéristiques
     .rf-section
