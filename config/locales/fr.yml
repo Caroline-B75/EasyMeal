@@ -189,6 +189,11 @@ fr:
               blank: doit être sélectionné
               inclusion: n'est pas valide
       messages:
+        # Message de l'exception ActiveRecord::RecordInvalid, levée par save! et
+        # create!. Sans cette clé, une validation qui échoue affiche
+        # « Translation missing » au lieu de sa cause — ce qui a rendu illisible
+        # le premier échec de db:seed en production.
+        record_invalid: "La validation a échoué : %{errors}"
         blank: "ne peut pas être vide"
         taken: "est déjà utilisé"
         invalid: "n'est pas valide"

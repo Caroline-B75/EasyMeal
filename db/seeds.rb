@@ -30,6 +30,13 @@ ActiveRecord::Base.transaction do
       username: "Caro",
       first_name: "Caroline",
       last_name: "Belmas",
+      # Obligatoire : User valide la présence du genre et son appartenance à
+      # %w[male female]. Son absence ici est passée inaperçue pendant des mois
+      # parce qu'un admin existait déjà en développement — find_or_initialize_by
+      # le retrouvait, et cette branche de création n'était jamais exécutée.
+      # Seule une base vierge, celle de la première mise en production, l'a
+      # révélée.
+      gender: "female",
       password: admin_password,
       password_confirmation: admin_password,
       admin: true
