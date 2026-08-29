@@ -5,3 +5,8 @@
 vendor/* linguist-vendored
 config/credentials/*.yml.enc diff=rails_credentials
 config/credentials.yml.enc diff=rails_credentials
+
+# Les scripts de bin/ sont executes sous Unix (WSL, CI, Docker) : leur shebang
+# exige des fins de ligne LF, meme quand le poste de travail est sous Windows
+# avec core.autocrlf=true (un CRLF donne "/usr/bin/env: 'ruby\r': not found").
+bin/* text eol=lf
