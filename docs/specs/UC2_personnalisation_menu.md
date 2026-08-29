@@ -210,7 +210,7 @@ resources :menu_recipes, only: [:create, :destroy, :update]
 **Messages flash Turbo Stream**
 
 - "Plus de recettes disponibles pour ce critère" (NoCandidatesError)
-- "Cette recette est déjà dans votre menu" (doublon tentative manuelle)
+- "Cette recette est déjà dans ton menu" (doublon tentative manuelle)
 
 **Page /menus (index) — 3 sections**
 
@@ -277,7 +277,7 @@ And le menu n'est pas modifié
 Scenario: Doublon manuel refusé
 Given "Salade grecque" est déjà dans le menu
 When je tente de l'ajouter manuellement
-Then je vois "Cette recette est déjà dans votre menu"
+Then je vois "Cette recette est déjà dans ton menu"
 And aucun MenuRecipe n'est créé
 
 Scenario: Régénération liste sur menu actif

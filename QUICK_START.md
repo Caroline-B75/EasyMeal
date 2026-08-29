@@ -2,7 +2,7 @@
 
 ## ✅ Ce qui a été fait
 
-J'ai complètement modernisé votre page d'inscription avec :
+J'ai complètement modernisé ta page d'inscription avec :
 
 ### 🎨 Design Moderne
 
@@ -33,16 +33,16 @@ Tous les champs requis :
 
 ### Aperçu HTML Static (sans serveur)
 
-Ouvrez ce fichier dans votre navigateur :
+Ouvre ce fichier dans ton navigateur :
 
 ```
 c:\Caroline\easymeal\public\preview-signup.html
 ```
 
-### Sur votre Application Rails
+### Sur ton application Rails
 
-1. Démarrez votre serveur
-2. Visitez : `http://localhost:3000/users/sign_up`
+1. Démarre ton serveur
+2. Va sur : `http://localhost:3000/users/sign_up`
 
 ## 📁 Fichiers Créés
 
@@ -96,7 +96,7 @@ Le système est **prêt à l'emploi** :
 
 ## ❓ Questions ?
 
-Consultez la documentation complète ou testez directement la preview HTML !
+Consulte la documentation complète ou teste directement la preview HTML !
 
 ---
 

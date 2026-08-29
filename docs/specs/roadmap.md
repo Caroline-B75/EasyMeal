@@ -953,8 +953,8 @@ LES TABLES
 
 - user_id, menu_id
 
-🔍 Analyse comparative de votre ancien schéma vs. besoins UC1-UC6
-Votre ancien schéma a une bonne base, mais il manque beaucoup d'éléments critiques pour les nouveaux objectifs. Voici l'analyse détaillée :
+🔍 Analyse comparative de ton ancien schéma vs. besoins UC1-UC6
+Ton ancien schéma a une bonne base, mais il manque beaucoup d'éléments critiques pour les nouveaux objectifs. Voici l'analyse détaillée :
 
 ✅ Ce qui est BIEN dans l'ancien schéma
 Structure générale cohérente (users, recipes, ingredients, preparations, menus, menu_recipes)
@@ -1020,7 +1020,7 @@ Nécessaire pour UC1/UC2 :
 Voici le schéma optimal intégrant toutes les améliorations :
 
 🚀 Plan d'action recommandé
-Vu que vous avez déjà ingredients (nouveau modèle ✅), je recommande :
+Vu que tu as déjà ingredients (nouveau modèle ✅), je recommande :
 
 Créer recipes + preparations (base UC1/UC4/UC5)
 Créer tags + recipe_tags (UC4/UC5)

@@ -238,7 +238,7 @@
   - if recipe.persisted? && recipe.draft?
     .rf-discard
       %p.rf-discard__hint
-        Extraction inexploitable ? Supprimez l'import et relancez-en un.
+        Extraction inexploitable ? Supprime l'import et relance-en un.
       = button_to "Supprimer l'import",
           recipe_draft_path(recipe),
           method: :delete,

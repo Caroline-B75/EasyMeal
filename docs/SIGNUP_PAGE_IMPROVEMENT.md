@@ -4,11 +4,11 @@
 
 ### 1. **Explication du Fonctionnement de Devise**
 
-Devise utilise par défaut ses vues intégrées au gem. Ces vues ne sont **pas visibles** dans votre projet car elles sont stockées dans le gem lui-même.
+Devise utilise par défaut ses vues intégrées au gem. Ces vues ne sont **pas visibles** dans ton projet car elles sont stockées dans le gem lui-même.
 
 **Comment ça marche ?**
 
-- Quand vous accédez à `/users/sign_up`, Rails cherche d'abord dans `app/views/devise/registrations/new.html.erb`
+- Quand tu accèdes à `/users/sign_up`, Rails cherche d'abord dans `app/views/devise/registrations/new.html.erb`
 - Si le fichier n'existe pas, il utilise automatiquement la vue du gem Devise
 - En créant nos propres fichiers dans `app/views/devise/`, nous **remplaçons** les vues par défaut
 
@@ -132,7 +132,7 @@ config/locales/
 
 ### Option 1 : Aperçu HTML Statique
 
-Ouvrez dans votre navigateur :
+Ouvre dans ton navigateur :
 
 ```
 c:\Caroline\easymeal\public\preview-signup.html
@@ -140,8 +140,8 @@ c:\Caroline\easymeal\public\preview-signup.html
 
 ### Option 2 : Application Rails
 
-1. Démarrez votre serveur Rails
-2. Accédez à : `http://localhost:3000/users/sign_up`
+1. Démarre ton serveur Rails
+2. Accède à : `http://localhost:3000/users/sign_up`
 
 ## 🎨 Captures d'Écran du Design
 
@@ -153,7 +153,7 @@ c:\Caroline\easymeal\public\preview-signup.html
 │                                     │
 │   ┌───────────────────────────┐    │
 │   │  Créer un compte           │    │
-│   │  Rejoignez EasyMeal...     │    │
+│   │  Rejoins EasyMeal...       │    │
 │   │                            │    │
 │   │  ┌──────────────────────┐ │    │
 │   │  │ Nom d'utilisateur    │ │    │
@@ -179,7 +179,7 @@ c:\Caroline\easymeal\public\preview-signup.html
 │   │  │  Créer mon compte    │ │    │
 │   │  └──────────────────────┘ │    │
 │   │  ─────────────────────────│    │
-│   │  Vous avez déjà un       │    │
+│   │  Tu as déjà un           │    │
 │   │  compte ? Se connecter   │    │
 │   └───────────────────────────┘    │
 │                                     │
@@ -224,9 +224,9 @@ c:\Caroline\easymeal\public\preview-signup.html
 Tous les textes sont en français professionnel et engageant :
 
 - "Créer un compte" au lieu de "S'inscrire"
-- "Rejoignez EasyMeal et simplifiez vos repas" (sous-titre accrocheur)
+- "Rejoins EasyMeal et simplifie tes repas" (sous-titre accrocheur)
 - "Créer mon compte" (CTA personnalisé)
-- "Content de vous revoir !" (page de connexion)
+- "Content de te revoir !" (page de connexion)
 
 ### Cohérence du Design
 
@@ -236,7 +236,7 @@ Le même design system s'applique à toutes les pages d'authentification pour un
 
 ### Les styles ne s'affichent pas ?
 
-Assurez-vous que `authentication.css` est chargé. Ajoutez dans votre layout :
+Assure-toi que `authentication.css` est chargé. Ajoute dans ton layout :
 
 ```erb
 <%= stylesheet_link_tag "authentication", "data-turbo-track": "reload" %>
@@ -244,11 +244,11 @@ Assurez-vous que `authentication.css` est chargé. Ajoutez dans votre layout :
 
 ### Les champs ne se sauvegardent pas ?
 
-Vérifiez que `configure_permitted_parameters` est bien dans `application_controller.rb`.
+Vérifie que `configure_permitted_parameters` est bien dans `application_controller.rb`.
 
 ## 📚 Documentation
 
-Pour plus de détails, consultez :
+Pour plus de détails, consulte :
 
 - [Documentation complète](docs/authentication-design-system.md)
 - [Code source des vues](app/views/devise/)

@@ -2,7 +2,7 @@ class RecipeImportsController < ApplicationController
   before_action :authenticate_user!
   before_action :authorize_import
 
-  SUCCESS_NOTICE = "Recette extraite ! Complétez et validez avant de publier.".freeze
+  SUCCESS_NOTICE = "Recette extraite ! Complète et valide avant de publier.".freeze
 
   # GET /recipe_imports/new
   def new
@@ -55,8 +55,8 @@ class RecipeImportsController < ApplicationController
   # la phrase montrée à l'utilisatrice.
   def missing_source_reason
     case params[:source_type]
-    when "url"   then "Veuillez saisir une URL" if params[:source_url].blank?
-    when "photo" then "Veuillez choisir une image" if photo_file.blank?
+    when "url"   then "Saisis une URL" if params[:source_url].blank?
+    when "photo" then "Choisis une image" if photo_file.blank?
     else "Source non reconnue"
     end
   end

@@ -2,7 +2,7 @@
 
 ## 🎉 Résumé de l'Implémentation
 
-Votre page d'inscription a été **complètement transformée** avec un design moderne et professionnel !
+Ta page d'inscription a été **complètement transformée** avec un design moderne et professionnel !
 
 ---
 
@@ -16,8 +16,8 @@ Votre page d'inscription a été **complètement transformée** avec un design m
 ║                 ┌─────────────────────────────┐              ║
 ║                 │                             │              ║
 ║                 │   📝 Créer un compte        │              ║
-║                 │   Rejoignez EasyMeal et     │              ║
-║                 │   simplifiez vos repas      │              ║
+║                 │   Rejoins EasyMeal et       │              ║
+║                 │   simplifie tes repas       │              ║
 ║                 │                             │              ║
 ║                 │  ┌───────────────────────┐ │              ║
 ║                 │  │ 👤 Nom d'utilisateur  │ │              ║
@@ -44,7 +44,7 @@ Votre page d'inscription a été **complètement transformée** avec un design m
 ║                 │  │  ✅ Créer mon compte  │ │  <- Bouton   ║
 ║                 │  └───────────────────────┘ │     Vert     ║
 ║                 │  ─────────────────────────  │              ║
-║                 │  Vous avez déjà un compte ? │              ║
+║                 │  Tu as déjà un compte ?     │              ║
 ║                 │  🔗 Se connecter            │              ║
 ║                 │                             │              ║
 ║                 └─────────────────────────────┘              ║
@@ -96,16 +96,16 @@ Votre page d'inscription a été **complètement transformée** avec un design m
 ### Méthode 1 : Preview HTML (RECOMMANDÉ)
 
 ```
-Double-cliquez sur :
+Double-clique sur :
 c:\Caroline\easymeal\public\preview-signup.html
 ```
 
-→ S'ouvre dans votre navigateur par défaut
+→ S'ouvre dans ton navigateur par défaut
 
 ### Méthode 2 : Application Rails
 
 ```powershell
-# Démarrer le serveur (si vous avez Rails configuré)
+# Démarrer le serveur (si tu as Rails configuré)
 bundle exec rails server
 
 # Puis visiter :
@@ -252,7 +252,7 @@ Pour tous les détails techniques et guides :
 
 ## 🎊 C'est Prêt !
 
-Votre page d'inscription est **100% fonctionnelle** avec :
+Ta page d'inscription est **100% fonctionnelle** avec :
 
 - ✅ Design moderne et professionnel
 - ✅ Tous les champs requis
@@ -260,7 +260,7 @@ Votre page d'inscription est **100% fonctionnelle** avec :
 - ✅ Composants réutilisables
 - ✅ Documentation complète
 
-**Action recommandée :** Ouvrez `preview-signup.html` pour voir le résultat immédiatement !
+**Action recommandée :** Ouvre `preview-signup.html` pour voir le résultat immédiatement !
 
 ---
 

@@ -29,7 +29,7 @@
 
         / Email
         .form-group
-          = f.input :email, required: true, input_html: { class: 'form-input', autocomplete: "email", placeholder: "votre.email@exemple.com" }, label_html: { class: 'form-label' }, wrapper_html: { class: 'input-wrapper' }
+          = f.input :email, required: true, input_html: { class: 'form-input', autocomplete: "email", placeholder: "ton.email@exemple.com" }, label_html: { class: 'form-label' }, wrapper_html: { class: 'input-wrapper' }
 
         / Password
         = render "devise/password_field", f: f, attribute: :password, label: "Mot de passe",

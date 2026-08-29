@@ -7,13 +7,13 @@
   .auth-card
     .auth-header.user-form-header
       %h1.auth-title Connexion
-      %p.auth-subtitle Content(e) de te revoir !
+      %p.auth-subtitle Contente de te revoir !
 
     = simple_form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: 'auth-form' }) do |f|
       .form-fields
         / Email
         .form-group
-          = f.input :email, required: false, autofocus: true, input_html: { class: 'form-input', autocomplete: "email", placeholder: "votre.email@exemple.com" }, label_html: { class: 'form-label' }, wrapper_html: { class: 'input-wrapper' }
+          = f.input :email, required: false, autofocus: true, input_html: { class: 'form-input', autocomplete: "email", placeholder: "ton.email@exemple.com" }, label_html: { class: 'form-label' }, wrapper_html: { class: 'input-wrapper' }
 
         / Password
         = render "devise/password_field", f: f, attribute: :password, label: "Mot de passe",

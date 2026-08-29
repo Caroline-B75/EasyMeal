@@ -32,14 +32,14 @@
       - if counts[:todo].positive?
         %span.ai-panel__state.ai-panel__state--todo #{counts[:todo]} à préciser
     %p.ai-panel__hint
-      Vérifiez l'ingrédient proposé pour chaque ligne, puis ajoutez-le au formulaire ci-dessous.
+      Vérifie l'ingrédient proposé pour chaque ligne, puis ajoute-le au formulaire ci-dessous.
 
   -# Intitulés des colonnes : ils disent ce que la ligne compare avant même
   -# qu'on lise la première ligne. Repère de lecture, masqué sur mobile où la
   -# grille se replie en une seule colonne.
   .ai-panel__columns
     %span Détecté dans la recette
-    %span.ai-panel__column-target Ingrédient de votre catalogue
+    %span.ai-panel__column-target Ingrédient de ton catalogue
 
   - ai_matches.each do |match|
     -# Ce que l'IA a détecté vit sur la ligne : la recherche manuelle et la

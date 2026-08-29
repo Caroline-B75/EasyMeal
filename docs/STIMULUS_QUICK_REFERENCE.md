@@ -142,7 +142,7 @@ export default class extends Controller {
   }
 
   maMethode() {
-    // Votre logique ici
+    // Ta logique ici
   }
 }
 ```

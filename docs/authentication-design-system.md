@@ -174,12 +174,12 @@ Toutes les couleurs et espacements sont définis comme variables CSS dans `:root
 
 ### Les styles ne s'appliquent pas
 
-Vérifiez que `authentication.css` est importé dans votre manifest (`app/assets/config/manifest.js`) ou dans `application.css`.
+Vérifie que `authentication.css` est importé dans ton manifest (`app/assets/config/manifest.js`) ou dans `application.css`.
 
 ### Les champs username, first_name, last_name ne sont pas sauvegardés
 
-Assurez-vous que `configure_permitted_parameters` est bien défini dans `application_controller.rb`.
+Assure-toi que `configure_permitted_parameters` est bien défini dans `application_controller.rb`.
 
 ### Messages d'erreur en anglais
 
-Vérifiez la locale par défaut dans `config/application.rb` ou `config/initializers/devise.rb`.
+Vérifie la locale par défaut dans `config/application.rb` ou `config/initializers/devise.rb`.

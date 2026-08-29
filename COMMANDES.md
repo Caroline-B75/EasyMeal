@@ -45,11 +45,11 @@ ap User.first
 
 **Dans SourceTree :**
 
-1. Assurez-vous d'être sur la branche `main` (double-clic sur `main` dans la liste des branches)
-2. Cliquez sur le bouton **Branche** (en haut)
-3. Nommez votre branche (ex: `feature/recipes`, `fix/login-bug`)
-4. Cochez **Créer une nouvelle branche**
-5. Cliquez sur **Créer une branche**
+1. Assure-toi d'être sur la branche `main` (double-clic sur `main` dans la liste des branches)
+2. Clique sur le bouton **Branche** (en haut)
+3. Nomme ta branche (ex: `feature/recipes`, `fix/login-bug`)
+4. Coche **Créer une nouvelle branche**
+5. Clique sur **Créer une branche**
 
 **Alternative en console :**
 
@@ -66,17 +66,17 @@ git checkout -b feature/nom-de-ma-fonctionnalite
 
 **Pour commiter TOUS les fichiers modifiés :**
 
-1. Dans l'onglet **État des fichiers**, cochez la case tout en haut (à côté de "Fichiers non indexés")
+1. Dans l'onglet **État des fichiers**, coche la case tout en haut (à côté de "Fichiers non indexés")
 2. Tous les fichiers passent dans "Fichiers indexés"
-3. En bas, écrivez votre message de commit (ex: `feat: ajout du modèle Recipe`)
-4. Cliquez sur **Commit**
+3. En bas, écris ton message de commit (ex: `feat: ajout du modèle Recipe`)
+4. Clique sur **Commit**
 
 **Pour commiter QUELQUES fichiers seulement :**
 
-1. Dans "Fichiers non indexés", cochez **uniquement** les fichiers que vous voulez commiter
+1. Dans "Fichiers non indexés", coche **uniquement** les fichiers que tu veux commiter
 2. Ils passent dans "Fichiers indexés"
-3. En bas, écrivez votre message de commit
-4. Cliquez sur **Commit**
+3. En bas, écris ton message de commit
+4. Clique sur **Commit**
 
 **Alternative en console :**
 
@@ -101,7 +101,7 @@ git commit -m "feat: description de la modification"
 - `style: ...` → Style/formatage
 - `chore: ...` → Tâches diverses
 
-**→ Répétez cette étape autant de fois que nécessaire pendant votre développement**
+**→ Répète cette étape autant de fois que nécessaire pendant ton développement**
 
 ---
 
@@ -113,7 +113,7 @@ git commit -m "feat: description de la modification"
 # 1. Aller sur main
 git checkout main
 
-# 2. Merger votre branche (remplacez "nom-branche" par le nom de votre branche)
+# 2. Merger ta branche (remplace "nom-branche" par le nom de ta branche)
 git merge --no-ff nom-branche -m "Merge branch 'nom-branche' - Description courte"
 
 # 3. Pousser vers GitHub
@@ -154,9 +154,9 @@ git branch -d nom-branche
 
 **Dans SourceTree :**
 
-1. Faites un clic droit sur votre branche (dans la liste des branches à gauche)
-2. Sélectionnez **Supprimer la branche**
-3. Confirmez
+1. Fais un clic droit sur ta branche (dans la liste des branches à gauche)
+2. Sélectionne **Supprimer la branche**
+3. Confirme
 
 ---
 
@@ -501,7 +501,7 @@ Si le push dans SourceTree bloque à cause de SSH :
 git remote set-url origin https://github.com/Caroline-B75/EasyMeal.git
 ```
 
-Ensuite, SourceTree vous demandera votre Personal Access Token GitHub.
+Ensuite, SourceTree te demandera ton Personal Access Token GitHub.
 
 ---
 

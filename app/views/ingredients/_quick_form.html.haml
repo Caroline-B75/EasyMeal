@@ -11,10 +11,10 @@
       = f.input :name, label: "Nom de l'ingrédient *", placeholder: "Ex: Tomates", input_html: { class: "form-input", autofocus: true }, label_html: { class: "form-label" }, error_class: "has-error"
 
     .form-group
-      = f.input :category, label: "Rayon *", collection: Ingredient.enum_options(:category), prompt: "Sélectionnez un rayon", input_html: { class: "form-select" }, label_html: { class: "form-label" }, error_class: "has-error"
+      = f.input :category, label: "Rayon *", collection: Ingredient.enum_options(:category), prompt: "Sélectionne un rayon", input_html: { class: "form-select" }, label_html: { class: "form-label" }, error_class: "has-error"
 
     .form-group
-      = f.input :unit_group, label: "Groupe d'unités *", collection: Ingredient.enum_options(:unit_group), prompt: "Sélectionnez un groupe", input_html: { class: "form-select", data: { ingredient_form_target: "unitGroup", action: "change->ingredient-form#updateBaseUnit" } }, label_html: { class: "form-label" }, error_class: "has-error"
+      = f.input :unit_group, label: "Groupe d'unités *", collection: Ingredient.enum_options(:unit_group), prompt: "Sélectionne un groupe", input_html: { class: "form-select", data: { ingredient_form_target: "unitGroup", action: "change->ingredient-form#updateBaseUnit" } }, label_html: { class: "form-label" }, error_class: "has-error"
 
     .form-group
       = f.input :base_unit, label: "Unité de base *", hint: "Déterminée automatiquement", readonly: true, input_html: { class: "form-input", data: { ingredient_form_target: "baseUnit" } }, label_html: { class: "form-label" }, hint_html: { class: "form-hint" }, error_class: "has-error"

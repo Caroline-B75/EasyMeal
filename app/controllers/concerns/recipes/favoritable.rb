@@ -18,7 +18,7 @@ module Recipes
     private
 
     def favorite_notice(added)
-      added ? "Recette ajoutée à vos favoris ⭐" : "Recette retirée de vos favoris"
+      added ? "Recette ajoutée à tes favoris ⭐" : "Recette retirée de tes favoris"
     end
 
     def render_favorite_turbo_stream(added)

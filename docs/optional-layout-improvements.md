@@ -2,7 +2,7 @@
 
 ## Messages Flash Modernes
 
-Pour un meilleur affichage des messages flash, vous pouvez modifier le layout.
+Pour un meilleur affichage des messages flash, tu peux modifier le layout.
 
 ### Option 1 : Remplacer les lignes 20-21 de `application.html.erb`
 
@@ -52,7 +52,7 @@ Pour un meilleur affichage des messages flash, vous pouvez modifier le layout.
 
 ## Navigation Utilisateur
 
-Pour une meilleure UX, vous pouvez aussi améliorer la navigation en créant un header.
+Pour une meilleure UX, tu peux aussi améliorer la navigation en créant un header.
 
 **Créer `app/views/shared/_header.html.erb` :**
 

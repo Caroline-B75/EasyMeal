@@ -107,7 +107,7 @@ class MenusController < ApplicationController
   # Redirige directement vers la liste de courses : c'est la seule chose que
   # cette action produit, inutile de faire passer par la vue du menu.
   def activate
-    transition_menu(:activate!, "Menu activé ! Votre liste de courses est prête.",
+    transition_menu(:activate!, "Menu activé ! Ta liste de courses est prête.",
                                 "Impossible d'activer le menu",
                                 success_redirect: grocery_menu_path(@menu))
   end
@@ -116,7 +116,7 @@ class MenusController < ApplicationController
   # Réactive un menu archivé : l'ancien menu actif est archivé,
   # celui-ci redevient actif et sa liste de courses est régénérée.
   def reactivate
-    transition_menu(:reactivate!, "Menu réactivé ! Votre liste de courses a été mise à jour.",
+    transition_menu(:reactivate!, "Menu réactivé ! Ta liste de courses a été mise à jour.",
                                   "Impossible de réactiver le menu",
                                   success_redirect: grocery_menu_path(@menu))
   end
@@ -224,9 +224,9 @@ class MenusController < ApplicationController
     if replacing_draft
       "Nouveau menu généré. L'ancien menu à valider a été remplacé."
     elsif form_params_present?
-      "Menu généré ! Personnalisez-le avant de valider."
+      "Menu généré ! Personnalise-le avant de valider."
     else
-      "Menu généré avec vos paramètres habituels. Personnalisez-le si besoin."
+      "Menu généré avec tes paramètres habituels. Personnalise-le si besoin."
     end
   end
 

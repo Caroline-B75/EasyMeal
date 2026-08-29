@@ -9,7 +9,7 @@ class FavoriteRecipe < ApplicationRecord
   # Un utilisateur ne peut mettre en favori qu'une seule fois la même recette
   validates :recipe_id, uniqueness: {
     scope: :user_id,
-    message: "est déjà dans vos favoris"
+    message: "est déjà dans tes favoris"
   }
 
   # === Scopes ===

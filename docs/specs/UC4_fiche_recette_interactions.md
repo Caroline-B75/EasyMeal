@@ -63,7 +63,7 @@ Prérequis :
    o Standalone : servings_current = params[:servings] || recipe.default_servings.
    o Menu : servings_current = menu_recipe.number_of_people.
    • Actions : boutons/toggles Favori, Note ★, Commentaires (liste + form).
-   • Si Menu contexte : bandeau “Ce repas est dans votre menu (X pers)” + actions :
+   • Si Menu contexte : bandeau “Ce repas est dans ton menu (X pers)” + actions :
    o − / + pour number_of_people (persistant),
    o lien “Mettre à jour la liste maintenant” → POST /menus/:id/save_and_regenerate (modal confirm).
 
@@ -94,7 +94,7 @@ Prérequis :
 6. UX (Haml + Turbo/Stimulus)
    • Header : photo (ratio fixé), titre, tags (badges), temps (prépa/cuisson), diet.
    • Bandeau contexte menu (si présent) :
-   o “Ce repas est dans votre menu (X pers)”
+   o “Ce repas est dans ton menu (X pers)”
    o − / + (Stimulus) → PATCH update_meal_people (persisté)
    o Lien “Mettre à jour la liste maintenant” (→ save_and_regenerate avec modal).
    • Bloc “Ingrédients (pour X personnes)” :
@@ -131,7 +131,7 @@ And si je recharge la page, ça revient à 4 (default_servings)
 Scenario: Ouvrir une recette depuis un menu et voir le contexte
 Given un menu M avec menu_recipe MR (number_of_people = 6) pour cette recette
 When j’ouvre /menus/M/recipes/:id?menu_recipe_id=MR
-Then le bandeau "Ce repas est dans votre menu (6 pers)" est visible
+Then le bandeau "Ce repas est dans ton menu (6 pers)" est visible
 And le bloc ingrédients affiche les quantités pour 6 pers
 
 Scenario: Modifier le nombre de personnes depuis la fiche (contexte menu)

@@ -6,7 +6,7 @@ fr:
       text: 'requis'
       mark: '*'
     error_notification:
-      default_message: "Veuillez corriger les erreurs ci-dessous :"
+      default_message: "Merci de corriger les erreurs ci-dessous :"
     labels:
       defaults:
         email: 'Adresse email'
@@ -24,19 +24,19 @@ fr:
         last_name: 'Nom'
         email: 'Adresse email'
         password: 'Mot de passe'
-        password_confirmation: 'Confirmez votre mot de passe'
+        password_confirmation: 'Confirme ton mot de passe'
         remember_me: 'Se souvenir de moi'
     hints:
       defaults:
-        username: "Choisissez un nom d'utilisateur unique"
+        username: "Choisis un nom d'utilisateur unique"
         password: 'Minimum 6 caractères'
-        email: 'Nous ne partagerons jamais votre email'
+        email: 'Nous ne partagerons jamais ton email'
     placeholders:
       defaults:
-        username: "Choisissez un nom d'utilisateur"
-        gender: 'Sélectionnez...'
-        first_name: 'Votre prénom'
-        last_name: 'Votre nom'
-        email: 'votre.email@exemple.com'
+        username: "Choisis un nom d'utilisateur"
+        gender: 'Sélectionne...'
+        first_name: 'Ton prénom'
+        last_name: 'Ton nom'
+        email: 'ton.email@exemple.com'
         password: '••••••••'
         password_confirmation: '••••••••'

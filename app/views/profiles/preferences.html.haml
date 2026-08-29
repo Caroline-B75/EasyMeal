@@ -8,7 +8,7 @@
     %p.pref-subtitle
       Ces paramètres sont utilisés par défaut à chaque génération de menu.
       %br
-      Vous pouvez les modifier à tout moment.
+      Tu peux les modifier à tout moment.
 
   = form_with model: @user, url: preferences_profile_path, method: :patch, class: "pref-form",
               data: { controller: "profile-prefs" } do |f|

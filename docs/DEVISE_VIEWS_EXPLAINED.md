@@ -8,7 +8,7 @@
 
 ### Principe de Base
 
-**Devise** est un gem Ruby qui gère l'authentification. Par défaut, toutes ses vues (inscription, connexion, etc.) sont **intégrées au gem lui-même** et ne sont **PAS copiées** dans votre projet.
+**Devise** est un gem Ruby qui gère l'authentification. Par défaut, toutes ses vues (inscription, connexion, etc.) sont **intégrées au gem lui-même** et ne sont **PAS copiées** dans ton projet.
 
 ### 🔍 Où Sont les Vues par Défaut ?
 
@@ -18,15 +18,15 @@ Les vues Devise se trouvent dans le gem installé, généralement à :
 C:\Users\[VotreNom]\.rbenv\versions\[version-ruby]\lib\ruby\gems\[version]\gems\devise-[version]\app\views\devise\
 ```
 
-Ou si vous utilisez bundler :
+Ou si tu utilises bundler :
 
 ```
-[votre-projet]\vendor\bundle\ruby\[version]\gems\devise-[version]\app\views\
+[ton-projet]\vendor\bundle\ruby\[version]\gems\devise-[version]\app\views\
 ```
 
 ### 🎯 Comment Rails Trouve les Vues ?
 
-Quand vous accédez à `/users/sign_up`, Rails suit ce processus :
+Quand tu accèdes à `/users/sign_up`, Rails suit ce processus :
 
 ```
 1. Requête HTTP : GET /users/sign_up
@@ -39,7 +39,7 @@ Quand vous accédez à `/users/sign_up`, Rails suit ce processus :
    Cherche la vue à afficher
            ↓
 4. Recherche de Vue (dans cet ordre)
-   ✓ app/views/devise/registrations/new.html.erb  ← Votre projet
+   ✓ app/views/devise/registrations/new.html.erb  ← Ton projet
    ✗ Si absent, cherche dans le gem Devise
            ↓
 5. Affichage de la Vue
@@ -50,11 +50,11 @@ Quand vous accédez à `/users/sign_up`, Rails suit ce processus :
 Rails cherche les vues dans cet ordre de priorité :
 
 ```
-1. app/views/devise/registrations/new.html.erb    (Votre projet - PRIORITÉ)
+1. app/views/devise/registrations/new.html.erb    (Ton projet - PRIORITÉ)
 2. [gem-devise]/app/views/devise/registrations/new.html.erb  (Gem)
 ```
 
-**Si le fichier existe dans votre projet → Il remplace celui du gem !**
+**Si le fichier existe dans ton projet → Il remplace celui du gem !**
 
 ---
 
@@ -292,7 +292,7 @@ f.submit "Sign up" %> <% end %>
 <div class="auth-container">
   <div class="auth-card">
     <h1 class="auth-title">Créer un compte</h1>
-    <p class="auth-subtitle">Rejoignez EasyMeal...</p>
+    <p class="auth-subtitle">Rejoins EasyMeal...</p>
 
     <%= simple_form_for(...) do |f| %>
     <!-- 6 champs modernes avec design cohérent -->
@@ -308,21 +308,21 @@ f.submit "Sign up" %> <% end %>
 1. **Les vues Devise sont dans le gem** par défaut
 2. **Créer un fichier dans `app/views/devise/`** remplace automatiquement la vue du gem
 3. **Pas besoin de générer toutes les vues**, seulement celles à personnaliser
-4. **Rails cherche d'abord dans votre projet**, puis dans le gem
+4. **Rails cherche d'abord dans ton projet**, puis dans le gem
 5. **La configuration se fait dans `application_controller.rb`** pour les nouveaux champs
 
 ---
 
 ## 🚀 Conclusion
 
-Maintenant vous savez :
+Maintenant tu sais :
 
 - ✅ Où sont les vues Devise par défaut
 - ✅ Comment Rails les trouve
 - ✅ Comment les personnaliser
 - ✅ Pourquoi notre approche fonctionne
 
-**Et vous avez maintenant une magnifique page d'inscription moderne ! 🎉**
+**Et tu as maintenant une magnifique page d'inscription moderne ! 🎉**
 
 ---
 

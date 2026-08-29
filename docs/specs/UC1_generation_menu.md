@@ -220,7 +220,7 @@ end
 
 **Sur /recipes** si draft actif :
 
-- Bandeau "Vous composez un menu – [Revenir]"
+- Bandeau "Tu composes un menu – [Revenir]"
 - Bouton "Ajouter au menu" sur chaque carte recette (visible uniquement si param for_menu présent)
 
 ---
@@ -253,7 +253,7 @@ And la carte apparaît sans rechargement de page (Turbo Stream)
 Scenario: Ajouter un repas manuel
 Given un menu draft de 6 repas
 When je clique "Ajouter un repas" puis "Choisir dans la base"
-And j'arrive sur /recipes?for_menu=<id> avec le bandeau "Vous composez un menu"
+And j'arrive sur /recipes?for_menu=<id> avec le bandeau "Tu composes un menu"
 And je clique "Ajouter au menu" sur "Salade grecque"
 Then je suis redirigé vers /menus/:id
 And "Salade grecque" apparaît dans la liste avec 4 pers
