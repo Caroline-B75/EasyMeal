@@ -84,7 +84,6 @@
             data: {
               action: "click->ai-panel#add",
               ai_panel_ingredient_id: match[:exact].id,
-              ai_panel_ingredient_name: match[:exact].display_name,
               ai_panel_base_unit: match[:exact].base_unit,
               ai_panel_unit_group: match[:exact].unit_group,
               ai_panel_quantity_base: match[:quantity_base],
@@ -110,7 +109,6 @@
                 data: {
                   action: "click->ai-panel#confirmFuzzy",
                   ai_panel_ingredient_id: fi.id,
-                  ai_panel_ingredient_name: fi.display_name,
                   ai_panel_base_unit: fi.base_unit,
                   ai_panel_unit_group: fi.unit_group,
                   ai_panel_piece_weight: fi.piece_weight_g,

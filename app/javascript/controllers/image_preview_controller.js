@@ -66,9 +66,25 @@ export default class extends Controller {
     this.notify(rejection)
   }
 
+  // Photo retrouvée par form-recovery après un rechargement : elle est déjà dans
+  // le champ, elle n'a ni à repasser le contrôle ni à être réduite — seule sa
+  // mise en scène est à refaire, zone de dépôt comprise (une recette qui a déjà
+  // une photo la garde masquée).
+  restored() {
+    const file = this.inputTarget.files[0]
+    if (!file) return
+
+    this.showUploadField()
+    this.announce(file)
+  }
+
+  // Le fichier réellement retenu, réduction faite. C'est le seul moment où une
+  // photo est bonne à retenir ailleurs : avant, le champ porte encore
+  // l'originale, qui sort d'un téléphone.
   announce(file) {
     this.showPreview(file)
     this.notify(`Tu as ajouté l'image : ${file.name}`)
+    this.dispatch("ready", { detail: { file: file } })
   }
 
   // Vignette du fichier retenu : le nom d'une capture collée ("image.png") ne

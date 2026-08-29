@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { buildFields } from "nested_fields"
 
 /**
  * Controller pour gérer les nested fields (ajout/suppression dynamique)
@@ -29,17 +30,7 @@ export default class extends Controller {
   add(event) {
     event.preventDefault()
 
-    // Récupère le contenu du template
-    const content = this.templateTarget.innerHTML
-
-    // Génère un ID unique pour éviter les conflits
-    const uniqueId = new Date().getTime().toString()
-
-    // Remplace le placeholder NEW_RECORD par l'ID unique
-    const newFields = content.replace(/NEW_RECORD/g, uniqueId)
-
-    // Insère les nouveaux champs dans le container
-    this.containerTarget.insertAdjacentHTML("beforeend", newFields)
+    this.containerTarget.appendChild(buildFields(this.templateTarget))
   }
 
   /**

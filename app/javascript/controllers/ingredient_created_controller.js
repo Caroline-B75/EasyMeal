@@ -1,12 +1,14 @@
 import { Controller } from "@hotwired/stimulus"
+import { registerIngredient, appendPreparationRow, preparationRows, ingredientSelect } from "preparation_rows"
 
 // Controller pour gérer l'événement de création d'un ingrédient
-// Met à jour tous les selects d'ingrédients, affiche un flash message et ferme le slideout
+// Inscrit l'ingrédient au catalogue, l'ajoute à la recette en cours, affiche un
+// flash message et ferme le slideout
 export default class extends Controller {
   static values = {
     id: Number,
+    // Nom seul, pour le message de confirmation.
     name: String,
-    displayName: String,
     // Libellé de l'option du sélecteur d'ingrédient, unité comprise, composé
     // par Ingredient#select_label : l'option ajoutée ici doit se lire et se
     // trier exactement comme celles rendues par le serveur.
@@ -23,21 +25,23 @@ export default class extends Controller {
   }
 
   connect() {
-    this.updateIngredientSelects()
+    // Le catalogue d'abord, l'événement ensuite : ceux qui posent une ligne en
+    // réponse la clonent du modèle, et ils la veulent déjà garnie.
+    registerIngredient({ id: this.idValue, label: this.optionLabelValue,
+                         baseUnit: this.baseUnitValue, unitGroup: this.unitGroupValue })
 
     // Notifie les autres controllers (ex: ai-panel). Celui qui prend en charge
     // le nouvel ingrédient annule l'événement : il pose lui-même la ligne, avec
-    // la quantité détectée par l'IA. Sans cette revendication, la
-    // présélection ci-dessous garnirait en plus la ligne vide du formulaire —
+    // la quantité détectée par l'IA. Sans cette revendication, l'ajout
+    // ci-dessous garnirait en plus la ligne vide du formulaire —
     // le même ingrédient en double, et celui-là sans quantité.
+    // Le détail se limite à ce qui sert à convertir une quantité : le libellé,
+    // lui, est déjà au catalogue, où le repreneur ira le chercher.
     const claimed = !document.dispatchEvent(new CustomEvent('easymeal:ingredientCreated', {
       bubbles: true,
       cancelable: true,
       detail: {
         id: this.idValue,
-        name: this.nameValue,
-        displayName: this.displayNameValue,
-        optionLabel: this.optionLabelValue,
         baseUnit: this.baseUnitValue,
         unitGroup: this.unitGroupValue,
         pieceWeight: this.pieceWeightValue,
@@ -46,55 +50,30 @@ export default class extends Controller {
       }
     }))
 
-    if (!claimed) this.preselectIngredient()
+    if (!claimed) this.addToRecipe()
     this.showFlashMessage()
     this.closeSlideout()
     setTimeout(() => this.element.remove(), 100)
   }
 
-  updateIngredientSelects() {
-    const selects = document.querySelectorAll('select[name*="ingredient_id"]')
-
-    selects.forEach(select => {
-      if (!select.querySelector(`option[value="${this.idValue}"]`)) {
-        // Mêmes données que les options rendues par le serveur : l'unité de base
-        // et le groupe d'unités, dont ingredient-unit tire les unités saisissables.
-        const option = document.createElement('option')
-        option.value = this.idValue
-        option.textContent = this.optionLabelValue
-        option.dataset.unit = this.baseUnitValue
-        option.dataset.unitGroup = this.unitGroupValue
-
-        // Insertion alphabétique
-        const existingOptions = Array.from(select.querySelectorAll('option'))
-        const ingredientOptions = existingOptions.slice(1)
-
-        let inserted = false
-        for (const existingOption of ingredientOptions) {
-          if (existingOption.textContent.localeCompare(this.optionLabelValue, 'fr', { sensitivity: 'base' }) > 0) {
-            select.insertBefore(option, existingOption)
-            inserted = true
-            break
-          }
-        }
-
-        if (!inserted) {
-          select.appendChild(option)
-        }
-      }
-    })
-  }
-
-  // Présélectionne le nouvel ingrédient dans le premier select vide
-  preselectIngredient() {
-    const selects = document.querySelectorAll('select[name*="ingredient_id"]')
-    const emptySelect = Array.from(selects).find(select => !select.value)
-
-    if (emptySelect) {
-      emptySelect.value = this.idValue
-      // Déclencher l'événement change pour mettre à jour l'unité affichée
-      emptySelect.dispatchEvent(new Event('change', { bubbles: true }))
+  // L'ingrédient créé rejoint la recette en cours, sans quantité : la ligne
+  // vide qui attend, ou une ligne de plus s'il n'y en a aucune. On vient de le
+  // décrire en entier, le retrouver à la main dans une liste de 600 entrées
+  // serait une deuxième corvée pour rien.
+  addToRecipe() {
+    // Une ligne masquée est une ligne marquée pour suppression : elle n'attend
+    // plus rien.
+    const row = preparationRows().find((fields) => !fields.hidden && !ingredientSelect(fields).value)
+    if (!row) {
+      appendPreparationRow({ ingredientId: this.idValue })
+      return
     }
+
+    const select = ingredientSelect(row)
+    select.value = this.idValue
+    // ingredient-unit est déjà connecté sur cette ligne : c'est ce change qui
+    // lui fait relire l'ingrédient et proposer ses unités.
+    select.dispatchEvent(new Event('change', { bubbles: true }))
   }
 
   showFlashMessage() {

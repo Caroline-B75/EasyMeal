@@ -28,7 +28,14 @@
   -# fois pour tout le formulaire. Les contrôleurs Stimulus qui convertissent ou
   -# affichent une unité (ingredient-unit, ai-panel) la lisent là, via le module
   -# units.js — aucun facteur de conversion n'est recopié en JS.
-  = form_with model: recipe, class: "rf-form", html: { novalidate: true }, data: { controller: "nested-form form-errors", units_table: Units.table.to_json, turbo: false } do |f|
+  -# form-recovery retient la saisie en cours pour la reposer si la page est
+  -# rechargée : toute interaction la reprend (une frappe change un champ, un
+  -# clic ajoute ou retire une ligne d'ingrédient), la soumission la classe. Il
+  -# a besoin de savoir si ce rendu est celui d'une sauvegarde refusée — c'est
+  -# le seul cas où le serveur a déjà remis la saisie en place, photo exceptée.
+  -# La création d'un ingrédient se signale à part : elle ajoute une ligne depuis
+  -# le slideout, hors du formulaire, donc sans clic ni frappe à l'intérieur.
+  = form_with model: recipe, class: "rf-form", html: { novalidate: true }, data: { controller: "nested-form form-errors form-recovery", units_table: Units.table.to_json, turbo: false, form_recovery_rejected_value: recipe.errors.any?, action: "input->form-recovery#schedule change->form-recovery#schedule click->form-recovery#schedule easymeal:ingredientCreated@document->form-recovery#schedule submit->form-recovery#markSubmitted image-preview:ready->form-recovery#photoReady" } do |f|
 
     -# Informations générales — section sans intitulé : les libellés des champs
     -# se suffisent. Le nom occupe sa propre ligne, puis les trois valeurs
@@ -101,7 +108,7 @@
       -# Le collage est écouté sur le document : l'événement paste vise l'élément
       -# focalisé (souvent le body), jamais la zone photo.
       .form-group.rf-photo{ data: { controller: "image-preview",
-          action: "paste@document->image-preview#paste" } }
+          action: "paste@document->image-preview#paste form-recovery:photoRestored->image-preview#restored" } }
         - if photo_attached
           = image_tag cloudinary_photo_url(recipe.photo, width: 200, height: 150), class: "photo-preview", width: 200, height: 150, loading: "lazy"
           %button.btn.btn-white{ type: "button", data: { image_preview_target: "changeButton", action: "click->image-preview#showUploadField" } }

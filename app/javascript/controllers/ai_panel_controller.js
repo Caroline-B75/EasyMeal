@@ -1,5 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 import { unitsTable, unitDefinition, unitLabel, factorTo, unitOffered } from "units"
+import { appendPreparationRow } from "preparation_rows"
 
 // Délai avant d'interroger le catalogue, le temps que la frappe se pose
 const SEARCH_DEBOUNCE_MS = 200
@@ -43,10 +44,10 @@ export default class extends Controller {
   add(event) {
     const btn = event.currentTarget
     const row = this.rowOf(btn)
-    const { aiPanelIngredientId, aiPanelIngredientName, aiPanelBaseUnit, aiPanelUnitGroup,
+    const { aiPanelIngredientId, aiPanelBaseUnit, aiPanelUnitGroup,
             aiPanelQuantityBase, aiPanelConverted, aiPanelEstimated } = btn.dataset
 
-    this.addPreparationRow({ id: aiPanelIngredientId, name: aiPanelIngredientName,
+    this.addPreparationRow({ id: aiPanelIngredientId,
                              baseUnit: aiPanelBaseUnit, unitGroup: aiPanelUnitGroup,
                              row: row, quantityBase: parseFloat(aiPanelQuantityBase) || 1 })
     this.markDone(row, { converted: aiPanelConverted === 'true',
@@ -128,14 +129,11 @@ export default class extends Controller {
     // présélectionner l'ingrédient dans la ligne vide du formulaire.
     event.preventDefault()
 
-    const { id, optionLabel, baseUnit, unitGroup, pieceWeight, density, densitySource } = event.detail
+    const { id, baseUnit, unitGroup, pieceWeight, density, densitySource } = event.detail
     const ingredient = { unitGroup, pieceWeight, density, densitySource }
 
-    // Seul chemin où l'option n'existe pas encore dans le sélecteur — le
-    // template du formulaire a été rendu avant la création de l'ingrédient :
-    // c'est donc le seul qui ait besoin du libellé complet, unité comprise.
     const quantity = this.quantityFor(this.pendingRow, ingredient)
-    this.addPreparationRow({ id: id, name: optionLabel, baseUnit: baseUnit, unitGroup: unitGroup,
+    this.addPreparationRow({ id: id, baseUnit: baseUnit, unitGroup: unitGroup,
                              row: this.pendingRow, quantityBase: quantity.value })
     this.markDone(this.pendingRow, { converted: quantity.converted, estimated: this.estimatedFor(this.pendingRow, ingredient) })
     this.forgetPending()
@@ -154,7 +152,7 @@ export default class extends Controller {
   // boutons portent les mêmes données, seule leur provenance diffère.
   associateFromButton(btn) {
     const row = this.rowOf(btn)
-    const { aiPanelIngredientId, aiPanelIngredientName, aiPanelBaseUnit, aiPanelUnitGroup,
+    const { aiPanelIngredientId, aiPanelBaseUnit, aiPanelUnitGroup,
             aiPanelPieceWeight, aiPanelDensity, aiPanelDensitySource, aiPanelAddAliasPath } = btn.dataset
     const ingredient = { unitGroup: aiPanelUnitGroup, pieceWeight: aiPanelPieceWeight,
                          density: aiPanelDensity, densitySource: aiPanelDensitySource }
@@ -164,7 +162,7 @@ export default class extends Controller {
     this.rememberAlias(aiPanelAddAliasPath, row.dataset.aiPanelName)
       .then(() => {
         const quantity = this.quantityFor(row, ingredient)
-        this.addPreparationRow({ id: aiPanelIngredientId, name: aiPanelIngredientName,
+        this.addPreparationRow({ id: aiPanelIngredientId,
                                  baseUnit: aiPanelBaseUnit, unitGroup: aiPanelUnitGroup,
                                  row: row, quantityBase: quantity.value })
         this.markDone(row, { converted: quantity.converted, estimated: this.estimatedFor(row, ingredient) })
@@ -219,7 +217,6 @@ export default class extends Controller {
       Object.assign(button.dataset, {
         action: 'click->ai-panel#chooseExisting',
         aiPanelIngredientId: ingredient.id,
-        aiPanelIngredientName: ingredient.name,
         aiPanelBaseUnit: ingredient.base_unit,
         aiPanelUnitGroup: ingredient.unit_group,
         aiPanelPieceWeight: ingredient.piece_weight_g ?? '',
@@ -339,40 +336,13 @@ export default class extends Controller {
     return element.closest('[data-ai-panel-target="row"]')
   }
 
-  // Clone le template nested-form, y pose l'ingrédient et la quantité détectée,
-  // et l'ajoute au formulaire.
-  addPreparationRow({ id, name, baseUnit, unitGroup, row, quantityBase }) {
-    const template = document.querySelector('[data-nested-form-target="template"]')
-    const container = document.querySelector('[data-nested-form-target="container"]')
-    if (!template || !container) return
-
-    const timestamp = new Date().getTime()
-    const html = template.innerHTML.replace(/NEW_RECORD/g, timestamp)
-    const tmp = document.createElement('div')
-    tmp.innerHTML = html.trim()
-    const fields = tmp.firstElementChild
-
-    const select = fields.querySelector('select[name*="ingredient_id"]')
-    if (select) {
-      if (!select.querySelector(`option[value="${id}"]`)) {
-        const option = document.createElement('option')
-        option.value = id
-        option.textContent = name
-        option.dataset.unit = baseUnit
-        option.dataset.unitGroup = unitGroup
-        select.appendChild(option)
-      }
-      select.value = id
-    }
-
-    // ingredient-unit lit ces deux valeurs en se connectant, c'est-à-dire à
-    // l'insertion ci-dessous : c'est lui qui remplit la quantité, choisit
-    // l'unité et en dérive la quantité de base soumise.
+  // Pose la ligne dans le formulaire, avec la quantité détectée. L'ingrédient
+  // est forcément au catalogue — celui-ci liste tout ce que la base contient, et
+  // un ingrédient créé à la volée vient d'y être inscrit (ingredient-created).
+  addPreparationRow({ id, baseUnit, unitGroup, row, quantityBase }) {
     const detected = this.detectedQuantity(row, unitGroup, baseUnit, quantityBase)
-    fields.dataset.ingredientUnitQuantityValue = detected.quantity
-    fields.dataset.ingredientUnitUnitValue = detected.unit
 
-    container.appendChild(fields)
+    appendPreparationRow({ ingredientId: id, quantity: detected.quantity, unit: detected.unit })
   }
 
   // Ce qu'on écrit dans la ligne du formulaire : de préférence la quantité telle

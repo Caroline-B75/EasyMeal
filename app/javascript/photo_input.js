@@ -10,8 +10,9 @@ import { downscaleImage } from "image_downscale"
 // messages — qui, elle, lui est propre.
 
 // Le champ fichier reste la seule source de vérité pour l'envoi du formulaire :
-// un fichier déposé ou collé doit y être réinjecté via un DataTransfer.
-function assignFile(input, file) {
+// un fichier déposé, collé — ou refabriqué par form-recovery après un
+// rechargement de page — doit y être réinjecté via un DataTransfer.
+export function assignFile(input, file) {
   const transfer = new DataTransfer()
   transfer.items.add(file)
   input.files = transfer.files
