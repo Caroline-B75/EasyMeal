@@ -56,20 +56,27 @@ export default class extends Controller {
     setTimeout(() => this.element.remove(), 100)
   }
 
-  // L'ingrédient créé rejoint la recette en cours, sans quantité : la ligne
-  // vide qui attend, ou une ligne de plus s'il n'y en a aucune. On vient de le
-  // décrire en entier, le retrouver à la main dans une liste de 600 entrées
+  // L'ingrédient créé rejoint la recette en cours, sans quantité : on vient de
+  // le décrire en entier, le retrouver à la main dans une liste de 600 entrées
   // serait une deuxième corvée pour rien.
+  //
+  // Il se pose toujours au bas de la liste, là où le bouton « Ajouter un
+  // ingrédient » pose la sienne : la ligne vide qui la termine si elle attend,
+  // une ligne de plus sinon. Une ligne vide plus haut n'est pas reprise — le
+  // formulaire d'un brouillon IA en ouvre une avant que le panneau ne pose ses
+  // ingrédients en dessous, et le nouvel ingrédient atterrissait alors tout en
+  // haut, loin du geste qui venait de le créer.
   addToRecipe() {
     // Une ligne masquée est une ligne marquée pour suppression : elle n'attend
     // plus rien.
-    const row = preparationRows().find((fields) => !fields.hidden && !ingredientSelect(fields).value)
-    if (!row) {
+    const rows = preparationRows().filter((fields) => !fields.hidden)
+    const select = rows.length ? ingredientSelect(rows[rows.length - 1]) : null
+
+    if (!select || select.value) {
       appendPreparationRow({ ingredientId: this.idValue })
       return
     }
 
-    const select = ingredientSelect(row)
     select.value = this.idValue
     // ingredient-unit est déjà connecté sur cette ligne : c'est ce change qui
     // lui fait relire l'ingrédient et proposer ses unités.

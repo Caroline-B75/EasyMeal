@@ -1,6 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 import { unitsTable, unitDefinition, unitLabel, factorTo, unitOffered } from "units"
 import { appendPreparationRow } from "preparation_rows"
+import { readSnapshot, writeSnapshot } from "form_snapshot"
 
 // Délai avant d'interroger le catalogue, le temps que la frappe se pose
 const SEARCH_DEBOUNCE_MS = 200
@@ -31,6 +32,7 @@ export default class extends Controller {
     this.units = unitsTable(this.element)
     this._onIngredientCreated = this.onIngredientCreated.bind(this)
     document.addEventListener('easymeal:ingredientCreated', this._onIngredientCreated)
+    this.restoreDone()
   }
 
   disconnect() {
@@ -363,14 +365,24 @@ export default class extends Controller {
       : { quantity: quantityBase, unit: baseUnit }
   }
 
+  // Marque la ligne traitée, et retient qu'elle l'est.
+  markDone(row, state) {
+    this.paintDone(row, state)
+    this.saveDone()
+  }
+
   // Remplace le contenu droit de la ligne par le badge « ✓ Ajouté », nuancé des
   // deux mêmes réserves que le badge d'unité : une quantité que la conversion
   // n'a pas su traduire est posée telle quelle (à vérifier), une quantité
   // obtenue par une densité estimée n'est qu'approchée (estimée). Sans ces
   // nuances, la réserve disparaîtrait avec la ligne.
-  markDone(row, { converted = true, estimated = false } = {}) {
+  paintDone(row, { converted = true, estimated = false } = {}) {
     if (!row) return
     row.classList.add('ai-row--done')
+    // Les deux réserves restent lisibles sur la ligne : c'est d'elles que
+    // l'instantané se relit, le badge lui-même n'étant que du texte.
+    row.dataset.aiPanelConverted = converted
+    row.dataset.aiPanelEstimated = estimated
 
     const search = row.querySelector('[data-ai-panel-target="search"]')
     if (search) search.hidden = true
@@ -398,5 +410,48 @@ export default class extends Controller {
     }
 
     return badge
+  }
+
+  // === Mémoire des lignes déjà traitées ===
+  //
+  // Le panneau est rendu par le serveur, toujours neuf : un rechargement de page
+  // ramenait donc toutes les lignes réclamant d'être ajoutées, alors que
+  // form-recovery venait de reposer les ingrédients correspondants dans le
+  // formulaire — et rien ne disait plus lesquels. Le sessionStorage retient donc,
+  // le temps de l'onglet, quelles lignes ont été traitées et avec quelle réserve.
+  //
+  // Rien à oublier au passage : une sauvegarde acceptée ré-affiche le brouillon
+  // avec ses ingrédients enregistrés, et les badges y sont tout aussi justes
+  // qu'avant. Un autre import écrit ailleurs — la clé suit le formulaire.
+
+  saveDone() {
+    writeSnapshot(this.doneKey, this.rowTargets.map((row) => (
+      row.classList.contains('ai-row--done')
+        ? { name: row.dataset.aiPanelName,
+            converted: row.dataset.aiPanelConverted === 'true',
+            estimated: row.dataset.aiPanelEstimated === 'true' }
+        : null
+    )))
+  }
+
+  restoreDone() {
+    const entries = readSnapshot(this.doneKey)
+    if (!Array.isArray(entries)) return
+
+    this.rowTargets.forEach((row, index) => {
+      // Le nom détecté sert de repère : le panneau se recalcule à chaque rendu
+      // (le catalogue a pu changer entre-temps), et il vaut mieux redemander une
+      // ligne que d'en marquer une autre à sa place.
+      const entry = entries[index]
+      if (entry && entry.name === row.dataset.aiPanelName) this.paintDone(row, entry)
+    })
+  }
+
+  // Une mémoire par formulaire de recette, distincte de celle de form-recovery
+  // qui range la saisie du même formulaire sous la même paire méthode/action.
+  get doneKey() {
+    const form = this.element.closest('form')
+
+    return `ai-panel:${form?.method}:${form?.action}`
   }
 }
