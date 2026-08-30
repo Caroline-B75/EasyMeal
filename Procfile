@@ -12,11 +12,21 @@ web: bundle exec puma -C config/puma.rb
 # ce qui rend ce hook sûr : une migration cassée ne met jamais en ligne un code
 # qui ne peut pas tourner.
 #
-# Rien d'autre que les migrations ici, et c'est délibéré : ce hook est sur le
-# chemin critique de chaque déploiement. La seed du catalogue d'ingrédients y a
-# tenu le temps d'un essai (30/08/2026) et l'a fait échouer — un enregistrement
-# refusé par une validation suffit à bloquer une mise en ligne qui n'avait rien à
-# voir. Resynchroniser le catalogue est un geste ponctuel, à lancer à la main :
+# Deux gestes, dans cet ordre obligé :
 #
-#   rails runner 'load Rails.root.join("db/seeds/ingredients.rb").to_s'
-postdeploy: bundle exec rails db:migrate
+#   - les migrations, sans quoi le nouveau code s'adresserait à des colonnes qui
+#     n'existent pas encore ;
+#   - la resynchronisation du catalogue d'ingrédients depuis son YAML. Ce n'est
+#     pas une seed de démonstration mais une donnée de référence versionnée : le
+#     fichier est la source de vérité (rayon, unité, saison, contenu d'une pièce,
+#     nom de la pièce), et l'upsert est idempotent.
+#
+# La seed ne peut plus faire échouer un déploiement : un ingrédient que la base
+# refuse d'aligner est nommé dans les logs et enjambé (30/08/2026 — un seul
+# ingrédient divergent avait bloqué la mise en ligne entière). Une migration
+# cassée, elle, doit toujours l'arrêter : c'est la nuance entre les deux
+# commandes, et la raison de leur ordre.
+#
+# Volontairement pas `db:seed`, qui poserait aussi les tags et les recettes de
+# démonstration : ce n'est pas le rôle d'un déploiement.
+postdeploy: bundle exec rails db:migrate && bundle exec rails runner 'load Rails.root.join("db/seeds/ingredients.rb").to_s'

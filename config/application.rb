@@ -54,5 +54,15 @@ module Easymeal
     # job ni téléchargement. C'est aussi ce qui dispense le serveur d'ImageMagick
     # et de libvips — les plafonds de photo se contrôlent sans eux (cf. PhotoLimits).
     config.active_storage.analyzers = []
+
+    # Aucune génération de variantes non plus, pour la même raison : les
+    # vignettes viennent des URL de transformation Cloudinary. Sans ce réglage,
+    # ActiveStorage suppose vouloir redimensionner un jour et avertit à chaque
+    # démarrage que la gem image_processing lui manque — un bruit constant dans
+    # les logs de déploiement, pour une fonction que le projet n'appelle jamais.
+    #
+    # Le jour où une variante serait demandée, l'erreur sera nette plutôt que
+    # silencieuse : c'est ce que `:disabled` garantit.
+    config.active_storage.variant_processor = :disabled
   end
 end

@@ -48,6 +48,9 @@ raise "Retirés mais toujours servis dans #{DATA_FILE.basename} : #{still_served
 
 created = 0
 updated = 0
+# Ingrédients que la base refuse d'aligner sur le fichier : comptés à part et
+# nommés un par un, pour qu'un catalogue partiellement à jour se voie.
+skipped = 0
 
 data.each do |category, items|
   Array(items).each do |item|
@@ -93,8 +96,26 @@ data.each do |category, items|
     )
 
     if ingredient.changed?
-      ingredient.save!
-      was_new ? created += 1 : updated += 1
+      begin
+        ingredient.save!
+        was_new ? created += 1 : updated += 1
+      rescue ActiveRecord::RecordInvalid => error
+        # Le fichier et la base ont divergé sur un ingrédient que le modèle
+        # refuse désormais de réaligner — typiquement un ingrédient créé à la
+        # volée depuis une recette, dans un autre groupe d'unités que celui du
+        # catalogue, et depuis employé par une recette : changer son unité
+        # rendrait fausses les quantités déjà saisies (cf. la validation
+        # `unit_group_frozen_once_used` d'Ingredient).
+        #
+        # On le signale et on continue, comme pour un retrait impossible plus
+        # bas : arbitrer un tel conflit demande de relire les recettes
+        # concernées, ce qui n'est pas le travail d'une seed. Sans ce filet, un
+        # seul ingrédient divergent empêchait les 585 autres d'être mis à jour —
+        # et, le jour où la seed a tourné en post-déploiement, faisait échouer
+        # la mise en ligne entière (30/08/2026).
+        skipped += 1
+        puts "  ⚠️  « #{name} » n'a pas pu être mis à jour : #{error.record.errors.full_messages.join(', ')}"
+      end
     end
   end
 end
@@ -122,6 +143,7 @@ end
 
 total = Ingredient.count
 puts "\n✅ #{total} ingrédients en base (#{created} créés, #{updated} mis à jour, #{removed} retirés)."
+puts "⚠️  #{skipped} ingrédient(s) laissés en l'état — voir les avertissements ci-dessus." if skipped.positive?
 puts "\nRépartition par rayon :"
 Ingredient.group(:category).count.sort_by { |_category, count| -count }.each do |category, count|
   puts "  - #{Ingredient.enum_label(:category, category)} : #{count}"
