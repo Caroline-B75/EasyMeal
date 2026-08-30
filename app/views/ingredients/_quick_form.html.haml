@@ -34,6 +34,16 @@
           = f.input :piece_weight_g, label: "Poids d'une pièce (g)", hint: "Ex: 300 pour une aubergine, 40 pour une tranche de jambon", input_html: { class: "form-input", step: "0.01", min: "0.01" }, label_html: { class: "form-label" }, hint_html: { class: "form-hint" }, error_class: "has-error"
 
         .form-group
+          = f.input :piece_volume_ml, label: "Volume d'une pièce (ml)", hint: "Ex: 1000 pour une brique de lait, 200 pour un pot de crème", input_html: { class: "form-input", step: "0.01", min: "0.01" }, label_html: { class: "form-label" }, hint_html: { class: "form-hint" }, error_class: "has-error"
+
+        -# Le nom de la pièce décide de tout l'affichage à l'achat : renseigné,
+        -# la liste de courses compte des pièces (« 2 tablettes (400 g) ») ;
+        -# vide, elle pèse. Le pluriel régulier suffit ici — le formulaire
+        -# complet a le champ pour les exceptions.
+        .form-group
+          = f.input :piece_label, label: "Nom de la pièce", hint: "Ex: pièce, tranche, brique — l'ingrédient s'affichera alors en pièces dans la liste de courses", input_html: { class: "form-input" }, label_html: { class: "form-label" }, hint_html: { class: "form-hint" }, error_class: "has-error"
+
+        .form-group
           = f.input :density_g_per_ml, label: "Densité (g/ml)", hint: "Ex: 0.55 pour la farine, 1.42 pour le miel — pour peser ce qu'une recette dose à la cuillère", input_html: { class: "form-input", step: "0.01", min: "0.01", max: Ingredient::MAX_DENSITY }, label_html: { class: "form-label" }, hint_html: { class: "form-hint" }, error_class: "has-error"
 
         .form-group

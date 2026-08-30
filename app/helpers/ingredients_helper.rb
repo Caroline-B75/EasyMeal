@@ -28,6 +28,38 @@ module IngredientsHelper
     "#{hint} #{t('ingredients.density_to_check')}"
   end
 
+  # Ce qu'une option du sélecteur d'ingrédient doit porter pour que le
+  # formulaire de recette sache quoi proposer et comment convertir : son unité
+  # de base, son groupe, et sa pièce. Le contrôleur Stimulus `ingredient-unit`
+  # n'a pas d'autre source — il lit l'option choisie, jamais le catalogue.
+  #
+  # Nommé ici plutôt qu'écrit dans la vue parce que le JS pose les mêmes clés
+  # sur les options qu'il crée à la volée (preparation_rows.js) : une clé
+  # ajoutée d'un seul côté donnerait un ingrédient converti dans les lignes du
+  # serveur et pas dans les autres.
+  def ingredient_option_data(ingredient)
+    {
+      unit:         ingredient.base_unit,
+      unit_group:   ingredient.unit_group,
+      piece_label:  ingredient.piece_label,
+      piece_weight: ingredient.piece_weight_g,
+      piece_volume: ingredient.piece_volume_ml
+    }
+  end
+
+  # Indication du champ « nom de la pièce » : ce qu'il déclenche, et — quand
+  # l'ingrédient a de quoi compter — un aperçu de ce que la liste de courses
+  # affichera. Montrer vaut mieux qu'expliquer : c'est en lisant « 2 tablettes »
+  # qu'on voit si le mot choisi tombe juste.
+  def piece_label_field_hint(ingredient)
+    hint = "Facultatif — renseigné, cet ingrédient s'affiche en pièces dans la liste de courses. " \
+           "À ne remplir que si on achète la pièce ET qu'on la consomme entièrement."
+    preview = ingredient.piece_unit&.sentence_for(sample_piece_quantity(ingredient))
+    return hint if preview.blank?
+
+    "#{hint} Ici : « #{preview} »."
+  end
+
   # Destination du compteur « densités à vérifier » : il pose le filtre, et le
   # repose au clic suivant. Le reste de l'état de la page — filtres, tri — suit,
   # sauf `page` : la liste change, on la reprend au début.
@@ -78,6 +110,15 @@ module IngredientsHelper
   end
 
   private
+
+  # De quoi montrer deux pièces dans l'aperçu ci-dessus : ce que pèsent (ou
+  # contiennent) deux pièces, ou simplement deux quand l'ingrédient se compte
+  # déjà. Deux plutôt qu'une : c'est le pluriel qu'on veut vérifier.
+  def sample_piece_quantity(ingredient)
+    return 2 if ingredient.unit_group_count?
+
+    (ingredient.piece_weight_g || ingredient.piece_volume_ml).to_f * 2
+  end
 
   # Colonne de tri en cours, ramenée à celles que le catalogue sait trier —
   # même liste blanche que le scope `sorted_by`.

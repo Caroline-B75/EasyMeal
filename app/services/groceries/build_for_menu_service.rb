@@ -134,6 +134,13 @@ module Groceries
       item.base_unit  = ingredient.base_unit
       item.unit_group = ingredient.unit_group
       item.category   = ingredient.category
+
+      # Comment la ligne se compte à l'achat : nom de la pièce, pluriel, contenu
+      # d'une pièce. Recopiés en bloc — un libellé sans son coefficient ne
+      # saurait rien afficher (cf. PieceCounting::PIECE_ATTRIBUTES).
+      PieceCounting::PIECE_ATTRIBUTES.each do |attribute|
+        item.public_send(:"#{attribute}=", ingredient.public_send(attribute))
+      end
     end
 
     # Arrondit une quantité à 3 décimales en BigDecimal (comparaison exacte, pas de flottant naïf).

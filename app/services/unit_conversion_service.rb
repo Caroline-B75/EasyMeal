@@ -11,7 +11,8 @@
 # Ils sont deux, de même forme — un coefficient porté par l'ingrédient, et les
 # facteurs universels de Units de part et d'autre :
 #
-#   - piece_weight_g   : ce qui se compte ↔ ce qui se pèse (2 tranches → 80 g) ;
+#   - le contenu d'une pièce : ce qui se compte ↔ ce qui se mesure
+#     (2 tranches → 80 g par piece_weight_g, 1 brique → 1 L par piece_volume_ml) ;
 #   - density_g_per_ml : ce qui se mesure ↔ ce qui se pèse (1 càs → 8 g de farine).
 #
 # Aucun n'est deviné : sans le coefficient, la conversion échoue plutôt que de
@@ -36,7 +37,7 @@ class UnitConversionService
       return round3(quantity.to_f * factor) if factor
       return nil unless Units.definition(from_unit)
 
-      bridge_by_piece_weight(quantity.to_f, from_unit, ingredient) ||
+      bridge_by_piece_size(quantity.to_f, from_unit, ingredient) ||
         bridge_by_density(quantity.to_f, from_unit, ingredient)
     end
 
@@ -74,16 +75,21 @@ class UnitConversionService
 
     private
 
-    # Le poids d'une pièce relie les deux façons de dire un même ingrédient : la
-    # recette le compte (« 2 tranches »), le catalogue le pèse (g).
-    def bridge_by_piece_weight(quantity, from_unit, ingredient)
-      weight = ingredient.piece_weight_g.to_f
-      return nil unless weight.positive?
+    # Ce que contient une pièce relie les deux façons de dire un même ingrédient :
+    # la recette la compte (« 2 tranches », « 1 brique »), le catalogue la mesure
+    # (g, ml). Le trajet est le même quelle que soit la mesure — d'où la question
+    # posée une fois à l'ingrédient (cf. PieceCounting#piece_measure) plutôt que
+    # deux ponts jumeaux côte à côte.
+    def bridge_by_piece_size(quantity, from_unit, ingredient)
+      size, measure_group = ingredient.piece_measure
+      return nil if size.nil?
 
-      if ingredient.unit_group_mass?
-        convert_through(quantity, from_unit, "count") { |pieces| pieces * weight }
+      if ingredient.unit_group == measure_group
+        # « 2 tranches » de jambon → 80 g : des pièces vers la mesure.
+        convert_through(quantity, from_unit, "count") { |pieces| pieces * size }
       elsif ingredient.unit_group_count?
-        convert_through(quantity, from_unit, "mass") { |grams| grams / weight }
+        # « 200 g » d'oignon → 1,8 oignon : de la mesure vers les pièces.
+        convert_through(quantity, from_unit, measure_group) { |measure| measure / size }
       end
     end
 

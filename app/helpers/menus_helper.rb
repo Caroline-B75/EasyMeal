@@ -219,4 +219,40 @@ module MenusHelper
     blank = [ [ "—", "" ] ]
     blank + DAY_OF_WEEK_DISPLAY_ORDER.map { |wday| [ I18n.t("date.short_day_names")[wday], wday ] }
   end
+
+  # La quantité d'une ligne de courses, mise en forme pour l'écran.
+  #
+  # Le texte est celui de GroceryItem#quantity_display — une seule règle, dans
+  # PieceUnit. Ce helper n'ajoute que ce qui ne peut pas vivre dans un modèle :
+  # le « pour » en gras, qui attire l'œil sur la quantité réellement nécessaire
+  # là où le nombre de pièces est arrondi au-dessus (« 1 brique **pour** 3 ml »).
+  # Rien à souligner quand les deux s'équivalent : les parenthèses le disent.
+  #
+  # @param item [GroceryItem]
+  # @return [String] sûr pour le HTML
+  def grocery_quantity(item)
+    parts = item.piece_unit&.describe(item.quantity_base)
+    return item.quantity_display if parts.nil? || parts[:measure].blank?
+
+    pieces = "#{parts[:count]} #{parts[:label]}"
+    return "#{pieces} (#{parts[:measure]})" if parts[:exact]
+
+    safe_join([ pieces, tag.strong(PieceUnit::SURPLUS_CONNECTOR), parts[:measure] ], " ")
+  end
+
+  # L'unité qui suit le champ de correction d'une quantité.
+  #
+  # Ce champ édite toujours la quantité de base — c'est elle qui est exacte, les
+  # pièces n'en sont qu'un affichage arrondi : éditer « 3 pièces » réécrirait
+  # 900 g là où la recette en demande 750. Le suffixe dit donc l'unité de base,
+  # mais avec le mot qu'on lit ailleurs sur la ligne : « pots » et non « piece »
+  # sur des yaourts, « càc » et non « cac ».
+  #
+  # @param item [GroceryItem]
+  # @return [String]
+  def grocery_edit_unit(item)
+    return Units.label(item.base_unit) unless item.unit_group_count?
+
+    item.piece_unit&.label_for(item.quantity_base) || Units.label(item.base_unit)
+  end
 end

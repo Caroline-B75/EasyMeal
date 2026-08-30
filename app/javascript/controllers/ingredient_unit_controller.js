@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import { unitsTable, unitsFor, factorTo } from "units"
+import { unitsTable, unitsForIngredient, convert } from "units"
 
 // Quantité d'un ingrédient dans le formulaire de recette.
 //
@@ -14,10 +14,14 @@ import { unitsTable, unitsFor, factorTo } from "units"
 // l'unité non — et il évite d'avoir à diviser une quantité de tête.
 //
 // Les unités proposées suivent l'ingrédient sélectionné : celles de son groupe,
-// puis celles qu'une équivalence universelle y ramène — une huile se mesure en
-// millilitres comme en cuillères. L'unité de base est retenue par défaut. Un
-// ingrédient qui n'offre qu'une unité (les pièces) rend le sélecteur inerte
-// plutôt que d'ouvrir un choix vide.
+// celles qu'une équivalence universelle y ramène — une huile se mesure en
+// millilitres comme en cuillères —, et celles que sa pièce y ajoute : « 2
+// aubergines » se saisit comme 600 g, « 200 g d'oignon » comme 1,8 oignon. Les
+// unités et leurs conversions viennent toutes de units.js, miroir du Ruby :
+// aucune règle n'est réécrite ici.
+//
+// L'unité de base est retenue par défaut. Un ingrédient qui n'offre qu'une
+// unité rend le sélecteur inerte plutôt que d'ouvrir un choix vide.
 export default class extends Controller {
   static targets = ["select", "quantity", "unit", "base"]
   static values = {
@@ -44,28 +48,36 @@ export default class extends Controller {
   // une unité inconnue vide le champ : le modèle refusera la préparation plutôt
   // que d'enregistrer une quantité fausse.
   recompute() {
-    const factor = factorTo(this.units, this.unitTarget.value, this.unitGroup)
     const quantity = parseFloat(this.quantityTarget.value)
+    const converted = Number.isFinite(quantity)
+      ? convert(this.units, quantity, this.unitTarget.value, this.ingredient)
+      : null
 
-    this.baseTarget.value = factor && Number.isFinite(quantity)
-      ? Math.round(quantity * factor * 1000) / 1000
-      : ""
+    this.baseTarget.value = converted ?? ""
   }
 
   // Aligne le sélecteur d'unités sur l'ingrédient choisi, puis remet la
   // quantité soumise en accord avec l'affichage.
   applyIngredient({ preferredUnit, quantity }) {
-    const units = unitsFor(this.units, this.unitGroup)
+    const units = unitsForIngredient(this.units, this.ingredient)
 
     this.renderUnits(units, this.selectedUnit(units, preferredUnit, this.baseUnit))
     if (quantity > 0) this.quantityTarget.value = quantity
     this.recompute()
   }
 
-  // Groupe d'unités et unité de base de l'ingrédient sélectionné, portés par son
-  // option (le serveur les y pose, ai-panel et ingredient-created aussi).
-  get unitGroup() {
-    return this.selectTarget.selectedOptions[0]?.dataset.unitGroup || ""
+  // L'ingrédient sélectionné, réduit à ce qui décide des unités et de leur
+  // conversion. Tout est porté par son option — le serveur l'y pose
+  // (ingredient_option_data), preparation_rows aussi pour celles qu'il crée.
+  //
+  // Pas de densité ici, et ce n'est pas un oubli : le sélecteur ne propose que
+  // des unités qu'une équivalence universelle ou la pièce savent convertir. La
+  // cuillère n'est offerte qu'aux liquides, où elle se convertit sans peser.
+  get ingredient() {
+    const { unit, unitGroup, pieceLabel, pieceWeight, pieceVolume } =
+      this.selectTarget.selectedOptions[0]?.dataset || {}
+
+    return { unitGroup: unitGroup || "", pieceLabel, pieceWeight, pieceVolume }
   }
 
   get baseUnit() {

@@ -32,7 +32,7 @@
       - options.each do |ingredient|
         %option{ value: ingredient.id,
                  selected: f.object.ingredient_id == ingredient.id,
-                 data: { unit: ingredient.base_unit, unit_group: ingredient.unit_group } }
+                 data: ingredient_option_data(ingredient) }
           = ingredient.select_label
     = field_errors(f.object, :ingredient_id)
 
@@ -47,7 +47,7 @@
     -# Le rendu serveur ouvre sur l'unité de base de l'ingrédient ; le contrôleur
     -# Stimulus reprend la main dès qu'on change d'ingrédient (mêmes unités, même
     -# ordre — elles viennent de la même table Ruby).
-    - unit_options = Units.select_options(f.object.ingredient&.unit_group).presence || [ [ "—", "" ] ]
+    - unit_options = f.object.ingredient&.unit_select_options.presence || [ [ "—", "" ] ]
     .rf-unit-field
       = f.hidden_field :quantity_base, id: nil, data: { ingredient_unit_target: "base" }
       %input.form-input{ type: "number", step: "0.01", min: "0.01", placeholder: "Qté",

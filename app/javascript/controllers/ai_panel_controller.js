@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import { unitsTable, unitDefinition, unitLabel, factorTo, unitOffered } from "units"
+import { unitsTable, unitLabel, unitOffered, convert, usesEstimatedDensity } from "units"
 import { appendPreparationRow } from "preparation_rows"
 import { readSnapshot, writeSnapshot } from "form_snapshot"
 
@@ -12,12 +12,10 @@ const SEARCH_DEBOUNCE_MS = 200
 const coefficientsOf = (json) => ({
   unitGroup: json.unit_group,
   pieceWeight: json.piece_weight_g,
+  pieceVolume: json.piece_volume_ml,
   density: json.density_g_per_ml,
   densitySource: json.density_source
 })
-
-// Même arrondi que côté Ruby : les quantités de base vivent au millième
-const round3 = (value) => Math.round(value * 1000) / 1000
 
 export default class extends Controller {
   static targets = ["row", "fuzzyOptions", "noMatchFallback", "search", "searchInput", "searchResults"]
@@ -131,8 +129,8 @@ export default class extends Controller {
     // présélectionner l'ingrédient dans la ligne vide du formulaire.
     event.preventDefault()
 
-    const { id, baseUnit, unitGroup, pieceWeight, density, densitySource } = event.detail
-    const ingredient = { unitGroup, pieceWeight, density, densitySource }
+    const { id, baseUnit, unitGroup, pieceWeight, pieceVolume, density, densitySource } = event.detail
+    const ingredient = { unitGroup, pieceWeight, pieceVolume, density, densitySource }
 
     const quantity = this.quantityFor(this.pendingRow, ingredient)
     this.addPreparationRow({ id: id, baseUnit: baseUnit, unitGroup: unitGroup,
@@ -155,8 +153,10 @@ export default class extends Controller {
   associateFromButton(btn) {
     const row = this.rowOf(btn)
     const { aiPanelIngredientId, aiPanelBaseUnit, aiPanelUnitGroup,
-            aiPanelPieceWeight, aiPanelDensity, aiPanelDensitySource, aiPanelAddAliasPath } = btn.dataset
+            aiPanelPieceWeight, aiPanelPieceVolume, aiPanelDensity, aiPanelDensitySource,
+            aiPanelAddAliasPath } = btn.dataset
     const ingredient = { unitGroup: aiPanelUnitGroup, pieceWeight: aiPanelPieceWeight,
+                         pieceVolume: aiPanelPieceVolume,
                          density: aiPanelDensity, densitySource: aiPanelDensitySource }
 
     btn.disabled = true
@@ -222,6 +222,7 @@ export default class extends Controller {
         aiPanelBaseUnit: ingredient.base_unit,
         aiPanelUnitGroup: ingredient.unit_group,
         aiPanelPieceWeight: ingredient.piece_weight_g ?? '',
+        aiPanelPieceVolume: ingredient.piece_volume_ml ?? '',
         aiPanelDensity: ingredient.density_g_per_ml ?? '',
         aiPanelDensitySource: ingredient.density_source ?? '',
         aiPanelAddAliasPath: ingredient.add_alias_path
@@ -240,10 +241,10 @@ export default class extends Controller {
     badge.className = 'ai-row__unit'
 
     const unit = row.dataset.aiPanelUnit
-    if (this.convertQuantity(1, unit, ingredient) === null) {
+    if (convert(this.units, 1, unit, ingredient) === null) {
       badge.classList.add('ai-row__unit--mismatch')
       badge.title = this.mismatchTitleValue
-    } else if (this.usesEstimatedDensity(unit, ingredient)) {
+    } else if (usesEstimatedDensity(this.units, unit, ingredient)) {
       badge.classList.add('ai-row__unit--estimated')
       badge.title = this.estimatedTitleValue
     }
@@ -254,7 +255,7 @@ export default class extends Controller {
   // L'estimation telle que la voit une ligne : la même question que le badge,
   // posée sur l'unité détectée par l'IA pour cette ligne.
   estimatedFor(row, ingredient) {
-    return this.usesEstimatedDensity(row?.dataset.aiPanelUnit, ingredient)
+    return usesEstimatedDensity(this.units, row?.dataset.aiPanelUnit, ingredient)
   }
 
   renderMessage(container, text) {
@@ -271,68 +272,12 @@ export default class extends Controller {
   // garde le nombre tel quel et on le signale : { value, converted }.
   quantityFor(row, ingredient) {
     const quantity = parseFloat(row.dataset.aiPanelQuantity) || 1
-    const converted = this.convertQuantity(quantity, row.dataset.aiPanelUnit, ingredient)
+    const converted = convert(this.units, quantity, row.dataset.aiPanelUnit, ingredient)
     return converted !== null
       ? { value: converted, converted: true }
       : { value: quantity, converted: false }
   }
 
-  // Convertit qty depuis fromUnit vers l'unité de base de l'ingrédient cible.
-  // Retourne null si rien ne les relie : unités incompatibles, unité que Ruby
-  // n'a pas su lire (« 2 tranches »), ou coefficient absent du catalogue.
-  //
-  // Miroir de UnitConversionService.convert, dans le même ordre : le facteur
-  // connu d'avance, puis les deux ponts que porte l'ingrédient.
-  convertQuantity(qty, fromUnit, ingredient) {
-    const factor = factorTo(this.units, fromUnit, ingredient.unitGroup)
-    if (factor) return round3(qty * factor)
-    if (!unitDefinition(this.units, fromUnit)) return null
-
-    return this.bridgeByPieceWeight(qty, fromUnit, ingredient) ??
-           this.bridgeByDensity(qty, fromUnit, ingredient)
-  }
-
-  // Pont pièce ↔ masse par le poids unitaire : « 2 tranches » de jambon
-  // deviennent 80 g si le catalogue sait qu'une tranche pèse 40 g, et rien du
-  // tout s'il l'ignore.
-  bridgeByPieceWeight(qty, fromUnit, { unitGroup, pieceWeight }) {
-    const weight = parseFloat(pieceWeight)
-    if (!(weight > 0)) return null
-
-    if (unitGroup === 'mass') return this.through(qty, fromUnit, 'count', (pieces) => pieces * weight)
-    if (unitGroup === 'count') return this.through(qty, fromUnit, 'mass', (grams) => grams / weight)
-    return null
-  }
-
-  // Pont mesure ↔ masse par la densité : « 1 càs » de farine devient 8,25 g si
-  // le catalogue sait qu'un millilitre en pèse 0,55.
-  bridgeByDensity(qty, fromUnit, { unitGroup, density }) {
-    const value = parseFloat(density)
-    if (!(value > 0)) return null
-
-    if (unitGroup === 'mass') return this.through(qty, fromUnit, 'volume', (ml) => ml * value)
-
-    const toBase = factorTo(this.units, 'ml', unitGroup)
-    return toBase ? this.through(qty, fromUnit, 'mass', (grams) => grams / value * toBase) : null
-  }
-
-  // Amène la quantité dans l'unité de base d'un groupe intermédiaire, puis laisse
-  // le coefficient de l'ingrédient finir le trajet (miroir de convert_through).
-  through(qty, fromUnit, pivotGroup, finish) {
-    const factor = factorTo(this.units, fromUnit, pivotGroup)
-
-    return factor ? round3(finish(qty * factor)) : null
-  }
-
-  // Miroir de UnitConversionService.estimated? : si la conversion tombe quand on
-  // retire la densité, c'est elle qui l'a rendue possible — et elle n'est
-  // qu'estimée, ce que le badge de la ligne doit dire.
-  usesEstimatedDensity(fromUnit, ingredient) {
-    if (ingredient.densitySource !== 'ai') return false
-    if (this.convertQuantity(1, fromUnit, ingredient) === null) return false
-
-    return this.convertQuantity(1, fromUnit, { ...ingredient, density: null }) === null
-  }
 
   rowOf(element) {
     return element.closest('[data-ai-panel-target="row"]')

@@ -69,6 +69,9 @@ RSpec.describe "db/seeds/data/ingredients.yml" do
   it "décrit des ingrédients que le modèle accepte" do
     invalid = entries.filter_map do |entry|
       unit = entry.fetch("unit")
+      # Les deux écritures du nom de pièce, comme la seed les lit : un mot, ou
+      # un couple [singulier, pluriel] là où le « s » ne suffit pas.
+      piece_label, piece_label_plural = Array(entry["piece"])
       ingredient = Ingredient.new(
         name:             entry.fetch("name"),
         category:         entry.fetch("category"),
@@ -77,6 +80,9 @@ RSpec.describe "db/seeds/data/ingredients.yml" do
         season_months:    Array(entry["season"]),
         aliases:          Array(entry["aliases"]),
         piece_weight_g:   entry["weight"],
+        piece_volume_ml:  entry["volume"],
+        piece_label:      piece_label,
+        piece_label_plural: piece_label_plural,
         density_g_per_ml: entry["density"],
         density_source:   (entry["density"].present? ? :manual : nil)
       )

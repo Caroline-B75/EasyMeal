@@ -340,10 +340,11 @@ RSpec.describe "Ingredients", type: :request do
 
   describe "GET /ingredients/search" do
     it "renvoie les ingrédients correspondants avec la route d'apprentissage de l'alias" do
-      # Les deux coefficients de conversion font partie du contrat : ce sont eux
-      # qui permettent au panneau de convertir « 2 tranches » ou « 1 càs » avant
-      # de poser la ligne, et la provenance de la densité de signaler une
-      # estimation.
+      # Les coefficients de conversion font partie du contrat : ce sont eux qui
+      # permettent au panneau de convertir « 2 tranches », « 1 brique » ou
+      # « 1 càs » avant de poser la ligne, et la provenance de la densité de
+      # signaler une estimation. Le contenu d'une pièce en fait partie dans ses
+      # deux langues — nul ici, l'ingrédient se pesant.
       thym = create(:ingredient, name: "Thym frais", piece_weight_g: 2,
                                  density_g_per_ml: 0.4, density_source: :ai)
       create(:ingredient, name: "Persil")
@@ -353,7 +354,7 @@ RSpec.describe "Ingredients", type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body).to eq([
         { "id" => thym.id, "name" => "Thym frais", "base_unit" => "g",
-          "unit_group" => "mass", "piece_weight_g" => "2.0",
+          "unit_group" => "mass", "piece_weight_g" => "2.0", "piece_volume_ml" => nil,
           "density_g_per_ml" => "0.4", "density_source" => "ai",
           "add_alias_path" => add_alias_ingredient_path(thym) }
       ])

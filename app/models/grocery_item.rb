@@ -11,6 +11,11 @@
 # Les quantités sont toujours stockées en unité de base (g, ml, piece, cac)
 # et humanisées à l'affichage via Quantities::HumanizeService.
 class GroceryItem < ApplicationRecord
+  # === Concerns ===
+  # Comment cette ligne se compte à l'achat. Les quatre attributs qu'il demande
+  # sont recopiés depuis l'ingrédient à la génération, comme le nom et l'unité.
+  include PieceCounting
+
   # === Associations ===
   belongs_to :menu
   # ingredient_id nullable : null si ligne custom sans ingrédient enregistré en base
@@ -114,10 +119,17 @@ class GroceryItem < ApplicationRecord
 
   # Formate une quantité en unité de base pour un affichage humain (virgule FR, unités).
   # Partagé par quantity_display et previous_quantity_display (DRY).
+  #
+  # Ce qui s'achète à la pièce se dit d'abord en pièces — c'est ainsi qu'on
+  # remplit un caddie —, la mesure suivant entre parenthèses ou après un
+  # « pour » selon qu'elle tombe juste (cf. PieceUnit). Tout le reste se pèse,
+  # comme avant.
+  #
   # @param value [Numeric, nil] quantité en unité de base
-  # @return [String] Ex: "3 kg", "1 càs 2 càc", "6"
+  # @return [String] Ex: "3 kg", "2 pièces (600 g)", "1 brique pour 3 ml", "6"
   def format_quantity(value)
-    Quantities::HumanizeService.call(quantity: value, unit_group: unit_group)[:display]
+    piece_unit&.sentence_for(value) ||
+      Quantities::HumanizeService.call(quantity: value, unit_group: unit_group)[:display]
   end
 
   public

@@ -59,6 +59,41 @@
               hint_html: { class: "form-hint" },
               error_class: "has-error"
 
+  -# Jumeau du précédent pour ce qui se verse : une brique de lait contient 1 L.
+  -# Les deux ne cohabitent jamais sur un même ingrédient (validation).
+  .form-group
+    = f.input :piece_volume_ml,
+              label: "Volume d'une pièce (ml)",
+              hint: "Facultatif — le contenu d'un conditionnement (1 brique de lait = 1000 ml). Ingrédients en volume ou en pièces uniquement.",
+              placeholder: "Ex: 1000",
+              input_html: { class: "form-input", step: "0.01", min: "0.01" },
+              label_html: { class: "form-label" },
+              hint_html: { class: "form-hint" },
+              error_class: "has-error"
+
+  -# Le nom de la pièce, et par là même l'interrupteur : renseigné, l'ingrédient
+  -# s'affiche en pièces dans la liste de courses. Le pluriel ne se saisit que là
+  -# où le « s » ne suffit pas — d'où sa place juste après, et son indication.
+  .form-group
+    = f.input :piece_label,
+              label: "Nom de la pièce",
+              hint: piece_label_field_hint(ingredient),
+              placeholder: "Ex: pièce, tranche, brique, tablette",
+              input_html: { class: "form-input" },
+              label_html: { class: "form-label" },
+              hint_html: { class: "form-hint" },
+              error_class: "has-error"
+
+  .form-group
+    = f.input :piece_label_plural,
+              label: "Pluriel de la pièce",
+              hint: "À ne remplir que si le pluriel n'est pas le singulier + « s » : maquereau → maquereaux, gambas → gambas.",
+              placeholder: "Ex: maquereaux",
+              input_html: { class: "form-input" },
+              label_html: { class: "form-label" },
+              hint_html: { class: "form-hint" },
+              error_class: "has-error"
+
   -# Second coefficient de conversion, symétrique du précédent. Quand la valeur
   -# affichée vient de l'IA, l'indication le dit et rappelle qu'enregistrer vaut
   -# vérification : le formulaire est le seul endroit d'où sort une densité

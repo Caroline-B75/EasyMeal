@@ -38,12 +38,7 @@ class Preparation < ApplicationRecord
   # @param servings [Integer] Nombre de personnes souhaité
   # @return [String] Quantité formatée avec unité (ex: "1,5 kg", "2 càs")
   def humanized_quantity(servings:)
-    scaled = scaled_quantity(servings: servings)
-    result = Quantities::HumanizeService.call(
-      quantity: scaled,
-      unit_group: ingredient_unit_group
-    )
-    result[:display]
+    display_quantity(scaled_quantity(servings: servings))
   end
 
   # Retourne toutes les informations de quantité pour un affichage complet
@@ -59,9 +54,23 @@ class Preparation < ApplicationRecord
     {
       ingredient: ingredient,
       quantity_base: scaled,
-      quantity_display: humanized[:display],
+      quantity_display: display_quantity(scaled),
       unit: humanized[:unit],
       category: ingredient_category
     }
+  end
+
+  private
+
+  # Une quantité écrite comme on la lit — et, pour ce qui s'achète à la pièce,
+  # d'abord en pièces : « 3 pièces pour 750 g ». Même règle que la liste de
+  # courses (PieceUnit), pour qu'une recette et les courses qu'elle engendre ne
+  # se contredisent jamais.
+  #
+  # @param scaled [Numeric] quantité en unité de base, déjà mise à l'échelle
+  # @return [String]
+  def display_quantity(scaled)
+    ingredient.piece_unit&.sentence_for(scaled) ||
+      Quantities::HumanizeService.call(quantity: scaled, unit_group: ingredient_unit_group)[:display]
   end
 end

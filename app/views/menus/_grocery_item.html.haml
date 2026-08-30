@@ -33,7 +33,7 @@
     - if item.quantity_base.present?
       .grocery-item-qty-wrapper{ data: { controller: "grocery-edit-qty" } }
         %span.grocery-item-qty{ data: { action: "click->grocery-edit-qty#edit" },
-                                 title: "Modifier la quantité" }= item.quantity_display
+                                 title: "Modifier la quantité" }= grocery_quantity(item)
         = form_with url: menu_grocery_item_path(menu, item),
                     method: :patch,
                     scope: :grocery_item,
@@ -47,7 +47,7 @@
                            id: "grocery_item_quantity_base_#{item.id}",
                            class: "grocery-qty-input",
                            data: { "grocery-edit-qty-target": "input" }
-          %span.grocery-qty-unit= item.base_unit
+          %span.grocery-qty-unit= grocery_edit_unit(item)
           %button.grocery-qty-save-btn{ type: "submit", "aria-label": "Enregistrer la quantité" }
             %svg{ xmlns: "http://www.w3.org/2000/svg", viewbox: "0 0 12 12", width: "12", height: "12", fill: "none", stroke: "currentColor", "stroke-width": "2.5", "stroke-linecap": "round", "stroke-linejoin": "round" }
               %polyline{ points: "1.5,6 4.5,9 10.5,3" }

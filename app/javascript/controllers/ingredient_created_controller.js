@@ -19,6 +19,10 @@ export default class extends Controller {
     // alors 0, que le panneau IA lit comme « pas de pont » — de pièce à masse
     // pour le poids unitaire, de volume à masse pour la densité.
     pieceWeight: Number,
+    pieceVolume: Number,
+    // Le nom de la pièce, quand cet ingrédient s'achète à la pièce : il décide
+    // de l'unité que le formulaire proposera en plus de la mesure.
+    pieceLabel: String,
     density: Number,
     // « ai » quand la densité n'est qu'une estimation : le panneau le signale.
     densitySource: String
@@ -28,7 +32,9 @@ export default class extends Controller {
     // Le catalogue d'abord, l'événement ensuite : ceux qui posent une ligne en
     // réponse la clonent du modèle, et ils la veulent déjà garnie.
     registerIngredient({ id: this.idValue, label: this.optionLabelValue,
-                         baseUnit: this.baseUnitValue, unitGroup: this.unitGroupValue })
+                         baseUnit: this.baseUnitValue, unitGroup: this.unitGroupValue,
+                         pieceLabel: this.pieceLabelValue, pieceWeight: this.pieceWeightValue,
+                         pieceVolume: this.pieceVolumeValue })
 
     // Notifie les autres controllers (ex: ai-panel). Celui qui prend en charge
     // le nouvel ingrédient annule l'événement : il pose lui-même la ligne, avec
@@ -45,6 +51,7 @@ export default class extends Controller {
         baseUnit: this.baseUnitValue,
         unitGroup: this.unitGroupValue,
         pieceWeight: this.pieceWeightValue,
+        pieceVolume: this.pieceVolumeValue,
         density: this.densityValue,
         densitySource: this.densitySourceValue
       }

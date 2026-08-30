@@ -5,8 +5,10 @@ require "rails_helper"
 RSpec.describe UnitConversionService do
   # Les ingrédients ne sont jamais sauvegardés ici : la conversion ne lit que
   # leur unité et leur poids unitaire.
-  def ingredient(unit_group, base_unit, piece_weight_g: nil, density: nil, density_source: :manual)
-    build(:ingredient, unit_group: unit_group, base_unit: base_unit, piece_weight_g: piece_weight_g,
+  def ingredient(unit_group, base_unit, piece_weight_g: nil, piece_volume_ml: nil,
+                 density: nil, density_source: :manual)
+    build(:ingredient, unit_group: unit_group, base_unit: base_unit,
+                       piece_weight_g: piece_weight_g, piece_volume_ml: piece_volume_ml,
                        density_g_per_ml: density, density_source: density && density_source)
   end
 
@@ -90,6 +92,20 @@ RSpec.describe UnitConversionService do
       it "renonce quand l'ingrédient n'a pas de poids unitaire" do
         expect(described_class.convert(quantity: 2, from_unit: nil, ingredient: ingredient(:mass, "g")))
           .to be_nil
+      end
+
+      # Le même pont, mesuré en volume : ce qui vaut pour la tranche de jambon
+      # vaut pour la brique de lait.
+      it "convertit un décompte en volume" do
+        lait = ingredient(:volume, "ml", piece_volume_ml: 1000)
+
+        expect(described_class.convert(quantity: 2, from_unit: nil, ingredient: lait)).to eq(2000.0)
+      end
+
+      it "convertit un volume en décompte" do
+        yaourt_a_boire = ingredient(:count, "piece", piece_volume_ml: 250)
+
+        expect(described_class.convert(quantity: 1, from_unit: "l", ingredient: yaourt_a_boire)).to eq(4.0)
       end
     end
 

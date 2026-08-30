@@ -46,16 +46,22 @@ export function registerIngredient(ingredient) {
   selects.forEach((select) => insertOption(select, ingredient))
 }
 
-function insertOption(select, { id, label, baseUnit, unitGroup }) {
+function insertOption(select, { id, label, baseUnit, unitGroup, pieceLabel, pieceWeight, pieceVolume }) {
   if (select.querySelector(`option[value="${CSS.escape(String(id))}"]`)) return
 
   const option = document.createElement("option")
   option.value = id
   option.textContent = label
-  // Mêmes données que les options rendues par le serveur : ingredient-unit y lit
-  // les unités saisissables de l'ingrédient choisi.
-  option.dataset.unit = baseUnit
-  option.dataset.unitGroup = unitGroup
+  // Mêmes données que les options rendues par le serveur (cf. le helper
+  // ingredient_option_data) : ingredient-unit y lit les unités saisissables de
+  // l'ingrédient choisi, sa pièce comprise, et de quoi les convertir.
+  Object.assign(option.dataset, {
+    unit: baseUnit,
+    unitGroup: unitGroup,
+    pieceLabel: pieceLabel ?? '',
+    pieceWeight: pieceWeight ?? '',
+    pieceVolume: pieceVolume ?? ''
+  })
 
   // insertBefore(option, null) revient à ajouter en fin de liste : un ingrédient
   // qui n'a pas de successeur alphabétique ferme la liste.

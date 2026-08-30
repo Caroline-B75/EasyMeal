@@ -164,6 +164,7 @@ class IngredientsController < ApplicationController
       base_unit: ingredient.base_unit,
       unit_group: ingredient.unit_group,
       piece_weight_g: ingredient.piece_weight_g,
+      piece_volume_ml: ingredient.piece_volume_ml,
       # Les deux coefficients de conversion de l'ingrédient, et la provenance de
       # la densité : le panneau IA convertit avec, et signale l'estimation.
       density_g_per_ml: ingredient.density_g_per_ml,
@@ -211,6 +212,9 @@ class IngredientsController < ApplicationController
       :unit_group,
       :base_unit,
       :piece_weight_g,
+      :piece_volume_ml,
+      :piece_label,
+      :piece_label_plural,
       :density_g_per_ml,
       season_months: [],
       aliases: []

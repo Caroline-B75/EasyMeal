@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_28_141000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_30_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -162,6 +162,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_28_141000) do
     t.bigint "ingredient_id"
     t.bigint "menu_id", null: false
     t.string "name", null: false
+    t.string "piece_label"
+    t.string "piece_label_plural"
+    t.decimal "piece_volume_ml", precision: 8, scale: 2
+    t.decimal "piece_weight_g", precision: 8, scale: 2
     t.integer "position"
     t.decimal "previous_quantity_base", precision: 10, scale: 3
     t.decimal "quantity_base", precision: 10, scale: 3, null: false
@@ -183,6 +187,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_28_141000) do
     t.decimal "density_g_per_ml", precision: 6, scale: 3
     t.integer "density_source"
     t.string "name", null: false
+    t.string "piece_label"
+    t.string "piece_label_plural"
+    t.decimal "piece_volume_ml", precision: 8, scale: 2
     t.decimal "piece_weight_g", precision: 8, scale: 2
     t.integer "season_months", default: [], array: true
     t.integer "unit_group", null: false

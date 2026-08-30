@@ -12,6 +12,22 @@ DATA_FILE = Rails.root.join("db/seeds/data/ingredients.yml")
 # reste du vocabulaire des unités : la seed s'y branche au lieu de la recopier.
 BASE_UNIT_FOR = Units::BASE_UNITS
 
+# Le nom de la pièce, tel que le YAML l'écrit, ramené aux deux colonnes qui le
+# stockent. Deux formes acceptées, parce que le français n'accorde pas tout de
+# la même façon :
+#
+#   piece: "tranche"                → tranche / tranches (la règle régulière)
+#   piece: [maquereau, maquereaux]  → pluriel explicite
+#   piece: [gambas, gambas]         → invariable
+#
+# Le pluriel reste nul dans le cas courant : il ne se renseigne que là où le
+# « s » ne suffit pas, et c'est cette rareté qui rend le YAML lisible.
+def piece_label_attributes(value)
+  singular, plural = Array(value)
+
+  { piece_label: singular.presence, piece_label_plural: plural.presence }
+end
+
 puts "🌱 Création / mise à jour des ingrédients de base..."
 
 data = YAML.safe_load_file(DATA_FILE)
@@ -60,6 +76,13 @@ data.each do |category, items|
       # UnitConversionService). Un nil explicite, et non un défaut à 0 : re-seeder
       # doit pouvoir retirer un poids devenu faux.
       piece_weight_g: item["weight"],
+      # Le volume d'une pièce, jumeau du poids pour ce qui se verse : une brique
+      # de lait contient 1 L. Même règle de nullité — re-seeder doit pouvoir
+      # retirer une contenance devenue fausse.
+      piece_volume_ml: item["volume"],
+      # Comment la pièce s'appelle, et par là même : cet ingrédient s'achète-t-il
+      # à la pièce ? Le nom est l'interrupteur (cf. PieceUnit).
+      **piece_label_attributes(item["piece"]),
       # Même règle pour la densité, dont la provenance est indissociable (cf. les
       # validations d'Ingredient) : ce qui est écrit dans le YAML est curaté, donc
       # réputé vérifié. Re-seeder écrase ainsi une estimation de l'IA par la
