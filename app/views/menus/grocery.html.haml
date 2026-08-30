@@ -20,29 +20,48 @@
     = render "grocery_list", menu: @menu, grocery_items: @grocery_items
 
     -# ── Ajout manuel ─────────────────────────────────────────
+    -# Un seul champ pour deux chemins, sans rien à choisir avant de taper : si
+    -# l'article est au catalogue, l'autocomplétion pose son rayon et restreint
+    -# ses unités ; sinon la saisie reste ce qu'elle a toujours été — un nom, une
+    -# quantité, une unité, un rayon. Le formulaire fonctionne sans JavaScript :
+    -# le serveur rattache alors l'article par son nom (AddManualItemService).
     .grocery-add-manual
       .grocery-add-manual-label Ajouter un article
 
       = form_with url: menu_grocery_items_path(@menu), method: :post, scope: :grocery_item, class: "grocery-add-form",
-                  data: { controller: "form-reset", action: "turbo:submit-end->form-reset#reset" } do |f|
+                  data: { controller: "form-reset ingredient-combobox",
+                          action: "turbo:submit-end->form-reset#reset turbo:submit-end->ingredient-combobox#reset click@window->ingredient-combobox#closeOnOutsideClick",
+                          "ingredient-combobox-search-url-value": search_ingredients_path } do |f|
         .grocery-add-row
-          .form-group
+          .form-group.grocery-add-article
             = f.label :name, "Article", class: "form-label"
-            = f.text_field :name, placeholder: "Ex: Sel fin", class: "form-input", required: true
+            = f.text_field :name, placeholder: "Ex: Sel fin", class: "form-input", required: true,
+                           autocomplete: "off", role: "combobox",
+                           aria: { expanded: "false", autocomplete: "list", controls: "grocery-suggestions" },
+                           data: { "ingredient-combobox-target": "nameInput",
+                                   action: "input->ingredient-combobox#search keydown->ingredient-combobox#navigate" }
+            -# Posé par l'autocomplétion : c'est lui qui fait d'une ligne libre
+            -# un article du catalogue.
+            = f.hidden_field :ingredient_id, data: { "ingredient-combobox-target": "ingredientId" }
+            %ul#grocery-suggestions.grocery-suggestions{ role: "listbox", hidden: true,
+                                                         "aria-label": "Ingrédients du catalogue",
+                                                         data: { "ingredient-combobox-target": "results" } }
 
-          .form-group
-            = f.label :quantity_base, "Quantité", class: "form-label"
-            = f.number_field :quantity_base, placeholder: "250", min: 0.01, step: 0.01, class: "form-input"
+          .form-group.grocery-add-qty
+            = f.label :quantity, "Quantité", class: "form-label"
+            -# Le seul champ qui reste à remplir quand l'article est reconnu :
+            -# l'autocomplétion y amène le curseur.
+            = f.number_field :quantity, placeholder: "250", min: 0.01, step: 0.01, class: "form-input",
+                             data: { "ingredient-combobox-target": "quantityInput" }
 
-          .form-group
-            = f.label :base_unit, "Unité", class: "form-label"
-            = f.select :base_unit,
-                       [["g", "g"], ["kg", "kg"], ["ml", "ml"], ["L", "l"], ["pièce(s)", "piece"], ["càc", "cac"], ["càs", "cas"]],
-                       { prompt: "Unité…" },
-                       class: "form-select"
+          .form-group.grocery-add-unit
+            = f.label :unit, "Unité", class: "form-label"
+            -# Toutes les unités tant qu'aucun article n'est reconnu ; celles de
+            -# l'ingrédient dès qu'il l'est (cf. le contrôleur Stimulus).
+            = f.select :unit, Units.all_select_options, { prompt: "Unité…" },
+                       class: "form-select", data: { "ingredient-combobox-target": "unitSelect" }
 
-
-          .form-group
+          .form-group.grocery-add-shelf{ data: { "ingredient-combobox-target": "categoryGroup" } }
             = f.label :category, "Rayon", class: "form-label"
             -# Libellés côté Ingredient : GroceryItem duplique l'enum, pas les traductions
             = f.select :category,
@@ -50,5 +69,21 @@
                        { prompt: "Rayon…" },
                        class: "form-select"
 
+          -# Prend la place du sélecteur de rayon quand le catalogue a répondu :
+          -# le rayon n'est plus une question, il se lit — et se défait.
+          .form-group.grocery-add-known{ hidden: true, data: { "ingredient-combobox-target": "knownGroup" } }
+            %span.form-label Rayon
+            .grocery-add-chip
+              %span.grocery-add-chip-label{ data: { "ingredient-combobox-target": "chipLabel" } }
+              %button.btn-remove{ type: "button", "aria-label": "Détacher l'ingrédient du catalogue",
+                                  title: "Saisir le rayon et l'unité moi-même",
+                                  data: { action: "click->ingredient-combobox#unlink" } }
+                = svg_icon(:x, size: 12)
+
           .grocery-add-submit
-            = f.submit "Ajouter", class: "btn btn-primary"
+            -# « + » seul sur une rangée, « + Ajouter » une fois le formulaire
+            -# empilé en mobile : le libellé n'est masqué que là où sa largeur
+            -# manquait au rayon.
+            %button.btn.btn-primary{ type: "submit", "aria-label": "Ajouter l'article", title: "Ajouter l'article" }
+              = svg_icon(:plus, size: 16)
+              %span.grocery-add-btn-label Ajouter

@@ -5,11 +5,13 @@ module TurboFlashable
 
   private
 
-  def render_flash_stream(alert:)
+  # @param messages [Hash] type de flash => message, comme le flash Rails
+  #   (:alert, :notice…) — le partial en tire la classe CSS du bandeau.
+  def render_flash_stream(**messages)
     render turbo_stream: turbo_stream.replace(
       "flash",
       partial: "shared/flash",
-      locals: { flash: { alert: alert } }
+      locals: { flash: messages }
     )
   end
 
@@ -19,6 +21,17 @@ module TurboFlashable
     respond_to do |format|
       format.turbo_stream
       format.html { redirect_to redirect_path, notice: notice }
+    end
+  end
+
+  # Répond en Turbo Stream + HTML par une simple information, sans rien avoir
+  # écrit : l'action n'avait pas lieu d'être (l'article demandé était déjà dans
+  # la liste). Ni une réussite — il n'y a rien de neuf à afficher — ni une
+  # erreur de saisie, d'où le ton et la couleur du bandeau.
+  def respond_notice(message, redirect_path:)
+    respond_to do |format|
+      format.turbo_stream { render_flash_stream(notice: message) }
+      format.html { redirect_to redirect_path, notice: message }
     end
   end
 

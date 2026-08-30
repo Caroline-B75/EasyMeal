@@ -359,14 +359,26 @@
 
 .grocery-add-row {
   display: flex;
-  gap: 1rem;
+  gap: 0.5rem;
   align-items: flex-end;
   flex-wrap: wrap;
 }
 
+/* Rangée de saisie compacte : à la taille de texte courante, les cinq champs ne
+   tenaient pas sur une ligne dans les 60 % que la page laisse à la liste, et le
+   rayon — le plus long à lire — était le premier sacrifié. Un cran plus petit et
+   des marges internes resserrées lui rendent la centaine de pixels qui lui
+   manquait. (En mobile, la règle plus bas garde 16 px : anti-zoom iOS.) */
+.grocery-add-form .form-input,
+.grocery-add-form .form-select {
+  font-size: var(--font-size-sm);
+  padding: 0.75rem 0.625rem;
+}
+
 .grocery-add-row .form-group {
-  flex: 1;
-  min-width: 120px;
+  /* Chaque champ reçoit sa largeur plus bas, et le min-width par défaut
+     l'empêcherait de la tenir. */
+  min-width: 0;
   /* Annule le margin-bottom global de .form-group (hérité d'authentication.css) :
      dans cette rangée flex alignée en bas, ce margin décalait les champs vers le
      haut par rapport au bouton (l'alignement flex se fait sur la boîte de marge). */
@@ -376,15 +388,141 @@
 .grocery-add-submit {
   flex-shrink: 0;
   align-self: flex-end;
+  /* Sans effet tant que la rangée tient sur une ligne — le champ « Article »
+     y absorbe déjà toute la place libre. Quand elle passe à la ligne, en
+     revanche, le bouton se cale à droite au lieu de rester orphelin à gauche. */
+  margin-left: auto;
+}
+
+/* ── Autocomplétion de l'article ────────────────────────── */
+/* Largeurs de la rangée : chacune est figée (flex: 0 0), à la mesure de ce
+   que son champ doit montrer. Rien ne les fait varier — ni la fenêtre, ni l'état
+   du formulaire : c'est ce qui évite que la rangée se réorganise sous les doigts
+   au moment où un article est reconnu et où la puce remplace le sélecteur de
+   rayon. Quand la place manque, la rangée passe à la ligne plutôt que d'écraser
+   ses champs.
+   (Sélecteurs à deux classes pour l'emporter sur les règles communes de la
+   rangée ; en mobile, la requête média rend à chaque champ toute la largeur.) */
+.grocery-add-row .grocery-add-qty {
+  flex: 0 0 84px;
+}
+
+/* De quoi afficher l'invite « Unité… » en entier : un sélecteur dont l'invite
+   est tronquée fait négligé. */
+.grocery-add-row .grocery-add-unit {
+  flex: 0 0 96px;
+}
+
+/* Le rayon, sélecteur tant que l'article n'est pas reconnu et puce ensuite : une
+   seule largeur pour les deux, celle du plus long des vingt-deux libellés
+   (« Produits frais en libre-service »). C'est cette égalité qui fait que rien
+   ne bouge au moment du rattachement. */
+.grocery-add-row .grocery-add-shelf,
+.grocery-add-row .grocery-add-known {
+  flex: 0 0 260px;
+}
+
+/* Seul champ à respirer : il recueille toute la place que les autres laissent —
+   c'est le seul où l'on écrit un texte de longueur imprévisible. */
+.grocery-add-row .grocery-add-article {
+  flex: 1 1 116px;
+  /* Ancre de la liste des propositions, qui flotte sous le champ. */
+  position: relative;
+}
+
+/* La liste flotte au-dessus de la page : elle ne doit ni pousser les champs
+   voisins ni allonger la carte à chaque frappe.
+
+   Elle s'élargit au-delà du champ quand les noms le demandent — « Fromage ail
+   et fines herbes (boursin, fromage aux herbes) » tenait sur cinq lignes dans
+   la largeur du champ — sans jamais sortir de l'écran. */
+.grocery-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: max-content;
+  min-width: 100%;
+  max-width: min(26rem, 80vw);
+  /* Au-dessus de la carte du formulaire, sous les bandeaux flash (9999) et la
+     barre de navigation (170) : la liste ne recouvre que ce qui la porte. */
+  z-index: 100;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  max-height: 15rem;
+  overflow-y: auto;
+  background: var(--color-bg-white);
+  border: var(--border-thin);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Une proposition tient sur une ligne, coupée s'il le faut : la liste se
+   parcourt du regard, et six noms de deux lignes se lisent moins bien que six
+   noms d'une seule. */
+.grocery-suggestion {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  color: var(--color-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.grocery-suggestion:hover,
+.grocery-suggestion[aria-selected="true"] {
+  background: var(--color-bg-secondary);
+}
+
+/* ── Rayon d'un article reconnu ─────────────────────────── */
+/* La boîte d'un champ, en transparent : mêmes marges internes verticales et
+   même bordure que .form-input, pour que la puce s'aligne sur ses voisins dans
+   une rangée alignée en bas. */
+.grocery-add-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.75rem 0;
+  border: var(--border-width) solid transparent;
+}
+
+.grocery-add-chip-label {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+/* .form-group est en display: flex, ce qui l'emporte sur le display: none que
+   l'attribut hidden tient de la feuille de style du navigateur : sans ce repli
+   explicite, le sélecteur de rayon et la puce qui le remplace resteraient
+   affichés tous les deux. */
+.grocery-add-row .form-group[hidden] {
+  display: none;
 }
 
 /* Le bouton doit avoir exactement la hauteur des champs pour s'aligner sur eux
    (rangée alignée en bas). Mêmes marges internes verticales que .form-input ;
    on ajoute une bordure transparente pour compenser celle des champs (1px) et
-   on lève le plancher min-height de .btn. La hauteur reste > 44px (cible tactile). */
+   on lève le plancher min-height de .btn. La hauteur reste > 44px (cible tactile).
+
+   Sur une rangée, il se réduit à son « + » : les 70 px que son libellé occupait
+   vont au rayon, qu'on ne parvenait plus à lire. Le mot revient en mobile, où
+   le bouton s'étale sur toute la largeur (cf. la requête média plus bas). */
 .grocery-add-submit .btn {
-  min-height: 0;
+  /* Exactement la hauteur d'un champ, et non le plancher de 44 px de .btn : son
+     icône (16 px) est plus courte qu'une ligne de texte, si bien que le bouton
+     mesurait 5 px de moins que ses voisins — alignés par le bas, son sommet
+     retombait sous le leur. Même construction qu'un .form-input de la rangée :
+     marges internes, bordures, et une ligne de texte à la taille des champs
+     (1,5 étant la hauteur de ligne que le navigateur applique par défaut). */
+  min-height: calc(1.5rem + 2 * var(--border-width) + 1.5 * var(--font-size-sm));
   border: var(--border-width) solid transparent;
+  padding: 0.75rem 0.875rem;
+}
+
+.grocery-add-btn-label {
+  display: none;
 }
 
 /* ── Desktop : liste resserrée ──────────────────────────── */
@@ -477,8 +615,18 @@
     gap: 0.15rem;
   }
 
+  /* Empilée, la puce n'a plus de champ voisin sur qui s'aligner : le padding
+     qui lui donnait leur hauteur ne ferait plus que du vide. On garde celui
+     des champs en mobile (cf. .grocery-add-form .form-input). */
+  .grocery-add-chip {
+    padding: 0.3rem 0;
+  }
+
+  /* La rangée est empilée : les bases flex réglées pour le desktop gouvernent
+     alors la HAUTEUR des champs — 140 px de vide sous « Article ». Chaque champ
+     reprend ici la hauteur de son contenu et toute la largeur. */
   .grocery-add-row .form-group {
-    min-width: unset;
+    flex: 1 1 auto;
     width: 100%;
   }
 
@@ -510,5 +658,12 @@
   .grocery-add-submit .btn {
     width: 100%;
     justify-content: center;
+    padding: 0.75rem 1.5rem;
+  }
+
+  /* Le bouton s'étale sur toute la largeur : rien ne réclame plus la place que
+     son libellé prenait sur la rangée du desktop. */
+  .grocery-add-btn-label {
+    display: inline;
   }
 }

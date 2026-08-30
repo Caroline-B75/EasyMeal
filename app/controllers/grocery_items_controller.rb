@@ -11,15 +11,20 @@ class GroceryItemsController < ApplicationController
   before_action :authorize_grocery_item, only: [ :update, :destroy ]
 
   # POST /menus/:menu_id/grocery_items
-  # UC3 : Ajout manuel d'un item à la liste de courses
+  # UC3 : Ajout manuel d'un item à la liste de courses.
+  #
+  # Trois issues, décidées par le service : la ligne est créée, l'article y
+  # était déjà (on le signale sans rien écrire), ou la saisie est refusée.
   def create
-    @grocery_item = @menu.grocery_items.new(grocery_item_create_params.merge(source: :manual))
-    authorize @grocery_item
+    authorize @menu.grocery_items.new, :create?
 
-    if @grocery_item.save
-      respond_success(redirect_path: @menu)
-    else
-      respond_error(@grocery_item, redirect_path: @menu)
+    result = Groceries::AddManualItemService.call(menu: @menu, params: grocery_item_create_params)
+    @grocery_item = result.item
+
+    case result.status
+    when :created   then respond_success(redirect_path: @menu)
+    when :duplicate then respond_notice(result.message, redirect_path: @menu)
+    else                 respond_error(@grocery_item, redirect_path: @menu)
     end
   end
 
@@ -55,13 +60,13 @@ class GroceryItemsController < ApplicationController
     authorize @grocery_item
   end
 
-  # Paramètres pour la création d'un item manuel
+  # Paramètres pour la création d'un item manuel.
+  #
+  # `quantity` et `unit` sont ce qui a été saisi — « 2 » et « kg » —, pas ce qui
+  # sera stocké : c'est le service qui les ramène à l'unité de base de la ligne,
+  # et qui décide de croire ou non le rayon selon que l'article est reconnu.
   def grocery_item_create_params
-    permitted = params.require(:grocery_item).permit(:name, :quantity_base, :base_unit, :unit_group,
-                                                     :category, :ingredient_id)
-    permitted[:quantity_base] = 1       if permitted[:quantity_base].blank?
-    permitted[:base_unit]     = "piece" if permitted[:base_unit].blank?
-    permitted
+    params.require(:grocery_item).permit(:name, :quantity, :unit, :category, :ingredient_id)
   end
 
   # Seuls quantité, unité, état coché et libellé sont modifiables

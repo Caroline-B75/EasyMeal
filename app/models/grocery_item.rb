@@ -92,21 +92,26 @@ class GroceryItem < ApplicationRecord
   # Tri : par rayon, non-cochés en premier, puis alphabétique par nom
   scope :sorted, -> { order(:category, :checked, :name) }
 
+  # « Cet article est-il déjà dans la liste ? » — la question que pose l'ajout
+  # manuel, qui renvoie vers la ligne existante au lieu d'en créer une jumelle
+  # (cf. Groceries::AddManualItemService).
+  #
+  # Deux lignes désignent le même article quand elles partagent leur ingrédient,
+  # ou, à défaut d'ingrédient, leur nom — aux accents et à la casse près, la
+  # liste affichant « Œufs » là où on saisit « oeufs ».
+  scope :matching_article, ->(name:, ingredient: nil) {
+    by_name = where("unaccent(LOWER(name)) = unaccent(LOWER(:name))", name: name.to_s.strip)
+    ingredient ? by_name.or(where(ingredient: ingredient)) : by_name
+  }
+
   # === Méthodes privées ===
   private
 
-  UNIT_GROUP_MAP = {
-    "g"     => :mass,
-    "kg"    => :mass,
-    "ml"    => :volume,
-    "l"     => :volume,
-    "piece" => :count,
-    "cac"   => :spoon,
-    "cas"   => :spoon
-  }.freeze
-
+  # Le groupe se déduit de l'unité, et le vocabulaire des unités est seul à
+  # savoir laquelle appartient à quel groupe : une table locale y aurait
+  # doublonné (et oubliait déjà le centilitre et le décilitre).
   def derive_unit_group_from_base_unit
-    self.unit_group = UNIT_GROUP_MAP[base_unit] if base_unit.present?
+    self.unit_group = Units.definition(base_unit)&.fetch(:unit_group) if base_unit.present?
   end
 
   # Efface la trace de l'ancienne quantité (badge « Était X ») dès que l'utilisateur
@@ -147,5 +152,36 @@ class GroceryItem < ApplicationRecord
   # @return [String]
   def previous_quantity_display
     format_quantity(previous_quantity_base)
+  end
+
+  # Recopie sur cette ligne ce que son ingrédient sait d'elle : son nom, son
+  # rayon, l'unité dans laquelle sa quantité se stocke, et ce qu'il faut pour la
+  # compter à l'achat.
+  #
+  # Ces colonnes sont dupliquées depuis le catalogue — pas de jointure à
+  # l'affichage, et la ligne survit au retrait de son ingrédient (cf. le
+  # `dependent: :nullify` d'Ingredient). Les écrire ici plutôt que chez chaque
+  # appelant évite qu'un chemin en oublie une : la génération depuis les
+  # recettes (Groceries::BuildForMenuService) et l'ajout manuel d'un article
+  # reconnu au catalogue (Groceries::AddManualItemService) décrivent la même
+  # ligne.
+  #
+  # @param ingredient [Ingredient]
+  # @return [GroceryItem] self, pour enchaîner
+  def copy_from_ingredient(ingredient)
+    self.ingredient = ingredient
+    self.name       = ingredient.name
+    self.base_unit  = ingredient.base_unit
+    self.unit_group = ingredient.unit_group
+    self.category   = ingredient.category
+
+    # Comment la ligne se compte à l'achat : nom de la pièce, pluriel, contenu
+    # d'une pièce. Recopiés en bloc — un libellé sans son coefficient ne saurait
+    # rien afficher (cf. PieceCounting::PIECE_ATTRIBUTES).
+    PieceCounting::PIECE_ATTRIBUTES.each do |attribute|
+      public_send(:"#{attribute}=", ingredient.public_send(attribute))
+    end
+
+    self
   end
 end

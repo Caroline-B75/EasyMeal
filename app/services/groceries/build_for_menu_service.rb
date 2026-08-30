@@ -100,7 +100,7 @@ module Groceries
       new_qty    = round3(data[:quantity_base])
       old_qty    = round3(item.quantity_base)
 
-      assign_ingredient_attributes(item, ingredient)
+      item.copy_from_ingredient(ingredient)
       item.quantity_base = new_qty
 
       if new_qty > old_qty && item.checked?
@@ -123,24 +123,8 @@ module Groceries
         source:        :generated,
         checked:       false
       )
-      assign_ingredient_attributes(item, data[:ingredient])
+      item.copy_from_ingredient(data[:ingredient])
       item.save!
-    end
-
-    # Copie sur l'item les attributs dérivés de l'ingrédient (dupliqués pour éviter la jointure).
-    def assign_ingredient_attributes(item, ingredient)
-      item.ingredient = ingredient
-      item.name       = ingredient.name
-      item.base_unit  = ingredient.base_unit
-      item.unit_group = ingredient.unit_group
-      item.category   = ingredient.category
-
-      # Comment la ligne se compte à l'achat : nom de la pièce, pluriel, contenu
-      # d'une pièce. Recopiés en bloc — un libellé sans son coefficient ne
-      # saurait rien afficher (cf. PieceCounting::PIECE_ATTRIBUTES).
-      PieceCounting::PIECE_ATTRIBUTES.each do |attribute|
-        item.public_send(:"#{attribute}=", ingredient.public_send(attribute))
-      end
     end
 
     # Arrondit une quantité à 3 décimales en BigDecimal (comparaison exacte, pas de flottant naïf).

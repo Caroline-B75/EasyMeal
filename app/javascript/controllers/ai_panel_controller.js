@@ -215,7 +215,9 @@ export default class extends Controller {
       const button = document.createElement('button')
       button.type = 'button'
       button.className = 'ai-row__search-item'
-      button.append(`${ingredient.name} `, this.unitBadge(row, ingredient.base_unit, coefficients))
+      // `label` et non `name` : dans une liste de propositions, les alias aident
+      // à reconnaître l'ingrédient — c'est souvent par eux qu'on l'a trouvé.
+      button.append(`${ingredient.label} `, this.unitBadge(row, ingredient.base_unit, coefficients))
       Object.assign(button.dataset, {
         action: 'click->ai-panel#chooseExisting',
         aiPanelIngredientId: ingredient.id,

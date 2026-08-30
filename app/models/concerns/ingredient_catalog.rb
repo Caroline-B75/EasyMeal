@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Ce que le catalogue d'ingrédients demande à un ingrédient : savoir combien de
-# recettes l'emploient, et se laisser ranger.
+# recettes l'emploient, se laisser ranger, et se présenter à qui le cherche.
 #
 # Le décompte n'est pas qu'une colonne d'affichage : c'est lui qui dit si
 # l'ingrédient peut encore partir (suppression) ou changer d'unité — les deux
@@ -75,5 +75,44 @@ module IngredientCatalog
   # d'unités. (Le catalogue, lui, n'affiche que le nombre.)
   def recipes_usage_label
     I18n.t("ingredients.recipes_count", count: recipes_count)
+  end
+
+  # L'ingrédient tel que le lisent les deux chercheurs du catalogue : le panneau
+  # d'import IA, qui associe une ligne détectée à un ingrédient, et
+  # l'autocomplétion de la liste de courses, qui remplit une ligne d'achat.
+  #
+  # Ils partagent l'essentiel — comment l'ingrédient se nomme, dans quelle unité
+  # il se stocke, par quels coefficients il se convertit — et ne divergent qu'à
+  # la marge : le rayon et les unités proposées ne servent qu'aux courses. Une
+  # seule représentation les sert donc, plutôt que deux presque identiques.
+  #
+  # `name` est le nom seul, celui qu'on écrit dans un champ ; `label` y ajoute
+  # les alias, pour se reconnaître dans une liste de propositions (« vin »
+  # trouve « Vin blanc sec (vin blanc) »).
+  #
+  # La route d'apprentissage de l'alias manque ici et s'y ajoute côté contrôleur :
+  # les URLs restent construites par Rails, pas par un modèle.
+  #
+  # @return [Hash]
+  def search_result
+    {
+      id: id,
+      name: name,
+      label: display_name,
+      base_unit: base_unit,
+      unit_group: unit_group,
+      piece_weight_g: piece_weight_g,
+      piece_volume_ml: piece_volume_ml,
+      # Les deux coefficients de conversion, et la provenance de la densité : le
+      # panneau IA convertit avec, et signale l'estimation.
+      density_g_per_ml: density_g_per_ml,
+      density_source: density_source,
+      # Ce que l'autocomplétion de la liste de courses remplit à la place de
+      # l'utilisatrice : le rayon, et les unités qu'on propose pour CET
+      # ingrédient (cf. PieceCounting#unit_select_options).
+      category: category,
+      category_label: self.class.enum_label(:category, category),
+      unit_options: unit_select_options
+    }
   end
 end

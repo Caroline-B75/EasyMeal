@@ -353,11 +353,32 @@ RSpec.describe "Ingredients", type: :request do
 
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body).to eq([
-        { "id" => thym.id, "name" => "Thym frais", "base_unit" => "g",
+        { "id" => thym.id, "name" => "Thym frais", "label" => "Thym frais", "base_unit" => "g",
           "unit_group" => "mass", "piece_weight_g" => "2.0", "piece_volume_ml" => nil,
           "density_g_per_ml" => "0.4", "density_source" => "ai",
-          "add_alias_path" => add_alias_ingredient_path(thym) }
+          "add_alias_path" => add_alias_ingredient_path(thym),
+          "category" => "epicerie_salee", "category_label" => "Épicerie salée",
+          "unit_options" => [ [ "g", "g" ], [ "kg", "kg" ] ] }
       ])
+    end
+
+    # Le rayon et les unités de l'ingrédient sont ce que l'autocomplétion de la
+    # liste de courses remplit à la place de l'utilisatrice : sans eux, elle
+    # devrait encore les saisir. Les unités sont celles de CET ingrédient — une
+    # brique de lait se compte aussi en briques.
+    it "renvoie le rayon et les unités propres à l'ingrédient" do
+      create(:ingredient, name: "Lait demi-écrémé", category: :produits_laitiers,
+                          unit_group: :volume, base_unit: "ml",
+                          piece_label: "brique", piece_volume_ml: 1000)
+
+      get search_ingredients_path(q: "lait")
+
+      expect(response.parsed_body.first).to include(
+        "category" => "produits_laitiers",
+        "category_label" => "Produits laitiers",
+        "unit_options" => [ [ "ml", "ml" ], [ "cl", "cl" ], [ "dl", "dl" ], [ "L", "l" ],
+                            [ "càc", "cac" ], [ "càs", "cas" ], [ "brique", "piece" ] ]
+      )
     end
 
     # Même réduction que le matcher : taper le nom détecté par l'IA tel quel
@@ -371,12 +392,16 @@ RSpec.describe "Ingredients", type: :request do
       expect(response.parsed_body.map { |i| i["name"] }).to eq([ "Thym frais" ])
     end
 
+    # `label` porte les alias — c'est par eux qu'on vient de trouver
+    # l'ingrédient, ils aident à le reconnaître dans une liste — quand `name`
+    # reste le nom seul, celui qu'on écrit dans un champ.
     it "cherche aussi dans les alias" do
       create(:ingredient, name: "Thym frais", aliases: [ "farigoule" ])
 
       get search_ingredients_path(q: "farigoule")
 
-      expect(response.parsed_body.map { |i| i["name"] }).to eq([ "Thym frais (farigoule)" ])
+      expect(response.parsed_body.map { |i| i["label"] }).to eq([ "Thym frais (farigoule)" ])
+      expect(response.parsed_body.map { |i| i["name"] }).to eq([ "Thym frais" ])
     end
 
     it "ne renvoie rien quand aucun ingrédient ne correspond" do

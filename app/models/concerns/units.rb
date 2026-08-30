@@ -198,6 +198,19 @@ module Units
       (own + bridged).map { |unit| [ label(unit), unit ] }
     end
 
+    # Toutes les unités qu'on sait lire, prêtes pour options_for_select.
+    #
+    # Le pendant sans ingrédient de select_options : le formulaire d'ajout de la
+    # liste de courses parle d'un article qui n'est pas forcément au catalogue,
+    # et n'a donc aucun groupe d'unités à restreindre. Il les offre toutes
+    # plutôt que d'en recopier une liste en dur dans la vue — c'est ainsi que le
+    # centilitre et le décilitre y manquaient.
+    #
+    # @return [Array<Array(String, String)>]
+    def all_select_options
+      UNITS.keys.map { |unit| [ label(unit), unit ] }
+    end
+
     # Propose-t-on de saisir une unité de ce groupe pour un ingrédient de
     # celui-là ? Réservé à select_options et à son miroir JS : la conversion,
     # elle, ne s'embarrasse pas de cette question (cf. factor_to).

@@ -153,24 +153,12 @@ class IngredientsController < ApplicationController
     !Ingredient.where.not(id: @ingredient.id).exists?([ "LOWER(name) = ?", alias_name ])
   end
 
-  # Tout ce dont le panneau IA a besoin pour poser la ligne : le libellé, l'unité
-  # de base, le groupe d'unités et les deux coefficients de conversion de
-  # l'ingrédient (qui, ensemble, convertissent la quantité détectée), et la route
-  # d'apprentissage de l'alias — les URLs restent construites côté Rails.
+  # La fiche que rend la recherche (cf. IngredientCatalog#search_result), plus
+  # la seule chose qu'un modèle ne saurait pas construire : la route
+  # d'apprentissage de l'alias, dont le panneau IA se sert pour retenir le nom
+  # qu'il vient d'associer.
   def search_result_json(ingredient)
-    {
-      id: ingredient.id,
-      name: ingredient.display_name,
-      base_unit: ingredient.base_unit,
-      unit_group: ingredient.unit_group,
-      piece_weight_g: ingredient.piece_weight_g,
-      piece_volume_ml: ingredient.piece_volume_ml,
-      # Les deux coefficients de conversion de l'ingrédient, et la provenance de
-      # la densité : le panneau IA convertit avec, et signale l'estimation.
-      density_g_per_ml: ingredient.density_g_per_ml,
-      density_source: ingredient.density_source,
-      add_alias_path: add_alias_ingredient_path(ingredient)
-    }
+    ingredient.search_result.merge(add_alias_path: add_alias_ingredient_path(ingredient))
   end
 
   def render_quick_create_success

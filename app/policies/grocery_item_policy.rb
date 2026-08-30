@@ -2,19 +2,17 @@
 
 # Policy pour les GroceryItems (lignes de la liste de courses — UC3).
 #
-# Délègue à MenuPolicy du menu parent :
-# seul le propriétaire du menu peut lire et modifier sa liste de courses.
+# Seul le propriétaire du menu peut lire et modifier sa liste de courses.
 #
-# Règle supplémentaire pour la création d'ingrédients (chemin C de la pop-up) :
-# la vérification user.admin? est faite dans le contrôleur au moment
-# de décider quel chemin de création emprunter (admin vs custom).
+# Ajouter un article n'ouvre aucun droit sur le catalogue : une ligne libre
+# reste une ligne libre, et seul un admin crée un ingrédient (IngredientPolicy).
 class GroceryItemPolicy < ApplicationPolicy
   # Afficher la liste de courses d'un menu
   def index?
     menu_owner?
   end
 
-  # Créer une ligne manuelle (ajout via pop-up — chemins A, B, C)
+  # Créer une ligne manuelle (formulaire « Ajouter un article »)
   def create?
     menu_owner?
   end
