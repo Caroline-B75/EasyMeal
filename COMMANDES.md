@@ -542,3 +542,151 @@ bundle exec rubocop
 # 🔒 Sécurité
 
 bundle exec brakeman -q
+
+---
+
+# ☁️ Mise en ligne sur Scalingo
+
+L'application tourne sur **https://easymeal.osc-fr1.scalingo.io**.
+Tableau de bord : [dashboard.scalingo.com](https://dashboard.scalingo.com) → app `easymeal`.
+
+## 🧭 Le principe, en trois phrases
+
+1. `git push scalingo main` envoie le code : Scalingo **construit** l'image (bundle install, précompilation des assets).
+2. Avant de mettre la nouvelle version en ligne, il lance le **hook `postdeploy`** défini dans le `Procfile` : les migrations, puis la resynchronisation du catalogue d'ingrédients.
+3. Si le hook réussit → la nouvelle version passe en ligne. **S'il échoue → l'ancienne version continue de tourner**, et rien n'est cassé.
+
+> `git push origin main` envoie sur GitHub (sauvegarde + historique).
+> `git push scalingo main` déclenche la mise en ligne. **Les deux sont indépendants** : pousser sur GitHub ne déploie rien.
+
+## ⚡ Que faire selon ce que j'ai changé
+
+| J'ai modifié… | Ce que je fais | Pourquoi |
+|---|---|---|
+| Vues, CSS, JS, contrôleurs, helpers | `push` | rien d'autre à faire |
+| Un modèle sans nouvelle colonne (validation, méthode, scope) | `push` | pas de changement de structure |
+| **Une migration** (nouvel attribut, nouvelle table) | `push` | le hook lance `db:migrate` tout seul |
+| **`db/seeds/data/ingredients.yml`** | `push` | le hook resynchronise le catalogue |
+| Le `Gemfile` | `push` | `bundle install` tourne à la construction |
+| `db/seeds/tags.rb` ou `recipes.rb` | commande manuelle (CLI) | hors du hook, volontairement |
+| Une clé d'API, un mot de passe | onglet **Environment** | jamais dans le code |
+
+**Le déploiement ordinaire, dans tous les cas :**
+
+```bash
+git push origin main      # sauvegarde sur GitHub
+git push scalingo main    # met en ligne
+```
+
+Puis onglet **Deploy** pour suivre. Un déploiement prend 1 à 3 minutes.
+
+## 🗄️ J'ai ajouté un attribut à un modèle
+
+Rien de plus que le déploiement ordinaire : la migration part avec le code et le hook l'applique **avant** que la nouvelle version reçoive du trafic. C'est justement ce qui évite qu'un code neuf s'adresse à une colonne qui n'existe pas encore.
+
+**Deux règles à ne jamais enfreindre :**
+
+- **Ne jamais modifier une migration déjà déployée.** Elle a déjà tourné en production, Rails ne la rejouera pas. Pour corriger, on écrit une *nouvelle* migration.
+- **Supprimer ou renommer une colonne se fait en deux déploiements.** Sinon, pendant les quelques secondes de bascule, l'ancien code cherche une colonne que la migration vient d'effacer.
+  1. Premier déploiement : le code cesse d'utiliser la colonne.
+  2. Second déploiement : la migration la supprime.
+
+  Ajouter une colonne, à l'inverse, ne pose jamais ce problème : personne ne s'en sert encore.
+
+## 🥕 J'ai changé le catalogue d'ingrédients
+
+Le fichier `db/seeds/data/ingredients.yml` est la **source de vérité** du catalogue. À chaque déploiement, le hook le rejoue et met la base en accord avec lui.
+
+**Ce que ça implique concrètement :**
+
+| Situation | Ce qui se passe |
+|---|---|
+| J'ai corrigé un poids dans le YAML | il part en production au prochain déploiement ✅ |
+| J'ai corrigé un poids **dans l'application en ligne** | il sera **écrasé** au prochain déploiement ⚠️ |
+| J'ai créé un ingrédient à la volée depuis une recette | il n'est **jamais touché** (absent du YAML) ✅ |
+| J'ai ajouté un nom à la liste `retired:` du YAML | il est supprimé, sauf s'il est encore utilisé par une recette |
+
+👉 **Règle à retenir : les corrections durables du catalogue se font dans le YAML, pas dans l'application en ligne.**
+
+**Le cas du conflit.** Si un ingrédient de la production a un groupe d'unités différent de celui du YAML *et* qu'il est déjà utilisé dans une recette, la base refuse de le changer — sinon les quantités déjà saisies deviendraient fausses. La seed le **signale et continue** :
+
+```
+⚠️  « Nom de l'ingrédient » n'a pas pu être mis à jour : Groupe d'unités ne peut plus changer…
+✅ 586 ingrédients en base (0 créés, 242 mis à jour, 0 retirés).
+⚠️  1 ingrédient(s) laissés en l'état — voir les avertissements ci-dessus.
+```
+
+Le déploiement réussit quand même. Pour régler le conflit, il faut ouvrir la recette concernée et décider à la main — aucun script ne peut trancher ça.
+
+## 🔐 J'ai besoin d'ajouter ou changer une clé
+
+Onglet **Environment** → ajouter ou modifier la variable → l'application redémarre.
+**Jamais dans le code**, jamais dans un commit.
+
+Les variables actuelles : `RAILS_MASTER_KEY`, `DATABASE_URL`, `ANTHROPIC_API_KEY`, `CLOUDINARY_*`, `SMTP_*`, `MAILER_FROM`, `APP_HOST`.
+
+## 🔥 Le déploiement a échoué
+
+**D'abord, respire : ton site tourne toujours.** Un déploiement raté ne met jamais en ligne la version cassée.
+
+1. Onglet **Deploy** → ouvrir le déploiement en échec → lire les logs **de bas en haut**.
+2. Chercher la ligne qui commence par un nom d'erreur, du genre `ActiveRecord::RecordInvalid:` ou `NoMethodError:`, suivie du message. C'est elle qui compte, pas la pile de lignes `from /app/vendor/...` qui suit.
+3. Ignorer les lignes préfixées `W,` ou `WARN` : ce sont des avertissements, jamais la cause d'un échec.
+
+**Deux types d'échec :**
+
+| Message | Signification |
+|---|---|
+| `Postdeploy hook failed` | le code est bon, mais la migration ou la seed a planté |
+| erreur pendant `Compiling`/`assets:precompile` | le code ne construit pas (erreur de syntaxe, gem manquante) |
+
+**Revenir en arrière** si besoin : il n'y a pas de bouton « rollback ». On repousse un commit antérieur.
+
+```bash
+git log --oneline -5                    # repérer le dernier commit qui marchait
+git push scalingo <hash-du-commit>:main # le remettre en ligne
+```
+
+⚠️ **Le code revient en arrière, pas la base de données.** Une migration déjà appliquée le reste. Si elle a supprimé une colonne, l'ancien code ne la retrouvera pas — d'où la règle des deux déploiements plus haut.
+
+## 📋 Voir ce qui se passe en production
+
+Onglet **Logs** du tableau de bord : les erreurs de l'application en direct (les fameuses 500).
+Onglet **Metrics** : mémoire et temps de réponse.
+Onglet **Activity** : qui a déployé quoi, et quand.
+
+## 🔧 La CLI Scalingo (pour aller plus loin)
+
+Tout ce qui précède se fait sans elle. Elle devient nécessaire pour **lancer une commande ponctuelle sur la production** — c'est le seul moyen, le tableau de bord ne le permet pas.
+
+Installation : [doc.scalingo.com/cli](https://doc.scalingo.com/cli), puis `scalingo login`.
+
+```bash
+# Une console Rails sur la production (⚠️ vraies données)
+scalingo --app easymeal run rails console
+
+# Resynchroniser le catalogue sans attendre un déploiement
+scalingo --app easymeal run rails runner 'load Rails.root.join("db/seeds/ingredients.rb").to_s'
+
+# Les autres seeds (tags, recettes de démonstration)
+scalingo --app easymeal run rails runner 'load Rails.root.join("db/seeds/tags.rb").to_s'
+
+# Les logs en direct
+scalingo --app easymeal logs --follow
+
+# Redémarrer l'application
+scalingo --app easymeal restart
+```
+
+## 💾 Sauvegardes de la base
+
+PostgreSQL est un *addon* : onglet **Overview** → carte **Addons** → **Dashboard** à côté de PostgreSQL.
+On y trouve les sauvegardes automatiques et de quoi en déclencher une à la main — à faire **avant toute opération risquée** (migration destructive, gros re-seed).
+
+## ✅ Avant chaque mise en ligne
+
+```bash
+bundle exec rspec                            # la suite doit être verte
+bundle exec rubocop                          # zéro remarque
+bundle exec bundler-audit check --update     # aucune faille connue
+```

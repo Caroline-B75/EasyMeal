@@ -1,42 +1,53 @@
 /* ============================================
    CONTEXT BAR - Composant unifié de navigation contextuelle
    ============================================
-   
+
    Deux modes d'affichage :
-   - Mode back-link : lien retour simple (par défaut)
+   - Mode back-link : lien retour simple
    - Mode breadcrumb : fil d'Ariane hiérarchique
-   
+
+   Le composant n'est pas une barre : ni fond, ni bordure, ni largeur
+   contrainte. Il se pose en haut du contenu et occupe la gouttière libre à
+   gauche de l'écran, là où les conteneurs de page (centrés et bornés) ne vont
+   jamais — d'où l'absence de max-width, qui alignerait le lien sur la carte
+   plutôt que sur le bord.
+
    Responsive :
    - Desktop : breadcrumb complet
    - Mobile (< 768px) : collapse vers lien retour
-   
-   Hauteur cible : ~36px pour minimiser l'espace vertical
    ============================================ */
 
-/* === Base Container === */
+/* === Base === */
 .context-bar {
-  background: var(--color-bg-white);
-  border-bottom: var(--border-thin);
-  padding: 10px 28px;
+  /* Taille de texte du composant, posée une seule fois ici : les deux modes en
+     héritent, et le chevron comme le séparateur s'y accordent en em. Un lien de
+     navigation reste lisible au premier coup d'œil, d'où le corps de texte
+     plein plutôt qu'une taille de méta. */
+  font-size: var(--font-size-base);
+  /* Pas de padding bas : la respiration sous le lien est portée par la règle
+     ci-dessous, sans quoi les deux s'additionnent. */
+  padding: 14px 28px 0;
 }
 
-/* Conteneur interne centré avec max-width cohérent */
+/* Les conteneurs de page réservent en haut la place d'un titre qui démarrait
+   juste sous le header ; le lien retour s'intercalant, ce padding fait doublon
+   et décroche le contenu (jusqu'à 48 px sous le lien sur la fiche
+   utilisateur). On le remplace ici par une valeur unique, la même partout.
+
+   Le sélecteur de voisinage cible exactement les cas concernés : les mêmes
+   conteneurs employés sans lien retour (index des tags, des utilisateurs…)
+   gardent leur padding d'origine.
+
+   .rf-hero est écarté : son padding ne sépare pas, il dessine la hauteur de la
+   bande sombre du titre. */
+.context-bar + *:not(.rf-hero) {
+  padding-top: 20px;
+}
+
 .context-bar__inner {
   display: flex;
   align-items: center;
   gap: 6px;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-/* Variante sans max-width (hérite du parent) */
-.context-bar--fluid .context-bar__inner {
-  max-width: none;
-}
-
-/* Variante étroite pour les formulaires */
-.context-bar--narrow .context-bar__inner {
-  max-width: 900px;
 }
 
 /* === Mode Back Link === */
@@ -44,7 +55,6 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 12px;
   color: var(--color-ink-3);
   text-decoration: none;
   transition: color var(--transition-fast);
@@ -55,17 +65,11 @@
   text-decoration: none;
 }
 
-/* Sur mobile, le lien « retour » est une commande de navigation principale :
-   hauteur de cible tactile de 44px (l'inline-flex centre le contenu). */
-@media (max-width: 767px) {
-  .context-bar__back {
-    min-height: var(--min-touch-target);
-  }
-}
-
+/* Le chevron suit la taille du texte : une seule valeur pour les deux
+   points de rupture. */
 .context-bar__back-icon {
-  width: 14px;
-  height: 14px;
+  width: 1em;
+  height: 1em;
   flex-shrink: 0;
   opacity: 0.7;
 }
@@ -75,7 +79,6 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
 }
 
 .context-bar__crumb {
@@ -89,8 +92,10 @@
   text-decoration: none;
 }
 
+/* Le chevron de séparation reste en retrait des libellés qu'il sépare, en em
+   pour suivre la taille du composant. */
 .context-bar__sep {
-  font-size: 10px;
+  font-size: 0.85em;
   color: var(--color-ink-4);
   user-select: none;
 }
@@ -103,7 +108,18 @@
 /* === Responsive Mobile === */
 @media (max-width: 767px) {
   .context-bar {
-    padding: 8px 16px;
+    font-size: var(--font-size-sm);
+    padding: 10px 16px 0;
+  }
+
+  .context-bar + *:not(.rf-hero) {
+    padding-top: 12px;
+  }
+
+  /* Sur mobile, le lien « retour » est une commande de navigation principale :
+     hauteur de cible tactile de 44px (l'inline-flex centre le contenu). */
+  .context-bar__back {
+    min-height: var(--min-touch-target);
   }
 
   /* Sur mobile, on masque les crumbs intermédiaires pour n'afficher que le lien retour */
@@ -130,25 +146,4 @@
   .context-bar__breadcrumb .context-bar__sep:last-of-type {
     display: none;
   }
-}
-
-/* === Variante sans bordure (pour intégration dans header existant) === */
-.context-bar--borderless {
-  border-bottom: none;
-  background: transparent;
-}
-
-/* === Variante compacte === */
-.context-bar--compact {
-  padding: 6px 16px;
-}
-
-.context-bar--compact .context-bar__back,
-.context-bar--compact .context-bar__breadcrumb {
-  font-size: 11px;
-}
-
-.context-bar--compact .context-bar__back-icon {
-  width: 12px;
-  height: 12px;
 }

@@ -2003,7 +2003,7 @@
   background: none;
   border: none;
   border-radius: var(--radius-button);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   color: var(--color-ink-3);
   cursor: pointer;
   text-decoration: none;
@@ -3007,7 +3007,7 @@ a.mc-card-name-wrap:hover .mc-card-name {
   .mc-head-action {
     min-height: var(--min-touch-target);
     padding: 8px 12px;
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-base);
   }
 
   /* Le bouton le plus à gauche du groupe s'aligne sur le titre : son padding

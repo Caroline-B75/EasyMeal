@@ -1,9 +1,9 @@
 -# Formulaire d'administration d'un utilisateur (admin only)
 - content_for :title, "Modifier un utilisateur"
 
-.users-container.users-container--narrow
-  = context_bar_back(users_path, "Retour aux utilisateurs", variant: :narrow)
+= context_bar_back(users_path, "Retour aux utilisateurs")
 
+.users-container.users-container--narrow
   .users-form-card
     .users-form-header
       .users-avatar.users-avatar--large= user_initials(@user)

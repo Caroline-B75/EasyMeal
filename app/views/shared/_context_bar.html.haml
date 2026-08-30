@@ -5,14 +5,13 @@
 -# - path      : URL (mode back uniquement)
 -# - label     : Texte du lien retour (mode back uniquement)
 -# - crumbs    : Array de hashes [{label:, path:}] (mode breadcrumb uniquement)
--# - variant   : :default, :narrow, :fluid, :compact, :borderless
 
-%nav{ class: context_bar_classes(variant), aria: { label: "Navigation contextuelle" } }
+%nav.context-bar{ aria: { label: "Navigation contextuelle" } }
   .context-bar__inner
     - if mode == :back
       -# Mode lien retour simple
       = link_to path, class: "context-bar__back" do
-        = svg_icon("chevron-left", size: 14, css_class: "context-bar__back-icon")
+        = svg_icon("chevron-left", css_class: "context-bar__back-icon")
         = label
 
     - else

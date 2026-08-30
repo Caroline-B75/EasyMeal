@@ -3,7 +3,7 @@
 -# Actif/Archivé : formulaire simple (nom, personnes)
 - content_for :title, "Modifier le menu"
 
-= context_bar_back(menu_path(@menu), "Retour au menu", variant: :narrow)
+= context_bar_back(menu_path(@menu), "Retour au menu")
 
 - if @menu.status_draft?
   .mn-page-wrap

@@ -376,6 +376,8 @@
   max-width: 800px;
   margin-left: auto;
   margin-right: auto;
+  /* Respiration entre le titre de page et le bloc de contenu qui suit. */
+  margin-bottom: 1.5rem;
 }
 
 /* La taille suit l'échelle fluide de la règle de base h1 (global.css). */
