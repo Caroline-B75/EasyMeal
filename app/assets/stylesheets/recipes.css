@@ -3850,7 +3850,15 @@ button.draft-rail-count:not(:disabled) {
     font-size: 1.25rem;
   }
 
+  /* width : .rf-body est un item flex à marges automatiques, donc dimensionné
+     sur son contenu (cf. .rf-body--split). Sur un téléphone, le contenu le plus
+     large du formulaire — l'adresse de la source, un nom de recette long —
+     réclame plus que l'écran : la page entière devenait alors plus large que le
+     téléphone et défilait latéralement, décalant jusqu'au logo du header. Bornée
+     à la largeur disponible, elle force ce contenu à tenir dans l'écran (le lien
+     de source s'y abrège déjà). */
   .rf-body {
+    width: 100%;
     padding: 14px 16px 28px;
   }
 
@@ -3880,18 +3888,32 @@ button.draft-rail-count:not(:disabled) {
     display: none;
   }
 
-  /* Repliée, la rangée n'a plus de ligne à occuper : chaque groupe prend la
-     largeur disponible et son cadre s'étire — plus confortable au doigt que
-     trois petits champs perdus au milieu du vide. */
+  /* Repliée, la rangée devient une ligne par valeur : l'intitulé à gauche, le
+     cadre calé à droite par la marge automatique qui suit l'intitulé. Les deux
+     durées partagent ainsi la même largeur et le même bord droit — l'œil
+     descend une seule verticale au lieu de suivre la longueur des intitulés. */
   .rf-measure {
-    flex: 1 1 auto;
+    flex: 1 1 100%;
   }
 
-  /* Cibles tactiles : cadres à hauteur de doigt et boutons de stepper élargis
-     (ils s'étirent déjà sur toute la hauteur du cadre). */
+  .rf-measures .form-label {
+    margin-right: auto;
+  }
+
+  /* Le cadre ne s'étire plus jusqu'au bord : à pleine largeur, une valeur de
+     trois chiffres au plus flotte au milieu du vide. Les largeurs restent un
+     peu plus généreuses qu'en grand écran, la hauteur passant à hauteur de
+     doigt et les boutons − / + s'élargissant avec elle. */
   .rf-measure .rf-unit-field {
-    flex-grow: 1;
     min-height: var(--min-touch-target);
+  }
+
+  .rf-stepper {
+    width: 136px;
+  }
+
+  .rf-duration {
+    width: 120px;
   }
 
   .rf-stepper-btn {

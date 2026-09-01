@@ -22,6 +22,8 @@
             %th Inscription
             %th Actions
         %tbody
+          -# Les `data-label` ne servent qu'en mobile : la table s'y replie en
+          -# cartes et les cellules chiffrées reprennent l'intitulé du thead.
           - @users.each do |user|
             %tr
               %td.users-identity-cell
@@ -30,12 +32,12 @@
                   %strong= "#{user.first_name} #{user.last_name}"
                   %span= user.email
                   %small= "@#{user.username}"
-              %td
+              %td.users-role-cell
                 - if user.admin?
                   %span.badge.badge-dark Admin
                 - else
                   %span.badge Membre
-              %td
+              %td.users-prefs-cell
                 .users-preferences
                   %span= menu_diet_label(user.default_diet)
                   -# Le détail par moment est une affaire d'utilisatrice : la
@@ -43,9 +45,9 @@
                   %small= "#{user.default_people} pers. · #{user.preferred_meal_counts.total} repas"
                   - unless user.preferences_configured?
                     %span.users-warning Préférences à confirmer
-              %td
+              %td.users-menus-cell{ data: { label: "Menus créés" } }
                 %span.users-menu-count= user.menus_count
-              %td
+              %td.users-date-cell{ data: { label: "Inscription" } }
                 %time{ datetime: user.created_at.iso8601 }= l(user.created_at.to_date)
               %td.users-actions
                 .users-actions__inner
