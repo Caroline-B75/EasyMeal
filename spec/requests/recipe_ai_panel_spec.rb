@@ -207,4 +207,28 @@ RSpec.describe "Panneau des ingrédients détectés par l'IA", type: :request do
       expect(response.body).to include("Farine")
     end
   end
+
+  # La liste d'ingrédients d'un brouillon se remplit depuis le panneau, bouton
+  # par bouton : une ligne vide ouverte d'avance n'aurait qu'à être supprimée
+  # avant de publier. Le formulaire de création, lui, la garde — c'est son seul
+  # point de départ.
+  describe "ligne d'ingrédient vide" do
+    # Le modèle de ligne du nested-form porte le même marqueur que les lignes
+    # rendues : il compte donc pour un, toujours.
+    def rendered_rows
+      response.body.scan('data-nested-form-target="fields"').size - 1
+    end
+
+    it "n'en ouvre aucune dans le formulaire d'un brouillon" do
+      get edit_recipe_path(draft_with(ai_ingredient("farine", 250, "g")))
+
+      expect(rendered_rows).to eq(0)
+    end
+
+    it "en ouvre une dans le formulaire de création d'une recette" do
+      get new_recipe_path
+
+      expect(rendered_rows).to eq(1)
+    end
+  end
 end

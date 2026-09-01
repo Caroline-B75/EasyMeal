@@ -121,8 +121,15 @@ class RecipesController < ApplicationController
   # suit une validation refusée : c'est ce second chemin qui, oublié, faisait
   # disparaître le panneau IA au premier message d'erreur.
   def prepare_edit_form
-    recipe.ensure_preparation_form_ready
-    @ai_matches = compute_ai_matches if recipe.draft?
+    # Un brouillon remplit sa liste depuis le panneau IA, ingrédient par
+    # ingrédient : la ligne vide du formulaire n'y serait qu'une ligne de plus
+    # à supprimer avant de publier. Les deux boutons sous la liste suffisent à
+    # en ouvrir une quand l'extraction n'a rien donné.
+    if recipe.draft?
+      @ai_matches = compute_ai_matches
+    else
+      recipe.ensure_preparation_form_ready
+    end
   end
 
   # Accès mémoïsé à la recette courante

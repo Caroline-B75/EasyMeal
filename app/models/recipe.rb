@@ -244,7 +244,9 @@ class Recipe < ApplicationRecord
     favorite_recipes.count
   end
 
-  # S'assure qu'au moins une preparation vide est disponible pour le formulaire d'édition
+  # S'assure qu'une ligne d'ingrédient vide attend la saisie dans le formulaire.
+  # Réservé aux recettes renseignées à la main : un brouillon reçoit les siens du
+  # panneau IA, une ligne vide n'y serait qu'une ligne à supprimer.
   def ensure_preparation_form_ready
     preparations.build if preparations.empty?
   end

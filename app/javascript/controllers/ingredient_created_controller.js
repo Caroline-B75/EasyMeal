@@ -69,10 +69,8 @@ export default class extends Controller {
   //
   // Il se pose toujours au bas de la liste, là où le bouton « Ajouter un
   // ingrédient » pose la sienne : la ligne vide qui la termine si elle attend,
-  // une ligne de plus sinon. Une ligne vide plus haut n'est pas reprise — le
-  // formulaire d'un brouillon IA en ouvre une avant que le panneau ne pose ses
-  // ingrédients en dessous, et le nouvel ingrédient atterrissait alors tout en
-  // haut, loin du geste qui venait de le créer.
+  // une ligne de plus sinon. Une ligne vide restée plus haut n'est pas reprise —
+  // le nouvel ingrédient atterrirait loin du geste qui vient de le créer.
   addToRecipe() {
     // Une ligne masquée est une ligne marquée pour suppression : elle n'attend
     // plus rien.

@@ -57,6 +57,10 @@ function rowSnapshot(row) {
   }
 }
 
+// Ce qui fait d'une ligne d'ingrédient une saisie : un ingrédient choisi, ou une
+// quantité tapée. Le reste est une ligne restée vide.
+const rowHasContent = ({ ingredientId, quantity }) => Boolean(ingredientId || quantity)
+
 // Repose une ligne déjà à l'écran. L'ordre compte : ingredient-unit reconstruit
 // le sélecteur d'unités au changement d'ingrédient, on ne peut donc y choisir
 // l'unité retenue qu'après.
@@ -175,7 +179,11 @@ export default class extends Controller {
       // Au-delà des lignes rendues par le serveur, la ligne est clonée du modèle :
       // ingredient-unit y lit quantité et unité en se connectant, rien à reposer.
       if (rendered[index]) applyRow(rendered[index], entry)
-      else appendPreparationRow(entry)
+      // Une ligne vide n'est pas une saisie : on ne la repose pas là où le
+      // serveur n'en a rendu aucune. Le formulaire d'un brouillon ouvre sa
+      // liste sans ligne d'attente, et un instantané pris avant qu'il n'en
+      // existe une lui en rendrait une à supprimer.
+      else if (rowHasContent(entry)) appendPreparationRow(entry)
     })
 
     // Lignes en trop : la saisie en avait retiré. Une ligne déjà enregistrée
