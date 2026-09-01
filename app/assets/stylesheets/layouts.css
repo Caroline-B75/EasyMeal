@@ -318,6 +318,18 @@
   font-weight: 500;
 }
 
+/* Le point d'entrée « Installer l'application » est un <button> : il n'ouvre pas
+   une URL mais la boîte d'installation du navigateur. On neutralise le style
+   natif du bouton pour qu'il s'aligne exactement sur les liens voisins. */
+button.dropdown-link {
+  width: 100%;
+  background: none;
+  border: 0;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
 .dropdown-link:hover {
   background: var(--color-bg-secondary);
   color: var(--color-ink);

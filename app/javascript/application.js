@@ -1,5 +1,8 @@
 // Configure your import map in config/importmap.rb. Read more: https://github.com/rails/importmap-rails
 import "@hotwired/turbo-rails"
+// Chargé avant "controllers" : le module doit écouter beforeinstallprompt dès
+// que possible, sans attendre le chargement des controllers Stimulus.
+import "pwa_install"
 import "controllers"
 import "turbo_confirm"
 

@@ -140,6 +140,13 @@
                 -# fois pour toutes, mais celui-ci touche à l'identité et au mot
                 -# de passe, pas à la façon de composer les menus.
                 = link_to "Mon compte", edit_user_registration_path, class: "dropdown-link"
+                -# Installation de la PWA. Masqué par défaut : le controller ne le
+                -# révèle que si le navigateur propose réellement l'installation
+                -# (Chrome / Edge, app pas déjà installée).
+                %button.dropdown-link{ type: "button", hidden: true,
+                                       data: { controller: "pwa-install",
+                                               action: "click->pwa-install#install" } }
+                  Installer l'application
                 - if current_user.admin?
                   = link_to "Utilisateurs", users_path, class: "dropdown-link dropdown-link--admin"
                 = link_to "Me déconnecter", destroy_user_session_path, data: { turbo_method: :delete }, class: "dropdown-link logout"
