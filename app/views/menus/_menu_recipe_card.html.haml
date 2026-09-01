@@ -56,10 +56,9 @@
       -# ⧉ Dupliquer (UC7) : répéter un repas déjà réglé — le même petit-déjeuner
       -# plusieurs matins. La copie se pose juste derrière celle-ci, à replacer
       -# ensuite comme n'importe quelle carte. Posé sur la photo et non dans la
-      -# barre d'actions, déjà pleine (⬆️/⬇️ s'y ajoutent en mobile) ; en bas à
-      -# droite, le haut étant tenu par la poignée de glissement et le badge
-      -# temps. Toujours visible, contrairement à la poignée : au doigt, il n'y
-      -# a pas de survol.
+      -# barre d'actions, déjà pleine ; en bas à droite, le haut étant tenu par
+      -# la poignée de glissement et le badge temps. Toujours visible,
+      -# contrairement à la poignée : au doigt, il n'y a pas de survol.
       - if editable
         = form_with url: duplicate_menu_menu_recipe_path(menu, menu_recipe), method: :post,
                     class: "mc-act-form" do
@@ -111,7 +110,7 @@
           = svg_icon(MealTypes.icon(menu_recipe.display_meal_type), size: 13)
           = MealTypes.compact_label(menu_recipe.display_meal_type)
 
-    -# ── Barre d'actions : remplacer | personnes | supprimer | réordonner
+    -# ── Barre d'actions : remplacer | personnes | supprimer
     -# aria-label : nom accessible annoncé au focus clavier (pas seulement au hover)
     -# Menu validé : remplacer et supprimer disparaissent, les personnes
     -# s'affichent figées — en changer modifierait la liste de courses validée.
@@ -142,9 +141,13 @@
       - else
         %span.mc-card-meta-people= "#{menu_recipe.number_of_people} pers."
 
-      -# ⬆️/⬇️ réordonnancement (UC7) : mobile uniquement (CSS) — le drag & drop
-      -# HTML5 couvre déjà les appareils à souris. Désactivés aux extrémités de
-      -# la grille (voir index en tête de partial).
+    -# ── ⬆️/⬇️ réordonnancement (UC7) ────────────────────────
+    -# Colonne à part, hors barre d'actions : en mobile la carte se déploie en
+    -# rangée pleine largeur (menus.css) et ces deux boutons tiennent son bord
+    -# droit sur toute la hauteur, là où le pouce les trouve sans viser entre
+    -# 🔀 et 🗑. Masqués en desktop, où le glisser-déposer souris suffit.
+    -# Désactivés aux extrémités de la grille (voir index en tête de partial).
+    .mc-card-move
       = form_with url: move_up_menu_menu_recipe_path(menu, menu_recipe), method: :patch,
                   class: "mc-act-form" do
         %button.mc-act-btn.mc-move-btn.mc-move-btn--up{ type: "submit", disabled: !can_move_up,

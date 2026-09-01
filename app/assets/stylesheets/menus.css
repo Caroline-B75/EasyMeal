@@ -2551,6 +2551,15 @@
   text-wrap: pretty;
 }
 
+/* Dans un menu, le nom prend un cran de plus que sur la vignette de la home :
+   la carte y est large — trois colonnes en desktop, une rangée pleine largeur
+   en mobile — et le nom du plat est ce qu'on y lit d'abord. Hors media query :
+   les deux mises en page s'accordent sur la même valeur. */
+.mc-card-grid .mc-card-name {
+  font-size: var(--font-size-sm);
+  min-height: 38px;
+}
+
 /* Photo et nom : liens vers la recette (menu_card_recipe_link) — même habillage
    qu'un bloc inerte, sans soulignement ; seul le nom se souligne au survol
    pour annoncer le clic. */
@@ -2669,10 +2678,12 @@ a.mc-card-name-wrap:hover .mc-card-name {
 }
 
 /* ⬆️/⬇️ réordonnancement dans la section (UC7) : le drag & drop HTML5 suffit
-   là où la souris est disponible, ces boutons ne servent qu'au tactile.
+   là où la souris est disponible, ces boutons ne servent qu'au tactile — c'est
+   leur colonne entière qui s'efface en desktop, la carte n'y garde aucun
+   conteneur vide.
    Une seule icône (chevron-down) pour les deux sens, la variante « monter »
    pivote à 180° — même idiome que .mi-expand-icon.open. */
-.mc-move-btn {
+.mc-card-move {
   display: none;
 }
 
@@ -2872,19 +2883,15 @@ a.mc-card-name-wrap:hover .mc-card-name {
 }
 
 /* ── Agrandissement desktop des cartes de recette (mc-*) ──
-   La grille (minmax 190px ci-dessus) agrandit déjà la photo carrée ; on
-   remonte ici les éléments internes (nom, barre d'actions) dans la
-   même proportion pour que la carte agrandie ne paraisse pas déséquilibrée.
-   Scindé du reste des styles mc-* pour laisser le mobile (2 colonnes,
-   gabarit compact ci-dessous) strictement inchangé. */
+   La grille (minmax 190px ci-dessus) agrandit déjà la photo carrée ; on remonte
+   ici les retraits et les contrôles internes dans la même proportion, pour que
+   la carte agrandie ne paraisse pas déséquilibrée. Le corps du nom, lui, ne
+   dépend pas du breakpoint : il est réglé une fois pour toutes plus haut.
+   Scindé du reste des styles mc-* pour laisser le gabarit mobile (une rangée
+   par repas, ci-dessous) à ses propres mesures. */
 @media (min-width: 768px) {
   .mc-card-name-wrap {
     padding: 10px 10px 0;
-  }
-
-  .mc-card-name {
-    font-size: var(--font-size-sm);
-    min-height: 38px;
   }
 
   .mc-recipe-card.mc-recipe-card--readonly {
@@ -2953,19 +2960,73 @@ a.mc-card-name-wrap:hover .mc-card-name {
     min-width: 0;
   }
 
-  /* Cartes assez larges (≥160px) pour que la barre d'actions tienne sans être
-     coupée : le 110px précédent générait 3 colonnes sur les téléphones 390–430px
-     et tronquait le bouton Supprimer (clippé par overflow:hidden de la carte). */
+  /* ── Un repas par ligne, en rangée ───────────────────────
+     À deux colonnes, une carte ne dépassait pas ~160px : les deux sélecteurs
+     jour/moment se réduisaient à « — » et la barre d'actions repliait ses
+     boutons sur une seconde ligne. La carte se déploie donc sur toute la
+     largeur — vignette | nom, jour/moment, actions | ⬆️/⬇️ — plutôt que de
+     s'étirer en hauteur : la photo pleine largeur aurait mangé un écran par
+     repas là où la rangée en montre trois.
+
+     Sélecteurs portés par .mc-card-grid : la home réutilise les mêmes classes
+     de carte (menus/_menu_recipe_card_readonly) dans sa propre grille de
+     vignettes (.hero-card-recipes), qui reste compacte. */
   .mc-card-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 8px;
+    grid-template-columns: 1fr;
+    gap: 10px;
   }
 
-  /* Barre d'actions au doigt : cibles 44px + retour à la ligne de sécurité, pour
-     ne jamais tronquer un bouton même sur les écrans très étroits (≤360px). */
+  /* Trois rangées à droite de la vignette (nom, jour/moment, actions) ; la
+     vignette et la colonne ⬆️/⬇️ les enjambent toutes les trois. La vignette
+     suit la largeur de l'écran sans palier : ~88px sur un 320px, 116px dès
+     430px — assez pour que le badge temps y tienne en entier. */
+  .mc-card-grid .mc-recipe-card {
+    display: grid;
+    grid-template-columns: clamp(88px, 27vw, 116px) minmax(0, 1fr) auto;
+    grid-template-rows: auto auto auto;
+  }
+
+  .mc-card-grid .mc-card-media {
+    grid-area: 1 / 1 / -1 / 2;
+  }
+
+  /* La photo remplit la hauteur de la rangée, fixée par le contenu de droite
+     (son bloc est étiré par la grille). aspect-ratio en filet : si cette
+     hauteur ne se résolvait pas, la vignette resterait carrée au lieu de
+     s'écraser. */
+  .mc-card-grid .mc-card-photo {
+    height: 100%;
+    aspect-ratio: 1 / 1;
+  }
+
+  /* Colonne centrale : un retrait à gauche détache les trois rangées de la
+     photo, dont elles touchent le bord ; le même à droite aligne leurs bords
+     entre elles, sélecteurs et boutons d'action sur un seul aplomb. */
+  .mc-card-grid .mc-card-name-wrap,
+  .mc-card-grid .mc-card-controls,
+  .mc-card-grid .mc-card-actions {
+    grid-column: 2;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  /* Barre d'actions au doigt : cibles 44px, alignées sous le nom. Il n'y reste
+     que trois contrôles (remplacer, personnes, retirer), qui tiennent sur une
+     ligne dès ~360px ; le retour à la ligne demeure le filet des écrans plus
+     étroits. */
   .mc-card-actions {
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: flex-start;
+    gap: 6px;
+  }
+
+  /* La barre d'actions occupe toute la largeur de la rangée, comme les
+     sélecteurs jour/moment au-dessus : le sélecteur de personnes absorbe
+     l'espace libre (il est déjà en flex: 1), ce qui pousse « retirer » sous le
+     bord droit du sélecteur de moment. Le plafond de 64px, taillé pour une
+     barre d'actions en carte étroite, n'a plus lieu d'être ici. */
+  .mc-card-grid .mc-ppl-select {
+    max-width: none;
   }
 
   .mc-act-btn {
@@ -2973,9 +3034,22 @@ a.mc-card-name-wrap:hover .mc-card-name {
     height: var(--min-touch-target);
   }
 
-  /* ⬆️/⬇️ ne servent qu'au tactile : le drag & drop HTML5 couvre le desktop. */
-  .mc-move-btn {
+  /* ⬆️/⬇️ : colonne au bord droit de la rangée, centrée sur sa hauteur — le
+     pouce les trouve sans viser entre les boutons de la barre d'actions. */
+  .mc-card-grid .mc-card-move {
+    grid-area: 1 / 3 / -1 / 4;
     display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 7px;
+    border-left: var(--border-thin);
+  }
+
+  /* Le « + catalogue » ne s'aligne plus sur la hauteur d'une carte : en pleine
+     largeur, ce serait un pavé creux. Il se règle sur son contenu. */
+  .mc-add-btn {
+    height: auto;
   }
 
   .mc-mini-select {
