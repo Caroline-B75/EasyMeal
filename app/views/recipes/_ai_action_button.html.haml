@@ -1,0 +1,14 @@
+-# Bouton d'action d'une ligne du panneau IA — un seul par décision.
+-#
+-# Le libellé est écrit en clair et se lit tel quel en desktop. Sous 640 px la
+-# colonne d'action se réduit à une cible carrée et seule l'icône reste visible
+-# (cf. .ai-row__action-* dans recipes.css) : neuf boutons pleine largeur
+-# empilaient un mur de noir là où le nom de l'ingrédient est la seule chose à
+-# lire. Le nom accessible, lui, ne change pas d'une largeur à l'autre — il
+-# nomme l'ingrédient visé, sans quoi neuf « + » d'affilée se liraient à
+-# l'identique au lecteur d'écran.
+%button.btn.btn-primary.btn-md.ai-row__action{ type: "button",
+                                               "aria-label": aria_label,
+                                               data: data }
+  = svg_icon(icon, size: 20, css_class: "ai-row__action-icon")
+  %span.ai-row__action-label= label

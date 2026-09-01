@@ -12,6 +12,12 @@
 -#   - les échappatoires (« Choisir un autre », « Aucun de ces résultats »,
 -#     « Créer ») sont des liens texte posés sous la cible, parce qu'elles
 -#     changent l'ingrédient visé et non l'action à mener.
+-#
+-# Sous 640 px, la lecture change de sens mais pas de découpage : la cible et son
+-# action restent côte à côte, la colonne d'action se réduit à une cible carrée
+-# portant l'icône seule, et les échappatoires deviennent des pastilles bordées.
+-# Tout se joue en CSS (recipes.css, media query du panneau) : cette vue n'a
+-# qu'un seul rendu, quelle que soit la largeur.
 
 - counts = ai_matches_state_counts(ai_matches)
 
@@ -79,18 +85,16 @@
           -# converted part en .to_s : un booléen vrai deviendrait un attribut
           -# nu (data-ai-panel-converted) et un booléen faux disparaîtrait —
           -# le JS ne saurait plus distinguer les deux cas.
-          %button.btn.btn-primary.btn-md{
-            type: "button",
-            data: {
-              action: "click->ai-panel#add",
-              ai_panel_ingredient_id: match[:exact].id,
-              ai_panel_base_unit: match[:exact].base_unit,
-              ai_panel_unit_group: match[:exact].unit_group,
-              ai_panel_quantity_base: match[:quantity_base],
-              ai_panel_converted: match[:converted].to_s,
-              ai_panel_estimated: match[:estimated].to_s
-            }
-          } Ajouter
+          = render "recipes/ai_action_button",
+                   icon: :plus, label: "Ajouter",
+                   aria_label: "Ajouter #{match[:exact].name}",
+                   data: { action: "click->ai-panel#add",
+                           ai_panel_ingredient_id: match[:exact].id,
+                           ai_panel_base_unit: match[:exact].base_unit,
+                           ai_panel_unit_group: match[:exact].unit_group,
+                           ai_panel_quantity_base: match[:quantity_base],
+                           ai_panel_converted: match[:converted].to_s,
+                           ai_panel_estimated: match[:estimated].to_s }
 
         - when :confirm
           -# Match flou : une sous-ligne « nom + bouton » par suggestion, dans
@@ -104,31 +108,29 @@
                 = fi.name
                 = render "recipes/ai_unit_badge", ingredient: fi,
                                                   converts: suggestion[:converts], estimated: suggestion[:estimated]
-              %button.btn.btn-primary.btn-md{
-                type: "button",
-                data: {
-                  action: "click->ai-panel#confirmFuzzy",
-                  ai_panel_ingredient_id: fi.id,
-                  ai_panel_base_unit: fi.base_unit,
-                  ai_panel_unit_group: fi.unit_group,
-                  ai_panel_piece_weight: fi.piece_weight_g,
-                  ai_panel_piece_volume: fi.piece_volume_ml,
-                  ai_panel_density: fi.density_g_per_ml,
-                  ai_panel_density_source: fi.density_source,
-                  ai_panel_add_alias_path: add_alias_ingredient_path(fi)
-                }
-              } C'est ça
+              = render "recipes/ai_action_button",
+                       icon: :check, label: "C'est ça",
+                       aria_label: "C'est ça : #{fi.name}",
+                       data: { action: "click->ai-panel#confirmFuzzy",
+                               ai_panel_ingredient_id: fi.id,
+                               ai_panel_base_unit: fi.base_unit,
+                               ai_panel_unit_group: fi.unit_group,
+                               ai_panel_piece_weight: fi.piece_weight_g,
+                               ai_panel_piece_volume: fi.piece_volume_ml,
+                               ai_panel_density: fi.density_g_per_ml,
+                               ai_panel_density_source: fi.density_source,
+                               ai_panel_add_alias_path: add_alias_ingredient_path(fi) }
             %button.ai-row__alt-btn{
               type: "button",
               data: { action: "click->ai-panel#rejectFuzzy" }
             } Aucun de ces résultats
 
           -# Repli après rejet : caché par défaut (rendu visible par JS)
-          = render "recipes/ai_row_fallback", hidden: true
+          = render "recipes/ai_row_fallback", hidden: true, name: match[:ai_name]
 
         - else
           -# Aucun match : chercher soi-même ou créer, directement
-          = render "recipes/ai_row_fallback", hidden: false
+          = render "recipes/ai_row_fallback", hidden: false, name: match[:ai_name]
 
       -# Recherche manuelle dans le catalogue : dépliée à la demande, elle occupe
       -# toute la largeur de la ligne. Choisir un ingrédient ici enregistre le nom

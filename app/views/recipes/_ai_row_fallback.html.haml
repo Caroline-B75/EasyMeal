@@ -1,7 +1,9 @@
 -# Actions de repli d'une ligne du panneau IA : chercher soi-même l'ingrédient
 -# dans le catalogue, ou le créer. Masqué derrière les suggestions floues
 -# (révélé par « Aucun de ces résultats »), visible d'emblée sans détection.
--# Les données détectées sont lues sur la ligne, pas répétées sur les boutons.
+-# Les données détectées sont lues sur la ligne, pas répétées sur les boutons —
+-# `name` fait exception : réduit à sa loupe en mobile, le bouton n'aurait plus
+-# de nom accessible propre, et neuf « Chercher » se liraient à l'identique.
 -#
 -# Même partage que les autres états de ligne : la cible à gauche, l'action
 -# principale à droite. Chercher passe devant créer — un ingrédient déjà au
@@ -11,5 +13,7 @@
     %span.ai-row__no-match Aucun ingrédient de ton catalogue
     %button.ai-row__alt-btn{ type: "button",
                              data: { action: "click->ai-panel#openCreate" } } Créer l'ingrédient
-  %button.btn.btn-primary.btn-md{ type: "button",
-                                  data: { action: "click->ai-panel#openSearch" } } Chercher
+  = render "recipes/ai_action_button",
+           icon: :search, label: "Chercher",
+           aria_label: "Chercher un ingrédient pour #{name}",
+           data: { action: "click->ai-panel#openSearch" }

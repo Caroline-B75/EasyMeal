@@ -4319,6 +4319,14 @@ button.draft-rail-count:not(:disabled) {
   width: 100%;
 }
 
+/* L'icône du bouton d'action se tait tant que le libellé est là : en desktop la
+   colonne est large, « Ajouter » se lit tout seul et un pictogramme de plus ne
+   ferait qu'ajouter du bruit. Elle prend le relais sous 640 px, où la colonne
+   se réduit à une cible carrée (cf. la media query en fin de section). */
+.ai-row__action-icon {
+  display: none;
+}
+
 /* La cible et son échappatoire. « Choisir un autre », « Aucun de ces
    résultats » et « Créer » changent l'ingrédient visé, pas l'action à mener :
    ils vivent donc sous la cible et jamais dans la colonne des boutons. */
@@ -4530,29 +4538,117 @@ button.draft-rail-count:not(:disabled) {
   cursor: help;
 }
 
-/* Mobile : la grille se replie en une colonne. Les intitulés de colonnes et la
-   flèche n'ont alors plus rien à désigner, et les boutons prennent toute la
-   largeur — la cible de touche vaut mieux que l'alignement, qui n'existe plus. */
+/* === Panneau IA — mobile ===
+   Sous 640 px la ligne se replie : le détecté passe au-dessus de la cible, les
+   intitulés de colonnes et la flèche n'ont plus rien à désigner. Mais le
+   couple cible ↔ action, lui, ne se déplie pas — c'est le seul appariement qui
+   compte au doigt, et l'empiler donnait une liste où chaque décision occupait
+   140 px pour deux mots utiles.
+
+   Trois corrections, dans cet ordre d'importance :
+     1. la colonne d'action tombe à une cible carrée de 44 px et le bouton n'y
+        garde que son icône — neuf « Ajouter » pleine largeur formaient un mur
+        de noir qui écrasait les noms d'ingrédients, seuls à devoir se lire ;
+     2. les échappatoires deviennent des pastilles bordées : en lien souligné de
+        14 px coincé sous un bouton pleine largeur, « Choisir un autre » n'était
+        ni repérable ni atteignable ;
+     3. un « ↳ » relie les deux noms, que la flèche ne relie plus.
+
+   Une seule variable porte le point 1 : la colonne d'action. Les trois
+   sous-grilles (cible + action, suggestions, repli) la reprennent d'elles-mêmes
+   et n'ont donc rien à redéclarer ici — c'est ce qui les avait fait dériver
+   vers l'empilement pleine largeur. */
 
 @media (max-width: 640px) {
+  .ai-panel {
+    --ai-action-col: var(--min-touch-target);
+    --ai-gap: 10px;
+  }
+
   .ai-panel__columns {
     display: none;
   }
 
+  /* Marges latérales resserrées : 20 px de chaque côté, c'est un dixième de
+     l'écran perdu pour le nom de l'ingrédient. */
+  .ai-panel__header {
+    padding: 14px 14px 12px;
+  }
+
+  /* Les compteurs d'état reviennent sous le titre, alignés à gauche comme le
+     reste de la colonne — poussés à droite, ils flottaient seuls sur leur ligne. */
+  .ai-panel__states {
+    margin-left: 0;
+  }
+
   .ai-row {
     grid-template-columns: minmax(0, 1fr);
-    gap: 10px;
+    gap: 8px;
+    padding: 12px 14px;
   }
 
   .ai-row__arrow {
     display: none;
   }
 
-  .ai-row__right,
-  .ai-row__fuzzy,
-  .ai-row__no-match-fallback {
+  .ai-row__right {
     grid-column: 1 / -1;
-    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Ce que l'IA a lu, puis ce que le catalogue propose. Sans ce repère les deux
+     noms s'empilent sans dire lequel remplace lequel. La seconde déclaration
+     retire le glyphe du texte annoncé par les lecteurs d'écran ; les moteurs qui
+     ignorent cette syntaxe gardent la première, donc le repère visuel. */
+  .ai-row__match::before,
+  .ai-row__no-match::before {
+    content: "↳ ";
+    content: "↳ " / "";
+    color: var(--color-ink-4);
+  }
+
+  /* Le libellé cède la place à l'icône. Il reste dans le DOM par principe, mais
+     ce n'est pas lui qui porte le nom accessible : chaque bouton a son
+     aria-label, qui nomme l'ingrédient (cf. recipes/_ai_action_button). */
+  .ai-row__action-icon {
+    display: block;
+  }
+
+  .ai-row__action-label {
+    display: none;
+  }
+
+  .ai-row__right .btn {
+    min-height: var(--min-touch-target);
+    padding: 0;
+  }
+
+  /* Échappatoires : un vrai contrôle, à la hauteur de .btn-md, et non un lien
+     souligné de 14 px. Le fond blanc les distingue de la ligne sans les faire
+     concurrencer l'action principale, qui reste seule en anthracite. */
+  .ai-row__alt-btn {
+    min-height: 38px;
+    padding: 0 12px;
+    color: var(--color-ink-2);
+    background: var(--color-bg-white);
+    border: var(--border-thin);
+    border-radius: var(--radius-button);
+    text-decoration: none;
+  }
+
+  .ai-row__alt-btn:hover {
+    border-color: var(--color-border-strong);
+  }
+
+  /* La pastille ne colle plus au nom : 2 px suffisaient à un lien, pas à un
+     contrôle bordé. */
+  .ai-row__target {
+    gap: 6px;
+  }
+
+  /* Les résultats de recherche méritent la même cible tactile que le reste. */
+  .ai-row__search-item {
+    min-height: var(--min-touch-target);
+    padding: 12px;
   }
 }
 
