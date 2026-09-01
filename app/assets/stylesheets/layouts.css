@@ -318,16 +318,31 @@
   font-weight: 500;
 }
 
-/* Le point d'entrée « Installer l'application » est un <button> : il n'ouvre pas
-   une URL mais la boîte d'installation du navigateur. On neutralise le style
-   natif du bouton pour qu'il s'aligne exactement sur les liens voisins. */
+/* Point d'entrée « Installer l'application ». C'est un <button> et non un lien :
+   il n'ouvre pas une URL mais la boîte d'installation du navigateur. On neutralise
+   son style natif pour qu'il s'aligne exactement sur les liens voisins.
+
+   Masqué par défaut, donc absent du desktop : là, le navigateur expose déjà sa
+   propre icône d'installation dans la barre d'adresse, et le lien ferait doublon.
+   Il n'est révélé que sous 1024px (voir @media plus bas), où rien ne signale
+   l'installation à l'utilisateur. */
 button.dropdown-link {
+  display: none;
   width: 100%;
   background: none;
   border: 0;
   font-family: inherit;
   text-align: left;
   cursor: pointer;
+}
+
+/* Masquage piloté par le controller Stimulus quand l'installation n'est pas
+   proposée (Safari, Firefox, app déjà installée). Spécificité supérieure à la
+   règle d'affichage mobile : ce repli reste prioritaire à toutes les largeurs.
+   Sans lui, le display:flex de .dropdown-link l'emporterait sur le display:none
+   que le navigateur applique à [hidden]. */
+button.dropdown-link[hidden] {
+  display: none;
 }
 
 .dropdown-link:hover {
@@ -444,6 +459,12 @@ button.dropdown-link {
 
   /* Afficher l'en-tête d'identité (profil) en haut du dropdown mobile */
   .dropdown-identity {
+    display: flex;
+  }
+
+  /* Installation de la PWA : proposée sur mobile seulement, où le navigateur
+     n'offre aucun point d'entrée visible (voir button.dropdown-link plus haut). */
+  button.dropdown-link {
     display: flex;
   }
 
