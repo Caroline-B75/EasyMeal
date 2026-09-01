@@ -33,7 +33,13 @@
     = yield :head
 
     %link{rel: "manifest", href: pwa_manifest_path}
-    %link{rel: "icon", href: "/icon-192-v4.png", type: "image/png"}
+    -# favicon.ico (16/32/48) : le seul fichier que les navigateurs vont chercher à la
+    -# racine sans lire le HTML — barre de favoris, historique, page « nouvel onglet ».
+    -# Son nom et son emplacement sont imposés par la convention : ni chemin ni suffixe de version.
+    %link{rel: "icon", href: "/favicon.ico", sizes: "48x48"}
+    -# Onglet : version vectorielle, nette à toute taille et à tout zoom. Les
+    -# navigateurs qui l'ignorent (Safari < 16.4) retombent sur le favicon.ico.
+    %link{rel: "icon", href: "/icon.svg", type: "image/svg+xml"}
     -# apple-touch-icon : PNG 180x180 opaque plein cadre (fond paprika #C0392B), sans alpha ni coins arrondis (iOS applique son propre masque)
     %link{rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon-v4.png"}
     = stylesheet_link_tag "application", "data-turbo-track": "reload"
