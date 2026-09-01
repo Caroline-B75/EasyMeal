@@ -3360,31 +3360,39 @@ button.draft-rail-count:not(:disabled) {
 }
 
 /* === Ingrédients — nested fields ===
-   Un ingrédient = une rangée. Base mobile : le nom et sa croix sur une ligne,
-   la quantité en dessous. Sur écran large les trois éléments se réalignent sur
-   une seule ligne (cf. media query en fin de section).
+   Un ingrédient = une rangée. Base mobile : le nom prend la ligne entière, la
+   quantité et la croix se partagent celle du dessous. Sur écran large les trois
+   éléments se réalignent sur une seule ligne (cf. media query en fin de section).
 
    Pas de carte autour : elle était blanche et ne contenait que des champs
    blancs — un cadre sans contenu propre, qui décalait en prime les champs de
    12px vers l'intérieur par rapport au reste du formulaire. Les champs se
    détachent d'eux-mêmes sur le fond beige de la page ; ce qui tient la rangée
-   ensemble, c'est la proximité, donc l'écart interne (8px) doit rester
-   nettement inférieur à l'écart entre deux ingrédients (16px). */
+   ensemble, c'est la proximité, donc l'écart interne (6px) doit rester
+   nettement inférieur à l'écart entre deux ingrédients (16px) — sans quoi,
+   rangée repliée, chaque quantité se lit comme celle de l'ingrédient suivant. */
 
 .preparations-container {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 16px;
 }
 
+/* La croix descend sur la seconde ligne plutôt que de flanquer le nom : elle lui
+   coûtait la largeur d'une cible tactile, donc un nom abrégé en plein milieu
+   (« Persil frais (persil, bouquet de per… »), alors que la ligne du dessous
+   laissait un tiers de l'écran vide à côté de la quantité. */
 .preparation-fields {
+  /* Gabarit de la quantité, partagé par le champ et par la piste de grille qui
+     l'accueille : une seule valeur à ajuster, à mobile comme à desktop. */
+  --prep-qty-width: 148px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: var(--prep-qty-width) minmax(0, 1fr);
   grid-template-areas:
-    "ingredient remove"
-    "quantity   quantity";
+    "ingredient ingredient"
+    "quantity   remove";
   align-items: center;
-  gap: 8px;
+  gap: 6px 8px;
 }
 
 /* Ligne marquée pour suppression : toujours soumise (donc dans le DOM) mais
@@ -3395,6 +3403,10 @@ button.draft-rail-count:not(:disabled) {
 
 .preparation-ingredient {
   grid-area: ingredient;
+  /* Lève le plancher min-content de l'élément de grille : un nom d'ingrédient
+     long s'abrège dans sa piste au lieu de la pousser hors de l'écran — le
+     débordement latéral se paie ici par la page entière (cf. .rf-body). */
+  min-width: 0;
 }
 
 /* Valeur courte : largeur fixe, qui sert aussi de gabarit à la colonne « quantité »
@@ -3403,7 +3415,7 @@ button.draft-rail-count:not(:disabled) {
    inutilement le nombre de la croix. */
 .preparation-quantity {
   grid-area: quantity;
-  width: 148px;
+  width: var(--prep-qty-width);
 }
 
 /* Une ligne d'ingrédient et les deux boutons qui closent la liste appartiennent
@@ -3426,8 +3438,11 @@ button.draft-rail-count:not(:disabled) {
   background-position: right 12px center;
 }
 
+/* Calée sur le bord droit, dans la même colonne qu'en écran large : la croix
+   change de ligne au repli, jamais de verticale. */
 .preparation-remove {
   grid-area: remove;
+  justify-self: end;
 }
 
 /* Quantité + unité : cadre partagé .rf-unit-field (défini plus haut avec les
@@ -3455,6 +3470,12 @@ button.draft-rail-count:not(:disabled) {
 /* Écran large : nom, quantité et croix se réalignent sur une seule ligne. La
    colonne « quantité » est dimensionnée par la largeur de .preparation-quantity. */
 @media (min-width: 768px) {
+  /* Un ingrédient tient sur une ligne : plus rien à regrouper verticalement, la
+     liste se resserre en un tableau dense. */
+  .preparations-container {
+    gap: 2px;
+  }
+
   .preparation-fields {
     grid-template-columns: minmax(0, 1fr) auto auto;
     grid-template-areas: "ingredient quantity remove";
