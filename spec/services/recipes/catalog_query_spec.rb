@@ -48,6 +48,29 @@ RSpec.describe Recipes::CatalogQuery do
     it "ne retient que les tags portés par au moins une recette" do
       expect(catalog.tags).to contain_exactly(used)
     end
+
+    # Le catalogue n'affiche que les recettes publiées : un tag qui ne vit que
+    # sur un brouillon offrirait une case à cocher sans résultat derrière.
+    it "ignore un tag porté seulement par un brouillon" do
+      brouillon = create(:tag, name: "À relire")
+      create(:recipe, status: :draft, tags: [ brouillon ])
+
+      expect(catalog.tags).to contain_exactly(used)
+    end
+
+    # Cette liste est mise en cache pour une heure : sans invalidation, un tag
+    # supprimé restait proposé en filtre tout ce temps. L'environnement de test
+    # câble un :null_store — il faut donc un vrai cache pour que le test prouve
+    # quelque chose.
+    it "oublie la liste en cache dès qu'un tag change" do
+      allow(Rails).to receive(:cache).and_return(ActiveSupport::Cache::MemoryStore.new)
+
+      expect(catalog.tags).to contain_exactly(used)
+
+      used.destroy!
+
+      expect(catalog.tags).to be_empty
+    end
   end
 
   describe "favoris" do

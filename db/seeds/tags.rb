@@ -13,13 +13,16 @@ puts "  Création / mise à jour des tags..."
 # Aucun tag ne doit reprendre une valeur des enums Recipe (diet, difficulty, price) :
 # la fiche recette affiche déjà ces attributs (kicker régime + badges), un tag
 # homonyme s'afficherait donc deux fois.
+# Pas de catégorie « occasion » (apéritif, entrée, plat, dessert...) pour la même
+# raison : ce classement est celui des moments du repas (MealTypes), un attribut
+# de la recette — les filtres du catalogue le proposent déjà via « Moment du
+# repas ». La rubrique a donc été retirée de l'enum Tag#tag_type le 02/09/2026,
+# et ses tags supprimés en base par la migration DeleteOccasionTags.
 TAGS_BY_TYPE = {
   regime_alimentaire: [ "végétarien", "healthy" ],
   cuisine_monde:      [ "française", "italienne", "espagnole", "grecque", "marocaine",
                         "libanaise", "indienne", "chinoise", "japonaise", "thaïlandaise",
                         "coréenne", "vietnamienne", "mexicaine", "américaine" ],
-  occasion:           [ "apéritif", "entrée", "plat", "dessert", "goûter", "brunch",
-                        "petit-déjeuner", "salade" ],
   methode_cuisson:    [ "four", "poêle", "vapeur", "barbecue", "sans cuisson" ],
   # La saison d'une recette n'est pas celle de ses ingrédients : le catalogue
   # sait déjà filtrer sur les mois de disponibilité (Ingredient#season_months),

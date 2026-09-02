@@ -217,4 +217,46 @@ RSpec.describe "Recipe drafts (recettes importées)", type: :request do
       expect(flash[:alert]).to eq("Tu n'es pas autorisé(e) à effectuer cette action.")
     end
   end
+
+  # Un brouillon est absent du catalogue depuis toujours (RecipePolicy::Scope),
+  # mais sa fiche restait servie à qui tombait sur l'identifiant : la relecture
+  # d'un import IA doit rester entre les mains d'un admin, y compris par URL.
+  describe "GET /recipes/:id d'un brouillon" do
+    let!(:draft) { create(:recipe, :with_ingredient, status: :draft, name: "Gratin à relire") }
+
+    it "sert la fiche à un admin" do
+      get recipe_path(draft)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("Gratin à relire")
+    end
+
+    it "la refuse à un utilisateur non admin" do
+      sign_in create(:user)
+
+      get recipe_path(draft)
+
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to eq("Tu n'es pas autorisé(e) à effectuer cette action.")
+    end
+
+    it "la refuse à un visiteur déconnecté" do
+      sign_out admin
+
+      get recipe_path(draft)
+
+      expect(response).to redirect_to(root_path)
+    end
+
+    # La contrepartie : une recette publiée reste lisible sans compte.
+    it "laisse la fiche d'une recette publiée ouverte à tous" do
+      published = create(:recipe, :with_ingredient, name: "Quiche en ligne")
+      sign_out admin
+
+      get recipe_path(published)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("Quiche en ligne")
+    end
+  end
 end

@@ -1,5 +1,5 @@
 # Policy de sécurité pour les Recipes
-# Lecture publique (tout le monde peut consulter les recettes)
+# Lecture publique des recettes publiées ; les brouillons restent aux admins
 # Création/modification/suppression réservée aux admins (gestion du catalogue)
 class RecipePolicy < ApplicationPolicy
   # Tout le monde peut voir la liste des recettes (UC5 - Catalogue)
@@ -7,9 +7,12 @@ class RecipePolicy < ApplicationPolicy
     true
   end
 
-  # Tout le monde peut voir une recette (UC4 - Fiche recette)
+  # Tout le monde peut voir une recette publiée (UC4 - Fiche recette).
+  # Un brouillon, non : il sort d'un import IA et n'est pas encore relu. Le
+  # catalogue ne l'a jamais montré (cf. Scope ci-dessous), mais /recipes/:id le
+  # servait quand même à qui tombait sur l'identifiant — déconnecté compris.
   def show?
-    true
+    record.published? || user&.admin?
   end
 
   # Seuls les admins peuvent créer une recette (gestion du catalogue)

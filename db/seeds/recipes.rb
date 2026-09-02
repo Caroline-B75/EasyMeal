@@ -88,7 +88,10 @@ RECIPES = [
       meal_types: %w[lunch dinner]
     },
     ingredients: [ [ "pâtes", 400 ], [ "lardon", 200 ], [ "œuf", 4 ], [ "parmesan", 100 ], [ "poivre", 2 ] ],
-    tags: [ "plat" ]
+    # « plat » a disparu avec la rubrique « Occasion » (cf. db/seeds/tags.rb) :
+    # le moment du repas ci-dessus le dit déjà. Reste une cuisine du monde, pour
+    # que le catalogue de développement ait au moins un filtre par tag à offrir.
+    tags: [ "italienne" ]
   }
 ].freeze
 

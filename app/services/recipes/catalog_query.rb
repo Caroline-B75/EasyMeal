@@ -48,6 +48,15 @@ module Recipes
       new(scope: scope, params: params, user: user, paginator: paginator).call
     end
 
+    # Oublie la liste des tags mise en cache. Appelé par Tag à chaque commit :
+    # un tag créé, renommé ou supprimé doit se voir tout de suite dans les
+    # filtres, sans attendre le TTL. Le TTL reste le filet de sécurité des
+    # changements qui ne passent pas par Tag (une recette qui perd son dernier
+    # tag, par exemple).
+    def self.expire_tags_cache!
+      Rails.cache.delete(TAGS_CACHE_KEY)
+    end
+
     def initialize(scope:, params:, user:, paginator:)
       @scope     = scope
       @params    = params
@@ -80,9 +89,12 @@ module Recipes
                    .order(@params[:sort] || DEFAULT_SORT)
     end
 
+    # Seules les recettes publiées comptent : ce sont les seules que le catalogue
+    # affiche (RecipePolicy::Scope), donc un tag qui ne vit que sur un brouillon
+    # proposerait un filtre condamné à ne rien ramener.
     def tags
       Rails.cache.fetch(TAGS_CACHE_KEY, expires_in: TAGS_CACHE_TTL) do
-        Tag.joins(:recipes).distinct.alphabetical.to_a
+        Tag.joins(:recipes).merge(Recipe.published).distinct.alphabetical.to_a
       end
     end
 

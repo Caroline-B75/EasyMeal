@@ -252,7 +252,12 @@
                   = link_to recipe_path(recipe, meal_type: context_meal_type), class: "recipe-card-link", data: { turbo_frame: "_top", turbo_prefetch: "false" } do
                     -# Clé de cache incluant le mois : le badge « De saison » dépend
                     -# du mois courant, il doit donc s'invalider chaque mois.
-                    - cache [recipe, "season-m#{@catalog.current_month}"] do
+                    -# Et les tags, qui vivent hors de la recette : en supprimer ou en
+                    -# renommer un ne touche pas son updated_at, la carte afficherait
+                    -# donc encore la puce d'un tag disparu. La collection est déjà
+                    -# préchargée (CatalogQuery::CARD_INCLUDES) et la clé triée pour
+                    -# rester la même d'une requête à l'autre : aucun coût ajouté.
+                    - cache [recipe, recipe.tags.map(&:cache_key_with_version).sort, "season-m#{@catalog.current_month}"] do
                       .recipe-card
                         .recipe-card-image-wrapper
                           - if recipe.photo.attached?

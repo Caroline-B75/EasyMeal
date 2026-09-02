@@ -1,5 +1,5 @@
 # Représente un tag/label pour catégoriser les recettes
-# Exemples : "rapide", "sans gluten", "pour enfants", "apéritif", "dessert"
+# Exemples : "healthy", "sans gluten", "italienne", "four", "hiver"
 class Tag < ApplicationRecord
   # === Associations ===
   has_many :recipe_tags, dependent: :destroy
@@ -9,7 +9,12 @@ class Tag < ApplicationRecord
   # Type de tag (optionnel, pour organiser les tags par catégorie)
   enum :tag_type, {
     regime_alimentaire: 0, # Régime alimentaire (sans gluten, sans lactose, etc.)
-    occasion: 1,          # Occasion (apéritif, dessert, brunch, etc.)
+    # Le rang 1 portait la rubrique « Occasion » (apéritif, entrée, plat,
+    # dessert, goûter, brunch...), retirée le 02/09/2026 : c'est le classement
+    # des moments du repas (MealTypes), déjà porté par la recette elle-même — le
+    # proposer aussi en tag dédoublait les filtres du catalogue. Le rang reste
+    # vacant : le réattribuer ferait ressurgir ces tags sous une autre rubrique
+    # (cf. la migration DeleteOccasionTags).
     methode_cuisson: 2,   # Méthode de cuisson (four, thermomix, BBQ, etc.)
     saison: 3,            # Saison (été, hiver, etc.)
     rapidite: 4,          # Rapidité (rapide, express, etc.)
@@ -23,7 +28,6 @@ class Tag < ApplicationRecord
     "rapidite"           => "Rapidité",
     "regime_alimentaire" => "Régime alimentaire",
     "cuisine_monde"      => "Cuisine du monde",
-    "occasion"           => "Occasion",
     "methode_cuisson"    => "Méthode de cuisson",
     "saison"             => "Saison",
     "autre"              => "Autre"
@@ -35,13 +39,21 @@ class Tag < ApplicationRecord
                    length: { minimum: 2, maximum: 50 }
 
   # === Scopes ===
+  # Un seul scope, et il sert partout : la liste des tags est courte et toujours
+  # lue en entier (liste d'administration, filtres du catalogue, formulaire de
+  # recette, catalogue envoyé à l'IA). Ni recherche ni filtre par rubrique à
+  # prévoir ici — c'est `grouped_by_type` qui range, en mémoire.
   scope :alphabetical, -> { order(:name) }
-  scope :by_type, ->(type) { where(tag_type: type) if type.present? }
-  scope :search, ->(query) { where("name ILIKE ?", "%#{query}%") if query.present? }
 
   # === Callbacks ===
   # Normalise le nom du tag (minuscules, trim)
   before_validation :normalize_name
+
+  # La sidebar du catalogue lit une liste de tags mise en cache pour tout le
+  # monde : sans cette invalidation, un tag supprimé restait proposé en filtre
+  # — et un tag renommé y gardait son ancien nom — jusqu'à l'expiration du
+  # cache, une heure plus tard.
+  after_commit :expire_catalog_tags_cache
 
   # === Méthodes de classe ===
 
@@ -60,5 +72,9 @@ class Tag < ApplicationRecord
 
   def normalize_name
     self.name = name&.strip&.downcase
+  end
+
+  def expire_catalog_tags_cache
+    Recipes::CatalogQuery.expire_tags_cache!
   end
 end
