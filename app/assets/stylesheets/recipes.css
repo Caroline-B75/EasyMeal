@@ -3311,6 +3311,13 @@ button.draft-rail-count:not(:disabled) {
   display: none;
 }
 
+/* Même piège pour « Changer de photo », qui se retire dès que la zone de dépôt
+   prend sa place : le display: inline-flex de .btn l'emporterait sur l'attribut
+   hidden, et le bouton resterait affiché sous la zone qu'il vient d'ouvrir. */
+.rf-form .rf-photo .btn[hidden] {
+  display: none;
+}
+
 /* === Zone de dépôt de la photo === */
 
 .rf-dropzone {

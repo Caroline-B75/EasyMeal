@@ -110,7 +110,10 @@
       .form-group.rf-photo{ data: { controller: "image-preview",
           action: "paste@document->image-preview#paste form-recovery:photoRestored->image-preview#restored" } }
         - if photo_attached
-          = image_tag cloudinary_photo_url(recipe.photo, width: 200, height: 150), class: "photo-preview", width: 200, height: 150, loading: "lazy"
+          -# La photo en place reste visible pendant le choix — c'est la pièce à
+          -# remplacer — et s'effacera au profit de l'aperçu du fichier retenu :
+          -# une seule vignette à la fois, celle qui sera enregistrée.
+          = image_tag cloudinary_photo_url(recipe.photo, width: 200, height: 150), class: "photo-preview", width: 200, height: 150, loading: "lazy", data: { image_preview_target: "currentPhoto" }
           %button.btn.btn-white{ type: "button", data: { image_preview_target: "changeButton", action: "click->image-preview#showUploadField" } }
             Changer de photo
 
