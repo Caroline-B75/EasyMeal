@@ -12,9 +12,12 @@
 # Elle se lit en deux temps :
 #
 # 1. les cinq moments de la journée, dans l'ordre où elle se déroule ;
-# 2. ce qui ne se range pas sur cette ligne du temps — les moments d'un repas
-#    (entrée, salade, dessert). Ils viennent après, entre eux dans l'ordre du
-#    service.
+# 2. ce qui ne se range pas sur cette ligne du temps — les services d'un repas
+#    (entrée, dessert). Ils viennent après, entre eux dans l'ordre du service.
+#
+# N'entre dans cette liste que ce dont on commande une quantité pour la semaine
+# (« 3 desserts »). La forme d'un plat — salade, soupe, gratin — répond à une
+# tout autre question : elle vit dans les tags, rubrique « Type de plat ».
 #
 # Les libellés sont exposés sur le module lui-même (MealTypes.label & co) et
 # nulle part ailleurs : un seul chemin d'appel, quel que soit l'appelant —
@@ -22,7 +25,7 @@
 module MealTypes
   extend ActiveSupport::Concern
 
-  MEAL_TYPES = %w[breakfast lunch snack apero dinner starter salad dessert].freeze
+  MEAL_TYPES = %w[breakfast lunch snack apero dinner starter dessert].freeze
 
   # Libellé français au singulier — « Petit-déjeuner ».
   # @param meal_type [String, Symbol, nil]
@@ -75,7 +78,6 @@ module MealTypes
     "apero"     => "glass",
     "dinner"    => "moon",
     "starter"   => "plate",
-    "salad"     => "salad",
     "dessert"   => "ice-cream"
   }.freeze
   private_constant :ICONS

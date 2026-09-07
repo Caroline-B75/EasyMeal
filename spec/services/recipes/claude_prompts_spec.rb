@@ -156,11 +156,11 @@ RSpec.describe Recipes::ClaudePrompts do
     it "n'ouvre le catalogue de tags que lorsqu'il y en a" do
       expect(prompt).not_to include("à choisir dans ce catalogue")
 
-      create(:tag, name: "rapide", tag_type: :rapidite)
+      create(:tag, name: "soupe", tag_type: :type_de_plat)
 
       expect(described_class.text_request("Une recette")[:messages].first[:content]).to include(
         "de 0 à #{described_class::MAX_TAGS} tags",
-        "Rapidité : rapide"
+        "Type de plat : soupe"
       )
     end
   end

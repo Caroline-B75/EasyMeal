@@ -10,7 +10,7 @@ RSpec.describe MealTypes do
   describe "MEAL_TYPES" do
     it "range les moments de la journée avant ceux qui n'y tiennent pas" do
       expect(described_class::MEAL_TYPES)
-        .to eq(%w[breakfast lunch snack apero dinner starter salad dessert])
+        .to eq(%w[breakfast lunch snack apero dinner starter dessert])
     end
   end
 

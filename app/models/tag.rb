@@ -1,5 +1,5 @@
 # Représente un tag/label pour catégoriser les recettes
-# Exemples : "healthy", "sans gluten", "italienne", "four", "hiver"
+# Exemples : "salade", "équilibré", "italienne", "four", "hiver"
 class Tag < ApplicationRecord
   # === Associations ===
   has_many :recipe_tags, dependent: :destroy
@@ -8,7 +8,11 @@ class Tag < ApplicationRecord
   # === Enums ===
   # Type de tag (optionnel, pour organiser les tags par catégorie)
   enum :tag_type, {
-    regime_alimentaire: 0, # Régime alimentaire (sans gluten, sans lactose, etc.)
+    # Ce que le plat apporte — léger, équilibré. Rang anciennement « Régime
+    # alimentaire », renommé le 05/09/2026 : le régime, c'est Recipe#diet qui le
+    # dit. La rubrique décrit un profil nutritionnel, pas un régime, et pourra
+    # accueillir les « sans » (gluten, lactose) le jour où ils serviront.
+    nutrition: 0,
     # Le rang 1 portait la rubrique « Occasion » (apéritif, entrée, plat,
     # dessert, goûter, brunch...), retirée le 02/09/2026 : c'est le classement
     # des moments du repas (MealTypes), déjà porté par la recette elle-même — le
@@ -17,20 +21,26 @@ class Tag < ApplicationRecord
     # (cf. la migration DeleteOccasionTags).
     methode_cuisson: 2,   # Méthode de cuisson (four, thermomix, BBQ, etc.)
     saison: 3,            # Saison (été, hiver, etc.)
-    rapidite: 4,          # Rapidité (rapide, express, etc.)
+    # Le rang 4 portait la rubrique « Rapidité » (rapide, express...), retirée
+    # le 05/09/2026 : elle n'a jamais reçu un seul tag, le catalogue filtrant
+    # déjà la durée via « Temps max » (Recipe.with_total_time_lte).
     autre: 5,             # Autre
-    cuisine_monde: 6      # Cuisine du monde (italienne, thaïlandaise, etc.)
+    cuisine_monde: 6,     # Cuisine du monde (italienne, thaïlandaise, etc.)
+    # Forme du plat, et elle seule : une salade reste une salade qu'on la serve
+    # en entrée ou en plat. Ne pas y ranger un moment du repas — c'est
+    # Recipe#meal_types qui le porte (cf. le rang 1, vacant pour cette raison).
+    type_de_plat: 7       # Type de plat (salade, soupe, gratin, etc.)
   }, prefix: true
 
   # Libellés lisibles des types, dans l'ordre d'affichage souhaité pour l'admin.
   # L'ordre de ce hash pilote l'ordre des groupes affichés.
   TAG_TYPE_LABELS = {
-    "rapidite"           => "Rapidité",
-    "regime_alimentaire" => "Régime alimentaire",
-    "cuisine_monde"      => "Cuisine du monde",
-    "methode_cuisson"    => "Méthode de cuisson",
-    "saison"             => "Saison",
-    "autre"              => "Autre"
+    "type_de_plat"    => "Type de plat",
+    "nutrition"       => "Nutrition",
+    "cuisine_monde"   => "Cuisine du monde",
+    "methode_cuisson" => "Méthode de cuisson",
+    "saison"          => "Saison",
+    "autre"           => "Autre"
   }.freeze
 
   # === Validations ===

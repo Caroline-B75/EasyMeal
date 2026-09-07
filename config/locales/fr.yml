@@ -215,7 +215,7 @@ fr:
 
   # Moments du repas — vocabulaire partagé par Recipe#meal_types (array)
   # et MenuRecipe#meal_type (valeur unique), via le concern MealTypes.
-  # D'abord les cinq moments de la journée dans l'ordre, puis les moments d'un
+  # D'abord les cinq moments de la journée dans l'ordre, puis les services d'un
   # repas, qui ne se rangent pas sur cette ligne du temps.
   meal_types:
     breakfast: Petit-déjeuner
@@ -224,7 +224,6 @@ fr:
     apero: Apéro
     dinner: Dîner
     starter: Entrée
-    salad: Salade
     dessert: Dessert
 
   # Même vocabulaire au pluriel : on commande DES petits-déjeuners et on titre
@@ -236,7 +235,6 @@ fr:
     apero: Apéros
     dinner: Dîners
     starter: Entrées
-    salad: Salades
     dessert: Desserts
 
   # Libellés des sélecteurs de moment des cartes de repas (MealTypes.compact_label) :
@@ -249,7 +247,6 @@ fr:
     apero: Apéro
     dinner: Dîner
     starter: Entrée
-    salad: Salade
     dessert: Dessert
 
   # Formes courtes et accordées de la barre de résumé du formulaire de menu :
@@ -273,9 +270,6 @@ fr:
     starter:
       one: entrée
       other: entrées
-    salad:
-      one: salade
-      other: salades
     dessert:
       one: dessert
       other: desserts

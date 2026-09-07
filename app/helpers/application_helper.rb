@@ -211,13 +211,12 @@ module ApplicationHelper
     "glass"         => '<path d="M5 3h14l-7 8z"/><line x1="12" y1="11" x2="12" y2="20"/><line x1="8" y1="20" x2="16" y2="20"/>',
     "moon"          => '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
 
-    # Les trois suivantes n'existent pas chez Feather non plus. Elles suivent
+    # Les deux suivantes n'existent pas chez Feather non plus. Elles suivent
     # la même grammaire que « glass » : viewBox 24, trait de 2, bouts arrondis,
     # et une silhouette qui tient encore à 13 px dans une carte de repas — d'où
-    # des formes franchement distinctes les unes des autres (une assiette ronde,
-    # un bol surmonté de feuilles, un cône pointe en bas).
+    # des formes franchement distinctes l'une de l'autre (une assiette ronde,
+    # un cône pointe en bas).
     "plate"         => '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/>',
-    "salad"         => '<path d="M3 12a9 9 0 0 0 18 0z"/><path d="M12 12c0-2.8 2.2-5 5-5 0 2.8-2.2 5-5 5z"/><path d="M12 12C9.2 12 7 9.8 7 7c2.8 0 5 2.2 5 5z"/>',
     "ice-cream"     => '<path d="M7.5 10a4.5 4.5 0 0 1 9 0"/><path d="M7.5 10h9l-4.5 11z"/>'
   }.freeze
   # rubocop:enable Layout/LineLength
