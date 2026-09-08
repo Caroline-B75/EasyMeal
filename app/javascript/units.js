@@ -95,7 +95,8 @@ const round3 = (value) => Math.round(value * 1000) / 1000
 // Ce que contient UNE pièce, et dans quelle langue : [300, 'mass'] pour une
 // aubergine, [1000, 'volume'] pour une brique. null quand rien ne le dit.
 // Miroir de PieceCounting#piece_measure — les deux ne cohabitent jamais.
-function pieceMeasure({ pieceWeight, pieceVolume }) {
+// Exporté pour quantities.js, qui compte les pièces avec le même coefficient.
+export function pieceMeasure({ pieceWeight, pieceVolume }) {
   const weight = parseFloat(pieceWeight)
   if (weight > 0) return [ weight, MASS ]
 

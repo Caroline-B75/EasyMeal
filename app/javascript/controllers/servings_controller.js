@@ -1,25 +1,26 @@
 import { Controller } from "@hotwired/stimulus"
+import { quantitySentence } from "quantities"
 
 /**
- * Controller pour ajuster le nombre de personnes sur la fiche recette
- * Recalcule les quantités d'ingrédients en temps réel avec conversions d'unités
- * 
- * Conversions gérées :
- * - mass: g → kg (à partir de 1000g)
- * - volume: ml → L (à partir de 1000ml)
- * - spoon: càc → càs (3 càc = 1 càs), pincées pour < 0.5 càc
- * - count: affichage direct du nombre
- * 
+ * Ajuste le nombre de personnes sur la fiche recette et remet les quantités à
+ * l'échelle sans recharger la page.
+ *
+ * Ce contrôleur ne sait pas écrire une quantité : il lit ce que la ligne porte,
+ * multiplie, et laisse le module quantities — miroir de Preparation#display_quantity
+ * — en faire une phrase. C'est ce qui garantit qu'une ligne écrite par le
+ * serveur au chargement garde la même forme après un clic.
+ *
  * Usage :
  * <div data-controller="servings" data-servings-default-value="4">
  *   <button data-action="click->servings#decrease">−</button>
  *   <span data-servings-target="value">4</span>
  *   <button data-action="click->servings#increase">+</button>
- *   
- *   <li data-servings-target="ingredient" 
- *       data-base-quantity="400" 
+ *
+ *   <li data-servings-target="ingredient"
+ *       data-base-quantity="400"
  *       data-unit-group="mass"
- *       data-default-servings="4">
+ *       data-default-servings="4"
+ *       data-piece-label="pièce" data-piece-weight="300">
  *     <span data-servings-target="quantity">400 g</span>
  *   </li>
  * </div>
@@ -53,129 +54,41 @@ export default class extends Controller {
   }
 
   /**
-   * Met à jour l'affichage et recalcule les quantités
+   * Met à jour le compteur et recalcule chaque ingrédient
    */
   updateDisplay() {
-    // Met à jour le compteur
     this.valueTarget.textContent = this.servings
-
-    // Recalcule chaque ingrédient
-    this.ingredientTargets.forEach(ingredient => {
-      const baseQuantity = parseFloat(ingredient.dataset.baseQuantity)
-      const defaultServings = parseInt(ingredient.dataset.defaultServings) || this.defaultValue
-      const unitGroup = ingredient.dataset.unitGroup || "count"
-      
-      if (isNaN(baseQuantity) || isNaN(defaultServings)) return
-      
-      // Calcul du facteur et de la nouvelle quantité
-      const factor = this.servings / defaultServings
-      const newQuantity = baseQuantity * factor
-      
-      // Trouve l'élément quantity dans cet ingrédient
-      const quantityElement = ingredient.querySelector("[data-servings-target='quantity']")
-      
-      if (quantityElement) {
-        // Applique l'humanisation selon le groupe d'unités
-        quantityElement.textContent = this.humanizeQuantity(newQuantity, unitGroup)
-      }
-    })
-  }
-
-  // === HUMANISATION DES QUANTITÉS ===
-  // Reproduit la logique de Quantities::HumanizeService en JavaScript
-
-  /**
-   * Convertit une quantité brute en affichage lisible
-   * @param {number} quantity - Quantité en unité de base
-   * @param {string} unitGroup - Type d'unité (mass, volume, spoon, count)
-   * @returns {string} Quantité formatée avec unité
-   */
-  humanizeQuantity(quantity, unitGroup) {
-    switch (unitGroup) {
-      case "mass":
-        return this.humanizeMass(quantity)
-      case "volume":
-        return this.humanizeVolume(quantity)
-      case "spoon":
-        return this.humanizeSpoon(quantity)
-      case "count":
-        return this.humanizeCount(quantity)
-      default:
-        return this.formatNumber(quantity)
-    }
+    this.ingredientTargets.forEach(row => this.rescale(row))
   }
 
   /**
-   * Humanise les masses (g → kg)
+   * Réécrit la quantité d'une ligne pour le nombre de personnes courant.
+   * Miroir de Preparation#scaled_quantity : la mise à l'échelle est un simple
+   * facteur, tout le reste vit dans le module quantities.
    */
-  humanizeMass(quantity) {
-    if (quantity >= 1000) {
-      const kg = quantity / 1000
-      return `${this.formatNumber(kg)} kg`
-    }
-    return `${this.formatNumber(quantity)} g`
+  rescale(row) {
+    const baseQuantity = parseFloat(row.dataset.baseQuantity)
+    const defaultServings = parseInt(row.dataset.defaultServings) || this.defaultValue
+    const quantityElement = row.querySelector("[data-servings-target='quantity']")
+
+    if (isNaN(baseQuantity) || !defaultServings || !quantityElement) return
+
+    const scaled = baseQuantity * (this.servings / defaultServings)
+    quantityElement.textContent = quantitySentence(scaled, this.ingredientOf(row))
   }
 
   /**
-   * Humanise les volumes (ml → L)
+   * L'ingrédient réduit à ce qui sert à écrire sa quantité — mêmes noms que
+   * partout ailleurs en JS (cf. units.js). Les attributs absents restent
+   * undefined : un ingrédient sans nom de pièce se dit dans son unité.
    */
-  humanizeVolume(quantity) {
-    if (quantity >= 1000) {
-      const liters = quantity / 1000
-      return `${this.formatNumber(liters)} L`
+  ingredientOf({ dataset }) {
+    return {
+      unitGroup:   dataset.unitGroup,
+      pieceLabel:  dataset.pieceLabel,
+      piecePlural: dataset.piecePlural,
+      pieceWeight: dataset.pieceWeight,
+      pieceVolume: dataset.pieceVolume
     }
-    return `${this.formatNumber(quantity)} ml`
-  }
-
-  /**
-   * Humanise les cuillères (càc → càs, pincées)
-   * 3 càc = 1 càs | 0.25 càc = 1 pincée
-   */
-  humanizeSpoon(quantity) {
-    // Pincées pour très petites quantités (< 0.5 càc)
-    if (quantity < 0.5) {
-      const pinches = Math.round(quantity / 0.25)
-      if (pinches <= 1) {
-        return "1 pincée"
-      }
-      return `${pinches} pincées`
-    }
-
-    // Conversion en càs si >= 3 càc
-    if (quantity >= 3) {
-      const tablespoons = quantity / 3
-      return `${this.formatNumber(tablespoons)} càs`
-    }
-
-    // Sinon càc
-    return `${this.formatNumber(quantity)} càc`
-  }
-
-  /**
-   * Humanise les comptages (pièces)
-   */
-  humanizeCount(quantity) {
-    // Arrondit intelligemment les comptages
-    // Garde les demi-unités, arrondit le reste
-    const rounded = Math.round(quantity * 2) / 2
-    return this.formatNumber(rounded)
-  }
-
-  /**
-   * Formate un nombre avec virgule française et suppression des décimales inutiles
-   * @param {number} num - Nombre à formater
-   * @returns {string} Nombre formaté
-   */
-  formatNumber(num) {
-    // Arrondit à 2 décimales
-    let rounded = Math.round(num * 100) / 100
-    
-    // Supprime les décimales inutiles
-    if (rounded === Math.floor(rounded)) {
-      return rounded.toString()
-    }
-    
-    // Formate avec virgule française
-    return rounded.toString().replace(".", ",")
   }
 }

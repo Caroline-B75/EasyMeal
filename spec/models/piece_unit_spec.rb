@@ -64,6 +64,20 @@ RSpec.describe PieceUnit do
 
       expect(orphelin.count_for(600)).to be_nil
     end
+
+    context "hors des courses (round_up: false)" do
+      it "dit la fraction de pièce que la recette consomme" do
+        expect(yaourt.count_for(0.5, round_up: false)).to eq(0.5)
+      end
+
+      it "s'arrête au dixième de pièce" do
+        expect(yaourt.count_for(0.375, round_up: false)).to eq(0.4)
+      end
+
+      it "arrondit quand même ce qui se pèse — 3,33 blancs n'existent pas" do
+        expect(aubergine.count_for(750, round_up: false)).to eq(3)
+      end
+    end
   end
 
   describe "#exact?" do
@@ -87,6 +101,10 @@ RSpec.describe PieceUnit do
 
     it "ajoute un « s » au-delà" do
       expect(aubergine.label_for(3)).to eq("pièces")
+    end
+
+    it "garde le singulier sous deux, comme en français" do
+      expect(aubergine.label_for(1.8)).to eq("pièce")
     end
 
     it "préfère le pluriel écrit quand le français refuse le « s »" do
@@ -135,6 +153,24 @@ RSpec.describe PieceUnit do
 
     it "rend nil pour une quantité nulle" do
       expect(aubergine.sentence_for(0)).to be_nil
+    end
+
+    context "hors des courses (round_up: false)" do
+      it "écrit la demi-pièce et son équivalence, sans « pour »" do
+        expect(yaourt.sentence_for(0.5, round_up: false)).to eq("0,5 pot (62,5 g)")
+      end
+
+      it "laisse le singulier à une pièce entamée" do
+        expect(yaourt.sentence_for(0.4, round_up: false)).to eq("0,4 pot (50 g)")
+      end
+
+      it "rend nil sous le dixième de pièce — la mesure dira mieux ce qu'il faut" do
+        expect(yaourt.sentence_for(0.04, round_up: false)).to be_nil
+      end
+
+      it "ne change rien à ce qui se pèse : les pièces y restent déduites" do
+        expect(aubergine.sentence_for(750, round_up: false)).to eq("3 pièces pour 750 g")
+      end
     end
   end
 end

@@ -10,6 +10,11 @@ module Quantities
   #                 très petites quantités → pincées (0,25 cac = 1 pincée)
   # - count       : entier si possible, sinon 1 décimale max
   #
+  # Seul le compte dépend de ce qu'on écrit. Sur une liste de courses il se dit
+  # entier dès qu'il dépasse deux — on n'achète pas 4,5 citrons verts ; une
+  # recette, elle, dit ce qu'elle consomme (`round_up: false`), au dixième près
+  # et dans les mêmes termes que PieceUnit, qui porte le même paramètre.
+  #
   # @example
   #   Quantities::HumanizeService.call(quantity: 1500, unit_group: :mass)
   #   # => { value: 1.5, unit: "kg", display: "1,5 kg" }
@@ -20,15 +25,17 @@ module Quantities
     VOLUME_THRESHOLD = 1000   # ml → L
     CAC_PER_CAS = 3           # 3 càc = 1 càs
     CAC_PER_PINCEE = 0.25     # 1 pincée = 0,25 càc
+    COUNT_DECIMALS = 1        # un compte fractionnaire se lit au dixième
 
     # Point d'entrée principal (class method)
-    def self.call(quantity:, unit_group:)
-      new(quantity: quantity, unit_group: unit_group).call
+    def self.call(quantity:, unit_group:, round_up: true)
+      new(quantity: quantity, unit_group: unit_group, round_up: round_up).call
     end
 
-    def initialize(quantity:, unit_group:)
+    def initialize(quantity:, unit_group:, round_up: true)
       @quantity = quantity.to_f
       @unit_group = unit_group.to_s.to_sym
+      @round_up = round_up
     end
 
     # Retourne un hash avec la valeur formatée, l'unité et l'affichage complet
@@ -95,11 +102,15 @@ module Quantities
     end
 
     # === NOMBRE (pièces) ===
+    # « 2,7 œufs » ne s'achète pas : au-delà de deux, une course se dit entière.
+    # Une recette garde la fraction, qui lui dit quoi mettre dans le plat.
     def humanize_count
+      return { value: rounded_number(@quantity, max_decimals: COUNT_DECIMALS), unit: "" } unless @round_up
+
       if integer_like?(@quantity) || @quantity >= 2
         { value: @quantity.round, unit: "" }
       else
-        { value: rounded_number(@quantity, max_decimals: 1), unit: "" }
+        { value: rounded_number(@quantity, max_decimals: COUNT_DECIMALS), unit: "" }
       end
     end
 

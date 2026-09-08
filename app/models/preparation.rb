@@ -62,15 +62,18 @@ class Preparation < ApplicationRecord
 
   private
 
-  # Une quantité écrite comme on la lit — et, pour ce qui s'achète à la pièce,
-  # d'abord en pièces : « 3 pièces pour 750 g ». Même règle que la liste de
+  # Une quantité écrite comme on la lit — et, pour ce qui se compte à la pièce,
+  # d'abord en pièces : « 3 pièces pour 750 g ». Mêmes mots que la liste de
   # courses (PieceUnit), pour qu'une recette et les courses qu'elle engendre ne
-  # se contredisent jamais.
+  # se contredisent jamais, mais sans l'arrondi de l'achat : une recette dit ce
+  # qu'elle consomme — un demi-concombre reste un demi-concombre, c'est la liste
+  # de courses qui achètera le concombre entier.
   #
   # @param scaled [Numeric] quantité en unité de base, déjà mise à l'échelle
   # @return [String]
   def display_quantity(scaled)
-    ingredient.piece_unit&.sentence_for(scaled) ||
-      Quantities::HumanizeService.call(quantity: scaled, unit_group: ingredient_unit_group)[:display]
+    ingredient.piece_unit&.sentence_for(scaled, round_up: false) ||
+      Quantities::HumanizeService.call(quantity: scaled, unit_group: ingredient_unit_group,
+                                       round_up: false)[:display]
   end
 end

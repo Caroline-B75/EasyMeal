@@ -155,11 +155,20 @@
     - if @preparations.any?
       .rs-ing-list
         - @preparations.each do |preparation|
+          -# Le stepper réécrit ces quantités dans le navigateur : la ligne porte
+          -# donc de quoi les compter en pièces comme le serveur vient de le faire
+          -# (cf. le module quantities). Les colonnes vides ne sont pas rendues,
+          -# et l'ingrédient se dit alors simplement dans son unité.
+          - ingredient = preparation.ingredient
           .rs-ing-row{ data: { servings_target: "ingredient",
                                base_quantity: preparation.quantity_base,
-                               unit_group: preparation.ingredient.unit_group,
-                               default_servings: @recipe.default_servings } }
-            %span.rs-ing-name= preparation.ingredient.name
+                               unit_group: ingredient.unit_group,
+                               default_servings: @recipe.default_servings,
+                               piece_label: ingredient.piece_label,
+                               piece_plural: ingredient.piece_label_plural,
+                               piece_weight: ingredient.piece_weight_g,
+                               piece_volume: ingredient.piece_volume_ml } }
+            %span.rs-ing-name= ingredient.name
             %span.rs-ing-qty{ data: { servings_target: "quantity" } }
               = preparation.humanized_quantity(servings: @servings)
     - else

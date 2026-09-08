@@ -20,15 +20,29 @@
 # - l'ingrédient se compte (count) : la quantité EST le nombre de pièces, et
 #   c'est la mesure qui s'en déduit — 4 pots × 125 g = 500 g.
 #
-# Dans les deux cas on arrondit au supérieur : on n'achète pas deux courgettes
-# et demie. Le décalage que cet arrondi crée n'est jamais tu — c'est lui que
-# `exact?` signale, pour que l'affichage écrive « 3 pièces pour 750 g » plutôt
-# que « 3 pièces (750 g) », qui ferait croire à une équivalence.
+# Reste à savoir si l'on arrondit, car compter est ici deux gestes distincts :
+#
+# - faire ses courses (par défaut) : on arrondit au supérieur, on n'achète pas
+#   deux courgettes et demie. Le décalage que cet arrondi crée n'est jamais tu —
+#   c'est lui que `exact?` signale, pour que l'affichage écrive « 3 pièces pour
+#   750 g » plutôt que « 3 pièces (750 g) », qui ferait croire à une équivalence ;
+# - dire ce qu'une recette consomme (`round_up: false`) : un demi-concombre se
+#   coupe, et l'annoncer entier ferait rater le plat. La quantité s'écrit alors
+#   telle qu'elle est, au dixième de pièce près.
+#
+# Ce second geste ne concerne que ce qui se compte, là où la quantité EST un
+# nombre de pièces. Sur ce qui se pèse, le nombre de pièces reste déduit d'une
+# mesure, et l'arrondi au supérieur demeure la seule façon honnête de le dire :
+# « 3,33 blancs de poulet » n'existe dans aucun frigo, « 4 blancs pour 500 g » si.
 class PieceUnit
   # Les quantités de base vivent au millième (cf. UnitConversionService) : deux
   # nombres qui ne diffèrent qu'au-delà sont le même nombre, et un ratio de
   # 2,9999999 est un compte juste de 3 pièces déguisé par le flottant.
   PRECISION = 3
+
+  # Une fraction de pièce se lit au dixième — un demi-concombre, un tiers de
+  # courgette. Au-delà, le chiffre cesse d'aider à cuisiner.
+  COUNT_DECIMALS = 1
 
   # Ce qui relie les deux nombres quand on achète plus que nécessaire :
   # « 1 brique pour 3 ml ». Les parenthèses, elles, sont réservées à
@@ -64,15 +78,18 @@ class PieceUnit
     @unit_group         = unit_group.to_s
   end
 
-  # Nombre de pièces à acheter pour cette quantité, arrondi au supérieur.
+  # Nombre de pièces pour cette quantité — à acheter, donc arrondi au supérieur,
+  # ou tel que la recette le demande quand `round_up` est faux.
   # nil quand rien ne permet de compter — un ingrédient au poids sans poids de
   # pièce ne se compte pas, et mieux vaut ne rien afficher que deviner.
   #
   # @param quantity [Numeric] quantité en unité de base du porteur
-  # @return [Integer, nil]
-  def count_for(quantity)
+  # @param round_up [Boolean] false pour dire la quantité telle qu'elle est
+  # @return [Numeric, nil] un entier à l'achat, au dixième de pièce sinon
+  def count_for(quantity, round_up: true)
     pieces = exact_count_for(quantity)
     return nil if pieces.nil?
+    return pieces.round(COUNT_DECIMALS) if fractional_pieces?(round_up)
 
     pieces.round(PRECISION).ceil
   end
@@ -81,11 +98,17 @@ class PieceUnit
   # sépare « 2 pièces (600 g) » — l'équivalence — de « 3 pièces pour 750 g »,
   # où l'on achète plus que nécessaire.
   #
+  # Sans arrondi au supérieur, il n'y a par construction aucun surplus à
+  # signaler : « 0,5 pièce (200 g) » dit deux fois la même chose, et le dixième
+  # de pièce auquel l'affichage se limite ne rend pas la ligne moins vraie.
+  #
   # @param quantity [Numeric]
+  # @param round_up [Boolean]
   # @return [Boolean]
-  def exact?(quantity)
+  def exact?(quantity, round_up: true)
     pieces = exact_count_for(quantity)
     return false if pieces.nil?
+    return true if fractional_pieces?(round_up)
 
     rounded = pieces.round(PRECISION)
     rounded == rounded.to_i
@@ -113,21 +136,24 @@ class PieceUnit
   # Rendu en pièces détachées pour que la vue puisse mettre en valeur ce qu'elle
   # veut (le « pour » en gras) sans que le HTML descende jusqu'ici.
   #
-  # nil quand il n'y a rien à compter : ni nom de pièce utilisable, ni quantité.
+  # nil quand il n'y a rien à compter : ni nom de pièce utilisable, ni quantité —
+  # y compris une quantité si petite qu'elle ne fait pas un dixième de pièce, que
+  # l'appelant dira mieux en la mesurant (« 30 g » plutôt que « 0 pièce »).
   #
   # @param quantity [Numeric] quantité en unité de base du porteur
+  # @param round_up [Boolean] false pour dire la quantité telle qu'elle est
   # @return [Hash, nil] { count:, label:, measure:, exact: }
-  def describe(quantity)
-    count = count_for(quantity)
+  def describe(quantity, round_up: true)
+    count = count_for(quantity, round_up: round_up)
     return nil if count.nil? || count.zero?
 
     measure = measure_for(quantity)
 
     {
-      count:   count,
+      count:   display_count(count),
       label:   label_for(count),
       measure: measure && Quantities::HumanizeService.call(**measure)[:display],
-      exact:   exact?(quantity)
+      exact:   exact?(quantity, round_up: round_up)
     }
   end
 
@@ -135,11 +161,13 @@ class PieceUnit
   #
   #   sentence_for(600) → « 2 pièces (600 g) »   la quantité tombe juste
   #   sentence_for(750) → « 3 pièces pour 750 g » on achète plus que nécessaire
+  #   sentence_for(0.5, round_up: false) → « 0,5 pièce (200 g) »  ce qu'on cuisine
   #
   # @param quantity [Numeric]
+  # @param round_up [Boolean] false pour dire la quantité telle qu'elle est
   # @return [String, nil]
-  def sentence_for(quantity)
-    parts = describe(quantity)
+  def sentence_for(quantity, round_up: true)
+    parts = describe(quantity, round_up: round_up)
     return nil if parts.nil?
 
     pieces = "#{parts[:count]} #{parts[:label]}"
@@ -152,10 +180,13 @@ class PieceUnit
   # français refuse le « s » — maquereaux, gambas et noix invariables ; partout
   # ailleurs la règle régulière suffit et la colonne reste nulle.
   #
+  # Le pluriel ne commence qu'à deux, comme en français : « 0,5 pièce »,
+  # « 1,8 pièce », puis « 2 pièces ».
+  #
   # @param count [Numeric]
   # @return [String]
   def label_for(count)
-    return label if count.to_f.abs <= 1
+    return label if count.to_f.abs < 2
 
     plural || "#{label}s"
   end
@@ -167,6 +198,19 @@ class PieceUnit
   # ce qui sépare les deux façons de compter.
   def counted?
     @unit_group == "count"
+  end
+
+  # Une fraction de pièce s'écrit-elle ? Seulement sur ce qui se compte, et
+  # seulement hors des courses (cf. l'en-tête de la classe).
+  def fractional_pieces?(round_up)
+    !round_up && counted?
+  end
+
+  # Le compte, écrit à la française et sans décimale inutile : « 3 », « 0,5 ».
+  def display_count(count)
+    ActiveSupport::NumberHelper.number_to_rounded(
+      count, precision: COUNT_DECIMALS, strip_insignificant_zeros: true, separator: ","
+    )
   end
 
   # Le nombre de pièces AVANT arrondi — la valeur dont dépendent le compte et
