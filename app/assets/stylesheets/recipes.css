@@ -3430,19 +3430,97 @@ button.draft-rail-count:not(:disabled) {
    sinon la section descend en marches d'escalier. Le padding vertical des champs
    reste inchangé, c'est la hauteur minimale qui les met au gabarit. */
 .rf-form .preparation-ingredient .form-select,
+.rf-form .preparation-ingredient .ingredient-picker__input,
 .preparation-quantity .rf-unit-field {
   min-height: var(--min-touch-target);
 }
 
 /* Chevron dessiné plutôt que la flèche native, collée au bord dans la plupart
-   des navigateurs : elle respire ici des mêmes 12px que le texte du champ. */
-.rf-form .preparation-ingredient .form-select {
+   des navigateurs : elle respire ici des mêmes 12px que le texte du champ.
+   Le champ de recherche le porte aussi : il tient la place du sélecteur, il doit
+   donc s'annoncer comme lui — un champ qui ouvre une liste. */
+.rf-form .preparation-ingredient .form-select,
+.rf-form .preparation-ingredient .ingredient-picker__input {
   appearance: none;
   -webkit-appearance: none;
   padding-right: 32px;
   background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23615B54' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
+}
+
+/* === Recherche d'un ingrédient ============================================
+
+   Le champ et sa liste prennent la place du sélecteur natif, qui ne cherchait
+   qu'au début des libellés : « poulet » y tombait sur « Poulet entier » sans
+   jamais montrer « Blanc de poulet » (cf. le contrôleur `ingredient-picker`).
+   Le sélecteur, lui, reste dans la ligne — c'est le champ soumis, et le porteur
+   du catalogue —, masqué par le contrôleur à sa connexion : sans JavaScript,
+   c'est lui qui s'affiche et ces règles ne servent pas. */
+
+.ingredient-picker {
+  /* Ancre de la liste, qui flotte sous le champ. */
+  position: relative;
+  /* Largeur explicite : la largeur de .rf-body est en fit-content, et toute
+     structure posée dessous sans cette consigne rétrécit le formulaire entier. */
+  width: 100%;
+  /* Même plancher levé que sur la piste de grille (cf. .preparation-ingredient) :
+     un nom long s'abrège dans le champ au lieu de pousser la ligne hors écran. */
+  min-width: 0;
+}
+
+.ingredient-picker__input {
+  width: 100%;
+  /* Il remplace un sélecteur, mais on y écrit : le curseur doit le dire. */
+  cursor: text;
+}
+
+/* La liste flotte au-dessus de la page : elle ne doit ni pousser la ligne
+   suivante ni allonger la carte du formulaire à chaque frappe.
+
+   Elle s'élargit au-delà du champ quand les noms le demandent — « Fromage ail
+   et fines herbes (boursin, fromage aux herbes) — g » ne tient pas dans la
+   largeur d'une ligne d'ingrédient — sans jamais sortir de l'écran. */
+.ingredient-picker__results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: max-content;
+  min-width: 100%;
+  max-width: min(26rem, 80vw);
+  /* Au-dessus des lignes voisines et de la carte du formulaire, sous les
+     bandeaux flash (9999) et la barre de navigation (170) : la liste ne
+     recouvre que ce qui la porte. */
+  z-index: 100;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  max-height: 15rem;
+  overflow-y: auto;
+  background: var(--color-bg-white);
+  border: var(--border-thin);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Une proposition tient sur une ligne, coupée s'il le faut : la liste se
+   parcourt du regard, et quinze noms de deux lignes se lisent moins bien que
+   quinze noms d'une seule. */
+.ingredient-picker__option {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  color: var(--color-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Même marque au survol et au clavier : la proposition que Entrée retiendrait
+   se reconnaît sans avoir à deviner d'où vient le focus. */
+.ingredient-picker__option:hover,
+.ingredient-picker__option[aria-selected="true"] {
+  background: var(--color-bg-secondary);
 }
 
 /* Calée sur le bord droit, dans la même colonne qu'en écran large : la croix

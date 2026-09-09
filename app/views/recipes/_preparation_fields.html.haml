@@ -14,26 +14,60 @@
   - if f.object.persisted?
     = f.hidden_field :id, data: { nested_form_target: "recordId" }
 
-  .form-group.preparation-ingredient{ class: field_error_class(f.object, :ingredient_id) }
+  -# Le sélecteur natif ne cherche qu'au début des libellés : « poulet » y
+  -# tombait sur « Poulet entier » sans jamais montrer « Blanc de poulet ». Le
+  -# contrôleur `ingredient-picker` lui substitue un champ de recherche et une
+  -# liste filtrée sur ces mêmes options — le sélecteur reste le champ soumis,
+  -# et le seul porteur du catalogue.
+  .form-group.preparation-ingredient{ class: field_error_class(f.object, :ingredient_id),
+                                      data: { controller: "ingredient-picker",
+                                              action: "click@window->ingredient-picker#closeOnOutsideClick" } }
     = f.label :ingredient_id, "Ingrédient", class: "form-label sr-only"
-    -# Chaque option porte l'unité de base de son ingrédient et le groupe d'unités
-    -# dont elle vient : c'est là que le contrôleur Stimulus lit quelles unités
-    -# proposer quand on change d'ingrédient. L'unité est aussi écrite dans le
-    -# libellé (Ingredient#select_label) : on la voit avant de choisir, et non
-    -# après, quand le sélecteur d'unité s'est déjà mis à jour.
-    -# Les options ne sont listées que dans le modèle de ligne ; ailleurs, seul
-    -# l'ingrédient déjà choisi est rendu, et `ingredient-options` complète.
-    - options = catalog ? Ingredient.alphabetical : Array(f.object.ingredient)
-    %select.form-select{ name: f.object_name + "[ingredient_id]",
-                         id: f.field_id(:ingredient_id),
-                         data: { ingredient_unit_target: "select", action: "change->ingredient-unit#updateUnit",
-                                 controller: ("ingredient-options" unless catalog) } }
-      %option{ value: "" } Choisir un ingrédient...
-      - options.each do |ingredient|
-        %option{ value: ingredient.id,
-                 selected: f.object.ingredient_id == ingredient.id,
-                 data: ingredient_option_data(ingredient) }
-          = ingredient.select_label
+
+    -# Ancre de la liste, qui flotte sous le champ : sans elle, chaque frappe
+    -# allongerait la carte du formulaire (cf. .ingredient-picker).
+    .ingredient-picker
+      -# Rendu masqué et révélé par le contrôleur : sans JavaScript, c'est le
+      -# sélecteur natif qui reste à l'écran, et la ligne se remplit comme avant.
+      -# Le champ porte son propre nom accessible : le libellé ci-dessus désigne
+      -# le sélecteur, et l'un des deux est toujours caché, donc hors de l'arbre
+      -# d'accessibilité.
+      %input.form-input.ingredient-picker__input{ type: "text", hidden: true,
+                                                  id: f.field_id(:ingredient_id, :search),
+                                                  placeholder: "Chercher un ingrédient...",
+                                                  autocomplete: "off", role: "combobox",
+                                                  aria: { label: "Ingrédient", expanded: "false",
+                                                          autocomplete: "list",
+                                                          controls: f.field_id(:ingredient_id, :results) },
+                                                  data: { ingredient_picker_target: "input",
+                                                          action: "focus->ingredient-picker#open click->ingredient-picker#reopen input->ingredient-picker#search keydown->ingredient-picker#navigate" } }
+
+      %ul.ingredient-picker__results{ hidden: true, role: "listbox",
+                                      id: f.field_id(:ingredient_id, :results),
+                                      aria: { label: "Ingrédients du catalogue" },
+                                      data: { ingredient_picker_target: "results" } }
+
+      -# Chaque option porte l'unité de base de son ingrédient et le groupe d'unités
+      -# dont elle vient : c'est là que le contrôleur Stimulus lit quelles unités
+      -# proposer quand on change d'ingrédient. L'unité est aussi écrite dans le
+      -# libellé (Ingredient#select_label) : on la voit avant de choisir, et non
+      -# après, quand le sélecteur d'unité s'est déjà mis à jour.
+      -# Les options ne sont listées que dans le modèle de ligne ; ailleurs, seul
+      -# l'ingrédient déjà choisi est rendu, et `ingredient-options` complète.
+      -# C'est aussi de ces options que `ingredient-picker` filtre sa liste, et le
+      -# `change` qu'il émet en retenant un ingrédient lui fait afficher son libellé.
+      - options = catalog ? Ingredient.alphabetical : Array(f.object.ingredient)
+      %select.form-select{ name: f.object_name + "[ingredient_id]",
+                           id: f.field_id(:ingredient_id),
+                           data: { ingredient_unit_target: "select", ingredient_picker_target: "select",
+                                   action: "change->ingredient-unit#updateUnit change->ingredient-picker#showSelection",
+                                   controller: ("ingredient-options" unless catalog) } }
+        %option{ value: "" } Choisir un ingrédient...
+        - options.each do |ingredient|
+          %option{ value: ingredient.id,
+                   selected: f.object.ingredient_id == ingredient.id,
+                   data: ingredient_option_data(ingredient) }
+            = ingredient.select_label
     = field_errors(f.object, :ingredient_id)
 
   .form-group.preparation-quantity{ class: field_error_class(f.object, :quantity_base) }
