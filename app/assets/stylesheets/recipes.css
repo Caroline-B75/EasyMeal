@@ -4264,11 +4264,26 @@ button.draft-rail-count:not(:disabled) {
   border-color: var(--color-accent-border);
 }
 
-.ai-panel__hint {
+/* Dernière ligne de l'en-tête : la consigne à gauche, la porte de sortie à
+   droite. Elles se replient l'une sous l'autre quand la largeur manque. */
+.ai-panel__footer {
   flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+
+.ai-panel__hint {
   margin: 0;
   font-size: var(--font-size-sm);
   color: var(--color-ink-3);
+}
+
+/* La consigne peut se replier sur deux lignes, pas le bouton. */
+.ai-panel__reset {
+  flex: none;
 }
 
 /* Intitulés de colonnes : ils nomment ce que la ligne compare avant qu'on en

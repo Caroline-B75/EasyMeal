@@ -74,7 +74,7 @@ class RecipesController < ApplicationController
     @recipe = Recipe.new(recipe_params)
     authorize @recipe
 
-    if @recipe.save
+    if save_recipe(@recipe) { @recipe.save }
       redirect_to @recipe, notice: "Recette créée avec succès."
     else
       # Sans ça, un formulaire refusé revient sans sa ligne d'ingrédient vide.
@@ -90,7 +90,7 @@ class RecipesController < ApplicationController
     publishing = params[:_publish].present?
     attrs = publishing ? recipe_params.merge(status: :published) : recipe_params
 
-    if recipe.update(attrs)
+    if save_recipe(recipe) { recipe.update(attrs) }
       if publishing
         redirect_to recipe, notice: "Recette publiée et visible dans le catalogue !"
       else
@@ -115,6 +115,22 @@ class RecipesController < ApplicationController
   end
 
   private
+
+  # Exécute la sauvegarde en rattrapant le seul échec que les validations ne
+  # savent pas voir venir : le refus de l'index d'unicité des préparations, que
+  # deux onglets ouverts sur la même recette peuvent se faire opposer chacun de
+  # leur côté — chacun ajoutant un ingrédient que l'autre n'a pas encore
+  # enregistré. Le formulaire se ré-affiche alors avec la saisie intacte et la
+  # marche à suivre, plutôt qu'une page d'erreur qui ne dit rien et ne rend rien.
+  #
+  # @return [Boolean] la sauvegarde a-t-elle abouti ?
+  def save_recipe(record)
+    yield
+  rescue ActiveRecord::RecordNotUnique
+    record.errors.add(:base, "L'enregistrement a échoué : un ingrédient apparaît deux fois dans la " \
+                             "recette — #{Recipe::DUPLICATE_INGREDIENT_HINT}, puis réessaie.")
+    false
+  end
 
   # Tout ce dont le formulaire d'édition a besoin en plus de la recette
   # elle-même. Emprunté aussi bien par GET /edit que par le ré-affichage qui

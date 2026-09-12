@@ -18,6 +18,15 @@ fr:
       short: "%d %b %H:%M"
       long: "%d %B %Y %H:%M"
 
+  # Connecteurs d'`Array#to_sentence`. Sans eux, Rails retombe sur les siens,
+  # qui sont anglais : une énumération de messages d'erreur ou d'ingrédients se
+  # lisait « Sauce soja and Tofu ferme » en pleine phrase française.
+  support:
+    array:
+      words_connector: ", "
+      two_words_connector: " et "
+      last_word_connector: " et "
+
   activerecord:
     models:
       ingredient:
@@ -308,6 +317,7 @@ fr:
     ai_panel:
       unit_mismatch: "L'unité détectée ne se convertit pas dans celle de cet ingrédient : le nombre sera repris tel quel, à vérifier."
       unit_estimated: "La conversion repose sur une densité estimée par l'IA, pas encore vérifiée : la quantité est approximative."
+      already_listed: "Cet ingrédient a déjà sa ligne dans la liste ci-dessous : une recette n'en tient qu'une par ingrédient. Ajoute cette quantité à celle qui y figure si la recette l'emploie deux fois."
 
   # Dite trois fois — pastille du catalogue, fiche, indication du formulaire —
   # d'où sa place ici plutôt que dans chaque vue.

@@ -10,6 +10,9 @@ export const FIELDS_SELECTOR = '[data-nested-form-target="fields"]'
 // Marque une ligne pour suppression : toujours soumise, mais retirée à la
 // sauvegarde. Une ligne jamais enregistrée, elle, quitte simplement le DOM.
 export const DESTROY_SELECTOR = '[data-nested-form-target="destroy"]'
+// N'existe que sur une ligne déjà en base : c'est ce qui distingue une
+// suppression côté serveur d'un simple retrait du DOM.
+export const RECORD_ID_SELECTOR = '[data-nested-form-target="recordId"]'
 
 // Indice de la prochaine ligne. L'horloge ne suffit pas à le rendre unique :
 // deux lignes posées dans la même milliseconde — ce que fait la restauration
@@ -24,4 +27,23 @@ export function buildFields(template) {
   holder.innerHTML = template.innerHTML.replace(/NEW_RECORD/g, nextIndex++).trim()
 
   return holder.firstElementChild
+}
+
+// Retire une ligne du formulaire. Une ligne jamais enregistrée quitte le DOM ;
+// une ligne déjà en base reste soumise, marquée pour suppression et masquée —
+// Rails ignore les enfants absents des params, la retirer du DOM ne la
+// supprimerait donc pas.
+//
+// La règle est ici et non dans le contrôleur nested-form : le panneau d'import
+// vide la liste entière, et la restauration d'une saisie repose des lignes
+// qu'on avait retirées. Les trois doivent retirer une ligne de la même façon.
+export function removeFields(fields) {
+  const destroyInput = fields.querySelector(DESTROY_SELECTOR)
+
+  if (fields.querySelector(RECORD_ID_SELECTOR) && destroyInput) {
+    destroyInput.value = "1"
+    fields.hidden = true
+  } else {
+    fields.remove()
+  }
 }

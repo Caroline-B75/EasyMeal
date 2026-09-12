@@ -1,4 +1,5 @@
-import { TEMPLATE_SELECTOR, CONTAINER_SELECTOR, FIELDS_SELECTOR, buildFields } from "nested_fields"
+import { TEMPLATE_SELECTOR, CONTAINER_SELECTOR, FIELDS_SELECTOR, DESTROY_SELECTOR,
+         buildFields, removeFields } from "nested_fields"
 
 // Les lignes d'ingrédient du formulaire de recette : le catalogue qu'elles se
 // partagent, et comment en poser une nouvelle.
@@ -34,6 +35,24 @@ export function ingredientSelect(fields) {
 // Les lignes d'ingrédient posées dans le formulaire, dans leur ordre d'affichage.
 export function preparationRows() {
   return Array.from(document.querySelectorAll(`${CONTAINER_SELECTOR} > ${FIELDS_SELECTOR}`))
+}
+
+// La ligne qui porte déjà cet ingrédient, s'il y en a une. Une recette n'en
+// tient qu'une par ingrédient — un index d'unicité le garantit en base —, et
+// c'est ici qu'on le vérifie avant d'en poser une seconde. Une ligne marquée
+// pour suppression ne compte pas : elle ne sera plus là après la sauvegarde.
+export function preparationFor(ingredientId) {
+  return preparationRows().find((row) => (
+    ingredientSelect(row)?.value === String(ingredientId) &&
+    row.querySelector(DESTROY_SELECTOR)?.value !== "1"
+  )) || null
+}
+
+// Vide la liste d'ingrédients du formulaire, ligne à ligne et selon la même
+// règle que la croix de chaque ligne : ce qui n'a jamais été enregistré quitte
+// le DOM, ce qui l'a été part marqué pour suppression.
+export function clearPreparationRows() {
+  preparationRows().forEach(removeFields)
 }
 
 // Inscrit un ingrédient tout juste créé dans le catalogue et dans les lignes déjà

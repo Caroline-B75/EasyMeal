@@ -28,7 +28,11 @@ const buildOverlay = (message) => {
   return overlay
 }
 
-const customConfirm = (message) => {
+// Exportée en plus d'être posée sur Turbo : une confirmation est parfois
+// demandée par un bouton ordinaire, que Turbo n'intercepte pas — celui qui
+// réinitialise la liste du panneau d'import, par exemple. Une seule boîte de
+// confirmation dans l'application, quelle que soit la porte d'entrée.
+export const customConfirm = (message) => {
   return new Promise((resolve) => {
     const overlay = buildOverlay(message)
     document.body.appendChild(overlay)

@@ -1,10 +1,21 @@
 import { Controller } from "@hotwired/stimulus"
 import { unitsTable, unitLabel, unitOffered, convert, usesEstimatedDensity } from "units"
-import { appendPreparationRow } from "preparation_rows"
+import { appendPreparationRow, preparationFor, clearPreparationRows } from "preparation_rows"
 import { readSnapshot, writeSnapshot } from "form_snapshot"
+import { customConfirm } from "turbo_confirm"
 
 // Délai avant d'interroger le catalogue, le temps que la frappe se pose
 const SEARCH_DEBOUNCE_MS = 200
+
+// La moitié droite d'une ligne : la cible et son action, remplacées d'un bloc
+// par le badge « Ajouté » — et reposées telles quelles par la réinitialisation.
+const RIGHT_SIDE = ".ai-row__right"
+const rightSide = (row) => row.querySelector(RIGHT_SIDE)
+
+// Ce que la réinitialisation va faire, dit avant de le faire : elle défait une
+// liste qu'on a mis du temps à composer.
+const RESET_CONFIRM = "Réinitialiser la liste ? Le formulaire repartira sans aucun ingrédient, " +
+                      "et toutes les lignes détectées par l'IA redeviendront à ajouter."
 
 // Un ingrédient réduit à ce qui sert à convertir. Le JSON de la recherche parle
 // en snake_case (c'est du Rails), les boutons et l'événement de création en
@@ -19,15 +30,23 @@ const coefficientsOf = (json) => ({
 
 export default class extends Controller {
   static targets = ["row", "fuzzyOptions", "noMatchFallback", "search", "searchInput", "searchResults"]
-  // Les deux phrases viennent du serveur : elles habillent aussi bien les
+  // Les trois phrases viennent du serveur : elles habillent aussi bien les
   // suggestions rendues en HAML que celles que ce contrôleur pose après une
   // recherche, et n'existent donc qu'une fois, dans fr.yml.
-  static values = { searchUrl: String, mismatchTitle: String, estimatedTitle: String }
+  static values = { searchUrl: String, mismatchTitle: String, estimatedTitle: String,
+                    duplicateTitle: String }
 
   connect() {
     // Groupes, facteurs et libellés viennent de Ruby (Units.table, posée sur le
     // formulaire) : ce contrôleur n'en tient aucune copie.
     this.units = unitsTable(this.element)
+    // Le panneau tel que le serveur vient de le rendre, saisi avant que le
+    // premier badge ne recouvre une cible : c'est cette copie que la
+    // réinitialisation repose. Prise ici et pas plus tard — restoreDone, juste
+    // en dessous, repeint déjà les lignes traitées lors d'un rendu précédent.
+    this.pristineRights = new Map(
+      this.rowTargets.map((row) => [ row, rightSide(row)?.cloneNode(true) ])
+    )
     this._onIngredientCreated = this.onIngredientCreated.bind(this)
     document.addEventListener('easymeal:ingredientCreated', this._onIngredientCreated)
     this.restoreDone()
@@ -47,11 +66,44 @@ export default class extends Controller {
     const { aiPanelIngredientId, aiPanelBaseUnit, aiPanelUnitGroup,
             aiPanelQuantityBase, aiPanelConverted, aiPanelEstimated } = btn.dataset
 
-    this.addPreparationRow({ id: aiPanelIngredientId,
-                             baseUnit: aiPanelBaseUnit, unitGroup: aiPanelUnitGroup,
-                             row: row, quantityBase: parseFloat(aiPanelQuantityBase) || 1 })
+    const posed = this.addPreparationRow({ id: aiPanelIngredientId,
+                                           baseUnit: aiPanelBaseUnit, unitGroup: aiPanelUnitGroup,
+                                           row: row,
+                                           quantityBase: parseFloat(aiPanelQuantityBase) || 1 })
     this.markDone(row, { converted: aiPanelConverted === 'true',
-                         estimated: aiPanelEstimated === 'true' })
+                         estimated: aiPanelEstimated === 'true',
+                         duplicate: !posed })
+  }
+
+  // Remet le panneau et la liste du formulaire dans l'état où l'import les a
+  // laissés : plus une seule ligne d'ingrédient dans le formulaire, plus un seul
+  // badge « Ajouté » dans le panneau.
+  //
+  // C'est la porte de sortie quand les deux cessent de se répondre. La liste du
+  // formulaire ne vit que dans la page tant qu'on n'a pas sauvegardé : une
+  // publication qui n'aboutit pas, un onglet rechargé, et elle repart vide
+  // pendant que le panneau continue d'annoncer « Ajouté » partout — sans ce
+  // bouton, plus rien n'est réajoutable et l'import est à refaire.
+  resetAll() {
+    customConfirm(RESET_CONFIRM).then((confirmed) => {
+      if (!confirmed) return
+
+      clearPreparationRows()
+      this.rowTargets.forEach((row) => this.repaintPristine(row))
+      this.saveDone()
+      this.dispatch("listChanged")
+    })
+  }
+
+  // Rend à une ligne la cible et l'action que le serveur y avait rendues.
+  repaintPristine(row) {
+    row.classList.remove('ai-row--done')
+    delete row.dataset.aiPanelConverted
+    delete row.dataset.aiPanelEstimated
+    delete row.dataset.aiPanelDuplicate
+
+    const pristine = this.pristineRights.get(row)
+    if (pristine) rightSide(row)?.replaceChildren(...pristine.cloneNode(true).childNodes)
   }
 
   // Confirme un match approximatif proposé par le serveur
@@ -164,10 +216,12 @@ export default class extends Controller {
     this.rememberAlias(aiPanelAddAliasPath, row.dataset.aiPanelName)
       .then(() => {
         const quantity = this.quantityFor(row, ingredient)
-        this.addPreparationRow({ id: aiPanelIngredientId,
-                                 baseUnit: aiPanelBaseUnit, unitGroup: aiPanelUnitGroup,
-                                 row: row, quantityBase: quantity.value })
-        this.markDone(row, { converted: quantity.converted, estimated: this.estimatedFor(row, ingredient) })
+        const posed = this.addPreparationRow({ id: aiPanelIngredientId,
+                                               baseUnit: aiPanelBaseUnit, unitGroup: aiPanelUnitGroup,
+                                               row: row, quantityBase: quantity.value })
+        this.markDone(row, { converted: quantity.converted,
+                             estimated: this.estimatedFor(row, ingredient),
+                             duplicate: !posed })
       })
       .catch(() => { btn.disabled = false })
   }
@@ -285,13 +339,23 @@ export default class extends Controller {
     return element.closest('[data-ai-panel-target="row"]')
   }
 
-  // Pose la ligne dans le formulaire, avec la quantité détectée. L'ingrédient
-  // est forcément au catalogue — celui-ci liste tout ce que la base contient, et
-  // un ingrédient créé à la volée vient d'y être inscrit (ingredient-created).
+  // Pose la ligne dans le formulaire, avec la quantité détectée, et dit si elle
+  // a bien été posée. L'ingrédient est forcément au catalogue — celui-ci liste
+  // tout ce que la base contient, et un ingrédient créé à la volée vient d'y
+  // être inscrit (ingredient-created).
+  //
+  // Un ingrédient déjà dans la liste n'y entre pas une seconde fois : la recette
+  // n'en tient qu'une ligne (index d'unicité en base), et la seconde faisait
+  // échouer la sauvegarde en pleine publication. Le cas n'a rien d'exotique —
+  // une recette cite volontiers la sauce soja deux fois, au wok puis dans la
+  // sauce : c'est alors la quantité qu'il faut cumuler, ce que dit le badge.
   addPreparationRow({ id, baseUnit, unitGroup, row, quantityBase }) {
-    const detected = this.detectedQuantity(row, unitGroup, baseUnit, quantityBase)
+    if (preparationFor(id)) return false
 
+    const detected = this.detectedQuantity(row, unitGroup, baseUnit, quantityBase)
     appendPreparationRow({ ingredientId: id, quantity: detected.quantity, unit: detected.unit })
+
+    return true
   }
 
   // Ce qu'on écrit dans la ligne du formulaire : de préférence la quantité telle
@@ -312,10 +376,14 @@ export default class extends Controller {
       : { quantity: quantityBase, unit: baseUnit }
   }
 
-  // Marque la ligne traitée, et retient qu'elle l'est.
+  // Marque la ligne traitée, et retient qu'elle l'est. L'annonce est faite au
+  // formulaire : une ligne posée après coup — le temps d'enregistrer un alias,
+  // ou de créer l'ingrédient — arrive trop tard pour le clic qui l'a demandée,
+  // et l'instantané de la saisie repartirait sans elle.
   markDone(row, state) {
     this.paintDone(row, state)
     this.saveDone()
+    this.dispatch("listChanged")
   }
 
   // Remplace le contenu droit de la ligne par le badge « ✓ Ajouté », nuancé des
@@ -323,28 +391,35 @@ export default class extends Controller {
   // n'a pas su traduire est posée telle quelle (à vérifier), une quantité
   // obtenue par une densité estimée n'est qu'approchée (estimée). Sans ces
   // nuances, la réserve disparaîtrait avec la ligne.
-  paintDone(row, { converted = true, estimated = false } = {}) {
+  paintDone(row, { converted = true, estimated = false, duplicate = false } = {}) {
     if (!row) return
     row.classList.add('ai-row--done')
-    // Les deux réserves restent lisibles sur la ligne : c'est d'elles que
+    // Les réserves restent lisibles sur la ligne : c'est d'elles que
     // l'instantané se relit, le badge lui-même n'étant que du texte.
     row.dataset.aiPanelConverted = converted
     row.dataset.aiPanelEstimated = estimated
+    row.dataset.aiPanelDuplicate = duplicate
 
     const search = row.querySelector('[data-ai-panel-target="search"]')
     if (search) search.hidden = true
 
-    const rightSide = row.querySelector('.ai-row__right')
-    if (!rightSide) return
+    const right = rightSide(row)
+    if (!right) return
 
-    rightSide.replaceChildren(this.doneBadge(converted, estimated))
+    right.replaceChildren(this.doneBadge(converted, estimated, duplicate))
   }
 
-  doneBadge(converted, estimated) {
+  doneBadge(converted, estimated, duplicate) {
     const badge = document.createElement('span')
     badge.className = 'ai-row__done-badge'
 
-    if (!converted) {
+    if (duplicate) {
+      // Rien n'a été posé : l'ingrédient tenait déjà sa ligne dans le
+      // formulaire, et c'est la quantité de celle-ci qui reste à y reporter.
+      badge.classList.add('ai-row__done-badge--warn')
+      badge.textContent = '✓ Déjà dans la liste'
+      badge.title = this.duplicateTitleValue
+    } else if (!converted) {
       badge.classList.add('ai-row__done-badge--warn')
       badge.textContent = '✓ Ajouté — quantité à vérifier'
       badge.title = this.mismatchTitleValue
@@ -376,7 +451,8 @@ export default class extends Controller {
       row.classList.contains('ai-row--done')
         ? { name: row.dataset.aiPanelName,
             converted: row.dataset.aiPanelConverted === 'true',
-            estimated: row.dataset.aiPanelEstimated === 'true' }
+            estimated: row.dataset.aiPanelEstimated === 'true',
+            duplicate: row.dataset.aiPanelDuplicate === 'true' }
         : null
     )))
   }

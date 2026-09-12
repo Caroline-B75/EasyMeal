@@ -1,0 +1,50 @@
+-# Trace de l'origine d'une recette importée, posée dans les actions du hero.
+-#
+-# Deux portes selon la source, jamais les deux — source_type vaut « url » ou
+-# « photo », jamais l'un et l'autre :
+-#   - un import par lien rouvre la page d'origine dans un nouvel onglet ;
+-#   - un import par photo rouvre la page photographiée dans une pop-up.
+-#
+-# La photo reste réservée aux admins : citer un lien est normal, rediffuser
+-# publiquement la page photographiée d'un livre ou d'un magazine ne l'est pas.
+-# Une recette saisie à la main n'a pas de source et ne rend donc rien.
+
+- if recipe.imported_from_link?
+  = link_to recipe.source_url, **source_link_options("rs-btn-icon") do
+    = svg_icon(:link, size: 14)
+
+- elsif current_user&.admin? && recipe.imported_from_photo?
+  - photo_url = draft_source_photo_url(recipe)
+  - photo_title = "Voir la page photographiée à l'import"
+
+  -# Le contrôleur doit envelopper le bouton ET le voile : l'overlay est en
+  -# position fixed, ce conteneur ne pèse donc que la largeur du bouton dans le
+  -# flex des actions.
+  %div{ data: { controller: "modal" } }
+    %button.rs-btn-icon{ type: "button", title: photo_title, "aria-label": photo_title,
+                         data: { action: "modal#open" } }
+      = svg_icon(:image, size: 14)
+
+    .modal-overlay{ data: { modal_target: "overlay", action: "click->modal#closeOnOverlay" },
+                    style: "display: none;" }
+      .modal-container.modal-container--photo
+        .modal-content.modal-content--photo
+          .modal-photo__head
+            %span.modal-photo__label
+              = svg_icon(:image, size: 13)
+              Source de l'import
+            .modal-photo__tools
+              -# Un vrai plein écran, ou un second écran : ce que la pop-up ne
+              -# peut pas offrir. La fiche reste dans son onglet.
+              = link_to svg_icon(:maximize, size: 15), photo_url,
+                        **source_link_options("icon-btn icon-btn--quiet",
+                                              title: "Ouvrir la photo importée dans un nouvel onglet")
+              %button.icon-btn.icon-btn--quiet{ type: "button", title: "Fermer", "aria-label": "Fermer",
+                                                data: { action: "modal#close" } }
+                = svg_icon(:x, size: 16)
+
+          -# loading: lazy — le voile est masqué au chargement de la fiche :
+          -# l'image ne descend de Cloudinary qu'à l'ouverture de la pop-up, et
+          -# une fiche jamais ouverte sur sa source ne coûte aucune bande passante.
+          = image_tag photo_url, class: "modal-photo__img", loading: "lazy",
+                      alt: "Page photographiée à l'import de la recette"

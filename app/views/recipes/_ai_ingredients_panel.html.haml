@@ -25,6 +25,7 @@
                    "ai-panel-search-url-value": search_ingredients_path,
                    "ai-panel-mismatch-title-value": t("recipes.ai_panel.unit_mismatch"),
                    "ai-panel-estimated-title-value": t("recipes.ai_panel.unit_estimated"),
+                   "ai-panel-duplicate-title-value": t("recipes.ai_panel.already_listed"),
                    action: "slideout:closed@document->ai-panel#forgetPending" } }
   .ai-panel__header
     %p.ai-panel__title
@@ -37,8 +38,21 @@
           = pluralize(counts[:ready], "prêt à ajouter", plural: "prêts à ajouter")
       - if counts[:todo].positive?
         %span.ai-panel__state.ai-panel__state--todo #{counts[:todo]} à préciser
-    %p.ai-panel__hint
-      Vérifie l'ingrédient proposé pour chaque ligne, puis ajoute-le au formulaire ci-dessous.
+    -# Dernière ligne de l'en-tête : ce qu'il faut faire à gauche, de quoi tout
+    -# recommencer à droite.
+    .ai-panel__footer
+      %p.ai-panel__hint
+        Vérifie l'ingrédient proposé pour chaque ligne, puis ajoute-le au formulaire ci-dessous.
+
+      -# Porte de sortie : la liste du formulaire ne vit que dans la page tant
+      -# qu'on n'a pas publié. Si elle se vide sans que le panneau le sache — une
+      -# publication qui échoue, un onglet rechargé —, toutes les lignes restent
+      -# marquées « Ajouté » et plus rien n'est réajoutable. Ce bouton remet les
+      -# deux d'accord, et permet aussi de simplement recommencer sa sélection.
+      %button.btn.btn-white.btn-sm.ai-panel__reset{ type: "button",
+                                                    data: { action: "click->ai-panel#resetAll" } }
+        = svg_icon("rotate-ccw", size: 14)
+        Tout réinitialiser
 
   -# Intitulés des colonnes : ils disent ce que la ligne compare avant même
   -# qu'on lise la première ligne. Repère de lecture, masqué sur mobile où la

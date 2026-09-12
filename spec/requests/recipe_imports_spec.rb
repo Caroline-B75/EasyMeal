@@ -171,15 +171,8 @@ RSpec.describe "Recipe imports (import IA)", type: :request do
       expect(response.body).not_to include("rf-viewer")
     end
 
-    # La photo importée est une pièce de référence du brouillon, pas une photo
-    # du plat : elle ne doit jamais s'inviter dans la fiche publique.
-    it "ne montre pas la photo importée sur une recette publiée" do
-      published = create(:recipe, :with_ingredient, :with_source_photo, source_type: "photo")
-
-      get recipe_path(published)
-
-      expect(response.body).not_to include(published.source_photo.blob.key)
-    end
+    # Ce que la fiche publiée montre de la source d'un import — un lien pour
+    # tous, la photo pour les seuls admins — vit dans recipes_source_spec.rb.
   end
 
   describe "POST /recipe_imports" do

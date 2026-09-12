@@ -33,9 +33,13 @@
   -# clic ajoute ou retire une ligne d'ingrédient), la soumission la classe. Il
   -# a besoin de savoir si ce rendu est celui d'une sauvegarde refusée — c'est
   -# le seul cas où le serveur a déjà remis la saisie en place, photo exceptée.
-  -# La création d'un ingrédient se signale à part : elle ajoute une ligne depuis
-  -# le slideout, hors du formulaire, donc sans clic ni frappe à l'intérieur.
-  = form_with model: recipe, class: "rf-form", html: { novalidate: true }, data: { controller: "nested-form form-errors form-recovery", units_table: Units.table.to_json, turbo: false, form_recovery_rejected_value: recipe.errors.any?, action: "input->form-recovery#schedule change->form-recovery#schedule click->form-recovery#schedule easymeal:ingredientCreated@document->form-recovery#schedule submit->form-recovery#markSubmitted image-preview:ready->form-recovery#photoReady" } do |f|
+  -# Deux gestes se signalent à part, parce qu'aucun clic ni aucune frappe dans
+  -# le formulaire ne les accompagne : la création d'un ingrédient, qui ajoute
+  -# une ligne depuis le slideout, et le panneau d'import quand il touche à la
+  -# liste — une ligne posée le temps d'enregistrer un alias arrive bien après le
+  -# clic qui l'a demandée, et la réinitialisation bien après celui qui l'a
+  -# confirmée.
+  = form_with model: recipe, class: "rf-form", html: { novalidate: true }, data: { controller: "nested-form form-errors form-recovery", units_table: Units.table.to_json, turbo: false, form_recovery_rejected_value: recipe.errors.any?, action: "input->form-recovery#schedule change->form-recovery#schedule click->form-recovery#schedule easymeal:ingredientCreated@document->form-recovery#schedule ai-panel:listChanged->form-recovery#schedule submit->form-recovery#markSubmitted image-preview:ready->form-recovery#photoReady" } do |f|
 
     -# Informations générales — section sans intitulé : les libellés des champs
     -# se suffisent. Le nom occupe sa propre ligne, puis les trois valeurs

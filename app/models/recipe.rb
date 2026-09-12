@@ -11,10 +11,13 @@ class Recipe < ApplicationRecord
   include EnumLabels
   # Plafonds Cloudinary (format, poids, définition) sur les photos déposées
   include PhotoLimits
+  # Trace de l'import IA : page d'origine, photo conservée (exige PhotoLimits)
+  include ImportSource
+  # Liste d'ingrédients : association, saisie imbriquée, et les deux règles
+  # qu'elle doit respecter (au moins un ingrédient, une seule ligne par ingrédient)
+  include HasIngredientList
 
   # === Associations ===
-  has_many :preparations, dependent: :destroy
-  has_many :ingredients, through: :preparations
   has_many :recipe_tags, dependent: :destroy
   has_many :tags, through: :recipe_tags
   has_many :favorite_recipes, dependent: :destroy
@@ -35,21 +38,12 @@ class Recipe < ApplicationRecord
   # Photo de la recette via ActiveStorage
   has_one_attached :photo
 
-  # Page photographiée à l'import IA, conservée comme pièce de référence du
-  # brouillon : pendant la validation, elle permet de relire une quantité
-  # douteuse. Ce n'est pas une photo du plat — elle ne remplace jamais `photo`,
-  # seule image du catalogue. Aucune migration : ActiveStorage range les deux
-  # pièces jointes dans active_storage_attachments, distinguées par leur nom.
-  has_one_attached :source_photo
+  # La pièce jointe de la source d'import (source_photo) est portée par le
+  # concern ImportSource, avec les prédicats qui l'interrogent.
 
   # Nom de remplacement attribué à un brouillon dont l'IA n'a pas extrait de titre.
   # Sert aussi de sentinelle pour détecter un titre encore à compléter (cf. draft_missing_fields).
   PLACEHOLDER_NAME = "Recette sans titre".freeze
-
-  # Nested attributes pour créer/modifier les ingrédients via le formulaire
-  accepts_nested_attributes_for :preparations,
-                                allow_destroy: true,
-                                reject_if: :all_blank
 
   # === Enums ===
 
@@ -98,11 +92,12 @@ class Recipe < ApplicationRecord
   # Les règles sur meal_types (au moins un moment, vocabulaire fermé) sont
   # portées par le concern HasMealTypes.
 
-  # Les deux images d'une recette passent par les mêmes plafonds Cloudinary.
-  validates_photos :photo, :source_photo
+  # Photo du plat. La photo d'import passe par les mêmes plafonds Cloudinary,
+  # déclarés avec elle dans ImportSource.
+  validates_photos :photo
 
-  # Validation custom : une recette doit avoir au moins un ingrédient (sauf brouillon IA)
-  validate :must_have_at_least_one_ingredient, unless: :draft?
+  # Les règles sur la liste d'ingrédients (au moins un ingrédient, une seule
+  # ligne par ingrédient) sont portées par le concern HasIngredientList.
 
   # === Scopes ===
 
@@ -208,14 +203,6 @@ class Recipe < ApplicationRecord
     draft_missing_fields.empty?
   end
 
-  # Import par lien dont la page d'origine reste consultable : la liste des
-  # brouillons en fait un badge cliquable, le formulaire de validation un lien
-  # de référence. Les vieux imports enregistrés sans source_url retombent sur
-  # un affichage sans lien.
-  def imported_from_link?
-    source_type == "url" && source_url.present?
-  end
-
   # Vérifie si la recette est de saison pour un mois donné
   # Utilise le champ season_months (integer[]) de chaque ingrédient
   def seasonal_for_month?(month)
@@ -244,13 +231,6 @@ class Recipe < ApplicationRecord
     favorite_recipes.count
   end
 
-  # S'assure qu'une ligne d'ingrédient vide attend la saisie dans le formulaire.
-  # Réservé aux recettes renseignées à la main : un brouillon reçoit les siens du
-  # panneau IA, une ligne vide n'y serait qu'une ligne à supprimer.
-  def ensure_preparation_form_ready
-    preparations.build if preparations.empty?
-  end
-
   # Vérifie si l'utilisateur a mis cette recette en favori
   def favorited_by?(user) # :reek:NilCheck
     return false if user.nil?
@@ -270,14 +250,5 @@ class Recipe < ApplicationRecord
   # Nom lisible du prix en français
   def price_human
     human_enum_value(:price, "Non renseigné")
-  end
-
-  private
-
-  # Validation : une recette doit avoir au moins un ingrédient
-  def must_have_at_least_one_ingredient
-    return if preparations.reject(&:marked_for_destruction?).any?
-
-    errors.add(:base, "Une recette doit contenir au moins un ingrédient")
   end
 end

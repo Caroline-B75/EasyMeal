@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 import { readSnapshot, writeSnapshot, forgetSnapshot } from "form_snapshot"
 import { readImageUrl, assignFile } from "photo_input"
-import { FIELDS_SELECTOR, DESTROY_SELECTOR } from "nested_fields"
+import { FIELDS_SELECTOR, DESTROY_SELECTOR, removeFields } from "nested_fields"
 import { appendPreparationRow, preparationRows, ingredientSelect } from "preparation_rows"
 
 // Retient la saisie en cours du formulaire de recette, et la repose si la page
@@ -9,13 +9,23 @@ import { appendPreparationRow, preparationRows, ingredientSelect } from "prepara
 // d'ingrédients, étapes, tags — et un rechargement le vidait entièrement.
 //
 // L'instantané est repris à chaque interaction, puis marqué « soumis » au départ
-// du formulaire. C'est ce marquage qui distingue les trois façons de revenir sur
-// la page :
+// du formulaire. C'est ce marquage, et ce que le serveur vient de rendre, qui
+// distinguent les quatre façons de revenir sur la page :
 //   - instantané vif              → la page a été rechargée en cours de saisie :
 //                                   on repose tout
 //   - marqué + formulaire refusé  → la sauvegarde a échoué : le serveur a
 //                                   ré-affiché la saisie, seule la photo manque
-//   - marqué + formulaire accepté → la recette est enregistrée : on oublie
+//   - marqué + saisie enregistrée → la recette est en base : on oublie
+//   - marqué + saisie absente     → la soumission n'est jamais arrivée à bon
+//                                   port : on repose tout
+//
+// Ce dernier cas est celui d'un brouillon d'import, et il coûte cher à manquer.
+// Rien n'y est enregistré tant qu'on n'a pas publié : sa liste d'ingrédients ne
+// vit que dans la page. Que la publication échoue autrement que par un refus de
+// validation — une erreur serveur, un retour en arrière, un onglet mis en
+// veille et rechargé — et le serveur rend le brouillon tel qu'il l'a toujours
+// connu, c'est-à-dire vide. L'instantané est alors la seule copie de la saisie ;
+// le jeter au moment de soumettre, c'est la perdre exactement là où elle comptait.
 //
 // Le pari du repérage : chaque contrôle est retrouvé par son nom, jamais par sa
 // position. Deux rendus successifs de la même page ne se ressemblent pas
@@ -80,12 +90,7 @@ function applyRow(row, { ingredientId, quantity, unit, destroyed }) {
     quantityField.dispatchEvent(new Event("input", { bubbles: true }))
   }
 
-  if (!destroyed) return
-
-  // Même geste que nested-form#remove : la ligne reste soumise, marquée pour
-  // suppression, mais disparaît de l'écran.
-  row.querySelector(DESTROY_SELECTOR).value = "1"
-  row.hidden = true
+  if (destroyed) removeFields(row)
 }
 
 export default class extends Controller {
@@ -125,11 +130,12 @@ export default class extends Controller {
     })
   }
 
-  // Départ du formulaire : l'instantané ne sert plus qu'à rattraper une
-  // sauvegarde refusée, dont seule la photo échappe au ré-affichage du serveur.
+  // Départ du formulaire. L'instantané est repris une dernière fois — la saisie
+  // telle qu'elle part — puis marqué : tant qu'on n'a pas vu la page suivante,
+  // on ignore si elle arrivera, et c'est encore la seule copie qui en existe.
   markSubmitted() {
     clearTimeout(this.timer)
-    this.write({ submitted: true, photo: this.photo })
+    this.write({ ...this.snapshot(), submitted: true })
   }
 
   // === Écriture ===
@@ -160,7 +166,22 @@ export default class extends Controller {
 
     if (!snapshot.submitted) this.restore(snapshot)
     else if (this.rejectedValue) this.restorePhoto(snapshot.photo)
-    else forgetSnapshot(this.key)
+    else if (this.alreadySaved(snapshot)) forgetSnapshot(this.key)
+    else this.restore(snapshot)
+  }
+
+  // Le serveur a-t-il enregistré la saisie que porte l'instantané ? Les lignes
+  // d'ingrédient répondent pour tout le formulaire : elles sont ce qu'une
+  // soumission perdue laisse manquer, et le serveur en rend exactement autant
+  // que la sauvegarde en a retenu. Moins que l'instantané n'en portait, c'est
+  // que la soumission n'est pas arrivée — la saisie est encore à reposer.
+  // La valeur par défaut couvre l'instantané d'un onglet resté ouvert pendant
+  // une mise en production : écrit par la version précédente, il ne portait au
+  // départ du formulaire que la photo — donc rien à reposer.
+  alreadySaved({ preparations = [] }) {
+    const expected = preparations.filter((entry) => rowHasContent(entry) && !entry.destroyed)
+
+    return preparationRows().length >= expected.length
   }
 
   restore({ fields, preparations, photo }) {

@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import { buildFields } from "nested_fields"
+import { buildFields, removeFields } from "nested_fields"
 
 /**
  * Controller pour gérer les nested fields (ajout/suppression dynamique)
@@ -18,11 +18,12 @@ import { buildFields } from "nested_fields"
  *   <button data-action="click->nested-form#add">Ajouter</button>
  * </div>
  *
- * recordId n'est présent que sur un enregistrement déjà en base : c'est ce qui
- * distingue une suppression côté serveur d'un simple retrait du DOM.
+ * Les deux champs cachés d'une ligne sont lus par le module nested_fields, qui
+ * porte la convention et la règle de retrait — ce contrôleur n'en est qu'un des
+ * usagers, avec le panneau d'import et la restauration d'une saisie.
  */
 export default class extends Controller {
-  static targets = ["container", "template", "fields", "destroy", "recordId"]
+  static targets = ["container", "template", "fields"]
 
   /**
    * Ajoute un nouveau champ depuis le template
@@ -34,26 +35,12 @@ export default class extends Controller {
   }
 
   /**
-   * Supprime un champ : retiré du DOM s'il n'a jamais été enregistré, marqué
-   * _destroy sinon (Rails ignore les enfants absents des params, donc retirer
-   * le bloc ne suffirait pas à supprimer l'enregistrement).
+   * Supprime le champ d'où part le clic.
    */
   remove(event) {
     event.preventDefault()
 
     const fields = this.fieldsTargets.find((element) => element.contains(event.target))
-    if (!fields) return
-
-    const persisted = this.recordIdTargets.some((element) => fields.contains(element))
-    const destroyInput = this.destroyTargets.find((element) => fields.contains(element))
-
-    if (persisted && destroyInput) {
-      // Toujours soumis mais masqué : _destroy à 1 déclenche la suppression
-      // à la sauvegarde du formulaire.
-      destroyInput.value = "1"
-      fields.hidden = true
-    } else {
-      fields.remove()
-    }
+    if (fields) removeFields(fields)
   }
 }

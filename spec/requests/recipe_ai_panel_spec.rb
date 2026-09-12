@@ -231,4 +231,26 @@ RSpec.describe "Panneau des ingrédients détectés par l'IA", type: :request do
       expect(rendered_rows).to eq(1)
     end
   end
+
+  # La liste du formulaire ne vit que dans la page tant qu'on n'a pas publié. Si
+  # elle repart vide sans que le panneau le sache — une publication qui échoue,
+  # un onglet rechargé —, toutes ses lignes restent marquées « Ajouté » et plus
+  # rien n'est réajoutable : sans ce bouton, l'import est à refaire.
+  describe "réinitialisation de la liste" do
+    before { get edit_recipe_path(draft_with(ai_ingredient("farine", 250, "g"))) }
+
+    it "pose le bouton dans l'en-tête du panneau" do
+      expect(response.body).to include("click-&gt;ai-panel#resetAll")
+      expect(response.body).to include("Tout réinitialiser")
+    end
+
+    it "prévient le formulaire quand le panneau touche à la liste" do
+      expect(response.body).to include("ai-panel:listChanged-&gt;form-recovery#schedule")
+    end
+
+    it "confie au panneau la phrase de l'ingrédient déjà listé" do
+      expect(response.body).to include("data-ai-panel-duplicate-title-value")
+      expect(response.body).to include("une recette n&#39;en tient qu&#39;une par ingrédient")
+    end
+  end
 end

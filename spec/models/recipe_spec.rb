@@ -38,6 +38,73 @@ RSpec.describe Recipe, type: :model do
     end
   end
 
+  # Deux lignes visant le même ingrédient n'existent qu'en mémoire au moment de
+  # valider : l'unicité portée par Preparation interroge la base et ne les y
+  # trouve pas. Sans la règle du modèle, c'est l'index qui refusait, en pleine
+  # sauvegarde — une erreur 500 au lieu d'un formulaire à corriger.
+  describe "un ingrédient, une ligne — validation" do
+    let(:sauce_soja) { create(:ingredient, name: "Sauce soja") }
+
+    # Une recette dont la liste porte les ingrédients passés en argument.
+    def recipe_listing(*ingredients)
+      build(:recipe).tap do |recipe|
+        ingredients.each { |ingredient| recipe.preparations.build(ingredient: ingredient, quantity_base: 10) }
+      end
+    end
+
+    it "refuse deux lignes neuves visant le même ingrédient, et le nomme" do
+      recipe = recipe_listing(sauce_soja, sauce_soja)
+
+      expect(recipe).not_to be_valid
+      expect(recipe.errors[:base]).to include(
+        "Sauce soja apparaît plusieurs fois dans la liste des ingrédients : " \
+        "garde une seule ligne par ingrédient, en additionnant les quantités."
+      )
+    end
+
+    it "refuse aussi sur un brouillon : l'index d'unicité ne l'exempte pas" do
+      recipe = recipe_listing(sauce_soja, sauce_soja)
+      recipe.status = :draft
+
+      expect(recipe).not_to be_valid
+      expect(recipe.errors[:base].first).to match(/apparaît plusieurs fois/)
+    end
+
+    it "nomme les deux ingrédients quand deux paires sont en double" do
+      tofu = create(:ingredient, name: "Tofu ferme")
+      recipe = recipe_listing(sauce_soja, tofu, sauce_soja, tofu)
+
+      recipe.validate
+
+      expect(recipe.errors[:base].first).to start_with("Sauce soja et Tofu ferme apparaissent plusieurs fois")
+    end
+
+    it "accepte deux ingrédients différents" do
+      expect(recipe_listing(sauce_soja, create(:ingredient, name: "Tofu"))).to be_valid
+    end
+
+    it "ne compte pas la ligne que l'on vient de retirer : elle ne sera plus là" do
+      recipe = create(:recipe, :with_ingredient)
+      retiree = recipe.preparations.create!(ingredient: sauce_soja, quantity_base: 10)
+      retiree.mark_for_destruction
+      recipe.preparations.build(ingredient: sauce_soja, quantity_base: 25)
+
+      recipe.validate
+
+      expect(recipe.errors[:base]).to be_empty
+    end
+
+    it "ne compte pas les lignes restées sans ingrédient : elles sont à remplir, pas en double" do
+      recipe = recipe_listing(sauce_soja)
+      2.times { recipe.preparations.build(quantity_base: 10) }
+
+      recipe.validate
+
+      # Seule la règle de présence d'`ingredient_id`, portée par la ligne, parle ici.
+      expect(recipe.errors[:base]).to be_empty
+    end
+  end
+
   describe ".for_meal_type" do
     let!(:breakfast_recipe) { create(:recipe, :with_ingredient, meal_types: %w[breakfast snack]) }
     let!(:dinner_recipe)    { create(:recipe, :with_ingredient, meal_types: %w[dinner]) }

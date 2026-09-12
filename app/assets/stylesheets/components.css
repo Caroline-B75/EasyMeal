@@ -563,6 +563,56 @@
   justify-content: flex-end;
 }
 
+/* -- Variante « photo » : la modale montre une image à lire, pas un texte --
+   Elle s'élargit donc bien au-delà des 500 px d'une confirmation, et laisse
+   l'image toucher les bords : son en-tête porte seul les commandes. Le double
+   sélecteur passe devant le padding de .modal-content, y compris sous le point
+   de rupture où celui-ci est redéfini. */
+.modal-container--photo {
+  max-width: min(920px, 100%);
+}
+
+.modal-content.modal-content--photo {
+  padding: 0;
+}
+
+/* Seule bande dont on soit sûr qu'elle est visible sans avoir défilé : c'est
+   donc là que vivent le plein écran et la fermeture. */
+.modal-photo__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0.5rem 0.5rem 1rem;
+  border-bottom: var(--border-width) solid var(--color-bg-secondary);
+}
+
+.modal-photo__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-ink-3);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.modal-photo__tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Une page photographiée est haute : elle prend toute la largeur offerte et
+   c'est .modal-container qui défile (max-height: 90dvh), comme on descend le
+   long de la page qu'on recopie. */
+.modal-photo__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-bottom-left-radius: var(--radius-card);
+  border-bottom-right-radius: var(--radius-card);
+}
+
 /* Modal responsive */
 @media (max-width: 767px) {
   .modal-overlay {
