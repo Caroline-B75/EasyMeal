@@ -5214,6 +5214,13 @@ button.draft-rail-count:not(:disabled) {
   background: var(--color-bg-white);
 }
 
+/* Le display: flex ci-dessus écrase le display: none que le navigateur pose sur
+   [hidden] : sans ce repli, le cadre vide (vignette cassée, « Changer de
+   photo ») s'afficherait sous la zone de dépôt avant tout choix de photo. */
+.import-file-preview[hidden] {
+  display: none;
+}
+
 .import-file-preview__img {
   width: 72px;
   height: 72px;
