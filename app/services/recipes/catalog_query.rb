@@ -16,7 +16,7 @@ module Recipes
   # @example
   #   catalog = Recipes::CatalogQuery.call(scope: policy_scope(Recipe),
   #                                        params: params,
-  #                                        user: current_user) { |rel| pagy(rel, items: 20) }
+  #                                        user: current_user) { |rel| pagy(rel, limit: 20) }
   #   catalog.recipes            # => [Recipe] (page courante)
   #   catalog.seasonal?(recipe)  # => true / false, sans requête
   class CatalogQuery

@@ -144,21 +144,22 @@ RSpec.describe "Repas d'un menu (MenuRecipe)", type: :request do
     end
   end
 
-  # UC3 — le menu validé garde une grille vivante : le jour (pure annotation,
-  # sans effet sur la liste de courses) et l'ordre des cartes restent à la main
-  # de l'utilisatrice ; moment et personnes, eux, engagent la liste validée.
-  describe "menu actif — jour et ordre restent modifiables" do
+  # UC3 — le menu validé garde une grille vivante : jour et moment (pures
+  # annotations, sans effet sur la liste de courses) et l'ordre des cartes
+  # restent à la main de l'utilisatrice ; les personnes, elles, engagent la
+  # liste validée.
+  describe "menu actif — jour, moment et ordre restent modifiables" do
     let(:menu) { create(:menu, user: user, status: :active) }
 
-    it "garde badge temps, sélecteur de jour et ⬆️/⬇️, mais fige moment et personnes" do
+    it "garde badge temps, sélecteurs de jour et de moment et ⬆️/⬇️, mais fige les personnes" do
       add_meal("dinner", position: 0, prep_time_minutes: 10, cook_time_minutes: 25)
 
       get menu_path(menu)
 
       expect(response.body).to include("35 min")
       expect(response.body).to include("menu_recipe[day_of_week]")
+      expect(response.body).to include("menu_recipe[meal_type]")
       expect(response.body).to include("mc-move-btn")
-      expect(response.body).not_to include("menu_recipe[meal_type]")
       expect(response.body).not_to include("menu_recipe[number_of_people]")
     end
 
@@ -171,16 +172,28 @@ RSpec.describe "Repas d'un menu (MenuRecipe)", type: :request do
       expect(meal.reload.day_of_week).to eq(4)
     end
 
-    it "refuse de toucher aux personnes et au moment, même en requête forgée" do
+    # Pas de manques ni de panneau de réglages sur un menu validé : le <select>
+    # affiche déjà le nouveau moment, il n'y a rien d'autre à redessiner.
+    it "change le moment sans rien re-rendre" do
+      meal = add_meal("dinner", position: 0)
+
+      patch menu_menu_recipe_path(menu, meal), params: { menu_recipe: { meal_type: "lunch" } }, as: :turbo_stream
+
+      expect(response).to have_http_status(:no_content)
+      expect(meal.reload.meal_type).to eq("lunch")
+      expect(response.body).to be_empty
+    end
+
+    it "refuse de toucher aux personnes, même en requête forgée" do
       meal = add_meal("dinner", position: 0)
 
       expect {
         patch menu_menu_recipe_path(menu, meal),
               params: { menu_recipe: { number_of_people: 9, meal_type: "breakfast", day_of_week: 4 } },
               as: :turbo_stream
-      }.not_to change { meal.reload.slice(:number_of_people, :meal_type) }
+      }.not_to change { meal.reload.number_of_people }
 
-      expect(meal.day_of_week).to eq(4)
+      expect(meal.slice(:meal_type, :day_of_week)).to eq("meal_type" => "breakfast", "day_of_week" => 4)
     end
 
     it "refuse de dupliquer, même en requête forgée : la copie manquerait à la liste" do

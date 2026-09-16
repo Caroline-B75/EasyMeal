@@ -26,13 +26,15 @@ class MenuRecipesController < ApplicationController
   # le <select> que l'utilisatrice vient d'actionner — il perd le focus et la
   # page saute.
   #   - moment    : la carte reste où elle est (grille unique), seul le décompte
-  #                 des manques change → on ne remplace que son alerte ;
+  #                 des manques change → sur un brouillon, on ne remplace que
+  #                 son alerte et le panneau de réglages ; un menu actif n'a ni
+  #                 l'une ni l'autre → rien à re-rendre ;
   #   - jour      : la teinte de la carte est posée dans la foulée côté client
   #                 (menu-customize#setDay) → rien à re-rendre ;
   #   - personnes : le <select> affiche déjà le choix → rien à re-rendre.
   def update
     return respond_error(@menu_recipe, redirect_path: @menu) unless @menu_recipe.update(menu_recipe_update_params)
-    return respond_no_content unless @menu_recipe.saved_change_to_meal_type?
+    return respond_no_content unless @menu.status_draft? && @menu_recipe.saved_change_to_meal_type?
 
     @menu_recipes = @menu.meals_for_display
     respond_success(redirect_path: @menu)
@@ -141,11 +143,11 @@ class MenuRecipesController < ApplicationController
     end
   end
 
-  # Changement de personnes ou de jour (ou re-sélection de la valeur courante) :
-  # l'écran est déjà à jour sans le serveur — le <select> affiche le choix et la
-  # teinte de jour est posée par menu-customize#setDay. Turbo accepte un 204 et
-  # laisse la page exactement en l'état — la meilleure réponse possible quand il
-  # n'y a rien à redessiner.
+  # Changement de personnes, de jour, de moment sur un menu actif (ou
+  # re-sélection de la valeur courante) : l'écran est déjà à jour sans le
+  # serveur — le <select> affiche le choix et la teinte de jour est posée par
+  # menu-customize#setDay. Turbo accepte un 204 et laisse la page exactement en
+  # l'état — la meilleure réponse possible quand il n'y a rien à redessiner.
   def respond_no_content
     respond_to do |format|
       format.turbo_stream { head :no_content }
@@ -153,12 +155,12 @@ class MenuRecipesController < ApplicationController
     end
   end
 
-  # Brouillon : personnes, moment et jour restent ouverts. Menu validé : seul
-  # le jour — pure annotation visuelle, sans effet sur la liste de courses —
-  # est encore modifiable ; personnes et moment engagent ce qui a été validé.
-  # La carte ne propose plus ces contrôles, on les refuse aussi ici.
+  # Brouillon : personnes, moment et jour restent ouverts. Menu validé : jour et
+  # moment — annotations sans effet sur la liste de courses, qui n'agrège que
+  # les ingrédients — sont encore modifiables ; les personnes engagent ce qui a
+  # été validé. La carte ne propose plus ce contrôle, on le refuse aussi ici.
   def menu_recipe_update_params
-    permitted = @menu.status_draft? ? %i[number_of_people meal_type day_of_week] : %i[day_of_week]
+    permitted = @menu.status_draft? ? %i[number_of_people meal_type day_of_week] : %i[meal_type day_of_week]
     params.require(:menu_recipe).permit(*permitted)
   end
 end

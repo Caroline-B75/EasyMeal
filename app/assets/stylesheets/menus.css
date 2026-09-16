@@ -2576,9 +2576,9 @@ a.mc-card-name-wrap:hover .mc-card-name {
 
 /* ── Rangée moment + jour (UC7) ─────────────────────────────
    Les deux contrôles se partagent la ligne à parts égales : flex: 1 1 0 sur
-   les enfants directs (formulaire d'un sélecteur, ou étiquette figée du menu
-   actif) leur donne la même largeur quel que soit le libellé, et min-width: 0
-   les autorise à se comprimer sous la largeur naturelle du <select>.
+   les enfants directs (formulaire de chaque sélecteur) leur donne la même
+   largeur quel que soit le libellé, et min-width: 0 les autorise à se
+   comprimer sous la largeur naturelle du <select>.
    Habillage mc-mini-select commun. */
 .mc-card-controls {
   display: flex;
@@ -2723,20 +2723,6 @@ a.mc-card-name-wrap:hover .mc-card-name {
   outline: 2px solid var(--color-primary);
   outline-offset: 1px;
   border-color: var(--color-primary);
-}
-
-/* Moment figé d'un menu validé : même gabarit que le mini-select avec lequel
-   il partage la rangée (mêmes hauteurs à chaque breakpoint), mais aucune
-   affordance d'interaction — ni flèche, ni curseur. Fond blanc et encre
-   soutenue héritées de .mc-mini-select : c'est une étiquette en lecture seule,
-   pas un contrôle désactivé — le gris clair aurait dit l'inverse. */
-.mc-mini-select--static {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background-image: none;
-  color: var(--color-ink-2);
-  cursor: default;
 }
 
 /* Sélecteur de jour : seul mini-select à porter la couleur du jour, puisque

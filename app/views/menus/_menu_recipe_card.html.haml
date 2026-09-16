@@ -4,9 +4,9 @@
 -# Deux modes selon le statut du menu :
 -# - brouillon : tout est modifiable — moment, jour, personnes, remplacement,
 -#   duplication, retrait, ordre ;
--# - menu actif : le jour (pure annotation visuelle, la liste de courses n'y est
--#   pas sensible) et l'ordre restent modifiables ; moment et personnes sont
--#   figés — ils engagent la liste validée.
+-# - menu actif : le jour, le moment (annotations sans effet sur la liste de
+-#   courses, qui n'agrège que les ingrédients) et l'ordre restent modifiables ;
+-#   les personnes sont figées — elles engagent la liste validée.
 -# Dans les deux modes, photo et nom ouvrent la recette (menu_card_recipe_link) :
 -# vérifier ingrédients et préparation sert autant en composant le menu qu'en
 -# le cuisinant.
@@ -77,8 +77,8 @@
     -# premier : c'est lui qui situe le repas dans la semaine, le moment ne le
     -# précise qu'ensuite (« mardi, dîner »). Le moment ne déplace pas la carte
     -# (grille unique) : il ne change que le décompte des manques ; le jour ne
-    -# change que la couleur de la carte. Sur un menu validé, le moment devient
-    -# une simple étiquette.
+    -# change que la couleur de la carte. Tous deux restent ouverts sur un menu
+    -# validé.
     -#
     -# id: nil sur les sélecteurs — form_with les nomme d'après le modèle
     -# (menu_recipe_meal_type…), donc à l'identique sur chaque carte de la grille.
@@ -93,22 +93,14 @@
                    "aria-label": "Jour pour #{short_name}",
                    data: { action: "change->auto-submit#submit change->menu-customize#setDay" }
 
-      - if editable
-        = form_with model: [menu, menu_recipe], method: :patch, class: "mc-card-control",
-                    data: { controller: "auto-submit" } do |f|
-          = f.select :meal_type,
-                     meal_type_select_options,
-                     { selected: menu_recipe.display_meal_type },
-                     class: "mc-mini-select", title: "Moment du repas", id: nil,
-                     "aria-label": "Moment du repas pour #{short_name}",
-                     data: { action: "change->auto-submit#submit" }
-      - else
-        -# L'icône double le libellé sans jamais s'y substituer : elle donne au
-        -# moment un repère visuel qui lui est propre, indépendant de la couleur
-        -# du jour, et reste décorative pour les lecteurs d'écran.
-        %span.mc-card-control.mc-mini-select.mc-mini-select--static{ title: "Moment du repas" }
-          = svg_icon(MealTypes.icon(menu_recipe.display_meal_type), size: 13)
-          = MealTypes.compact_label(menu_recipe.display_meal_type)
+      = form_with model: [menu, menu_recipe], method: :patch, class: "mc-card-control",
+                  data: { controller: "auto-submit" } do |f|
+        = f.select :meal_type,
+                   meal_type_select_options,
+                   { selected: menu_recipe.display_meal_type },
+                   class: "mc-mini-select", title: "Moment du repas", id: nil,
+                   "aria-label": "Moment du repas pour #{short_name}",
+                   data: { action: "change->auto-submit#submit" }
 
     -# ── Barre d'actions : remplacer | personnes | supprimer
     -# aria-label : nom accessible annoncé au focus clavier (pas seulement au hover)

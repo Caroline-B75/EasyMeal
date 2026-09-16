@@ -14,7 +14,7 @@ class IngredientsController < ApplicationController
     # with_recipes_count : la colonne « Recettes » du catalogue, comptée en une
     # seule requête pour toute la page — et triable comme les autres.
     scope = policy_scope(Ingredient).with_recipes_count.sorted_by(params[:sort], params[:direction])
-    @pagy, @ingredients = pagy(apply_filters(scope), items: 20)
+    @pagy, @ingredients = pagy(apply_filters(scope), limit: 20)
     # Compté sur tout le catalogue et non sur la page filtrée : ce compteur
     # prévient qu'il reste des densités estimées à vérifier, il ne décrit pas la
     # liste affichée.

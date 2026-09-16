@@ -314,7 +314,7 @@
                                                      meal_type: context_meal_type
 
             .pagination-container
-              = pagy_nav(@catalog.pagy) if @catalog.pagy.pages > 1
+              != pagy_nav(@catalog.pagy) if @catalog.pagy.pages > 1
 
           - else
             .empty-state

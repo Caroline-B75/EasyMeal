@@ -10,6 +10,9 @@ class RecipesController < ApplicationController
   # Recettes par page du catalogue
   PER_PAGE = 20
 
+  # Avis par page sur la fiche recette
+  REVIEWS_PER_PAGE = 10
+
   # Suggestions proposées quand la détection IA hésite : au-delà de deux, la
   # ligne cesse d'être un choix et redevient une liste à parcourir.
   AI_FUZZY_SUGGESTIONS = 2
@@ -22,7 +25,7 @@ class RecipesController < ApplicationController
   def index
     authorize Recipe
     @catalog = Recipes::CatalogQuery.call(scope: recipes_base_scope, params: params, user: current_user) do |recipes|
-      pagy(recipes, items: PER_PAGE)
+      pagy(recipes, limit: PER_PAGE)
     end
     load_draft_data
     # Vignettes du rail « menu à valider » affiché à côté des résultats
@@ -40,7 +43,7 @@ class RecipesController < ApplicationController
     # État « déjà dans le menu brouillon » : pilote le CTA (Ajouter / Retirer).
     load_draft_data
     @in_draft = @draft.present? && @draft_recipe_ids.include?(recipe.id)
-    @pagy_reviews, @reviews = pagy(recipe.reviews.recent.includes(:user), items: 10)
+    @pagy_reviews, @reviews = pagy(recipe.reviews.recent.includes(:user), limit: REVIEWS_PER_PAGE)
   end
 
   # GET /recipes/new

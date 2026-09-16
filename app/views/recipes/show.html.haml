@@ -127,7 +127,7 @@
       -# Pagination des avis
       - if @reviews.any?
         .pagination-container
-          = pagy_nav(@pagy_reviews) if @pagy_reviews.pages > 1
+          != pagy_nav(@pagy_reviews) if @pagy_reviews.pages > 1
 
     -# Barre admin (Pundit)
     - if policy(@recipe).edit?

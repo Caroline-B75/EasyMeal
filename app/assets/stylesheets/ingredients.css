@@ -273,72 +273,6 @@
   white-space: nowrap;
 }
 
-/* === Pagination === */
-.pagination-container {
-  display: flex;
-  justify-content: center;
-  margin-top: 2rem;
-}
-
-.pagination-container nav {
-  display: flex;
-  align-items: center;
-}
-
-.pagination-container nav span {
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--radius-input);
-  text-decoration: none;
-  font-size: var(--font-size-sm);
-  transition: all var(--transition-normal);
-  min-width: 38px;
-  text-align: center;
-  display: inline-block;
-}
-
-.pagination-container nav span.prev,
-.pagination-container nav span.next {
-  margin: 0 0.5rem;
-}
-
-.pagination-container nav a {
-  color: var(--color-ink-2);
-  text-decoration: none;
-  border-radius: var(--radius-input);
-  display: inline-block;
-  min-width: 38px;
-  text-align: center;
-  transition: all var(--transition-normal);
-}
-
-.pagination-container nav span.page a:hover {
-  background: var(--color-bg-secondary);
-}
-
-.pagination-container nav span.prev a:hover,
-.pagination-container nav span.next a:hover {
-  background: var(--color-primary);
-  color: var(--color-bg-white);
-}
-
-.pagination-container nav span.page.active {
-  background: var(--color-primary);
-  color: var(--color-bg-white);
-  font-weight: 600;
-}
-
-.pagination-container nav span.page.disabled,
-.pagination-container nav span.prev.disabled,
-.pagination-container nav span.next.disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.pagination-container nav span.gap {
-  color: var(--color-ink-3);
-  cursor: default;
-}
-
 /* === RESPONSIVE === */
 
 @media (max-width: 767px) {
@@ -525,26 +459,6 @@
 
   .text-muted {
     font-size: var(--font-size-xs);
-  }
-
-  /* Pagination mobile */
-  .pagination-container {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 0.5rem 0;
-  }
-
-  .pagination-container nav {
-    justify-content: flex-start;
-    min-width: min-content;
-  }
-
-  .pagination-container nav span.page,
-  .pagination-container nav span.prev,
-  .pagination-container nav span.next {
-    min-width: 40px;
-    min-height: 40px;
-    font-size: var(--font-size-sm);
   }
 }
 
