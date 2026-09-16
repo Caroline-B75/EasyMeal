@@ -163,6 +163,10 @@ class RecipesController < ApplicationController
   # Construit le scope de base avec filtre favoris si demandé (UC5)
   def recipes_base_scope
     scope = policy_scope(Recipe)
+    # Filtre de travail sans bouton dans l'interface : /recipes?photo=false liste
+    # les recettes publiées encore sur la photo par défaut. Réservé aux admins,
+    # ignoré en silence pour les autres.
+    scope = scope.without_photo if params[:photo] == "false" && current_user&.admin?
     return scope unless params[:favorites] == "true" && current_user
 
     scope.joins(:favorite_recipes)

@@ -167,6 +167,10 @@ class Recipe < ApplicationRecord
     joins(:tags).where(tags: { id: tag_ids }).distinct
   }
 
+  # Recettes sans photo : celles qu'une carte du catalogue affiche avec la photo
+  # par défaut. Sert de liste de travail aux admins (cf. RecipesController).
+  scope :without_photo, -> { where.missing(:photo_attachment) }
+
   # Tri alphabétique
   scope :alphabetical, -> { order(name: :asc) }
 
