@@ -1,7 +1,7 @@
 /* ============================================
    COMPONENTS - Composants UI réutilisables
    ============================================
-   Boutons, cards, badges, modals, forms
+   Boutons, cards, badges, modals, forms, pagination
    Utilise les variables CSS définies dans variables.css
    pour une gestion centralisée des couleurs.
    ============================================ */
@@ -1088,6 +1088,85 @@ input[type="radio"] {
 
   .form-actions .btn {
     width: 100%;
+  }
+}
+
+/* === PAGINATION === */
+/* Pagy 9 n'émet que des <a> dans le nav : la page courante porte .current,
+   l'ellipse .gap, les flèches un aria-label, et tout élément inactif
+   aria-disabled sans href. */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.pagination-container nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.pagination-container nav a {
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-input);
+  color: var(--color-ink-2);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  transition: all var(--transition-normal);
+  min-width: 38px;
+  text-align: center;
+  display: inline-block;
+}
+
+/* Flèches précédent / suivant : seuls éléments porteurs d'un aria-label */
+.pagination-container nav a[aria-label] {
+  margin: 0 0.25rem;
+}
+
+.pagination-container nav a[href]:hover {
+  background: var(--color-bg-secondary);
+}
+
+.pagination-container nav a[aria-label][href]:hover {
+  background: var(--color-primary);
+  color: var(--color-bg-white);
+}
+
+.pagination-container nav a.current {
+  background: var(--color-primary);
+  color: var(--color-bg-white);
+  font-weight: 600;
+}
+
+/* Élément inactif (flèche en bout de série) : visible mais estompé */
+.pagination-container nav a[aria-disabled="true"]:not(.current) {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.pagination-container nav a.gap {
+  color: var(--color-ink-3);
+  cursor: default;
+}
+
+@media (max-width: 767px) {
+  /* Série défilable horizontalement plutôt que tassée */
+  .pagination-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0.5rem 0;
+  }
+
+  .pagination-container nav {
+    justify-content: flex-start;
+    min-width: min-content;
+  }
+
+  .pagination-container nav a {
+    min-width: 40px;
+    min-height: 40px;
+    font-size: var(--font-size-sm);
   }
 }
 

@@ -87,7 +87,7 @@
             .mi-recipe-cards-label Repas du menu
             .mi-recipe-cards-grid
               - @active.menu_recipes.each do |mr|
-                = link_to recipe_path(mr.recipe), class: "mi-recipe-card-mini", data: { turbo_prefetch: "false" } do
+                = link_to meal_recipe_path(mr), class: "mi-recipe-card-mini", data: { turbo_prefetch: "false" } do
                   .mi-recipe-card-mini-img
                     = recipe_photo_tag(mr.recipe, width: 280, height: 140, css_class: "mi-recipe-card-mini-photo")
                   .mi-recipe-card-mini-body

@@ -21,5 +21,16 @@ RSpec.describe "Homes", type: :request do
       expect(response).to have_http_status(:success)
       expect(response.body).to include("Menu de la semaine", "Tarte aux poireaux")
     end
+
+    it "ouvre chaque repas du menu actif pour son nombre de personnes" do
+      user = create(:user)
+      menu = create(:menu, user: user, status: :active)
+      meal = create(:menu_recipe, menu: menu, recipe: create(:recipe, :with_ingredient), number_of_people: 6)
+      sign_in user
+
+      get "/home/index"
+
+      expect(response.body).to include(%(href="#{recipe_path(meal.recipe, servings: 6)}"))
+    end
   end
 end

@@ -3,7 +3,7 @@
 -# — la page du menu actif, elle, rend menus/_menu_recipe_card en mode figé.
 -# menu_recipe : MenuRecipe
 
-= link_to recipe_path(menu_recipe.recipe), class: "mc-recipe-card mc-recipe-card--readonly", data: { turbo_prefetch: "false" } do
+= link_to meal_recipe_path(menu_recipe), class: "mc-recipe-card mc-recipe-card--readonly", data: { turbo_prefetch: "false" } do
   -# ── Photo carrée ──────────────────────────────────────
   .mc-card-photo
     = render "menus/recipe_photo", recipe: menu_recipe.recipe

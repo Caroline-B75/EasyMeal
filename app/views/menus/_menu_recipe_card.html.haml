@@ -122,7 +122,7 @@
                      { selected: menu_recipe.number_of_people },
                      class: "mc-mini-select mc-ppl-select", title: "Nombre de personnes", id: nil,
                      "aria-label": "Nombre de personnes pour #{short_name}",
-                     data: { action: "change->auto-submit#submit" }
+                     data: { action: "change->auto-submit#submit change->menu-customize#setPeople" }
 
         = form_with url: menu_menu_recipe_path(menu, menu_recipe), method: :delete,
                     class: "mc-act-form" do

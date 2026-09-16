@@ -66,6 +66,28 @@ RSpec.describe "Vues menus R3.2bis", type: :request do
     end
   end
 
+  # D'où qu'on le consulte, un repas ouvre sa recette pour son propre nombre de
+  # personnes (MenusHelper#meal_recipe_path) — pas pour celui de la recette.
+  describe "liens des repas vers leur recette" do
+    it "portent le nombre de personnes du repas sur /menus (menu actif)" do
+      menu = create(:menu, user: user, status: :active)
+      meal = create(:menu_recipe, menu: menu, recipe: recipe_with_ingredient, number_of_people: 6)
+
+      get menus_path
+
+      expect(response.body).to include(%(href="#{recipe_path(meal.recipe, servings: 6)}"))
+    end
+
+    it "portent le nombre de personnes du repas sur un menu archivé" do
+      menu = create(:menu, user: user, status: :archived)
+      meal = create(:menu_recipe, menu: menu, recipe: recipe_with_ingredient, number_of_people: 6)
+
+      get menu_path(menu)
+
+      expect(response.body).to include(%(href="#{recipe_path(meal.recipe, servings: 6)}"))
+    end
+  end
+
   describe "GET /menus/:id d'un brouillon en revalidation avec menu actif existant" do
     it "affiche une confirmation de validation honnête (réconciliation + archivage)" do
       create(:menu, user: user, status: :active)

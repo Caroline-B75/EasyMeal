@@ -185,16 +185,30 @@ module MenusHelper
 
   # === Carte de repas enrichie (UC7, chapitre 4) ===
 
+  # La fiche d'une recette ouverte depuis un repas du menu : ses quantités sont
+  # d'emblée celles du nombre de personnes du repas. Sans lui, l'omelette prévue
+  # pour 6 s'ouvrirait sur les 2 personnes de la recette d'origine, et l'on
+  # cuisinerait ces quantités sans remarquer l'écart. La fiche lit ce nombre
+  # (recipes#show) et en fait le point de départ de son stepper.
+  # Tout lien d'un repas vers sa recette passe par ici.
+  # @param menu_recipe [MenuRecipe]
+  # @return [String]
+  def meal_recipe_path(menu_recipe)
+    recipe_path(menu_recipe.recipe, servings: menu_recipe.number_of_people)
+  end
+
   # Enveloppe une section de carte de repas (photo, nom) d'un lien vers la
   # recette : vérifier ingrédients et préparation sert autant en composant le
   # brouillon qu'en cuisinant depuis le menu actif. turbo_frame "_top" sort de
   # la turbo-frame de la carte (sinon la recette se chargerait dedans) ;
   # draggable "false" rend le glissement à la carte, qui l'utilise pour
   # réordonner la grille — le lien ne gêne donc jamais le drag & drop.
+  # Le nombre de personnes du lien suit le sélecteur du brouillon sans attendre
+  # le serveur (menu-customize#setPeople) : la carte n'est pas re-rendue.
   # @param menu_recipe [MenuRecipe]
   # @param css_class [String] classe du bloc, identique quel que soit le statut
   def menu_card_recipe_link(menu_recipe, css_class, &block)
-    link_to recipe_path(menu_recipe.recipe), class: css_class, draggable: "false",
+    link_to meal_recipe_path(menu_recipe), class: css_class, draggable: "false",
             data: { turbo_frame: "_top", turbo_prefetch: "false" }, &block
   end
 

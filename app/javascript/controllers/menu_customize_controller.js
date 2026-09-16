@@ -95,6 +95,22 @@ export default class extends Controller {
     }
   }
 
+  // ── Personnes ───────────────────────────────────────────
+  // Photo et nom ouvrent la recette pour le nombre de personnes du repas
+  // (?servings=, cf. MenusHelper#meal_recipe_path). La carte n'étant pas
+  // re-rendue quand ce nombre change (204), ses liens sont réécrits ici : sinon
+  // la fiche s'ouvrirait sur l'ancien nombre, et ses quantités avec.
+  setPeople(event) {
+    const card = event.target.closest(".mc-recipe-card")
+    if (!card) return
+
+    card.querySelectorAll("a[href*='servings=']").forEach(link => {
+      const url = new URL(link.getAttribute("href"), window.location.origin)
+      url.searchParams.set("servings", event.target.value)
+      link.setAttribute("href", url.pathname + url.search)
+    })
+  }
+
   // ── Drag & Drop (réordonnement de la grille) ────────────
   // Aucune frontière : l'ordre des repas appartient à l'utilisatrice, qui
   // range sa semaine comme elle la vit (UC7).

@@ -65,9 +65,19 @@ RSpec.describe "Repas d'un menu (MenuRecipe)", type: :request do
 
       get menu_path(menu)
 
-      expect(response.body).to include(%(href="#{recipe_path(meal.recipe)}"))
+      expect(response.body).to include(%(href="#{recipe_path(meal.recipe, servings: meal.number_of_people)}"))
       expect(response.body).to include(%(data-turbo-frame="_top"))
       expect(response.body).to include(%(draggable="false"))
+    end
+
+    # Changer les personnes répond 204 sans re-rendre la carte : c'est le
+    # navigateur qui garde le lien de la recette au nouveau nombre.
+    it "fait suivre le nombre de personnes au lien de la recette dès le changement" do
+      add_meal("dinner", position: 0)
+
+      get menu_path(menu)
+
+      expect(response.body).to include("change-&gt;menu-customize#setPeople")
     end
   end
 
@@ -161,6 +171,21 @@ RSpec.describe "Repas d'un menu (MenuRecipe)", type: :request do
       expect(response.body).to include("menu_recipe[meal_type]")
       expect(response.body).to include("mc-move-btn")
       expect(response.body).not_to include("menu_recipe[number_of_people]")
+    end
+
+    # L'omelette prévue pour 6 dont la recette est écrite pour 2 : ouverte
+    # depuis le menu, la fiche annonce d'emblée les quantités du repas.
+    it "ouvre la fiche pour le nombre de personnes du repas, quantités comprises" do
+      meal = add_meal("dinner", position: 0, default_servings: 2)
+      meal.update!(number_of_people: 6)
+      recipe_link = recipe_path(meal.recipe, servings: 6)
+
+      get menu_path(menu)
+      expect(response.body).to include(%(href="#{recipe_link}"))
+
+      get recipe_link
+      expect(response.body).to match(/rs-servings-val[^>]*>6</)
+      expect(response.body).to match(/rs-ing-qty[^>]*>\s*300 g\s*</)
     end
 
     it "renseigne le jour sans rien re-rendre, comme sur le brouillon" do
