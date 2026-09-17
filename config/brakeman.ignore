@@ -23,6 +23,14 @@
       "file": "app/views/tags/edit.html.haml",
       "line": 15,
       "note": "Faux positif : meme motif que menus/show.html.haml. La valeur vient d'ApplicationHelper#field_error_class, qui ne retourne que 'has-error' ou une chaine vide. Aucune donnee saisie n'atteint la sortie."
+    },
+    {
+      "fingerprint": "e21c6c6eb11e0a95c0a6da51d5d713fd50131291de210c1e1e2e083c410640be",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped parameter value",
+      "file": "app/views/recipes/index.html.haml",
+      "line": 316,
+      "note": "Faux positif : la sortie de pagy_nav est le HTML de pagination fabrique par Pagy, pas une valeur de parametre. Les parametres de la requete (filtres du catalogue) ne reparaissent que dans l'URL des liens de page, ou Pagy les reinjecte via Rack::Utils.build_nested_query (pagy/url_helpers.rb) : tout y est encode en pourcentage, guillemets compris, donc rien ne peut sortir de l'attribut href. Le `!=` de la vue est indispensable : echapper cette sortie afficherait le HTML de la pagination en clair. A revoir si la pagination cesse de passer par Pagy, ou si la vue interpole elle-meme des parametres."
     }
   ],
   "brakeman_version": "8.0.6"
