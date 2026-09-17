@@ -139,6 +139,21 @@ RSpec.describe "Répartition de la liste de courses", type: :request do
         expect(section.css(".grocery-item-main .grocery-claim-chip").map(&:text)).to eq([ "@marc" ])
       end
 
+      it "rend les deux libellés du bouton de rayon, seul celui de son état visible" do
+        menu.claim_grocery_section!("fruits_legumes", caroline)
+        sign_in caroline
+
+        get grocery_menu_path(menu)
+
+        page = Nokogiri::HTML(response.body)
+        labels = lambda do |category|
+          page.css("#grocery_section_#{category} .grocery-section-claim-label")
+              .map { |label| [ label.text, !label.classes.include?("grocery-section-claim-label--inactive") ] }
+        end
+        expect(labels.call("fruits_legumes")).to eq([ [ "Tout prendre", false ], [ "Tout laisser", true ] ])
+        expect(labels.call("boissons")).to eq([ [ "Tout prendre", true ], [ "Tout laisser", false ] ])
+      end
+
       it "marque chaque ligne pour le filtre « Ma part »" do
         carottes.claim!(marc)
         tomates.claim!(caroline)

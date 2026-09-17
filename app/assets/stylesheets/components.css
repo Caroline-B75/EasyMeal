@@ -12,6 +12,7 @@
    Variantes  : .btn-primary   → action principale (anthracite)
                 .btn-secondary → action neutre
                 .btn-white     → action neutre sur fond clair (blanc franc + bordure fine)
+                .btn-category  → action sur tout un rayon (blanc teinté de --category-color)
                 .btn-accent    → unique CTA accent (ambre) — cf. « Démarrer un menu »
                 .btn-danger    → action destructive (rouge)
                 .btn-link      → variante « ghost » / tertiaire (transparent, sans bordure)
@@ -89,6 +90,25 @@
 .btn.btn-white:hover {
   color: var(--color-ink);
   border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+/* Action sur tout un rayon (« Tout prendre » de la liste de courses) : aux
+   couleurs du rayon que pose [data-category] sur un ancêtre — aplat, bordure et
+   libellé (cf. palette des rayons, plus bas, pour les contrastes). La couleur
+   relie l'action à son rayon et la distingue des actions d'un seul article.
+   Deux classes, pour la même raison que .btn-white. */
+.btn.btn-category {
+  background: var(--category-tint);
+  color: var(--category-ink);
+  border: var(--border-width) solid var(--category-line);
+}
+
+.btn.btn-category:hover {
+  color: var(--category-ink);
+  border-color: var(--category-ink);
   box-shadow: var(--shadow-md);
   transform: translateY(-1px);
   text-decoration: none;
@@ -329,32 +349,55 @@
    affichent des rayons — sections de la liste de courses et badges du catalogue
    d'ingrédients — pour qu'un rayon garde la même couleur de l'un à l'autre.
 
-   Décor uniquement : ces teintes n'ont pas le contraste d'un texte, le libellé
-   reste écrit en toutes lettres et en --color-ink. La couleur différencie d'un
-   coup d'œil, elle ne porte jamais l'information à elle seule.
+   Chaque rayon a deux valeurs, calculées en OKLCH à partir de la palette
+   d'origine (plus sourde) :
+     --category-color : la couleur du rayon — même teinte et même luminosité
+                        qu'à l'origine, chroma × 1,8, plafonnée à 0,15 (au-delà,
+                        la boucherie rejoint le rouge de --color-danger) et à
+                        92 % du gamut sRGB. Décor pur : pas le contraste d'un
+                        texte.
+     --category-ink   : la même teinte assez foncée pour porter du texte — la
+                        luminosité la plus haute qui tient 4,6:1 sur
+                        --color-bg-main et sur --category-tint, à la chroma la
+                        plus forte que le gamut permet. Mélanger la couleur à
+                        l'encre la ternissait : la nuance est donc calculée.
+   La couleur différencie d'un coup d'œil, elle ne porte jamais l'information à
+   elle seule — le libellé reste écrit en toutes lettres.
+
+   Deux dérivées, mélangées en oklab (qui garde la teinte, là où sRGB la salit) :
+     --category-line : bordure d'un contrôle — au pire 3,16:1 sur --color-bg-main
+     --category-tint : aplat d'un contrôle, sous --category-ink (au pire 4,60:1)
+
+   Ratios WCAG vérifiés sur les 21 teintes : un rayon ajouté ou une teinte
+   retouchée demande de recalculer sa nuance --category-ink.
 
    Le repli gris couvre « Autre » et le rayon absent (ligne de courses libre). */
-[data-category]                                { --category-color: #9E9E9E; }
-[data-category="fruits_legumes"]               { --category-color: #5A8A5B; }
-[data-category="boucherie_viande"]             { --category-color: #B05B5B; }
-[data-category="charcuterie_traiteur"]         { --category-color: #C4768A; }
-[data-category="poissonnerie"]                 { --category-color: #4E7FA8; }
-[data-category="fromagerie_coupe"]             { --category-color: #C49A27; }
-[data-category="boulangerie_patisserie"]       { --category-color: #B08060; }
-[data-category="produits_laitiers"]            { --category-color: #6A9BB5; }
-[data-category="produits_frais_libre_service"] { --category-color: #6B9B72; }
-[data-category="glaces_desserts_glaces"]       { --category-color: #7AABC0; }
-[data-category="legumes_surgeles"]             { --category-color: #4E8A8A; }
-[data-category="viandes_poissons_surgeles"]    { --category-color: #6E8A9E; }
-[data-category="produits_aperitifs_surgeles"]  { --category-color: #C47845; }
-[data-category="epicerie_salee"]               { --category-color: #8A7055; }
-[data-category="epicerie_sucree"]              { --category-color: #9B7AB5; }
-[data-category="boissons"]                     { --category-color: #3D85C8; }
-[data-category="petit_dejeuner"]               { --category-color: #C49A27; }
-[data-category="produits_monde"]               { --category-color: #B08040; }
-[data-category="hygiene_beaute"]               { --category-color: #B87A8A; }
-[data-category="entretien_maison"]             { --category-color: #7A8A9E; }
-[data-category="papeterie_fournitures"]        { --category-color: #6E9B9B; }
+[data-category] {
+  --category-color: #9E9E9E;
+  --category-ink: #636363;
+  --category-line: color-mix(in oklab, var(--category-color) 78%, var(--color-ink));
+  --category-tint: color-mix(in oklab, var(--category-color) 28%, var(--color-bg-white));
+}
+[data-category="fruits_legumes"]               { --category-color: #35923E; --category-ink: #0F6E20; }
+[data-category="boucherie_viande"]             { --category-color: #C04C50; --category-ink: #A43239; }
+[data-category="charcuterie_traiteur"]         { --category-color: #D96487; --category-ink: #A6355C; }
+[data-category="poissonnerie"]                 { --category-color: #1E80C4; --category-ink: #0E6197; }
+[data-category="fromagerie_coupe"]             { --category-color: #C49A27; --category-ink: #7D600F; }
+[data-category="boulangerie_patisserie"]       { --category-color: #C97330; --category-ink: #934C0E; }
+[data-category="produits_laitiers"]            { --category-color: #359FCF; --category-ink: #10698D; }
+[data-category="produits_frais_libre_service"] { --category-color: #43A459; --category-ink: #10712F; }
+[data-category="glaces_desserts_glaces"]       { --category-color: #4BB0D7; --category-ink: #116D8B; }
+[data-category="legumes_surgeles"]             { --category-color: #228F90; --category-ink: #10696A; }
+[data-category="viandes_poissons_surgeles"]    { --category-color: #578DB1; --category-ink: #2D6385; }
+[data-category="produits_aperitifs_surgeles"]  { --category-color: #D26F21; --category-ink: #974C0E; }
+[data-category="epicerie_salee"]               { --category-color: #996A35; --category-ink: #80521B; }
+[data-category="epicerie_sucree"]              { --category-color: #A56DCE; --category-ink: #7D45A3; }
+[data-category="boissons"]                     { --category-color: #2585D6; --category-ink: #0E60A1; }
+[data-category="petit_dejeuner"]               { --category-color: #C49A27; --category-ink: #7D600F; }
+[data-category="produits_monde"]               { --category-color: #B87C20; --category-ink: #83560D; }
+[data-category="hygiene_beaute"]               { --category-color: #D46586; --category-ink: #A3395C; }
+[data-category="entretien_maison"]             { --category-color: #6E8BAF; --category-ink: #476284; }
+[data-category="papeterie_fournitures"]        { --category-color: #45A2A3; --category-ink: #106C6E; }
 
 /* Badge de catégorie (rayon) - Charte graphique EasyMeal
    Même vocabulaire visuel que les sections de la liste de courses : liseré

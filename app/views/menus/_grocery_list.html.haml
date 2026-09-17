@@ -21,16 +21,16 @@
             %button.grocery-mode-btn{ type: "button", "aria-pressed": (mode == "courses").to_s,
                                       data: { action: "grocery-view#setMode", grocery_view_mode_param: mode,
                                               grocery_view_target: "modeButton", morph_keep: "aria-pressed" } }= label
+        %button.grocery-filter-toggle{ type: "button", "aria-pressed": "false",
+                                       data: { action: "grocery-view#toggleMine",
+                                               grocery_view_target: "mineButton", morph_keep: "aria-pressed" } }
+          Ma part
       %button.btn-text-sm{ type: "button",
                             data: { action: "click->grocery-sections#toggleAll",
                                     "grocery-sections-target": "toggleBtn" } }
         Tout fermer
 
     - if shared
-      %button.grocery-filter-toggle{ type: "button", "aria-pressed": "false",
-                                     data: { action: "grocery-view#toggleMine",
-                                             grocery_view_target: "mineButton", morph_keep: "aria-pressed" } }
-        Ma part
       %p.grocery-split-hint
         Touche un article pour le prendre ou le laisser : chaque membre du foyer
         voit aussitôt qui s'occupe de quoi.

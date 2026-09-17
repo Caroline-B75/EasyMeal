@@ -7,12 +7,22 @@
    ============================================ */
 
 /* ── Contrôles liste (tout fermer/ouvrir) ───────────────── */
+/* Liste partagée : mode et filtre à gauche, « Tout fermer » poussé à droite. */
 .grocery-list-controls {
   display: flex;
-  justify-content: flex-end;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 0.75rem;
+}
+
+/* Largeur fixée pour les deux libellés (« Tout fermer » / « Tout ouvrir ») : sur
+   un téléphone, le bouton passe à la ligne sous le mode et le filtre, et un
+   libellé plus court le ferait remonter au clic — la liste sauterait sous le doigt. */
+.grocery-list-controls .btn-text-sm {
+  min-width: 6em;
+  margin-left: auto;
+  text-align: right;
 }
 
 .btn-text-sm {
@@ -97,15 +107,16 @@
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  /* Texte en ink (AA) : l'identité couleur du rayon reste portée par le liseré
-     gauche et la pastille de compteur (--category-color en décor). */
-  color: var(--color-ink);
+  /* À la couleur du rayon, assez foncée pour rester lisible (AA, cf.
+     --category-ink dans components.css) : en encre neutre, le rayon ne se
+     reconnaissait qu'à son liseré. */
+  color: var(--category-ink);
 }
 
 .grocery-section-count {
   font-size: var(--font-size-base);
   color: var(--color-ink);
-  background: color-mix(in srgb, var(--category-color) 12%, var(--color-bg-secondary));
+  background: color-mix(in oklab, var(--category-color) 28%, var(--color-bg-secondary));
   border-radius: 999px;
   padding: 0.1em 0.45em;
   font-weight: 500;
@@ -158,10 +169,10 @@
 
 /* ── Bouton checkbox ────────────────────────────────────── */
 .btn-checkbox {
-  width: 36px;
-  height: 36px;
-  min-width: 36px;
-  min-height: 36px;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
   border-radius: 50%;
   border: 2px solid var(--color-border-strong);
   background: transparent;
@@ -366,12 +377,11 @@
    par le contrôleur grocery-view (data-grocery-view-*-value) : c'est la CSS
    seule qui montre ou cache, sans aller-retour serveur — hors ligne compris. */
 
-/* Mode : contrôle segmenté, à gauche de « Tout fermer » */
+/* Mode : contrôle segmenté, suivi du filtre « Ma part » */
 .grocery-mode-switch {
   display: inline-flex;
   gap: 2px;
   padding: 3px;
-  margin-right: auto;
   background: var(--color-bg-secondary);
   border: var(--border-thin);
   border-radius: 999px;
@@ -403,7 +413,6 @@
   align-items: center;
   min-height: 36px;
   padding: 0 1rem;
-  margin-bottom: 0.75rem;
   border: var(--border-thin);
   border-radius: 999px;
   background: var(--color-bg-white);
@@ -459,18 +468,49 @@
 }
 
 /* Boutons de répartition (ligne et rayon) : canoniques (.btn), un <button>
-   n'héritant pas de la police du document. */
+   n'héritant pas de la police du document. Largeur bornée, comme la pastille :
+   un pseudo sans limite de longueur se coupe d'une ellipse. */
 .grocery-claim-btn {
+  max-width: 12rem;
   font-family: inherit;
   white-space: nowrap;
   gap: 0.35rem;
 }
 
-/* Article pris par un autre membre : plus discret que « Je prends ». Deux
-   classes, pour l'emporter sur .btn.btn-white. */
+.grocery-claim-btn-pseudo {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* « Tout prendre » et « Tout laisser » : même largeur. Les deux libellés
+   partagent une cellule de grille, l'inactif invisible mais toujours mesuré —
+   le bouton prend la largeur du plus long, sans chiffre qui dépende de la police. */
+.btn.grocery-section-claim-btn {
+  display: inline-grid;
+  place-items: center;
+}
+
+.grocery-section-claim-label {
+  grid-area: 1 / 1;
+}
+
+.grocery-section-claim-label--inactive {
+  visibility: hidden;
+}
+
+/* Article pris par un autre membre : beige comme sa pastille, et plus discret
+   que « Je prends ». Deux classes, pour l'emporter sur .btn-secondary. */
 .btn.grocery-claim-btn--other {
   color: var(--color-ink-3);
   font-weight: 500;
+}
+
+/* Sur une ligne cochée, déjà beige, le bouton beige disparaissait : il y passe
+   en blanc bordé, toujours à l'inverse du fond de sa ligne. */
+.grocery-item--checked .btn.grocery-claim-btn--other {
+  background: var(--color-bg-white);
+  border: var(--border-thin);
 }
 
 /* Mode Courses (par défaut) : rien de la répartition n'apparaît. */
@@ -728,8 +768,10 @@
 /* Sur grand écran, .grocery-item-main (flex: 1) étire chaque ligne sur toute
    la largeur du .mc-page-wrap, créant un grand vide entre le nom et la
    quantité/suppression. On resserre la liste et le formulaire d'ajout pour
-   qu'ils se lisent comme une liste de courses plutôt qu'un tableau étiré. */
+   qu'ils se lisent comme une liste de courses plutôt qu'un tableau étiré — et
+   l'alerte « menu en cours de modification » avec eux, pour ne pas déborder. */
 @media (min-width: 768px) {
+  .grocery-menu-alert,
   #grocery_list,
   .grocery-add-manual {
     max-width: 60%;
@@ -800,6 +842,51 @@
   .grocery-mode-btn,
   .grocery-filter-toggle {
     min-height: var(--min-touch-target);
+  }
+
+  /* Mode Répartir : à côté de la quantité et du bouton, le nom de l'article se
+     réduisait à « Conco… ». Il prend toute la première ligne ; la quantité et
+     le bouton se partagent la seconde, le bouton calé à droite. */
+  [data-grocery-view-mode-value="repartir"] .grocery-item {
+    row-gap: 0.375rem;
+  }
+
+  [data-grocery-view-mode-value="repartir"] .grocery-item-main {
+    flex-basis: 100%;
+  }
+
+  /* Base nulle : le bouton ne repart jamais sur une troisième ligne, c'est le
+     pseudo qui se coupe s'il manque de place à côté de la quantité. */
+  [data-grocery-view-mode-value="repartir"] .grocery-claim-form {
+    display: flex;
+    flex: 1 1 0;
+    justify-content: flex-end;
+    min-width: 0;
+  }
+
+  [data-grocery-view-mode-value="repartir"] .grocery-claim-btn {
+    max-width: min(12rem, 100%);
+  }
+
+  /* Boutons de répartition (ligne et rayon) au gabarit de .btn-sm : la taille
+     d'un bouton de formulaire écrasait la liste. Deux classes, pour l'emporter
+     sur le .btn d'authentication.css (cf. recipes.css, .draft-rail-btn). Le
+     bouton rétrécit, pas la cible tactile : une zone invisible le prolonge
+     jusqu'à la hauteur de --min-touch-target. */
+  .btn.grocery-claim-btn {
+    position: relative;
+    /* ingredients.css étire tout .btn-secondary à 100 % en mobile ; le bouton
+       d'un article pris par un autre doit garder la largeur de son pseudo. */
+    width: auto;
+    min-height: 0;
+    padding: 0.375rem 0.875rem;
+    font-size: var(--font-size-xs);
+  }
+
+  .btn.grocery-claim-btn::after {
+    content: "";
+    position: absolute;
+    inset: calc((100% - var(--min-touch-target)) / 2) 0;
   }
 
   .grocery-add-manual {
