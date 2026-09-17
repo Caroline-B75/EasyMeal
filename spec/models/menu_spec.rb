@@ -6,13 +6,72 @@ RSpec.describe Menu, type: :model do
   let(:user) { create(:user) }
 
   describe "validations" do
-    it "n'autorise qu'un seul brouillon par utilisateur" do
+    it "n'autorise qu'un seul brouillon par foyer" do
       create(:menu, user: user, status: :draft)
 
       duplicate = build(:menu, user: user, status: :draft)
 
       expect(duplicate).not_to be_valid
-      expect(duplicate.errors[:user_id]).to include("a déjà un menu à valider")
+      expect(duplicate.errors[:household_id]).to include("a déjà un menu à valider")
+    end
+  end
+
+  # Le menu appartient au foyer : ses règles d'unicité et son accès valent pour
+  # tous les membres, quel que soit celui qui agit.
+  describe "partage dans le foyer" do
+    let(:partner) { create(:user).tap { |member| user.household.admit!(member) } }
+
+    it "archive le menu actif validé par un autre membre du foyer" do
+      previous_active = create(:menu, user: partner, status: :active)
+      menu = create(:menu, user: user, status: :draft)
+
+      menu.activate!
+
+      expect(previous_active.reload).to be_status_archived
+      expect(user.menus.active_menus.sole).to eq(menu)
+    end
+
+    it "est accessible à chaque membre du foyer, et à eux seuls" do
+      menu = create(:menu, user: user)
+
+      expect(menu.household_member?(partner)).to be(true)
+      expect(menu.household_member?(create(:user))).to be(false)
+      expect(menu.household_member?(nil)).to be(false)
+    end
+  end
+
+  # « Je m'en occupe » pour tout un rayon
+  describe "répartition d'un rayon" do
+    let(:partner) { create(:user) }
+    let(:menu) { create(:menu, user: user, status: :active) }
+    let!(:free_item) { create(:grocery_item, menu: menu, category: :fruits_legumes) }
+    let!(:partner_item) { create(:grocery_item, menu: menu, category: :fruits_legumes, claimed_by: partner) }
+    let!(:other_section_item) { create(:grocery_item, menu: menu, category: :boissons) }
+
+    it "prend les articles libres du rayon, et eux seuls" do
+      menu.claim_grocery_section!("fruits_legumes", user)
+
+      expect(free_item.reload.claimed_by).to eq(user)
+      expect(partner_item.reload.claimed_by).to eq(partner)
+      expect(other_section_item.reload.claimed_by).to be_nil
+    end
+
+    it "laisse les articles du rayon qu'on avait pris, pas ceux des autres" do
+      menu.claim_grocery_section!("fruits_legumes", user)
+
+      menu.release_grocery_section!("fruits_legumes", user)
+
+      expect(free_item.reload.claimed_by).to be_nil
+      expect(partner_item.reload.claimed_by).to eq(partner)
+    end
+
+    it "sait répartir le rayon « Divers » des articles sans rayon" do
+      unsorted = create(:grocery_item, menu: menu, category: nil)
+
+      menu.claim_grocery_section!(nil, user)
+
+      expect(unsorted.reload.claimed_by).to eq(user)
+      expect(free_item.reload.claimed_by).to be_nil
     end
   end
 

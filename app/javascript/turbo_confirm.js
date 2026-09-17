@@ -7,6 +7,9 @@ const isDeletion = (message) => /supprimer|retirer/i.test(message)
 const buildOverlay = (message) => {
   const overlay = document.createElement("div")
   overlay.className = "modal-overlay"
+  // Le modal n'existe pas côté serveur : sans cet attribut, un rafraîchissement
+  // en direct (morph) le retirerait pendant qu'on s'apprête à confirmer.
+  overlay.dataset.turboPermanent = ""
   overlay.innerHTML = `
     <div class="modal-container">
       <div class="modal-content">
@@ -14,7 +17,7 @@ const buildOverlay = (message) => {
           <h3>Confirmation</h3>
         </div>
         <div class="modal-body">
-          <p>${message}</p>
+          <p></p>
         </div>
         <div class="modal-actions">
           <button class="btn btn-secondary" data-action="cancel">Annuler</button>
@@ -25,6 +28,10 @@ const buildOverlay = (message) => {
       </div>
     </div>
   `
+  // Le message est posé en texte, jamais interprété comme du HTML : il cite
+  // parfois une saisie (le nom d'un article de courses), et depuis le partage
+  // du foyer cette saisie peut venir d'un autre compte que celui qui confirme.
+  overlay.querySelector(".modal-body p").textContent = message
   return overlay
 }
 

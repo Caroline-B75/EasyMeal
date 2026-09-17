@@ -2,9 +2,19 @@
 -# @menu : Menu(status: :active)
 -# @grocery_items : collection triée GroceryItem
 - content_for :title, "Liste de courses"
-
+-# Liste partagée par le foyer : quand un membre coche, ajoute ou prend un
+-# article, les autres écrans ouverts ici se rafraîchissent d'eux-mêmes — en
+-# morph, défilement conservé, pour que la page bouge le moins possible sous
+-# les yeux de qui fait ses courses (cf. GroceryItem, morph_keep.js).
+- turbo_refreshes_with method: :morph, scroll: :preserve
 
 .mc-page-outer
+  -# L'abonnement au flux de la liste. live-refresh rattrape ce qu'une coupure
+  -# a fait manquer (réseau perdu, téléphone en veille) ; son attribut
+  -# « connected », posé par Turbo, n'est pas connu du serveur (morph_keep).
+  %div{ data: { controller: "live-refresh" } }
+    = turbo_stream_from(*@menu.grocery_stream, data: { morph_keep: "connected" })
+
   .mc-page-wrap
 
     -# ── En-tête ──────────────────────────────────────────────
@@ -16,6 +26,14 @@
       = link_to menu_path(@menu), class: "mc-head-action" do
         = svg_icon("chevron-left", size: 12)
         Voir le menu
+    -# ── Menu en cours de modification ────────────────────────
+    -# La liste reste consultable pendant qu'un membre retouche le menu : on
+    -# annonce seulement qu'elle peut encore bouger (cf. R3.2bis).
+    - if @menu.pending_revalidation?
+      %p.grocery-menu-alert
+        = svg_icon("info", size: 13)
+        = grocery_pending_revalidation_notice(@menu)
+
     -# ── Liste groupée par rayon ──────────────────────────────
     = render "grocery_list", menu: @menu, grocery_items: @grocery_items
 
@@ -25,13 +43,16 @@
     -# ses unités ; sinon la saisie reste ce qu'elle a toujours été — un nom, une
     -# quantité, une unité, un rayon. Le formulaire fonctionne sans JavaScript :
     -# le serveur rattache alors l'article par son nom (AddManualItemService).
+    -# Une saisie en cours n'est pas effacée par un rafraîchissement en direct
+    -# (data-morph-guard, cf. morph_keep.js).
     .grocery-add-manual
       .grocery-add-manual-label Ajouter un article
 
       = form_with url: menu_grocery_items_path(@menu), method: :post, scope: :grocery_item, class: "grocery-add-form",
                   data: { controller: "form-reset ingredient-combobox",
                           action: "turbo:submit-end->form-reset#reset turbo:submit-end->ingredient-combobox#reset click@window->ingredient-combobox#closeOnOutsideClick",
-                          "ingredient-combobox-search-url-value": search_ingredients_path } do |f|
+                          "ingredient-combobox-search-url-value": search_ingredients_path,
+                          morph_guard: true } do |f|
         .grocery-add-row
           .form-group.grocery-add-article
             = f.label :name, "Article", class: "form-label"

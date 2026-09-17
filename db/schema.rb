@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_05_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_16_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -158,6 +158,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_05_120000) do
     t.string "base_unit", null: false
     t.integer "category"
     t.boolean "checked", default: false, null: false
+    t.bigint "claimed_by_id"
     t.datetime "created_at", null: false
     t.bigint "ingredient_id"
     t.bigint "menu_id", null: false
@@ -172,11 +173,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_05_120000) do
     t.integer "source", default: 0, null: false
     t.integer "unit_group", null: false
     t.datetime "updated_at", null: false
+    t.index ["claimed_by_id"], name: "index_grocery_items_on_claimed_by_id"
     t.index ["ingredient_id"], name: "index_grocery_items_on_ingredient_id"
     t.index ["menu_id", "category"], name: "index_grocery_items_on_menu_id_and_category"
     t.index ["menu_id", "ingredient_id"], name: "index_grocery_items_on_menu_id_and_ingredient_id"
     t.index ["menu_id", "source"], name: "index_grocery_items_on_menu_id_and_source"
     t.index ["menu_id"], name: "index_grocery_items_on_menu_id"
+  end
+
+  create_table "households", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "invite_token", null: false
+    t.datetime "updated_at", null: false
+    t.index ["invite_token"], name: "index_households_on_invite_token", unique: true
   end
 
   create_table "ingredients", force: :cascade do |t|
@@ -220,18 +229,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_05_120000) do
     t.datetime "created_at", null: false
     t.integer "default_people", default: 2, null: false
     t.integer "diet"
+    t.bigint "household_id", null: false
     t.string "name", null: false
     t.jsonb "requested_meal_counts", default: {}, null: false
     t.date "start_date"
     t.integer "status", default: 0, null: false
     t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
+    t.index ["household_id", "status"], name: "index_menus_on_household_id_and_status"
+    t.index ["household_id"], name: "index_menus_on_household_id_unique_active", unique: true, where: "(status = 1)"
+    t.index ["household_id"], name: "index_menus_on_household_id_unique_draft", unique: true, where: "(status = 0)"
     t.index ["status"], name: "index_menus_on_status"
-    t.index ["user_id", "start_date"], name: "index_menus_on_user_id_and_start_date"
-    t.index ["user_id", "status"], name: "index_menus_on_user_id_and_status"
-    t.index ["user_id"], name: "index_menus_on_user_id"
-    t.index ["user_id"], name: "index_menus_on_user_id_unique_active", unique: true, where: "(status = 1)"
-    t.index ["user_id"], name: "index_menus_on_user_id_unique_draft", unique: true, where: "(status = 0)"
   end
 
   create_table "preparations", force: :cascade do |t|
@@ -327,6 +334,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_05_120000) do
     t.string "encrypted_password", default: "", null: false
     t.string "first_name"
     t.string "gender"
+    t.bigint "household_id", null: false
     t.string "last_name"
     t.boolean "preferences_configured", default: false, null: false
     t.datetime "remember_created_at"
@@ -335,6 +343,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_05_120000) do
     t.datetime "updated_at", null: false
     t.string "username"
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["household_id"], name: "index_users_on_household_id"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["username"], name: "index_users_on_username", unique: true
   end
@@ -345,9 +354,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_05_120000) do
   add_foreign_key "favorite_recipes", "users"
   add_foreign_key "grocery_items", "ingredients"
   add_foreign_key "grocery_items", "menus"
+  add_foreign_key "grocery_items", "users", column: "claimed_by_id"
   add_foreign_key "menu_recipes", "menus"
   add_foreign_key "menu_recipes", "recipes"
-  add_foreign_key "menus", "users"
+  add_foreign_key "menus", "households"
   add_foreign_key "preparations", "ingredients"
   add_foreign_key "preparations", "recipes"
   add_foreign_key "recipe_imports", "recipes"
@@ -356,4 +366,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_05_120000) do
   add_foreign_key "recipe_tags", "tags"
   add_foreign_key "reviews", "recipes"
   add_foreign_key "reviews", "users"
+  add_foreign_key "users", "households"
 end

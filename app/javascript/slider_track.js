@@ -4,7 +4,7 @@
 // mouvement.
 //
 // Partagée par les sliders « nombre de personnes » du formulaire de menu et des
-// réglages du foyer : même composant visuel, une seule implémentation.
+// préférences de menus : même composant visuel, une seule implémentation.
 export function paintSliderTrack(slider) {
   const min = Number(slider.min)
   const max = Number(slider.max)

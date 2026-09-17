@@ -30,8 +30,12 @@ class GroceryItemsController < ApplicationController
 
   # PATCH /menus/:menu_id/grocery_items/:id
   # UC3 : Cocher/décocher un item ou modifier sa quantité/unité
+  # Cocher donne l'article à qui le coche (« Je m'en occupe », cf. GroceryItem#assign_buyer).
   def update
-    if @grocery_item.update(grocery_item_update_params)
+    @grocery_item.assign_attributes(grocery_item_update_params)
+    @grocery_item.assign_buyer(current_user)
+
+    if @grocery_item.save
       respond_success(redirect_path: @menu)
     else
       respond_error(@grocery_item, redirect_path: @menu)

@@ -3,14 +3,14 @@
 # Policy pour les MenuRecipes (repas d'un menu — UC1/UC2).
 #
 # Délègue systématiquement à MenuPolicy du menu parent :
-# seul le propriétaire du menu peut modifier ou supprimer ses repas.
+# seuls les membres du foyer du menu peuvent modifier ou supprimer ses repas.
 # (Le choix d'une recette passe par le catalogue — Recipes::DraftManageable —
 # et est couvert par RecipePolicy#toggle_in_draft? ; la duplication d'un repas
 # déjà placé, elle, est couverte ici.)
 class MenuRecipePolicy < ApplicationPolicy
   # Modifier un repas (personnes, type, jour)
   def update?
-    menu_owner?
+    menu_household_member?
   end
 
   # Réordonner un repas dans sa section (UC7, boutons mobiles ⬆️/⬇️) : même
@@ -20,7 +20,7 @@ class MenuRecipePolicy < ApplicationPolicy
 
   # Supprimer un repas du menu
   def destroy?
-    menu_owner?
+    menu_household_member?
   end
 
   # Dupliquer un repas (UC7) : réservé au brouillon — plus strict que les autres
@@ -28,19 +28,19 @@ class MenuRecipePolicy < ApplicationPolicy
   # courses déjà arrêtée. La carte n'y propose donc pas le bouton, et la règle
   # est rappelée ici pour une requête forgée.
   def duplicate?
-    menu_owner? && record.menu.status_draft?
+    menu_household_member? && record.menu.status_draft?
   end
 
   # Scope non nécessaire (les menu_recipes sont toujours accédés via @menu)
   class Scope < ApplicationPolicy::Scope
     def resolve
-      scope.joins(:menu).where(menus: { user: user })
+      scope.joins(:menu).where(menus: { household_id: user.household_id })
     end
   end
 
   private
 
-  def menu_owner?
-    user.present? && record.menu.user_id == user.id
+  def menu_household_member?
+    record.menu.household_member?(user)
   end
 end

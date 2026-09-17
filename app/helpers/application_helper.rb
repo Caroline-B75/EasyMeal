@@ -48,6 +48,14 @@ module ApplicationHelper
     @_current_active_menu ||= current_user.menus.active_menus.first
   end
 
+  # Le menu dont la liste de courses est consultable : le menu actif, ou celui
+  # qu'un membre du foyer est en train de retoucher (sa liste existe toujours,
+  # cf. Menus::GroceryManageable). Sans lui, le lien « Courses » disparaîtrait de
+  # la navigation à l'instant précis où quelqu'un fait ses courses.
+  def current_grocery_menu
+    current_active_menu || current_draft_menu&.then { |draft| draft if draft.pending_revalidation? }
+  end
+
   # Retourne le menu brouillon de l'utilisateur courant (un seul autorisé par validation)
   def current_draft_menu
     return nil unless user_signed_in?

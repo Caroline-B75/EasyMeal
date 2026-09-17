@@ -69,3 +69,37 @@ Deux règles de génération à ne pas casser :
 - **Un pool trop maigre n'est jamais une erreur** à la génération : on place ce
   qu'on peut et `Menu#missing_meal_counts` expose le manque, affiché en tête de
   section. Seul un *remplacement* 🔀 sans candidat lève `Menus::NoCandidatesError`.
+
+## Le foyer (UC8)
+
+Un **menu appartient à un foyer**, jamais à un compte : `menus.household_id`
+(la colonne `user_id` n'existe plus). Les menus se **lisent** par
+`current_user.menus` (un `has_many through: :household`) et s'**écrivent**
+toujours dans le foyer : `current_user.household.menus.create!`.
+
+- Les règles « un seul menu actif » et « un seul brouillon » portent sur le
+  **foyer** : validation d'unicité sur `household_id` et index uniques partiels.
+- L'accès à un menu, à ses repas et à sa liste de courses tient dans une seule
+  méthode, `Menu#household_member?(user)`, appelée par les trois policies. Ne
+  jamais réécrire la règle ailleurs.
+- **Tous les membres sont égaux** : aucune action n'est réservée à celui qui a
+  composé le menu. Un compte naît seul dans son foyer (`User#build_own_household`),
+  donc il n'existe jamais de compte sans foyer — aucun cas particulier à traiter.
+- Restent personnels : favoris, avis, imports IA et préférences de génération.
+
+La **liste de courses se met à jour en direct** : `GroceryItem` diffuse un
+rafraîchissement Turbo 8 (`broadcasts_refreshes_to` sur `Menu#grocery_stream`),
+et la page est rendue en `turbo_refreshes_with method: :morph`. Trois pièges :
+
+- tout état qui ne vit que dans l'écran (rayon replié, mode, filtre, saisie en
+  cours) doit porter `data-morph-keep="…"` ou `data-morph-guard` — cf.
+  `morph_keep.js` —, sinon le morph le ramène à ce que connaît le serveur ;
+- un `update_all` ne diffuse rien : passer par les modèles (cf.
+  `Menu#claim_grocery_section!`) ou diffuser explicitement ;
+- le mode « Répartir » et le filtre « Ma part » sont **entièrement côté client**
+  (CSS sur `data-grocery-view-*`, mémorisés dans le `sessionStorage`), pour
+  rester utilisables hors ligne en magasin.
+
+« Je m'en occupe » tient dans `grocery_items.claimed_by_id` : `claim!` prend
+l'article, `release!` ne rend que le sien, et `assign_buyer` donne l'article à
+qui le coche. Un membre qui quitte le foyer libère les siens.

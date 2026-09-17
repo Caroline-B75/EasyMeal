@@ -1,14 +1,40 @@
 -# Contenu de la liste de courses groupée par rayon
--# grocery_items : collection triée GroceryItem
+-# grocery_items : collection GroceryItem (scope for_list)
 -# menu          : Menu
+-#
+-# Liste partagée par un foyer de plusieurs membres (« Je m'en occupe ») : deux
+-# modes — Courses, on coche ; Répartir, on prend ou on laisse — et le filtre
+-# « Ma part ». Ce sont des réglages de CET écran, tenus par le contrôleur
+-# grocery-view : un rafraîchissement en direct ne doit pas les ramener à l'état
+-# que connaît le serveur (data-morph-keep, cf. morph_keep.js).
+- shared = shared_grocery_list?(menu)
+- list_data = { controller: [ "grocery-sections", ("grocery-view" if shared) ].compact.join(" "),
+                action: "turbo:morph@document->grocery-sections#syncToggleLabel" }
+- list_data[:morph_keep] = "data-grocery-view-mode-value data-grocery-view-mine-value" if shared
 
-#grocery_list{ data: { controller: "grocery-sections" } }
+#grocery_list{ data: list_data }
   - if grocery_items.any?
     .grocery-list-controls
+      - if shared
+        .grocery-mode-switch{ role: "group", "aria-label": "Mode de la liste" }
+          - { "courses" => "Courses", "repartir" => "Répartir" }.each do |mode, label|
+            %button.grocery-mode-btn{ type: "button", "aria-pressed": (mode == "courses").to_s,
+                                      data: { action: "grocery-view#setMode", grocery_view_mode_param: mode,
+                                              grocery_view_target: "modeButton", morph_keep: "aria-pressed" } }= label
       %button.btn-text-sm{ type: "button",
                             data: { action: "click->grocery-sections#toggleAll",
                                     "grocery-sections-target": "toggleBtn" } }
         Tout fermer
+
+    - if shared
+      %button.grocery-filter-toggle{ type: "button", "aria-pressed": "false",
+                                     data: { action: "grocery-view#toggleMine",
+                                             grocery_view_target: "mineButton", morph_keep: "aria-pressed" } }
+        Ma part
+      %p.grocery-split-hint
+        Touche un article pour le prendre ou le laisser : chaque membre du foyer
+        voit aussitôt qui s'occupe de quoi.
+      %p.grocery-filter-empty Tout ce qui reste est pris par les autres membres du foyer.
 
     - grocery_items.group_by(&:category).each do |category, items|
       = render "menus/grocery_section", category: category, items: items, menu: menu

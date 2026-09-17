@@ -153,7 +153,7 @@ class MenusController < ApplicationController
   def generation_params
     # Ce qui ne dépend pas de la porte d'entrée : requested_meal_counts sait
     # déjà d'où vient la répartition.
-    common = { user: current_user, meal_counts: requested_meal_counts }
+    common = { household: current_user.household, meal_counts: requested_meal_counts }
 
     if form_params_present?
       common.merge(diet:           menu_params[:diet],

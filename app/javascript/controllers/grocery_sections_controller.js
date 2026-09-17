@@ -13,12 +13,17 @@ export default class extends Controller {
 
   toggleAll() {
     const allOpen = this.accordionControllers.every(c => c.openValue)
-    if (allOpen) {
-      this.accordionControllers.forEach(c => c.close())
-      if (this.hasToggleBtnTarget) this.toggleBtnTarget.textContent = "Tout ouvrir"
-    } else {
-      this.accordionControllers.forEach(c => c.open())
-      if (this.hasToggleBtnTarget) this.toggleBtnTarget.textContent = "Tout fermer"
-    }
+    this.accordionControllers.forEach(c => (allOpen ? c.close() : c.open()))
+    this.syncToggleLabel()
+  }
+
+  // Le libellé suit l'état des rayons. Rappelé après un rafraîchissement en
+  // direct (turbo:morph) : le morph remet le texte du serveur, « Tout fermer »,
+  // alors que les rayons repliés, eux, le restent.
+  syncToggleLabel() {
+    if (!this.hasToggleBtnTarget) return
+
+    const allOpen = this.accordionControllers.every(c => c.openValue)
+    this.toggleBtnTarget.textContent = allOpen ? "Tout fermer" : "Tout ouvrir"
   }
 }

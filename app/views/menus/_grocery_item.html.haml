@@ -1,10 +1,14 @@
 -# Item de la liste de courses (UC3)
--# item : GroceryItem
--# menu : Menu
+-# item         : GroceryItem
+-# menu         : Menu
+-# claim_state  : "free", "mine", "other" (GroceryItem#claim_state_for), ou nil
+-#                hors liste partagée — ce que lit le filtre « Ma part » (data-claim)
+-# show_claimer : afficher le pseudo de qui s'en occupe sur la ligne (faux quand
+-#                un seul membre a pris tout le rayon : il est déjà sur l'en-tête)
 
 = turbo_frame_tag "grocery_item_#{item.id}" do
   .grocery-item{ class: ("grocery-item--checked" if item.checked),
-                 data: { controller: "grocery-check" } }
+                 data: { controller: "grocery-check", claim: claim_state } }
 
     -# Bouton toggle coché/non coché (feedback optimiste via grocery-check)
     .grocery-item-check
@@ -24,14 +28,19 @@
     .grocery-item-main
       %span.grocery-item-name{ class: ("grocery-item-name--checked" if item.checked),
                                 data: { "grocery-check-target": "label" } }= item.name
+      - if show_claimer && item.claimed_by
+        = grocery_claim_chip(item.claimed_by)
       -# Badge d'attention : la réconciliation a augmenté la quantité d'un article
       -# précédemment coché → il a été décoché. Disparaît au re-cochage (previous_quantity_base := nil).
       - if item.previous_quantity_base.present? && !item.checked
-        %span.grocery-item-badge.badge-amber= "Tu en as peut-être déjà acheté #{item.previous_quantity_display} avant ta modification du menu."
+        %span.grocery-item-badge.badge-amber= "Tu en as peut-être déjà acheté #{item.previous_quantity_display} avant la modification du menu."
 
     -# Quantité (droite)
+    -# Une correction en cours survit à un rafraîchissement en direct : le mode
+    -# édition est un état de l'écran (morph_keep), et la saisie n'est pas écrasée
+    -# tant que le champ a le focus ou a été modifié (morph_guard).
     - if item.quantity_base.present?
-      .grocery-item-qty-wrapper{ data: { controller: "grocery-edit-qty" } }
+      .grocery-item-qty-wrapper{ data: { controller: "grocery-edit-qty", morph_keep: "class", morph_guard: true } }
         %span.grocery-item-qty{ data: { action: "click->grocery-edit-qty#edit" },
                                  title: "Modifier la quantité" }= grocery_quantity(item)
         = form_with url: menu_grocery_item_path(menu, item),
@@ -65,5 +74,10 @@
                   class: "btn-remove",
                   title: "Supprimer",
                   "aria-label": "Supprimer l'article #{item.name}",
+                  form_class: "button_to grocery-remove-form",
                   form: { data: { turbo_confirm: "Supprimer \"#{item.name}\" ?" } } do
         = svg_icon(:x, size: 14)
+
+    -# Répartition (liste partagée, visible en mode Répartir seulement)
+    - if claim_state
+      = grocery_item_claim_button(menu, item, claim_state)

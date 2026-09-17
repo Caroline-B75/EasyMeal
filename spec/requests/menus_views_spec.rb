@@ -135,7 +135,7 @@ RSpec.describe "Vues menus R3.2bis", type: :request do
       get grocery_menu_path(menu)
 
       expect(response).to have_http_status(:success)
-      expect(response.body).to include("Tu en as peut-être déjà acheté 1,5 kg avant ta modification du menu")
+      expect(response.body).to include("Tu en as peut-être déjà acheté 1,5 kg avant la modification du menu")
     end
   end
 end

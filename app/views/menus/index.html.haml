@@ -6,7 +6,15 @@
 
   -# ── En-tête page ─────────────────────────────────────────
   .mi-page-top
-    %h1.mi-page-title Mes menus
+    .mi-page-heading
+      %h1.mi-page-title Mes menus
+      -# Foyer partagé : ces menus ne sont pas que les siens. Mention discrète,
+      -# qui mène à « Mon foyer » (rien sinon, pour un foyer d'une personne).
+      - housemates = household_mates_sentence(current_user)
+      - if housemates
+        = link_to household_path, class: "mi-household-note" do
+          = svg_icon("users", size: 13)
+          = "Partagé avec #{housemates}"
     - if @drafts.any?
       -# Un brouillon existe : on prévient avant de le remplacer.
       - next_draft = @drafts.first

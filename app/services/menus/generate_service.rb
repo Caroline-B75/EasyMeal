@@ -13,22 +13,22 @@ module Menus
   #
   # @example
   #   menu = Menus::GenerateService.call(
-  #     user: current_user,
+  #     household: current_user.household,
   #     diet: :vegetarien,
   #     default_people: 4,
   #     meal_counts: MealCounts.from_hash({ "breakfast" => 7, "dinner" => 7 })
   #   )
   #   # => Menu (status: :draft, persisted)
   class GenerateService
-    # @param user [User]
+    # @param household [Household] foyer qui reçoit le brouillon
     # @param diet [Symbol, String] Régime alimentaire (ex: :vegetarien)
     # @param default_people [Integer] Nombre de personnes par défaut pour les repas
     # @param meal_counts [MealCounts] Répartition des repas commandée, par moment
     # @param name [String, nil] Nom du menu (auto-généré si absent)
     # @return [Menu] Menu draft persisté
-    def self.call(user:, diet:, default_people:, meal_counts:, name: nil)
+    def self.call(household:, diet:, default_people:, meal_counts:, name: nil)
       new(
-        user: user,
+        household: household,
         diet: diet,
         default_people: default_people,
         meal_counts: meal_counts,
@@ -36,22 +36,22 @@ module Menus
       ).call
     end
 
-    def initialize(user:, diet:, default_people:, meal_counts:, name:)
-      @user           = user
+    def initialize(household:, diet:, default_people:, meal_counts:, name:)
+      @household      = household
       @diet           = diet.to_s
       @default_people = default_people.to_i
       @meal_counts    = meal_counts
       @name           = name.presence || Menu.default_name
     end
 
-    # Un seul brouillon par utilisateur : l'éventuel brouillon précédent est
+    # Un seul brouillon par foyer : l'éventuel brouillon précédent est
     # remplacé dans la même transaction que la création du nouveau.
     def call
       ActiveRecord::Base.transaction do
-        @user.menus.status_draft.find_each(&:destroy!)
+        @household.menus.status_draft.find_each(&:destroy!)
 
         menu = Menu.create!(
-          user:           @user,
+          household:      @household,
           name:           @name,
           diet:           @diet,
           default_people: @default_people,

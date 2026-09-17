@@ -19,7 +19,10 @@ class Menu < ApplicationRecord
   class InvalidTransitionError < StandardError; end
 
   # === Associations ===
-  belongs_to :user
+
+  # Un menu appartient au foyer, pas à celui qui l'a composé : tous les membres
+  # le voient, le modifient et cochent sa liste de courses (cf. Household).
+  belongs_to :household
 
   # Repas du menu avec leur nombre de personnes propre
   has_many :menu_recipes, dependent: :destroy
@@ -40,7 +43,7 @@ class Menu < ApplicationRecord
 
   # Cycle de vie du menu
   # draft    : en cours de composition — modifiable librement
-  # active   : finalisé — liste de courses générée (un seul par utilisateur)
+  # active   : finalisé — liste de courses générée (un seul par foyer)
   # archived : ancien menu actif, conservé dans l'historique
   enum :status, { draft: 0, active: 1, archived: 2 }, prefix: true
 
@@ -52,6 +55,14 @@ class Menu < ApplicationRecord
     pescetarien: 3
   }, prefix: true
 
+  # === Temps réel ===
+
+  # Passer en brouillon (ou revenir actif) change ce que la liste de courses
+  # annonce — le bandeau « ce menu est en cours de modification » — sans toucher
+  # une seule ligne : les écrans ouverts dessus ne l'apprendraient donc pas des
+  # articles (cf. GroceryItem).
+  after_update_commit -> { broadcast_refresh_later_to(*grocery_stream) }, if: :saved_change_to_status?
+
   # === Validations ===
   validates :name, presence: { message: "ne peut pas être vide" },
                    length: { maximum: 100, message: "ne doit pas dépasser 100 caractères" }
@@ -62,7 +73,7 @@ class Menu < ApplicationRecord
     message: "doit être au moins 1"
   }
 
-  validates :user_id, uniqueness: {
+  validates :household_id, uniqueness: {
     conditions: -> { where(status: statuses[:draft]) },
     message: "a déjà un menu à valider"
   }, if: :status_draft?
@@ -72,7 +83,7 @@ class Menu < ApplicationRecord
   # status_active, status_archived) — sauf active_menus, dont le nom explicite
   # se lit mieux sur les appels « le menu actif de l'utilisatrice ».
 
-  # Menus finalisés (un seul actif par utilisateur)
+  # Menus finalisés (un seul actif par foyer)
   scope :active_menus, -> { where(status: :active) }
 
   # Tri chronologique (les plus récents d'abord)
@@ -81,7 +92,7 @@ class Menu < ApplicationRecord
   # === Méthodes d'instance ===
 
   # Passe le menu en statut :active et déclenche la génération de la liste de courses.
-  # Archive automatiquement l'éventuel menu actif précédent de l'utilisateur.
+  # Archive automatiquement l'éventuel menu actif précédent du foyer.
   # @raise [ActiveRecord::RecordInvalid] si le menu ne peut pas être activé
   def activate!
     transaction do
@@ -111,7 +122,7 @@ class Menu < ApplicationRecord
   # Les grocery_items sont CONSERVÉS tels quels (coches comprises) : c'est la
   # réconciliation de Groceries::BuildForMenuService, à la revalidation, qui les
   # mettra à jour sans perdre le travail de courses déjà fait.
-  # Remplace l'éventuel brouillon existant : un utilisateur ne garde qu'un seul
+  # Remplace l'éventuel brouillon existant : un foyer ne garde qu'un seul
   # menu à valider pour éviter toute ambiguïté entre menu actif et prochain menu.
   # @raise [InvalidTransitionError] si le menu n'est pas actif
   # @raise [ActiveRecord::RecordInvalid] si le brouillon ne peut pas être enregistré
@@ -237,14 +248,48 @@ class Menu < ApplicationRecord
     end
   end
 
+  # Le flux temps réel de la liste de courses : la page s'y abonne, chaque ligne
+  # modifiée y publie une demande de rafraîchissement (cf. GroceryItem).
+  # @return [Array] streamables pour turbo_stream_from / broadcasts_refreshes_to
+  def grocery_stream
+    [ self, :grocery ]
+  end
+
+  # « Je m'en occupe » pour tout un rayon : prend les articles que personne n'a
+  # pris. Ceux qu'un autre membre a pris restent à lui.
+  # @param category [String, nil] clé du rayon, nil pour « Divers »
+  # @param user [User]
+  def claim_grocery_section!(category, user)
+    transaction do
+      grocery_items.where(category: category, claimed_by_id: nil).find_each { |item| item.claim!(user) }
+    end
+  end
+
+  # … et le laisse : rend libres les articles du rayon que ce membre avait pris.
+  # @param category [String, nil] clé du rayon, nil pour « Divers »
+  # @param user [User]
+  def release_grocery_section!(category, user)
+    transaction do
+      grocery_items.where(category: category, claimed_by: user).find_each { |item| item.release!(user) }
+    end
+  end
+
+  # La règle d'accès à un menu, à ses repas et à sa liste de courses : être
+  # membre de son foyer. Une seule définition, que partagent MenuPolicy,
+  # MenuRecipePolicy et GroceryItemPolicy.
+  # @param user [User, nil]
+  def household_member?(user)
+    user.present? && household_id == user.household_id
+  end
+
   private
 
-  # Archive le menu actif actuel de l'utilisateur (s'il existe)
+  # Archive le menu actif actuel du foyer (s'il existe)
   def archive_current_active!
-    user.menus.active_menus.where.not(id: id).find_each(&:archive!)
+    household.menus.active_menus.where.not(id: id).find_each(&:archive!)
   end
 
   def destroy_other_drafts!
-    user.menus.status_draft.where.not(id: id).find_each(&:destroy!)
+    household.menus.status_draft.where.not(id: id).find_each(&:destroy!)
   end
 end

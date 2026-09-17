@@ -6,6 +6,8 @@ class UsersController < ApplicationController
 
   def index
     @users_count = User.count
+    # menus_count : les menus du foyer de chaque compte (User#menus passe par le
+    # foyer) — deux membres d'un même foyer affichent donc le même nombre.
     @users = User
              .left_joins(:menus)
              .select("users.*, COUNT(menus.id) AS menus_count")

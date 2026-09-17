@@ -18,7 +18,7 @@
             %th Utilisateur
             %th Rôle
             %th Préférences
-            %th Menus créés
+            %th Menus du foyer
             %th Inscription
             %th Actions
         %tbody
@@ -45,7 +45,7 @@
                   %small= "#{user.default_people} pers. · #{user.preferred_meal_counts.total} repas"
                   - unless user.preferences_configured?
                     %span.users-warning Préférences à confirmer
-              %td.users-menus-cell{ data: { label: "Menus créés" } }
+              %td.users-menus-cell{ data: { label: "Menus du foyer" } }
                 %span.users-menu-count= user.menus_count
               %td.users-date-cell{ data: { label: "Inscription" } }
                 %time{ datetime: user.created_at.iso8601 }= l(user.created_at.to_date)

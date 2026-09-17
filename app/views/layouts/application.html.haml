@@ -52,7 +52,10 @@
 
     -# Indicateur global d'état réseau (PWA) — bandeau discret « Hors ligne » /
     -# « Synchronisation… ». Masqué par défaut, affiché via le controller Stimulus.
-    .network-status{ data: { controller: "network-status" }, role: "status", "aria-live": "polite" }
+    -# Un rafraîchissement en direct (morph) remet le bandeau tel que le serveur le
+    -# rend, vide : le contrôleur le redessine aussitôt (turbo:morph).
+    .network-status{ data: { controller: "network-status", action: "turbo:morph@document->network-status#render" },
+                     role: "status", "aria-live": "polite" }
       %span.network-status__dot
       %span.network-status__text{ data: { "network-status-target": "text" } }
 
@@ -67,6 +70,9 @@
       - admin_draft_count = current_user.admin? ? Recipe.draft.count : 0
       - active_menu = current_active_menu
       - draft_menu = current_draft_menu
+      -# Le menu dont la liste de courses se consulte : l'actif, ou celui qu'on
+      -# est en train de retoucher — sa liste existe encore (cf. R3.2bis).
+      - grocery_menu = current_grocery_menu
       %header.main-header{ data: { controller: "sticky-header" } }
         %nav.nav-container{ data: { controller: "menu" } }
           .nav-brand
@@ -80,8 +86,8 @@
             - if draft_menu
               = link_to "Menu brouillon", menu_path(draft_menu), class: header_nav_class(:draft, draft_menu)
             = link_to "Recettes", recipes_path, class: header_nav_class(:recipes)
-            - if active_menu
-              = link_to "Courses", grocery_menu_path(active_menu), class: header_nav_class(:grocery, active_menu)
+            - if grocery_menu
+              = link_to "Courses", grocery_menu_path(grocery_menu), class: header_nav_class(:grocery, grocery_menu)
             -# Import IA (admin) : le badge compte les brouillons en attente de validation
             - if current_user.admin?
               = link_to recipe_drafts_path, class: header_nav_class(:drafts) do
@@ -124,8 +130,8 @@
                 - if draft_menu
                   = link_to "Menu brouillon", menu_path(draft_menu), class: "dropdown-link"
                 = link_to "Recettes", recipes_path, class: "dropdown-link"
-                - if active_menu
-                  = link_to "Courses", grocery_menu_path(active_menu), class: "dropdown-link"
+                - if grocery_menu
+                  = link_to "Courses", grocery_menu_path(grocery_menu), class: "dropdown-link"
                 - if current_user.admin?
                   = link_to recipe_drafts_path, class: "dropdown-link dropdown-link--admin" do
                     Import
@@ -135,6 +141,8 @@
 
               .dropdown-links
                 = link_to "Mes menus", menus_path, class: "dropdown-link"
+                -# « Mon foyer » suit « Mes menus » : c'est avec lui qu'on les partage.
+                = link_to "Mon foyer", household_path, class: "dropdown-link"
                 = link_to "Préférences", preferences_profile_path, class: "dropdown-link"
                 -# « Mon compte » suit « Préférences » : les deux se règlent une
                 -# fois pour toutes, mais celui-ci touche à l'identité et au mot

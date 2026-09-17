@@ -2,4 +2,4 @@
 = turbo_stream.replace "grocery_list" do
   = render "menus/grocery_list",
            menu: @menu,
-           grocery_items: GroceryItem.where(menu: @menu).sorted
+           grocery_items: @menu.grocery_items.for_list

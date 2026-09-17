@@ -13,7 +13,7 @@ import { Controller } from "@hotwired/stimulus"
  *
  * Chaque changement est annoncé par l'événement `meal-counts:change`
  * (detail : { total, summary }). Le formulaire de génération s'en sert pour sa
- * barre de résumé et l'état de son bouton ; les préférences du foyer, qui
+ * barre de résumé et l'état de son bouton ; les préférences de menus, qui
  * réutilisent le même partial, l'ignorent simplement.
  */
 export default class extends Controller {

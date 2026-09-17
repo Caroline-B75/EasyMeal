@@ -1,0 +1,25 @@
+-# Confirmation avant d'entrer dans un foyer, depuis le lien d'invitation.
+-# @household : Household qui invite
+- content_for :title, "Rejoindre un foyer"
+- consequence = household_join_consequence(current_user)
+
+.pref-page-wrap
+  .pref-header
+    %h1.pref-title Rejoindre un foyer
+    %p.pref-subtitle
+      Foyer de
+      = @household.members.order(:created_at).map { |member| household_member_label(member) }.to_sentence
+
+  .household-sections
+    .pref-section
+      %h2.pref-section-title Ce qui change
+      %ul.household-changes
+        %li Vous partagerez les mêmes menus et la même liste de courses.
+        %li Chaque membre pourra les composer, les valider et cocher les articles.
+        - if consequence
+          %li= consequence
+
+    .pref-actions
+      = button_to "Rejoindre le foyer", household_invitation_path(@household.invite_token), method: :post,
+                  class: "btn btn-primary"
+      = link_to "Non merci", root_path, class: "btn btn-secondary"

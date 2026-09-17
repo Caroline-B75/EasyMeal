@@ -21,6 +21,7 @@
  *= require recipes
  *= require tags
  *= require users
+ *= require households
  *= require authentication
  *= require menus
  *= require grocery_items

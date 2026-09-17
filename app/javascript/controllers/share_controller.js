@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 /**
- * Partage d'une recette.
+ * Partage d'un lien : une recette, ou l'invitation à rejoindre un foyer.
  *
  * Utilise l'API Web Share (native, mobile en priorité) lorsqu'elle est
  * disponible, avec un repli « copier le lien » dans le presse-papier sinon.

@@ -9,6 +9,18 @@ Rails.application.routes.draw do
     patch :preferences, action: :update_preferences
   end
 
+  # Foyer : les comptes qui partagent menus et liste de courses. Toujours celui
+  # du compte connecté, d'où la ressource au singulier (pas d'id dans l'URL).
+  resource :household, only: [ :show ], path: "foyer" do
+    patch :renew_invitation  # Nouveau lien d'invitation — l'ancien cesse de fonctionner
+    # Quitter le foyer (son propre id) ou en retirer un autre membre
+    resources :members, only: [ :destroy ], path: "membres", module: :households
+  end
+
+  # Lien d'invitation partagé par un membre : confirmation, puis entrée dans le foyer
+  get  "foyer/rejoindre/:token", to: "households/invitations#show", as: :household_invitation
+  post "foyer/rejoindre/:token", to: "households/invitations#create"
+
   # Gestion des ingrédients
   resources :ingredients do
     collection do
@@ -48,7 +60,18 @@ Rails.application.routes.draw do
         post  :duplicate  # UC7 : répéter un repas — la copie se pose juste après lui
       end
     end
-    resources :grocery_items, only: [ :create, :update, :destroy ]
+    resources :grocery_items, only: [ :create, :update, :destroy ] do
+      # « Je m'en occupe » : prendre un article pour soi, ou le laisser
+      member do
+        patch  :claim, to: "grocery_claims#claim_item"
+        delete :claim, to: "grocery_claims#release_item"
+      end
+      # … ou tout un rayon (params: category)
+      collection do
+        patch  :claim_section, to: "grocery_claims#claim_section"
+        delete :claim_section, to: "grocery_claims#release_section"
+      end
+    end
   end
 
   # Recettes brouillons (admin only — import IA en attente de validation)

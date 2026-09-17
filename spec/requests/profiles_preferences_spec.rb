@@ -2,9 +2,9 @@
 
 require "rails_helper"
 
-# UC7, chapitre 2 — la semaine type se décrit aussi depuis les réglages du foyer,
+# UC7, chapitre 2 — la semaine type se décrit aussi depuis les préférences de menus,
 # avec exactement les mêmes steppers que le formulaire de génération.
-RSpec.describe "Réglages du foyer", type: :request do
+RSpec.describe "Préférences de menus", type: :request do
   let(:user) { create(:user) }
 
   before { sign_in user }

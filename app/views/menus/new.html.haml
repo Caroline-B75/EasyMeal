@@ -1,5 +1,5 @@
 -# UC1 — Génération d'un nouveau menu (design mockup card-based)
-- content_for :title, current_user.preferences_configured? ? "Personnaliser ce menu" : "Configurer mon foyer"
+- content_for :title, current_user.preferences_configured? ? "Personnaliser ce menu" : "Mes préférences de menus"
 
 = context_bar_back(menus_path, "Retour à mes menus")
 
@@ -12,7 +12,7 @@
       %h1.mn-page-title Personnaliser ce menu
       %p.mn-page-sub Tes paramètres habituels sont pré-remplis. Modifie-les si besoin pour ce menu uniquement.
     - else
-      %h1.mn-page-title Configure ton foyer
+      %h1.mn-page-title Configure tes préférences
       %p.mn-page-sub
         Ces paramètres seront utilisés par défaut pour tous tes menus.
         %br

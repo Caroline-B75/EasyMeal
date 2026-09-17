@@ -21,6 +21,19 @@ class GroceryItem < ApplicationRecord
   # ingredient_id nullable : null si ligne custom sans ingrédient enregistré en base
   belongs_to :ingredient, optional: true
 
+  # « Je m'en occupe » : le membre du foyer qui achète l'article — celui qui l'a
+  # pris, ou celui qui l'a coché. Vide tant que personne ne l'a pris.
+  belongs_to :claimed_by, class_name: "User", optional: true, inverse_of: :claimed_grocery_items
+
+  # === Temps réel ===
+
+  # La liste est partagée par le foyer : chaque ligne créée, modifiée ou
+  # supprimée demande aux écrans ouverts sur elle de se rafraîchir (Turbo 8,
+  # morph — cf. menus/grocery). Turbo regroupe les signaux rapprochés : une
+  # revalidation qui touche quarante lignes n'en envoie qu'un, et l'écran à
+  # l'origine du changement, déjà à jour, l'ignore.
+  broadcasts_refreshes_to ->(item) { item.menu.grocery_stream }
+
   # === Enums ===
 
   # Origine de la ligne : générée automatiquement ou ajoutée manuellement
@@ -91,6 +104,10 @@ class GroceryItem < ApplicationRecord
 
   # Tri : par rayon, non-cochés en premier, puis alphabétique par nom
   scope :sorted, -> { order(:category, :checked, :name) }
+
+  # Lignes prêtes pour l'affichage de la liste : triées, avec le membre qui
+  # s'en occupe (son pseudo s'affiche sur la ligne ou sur le rayon).
+  scope :for_list, -> { includes(:claimed_by).sorted }
 
   # « Cet article est-il déjà dans la liste ? » — la question que pose l'ajout
   # manuel, qui renvoie vers la ligne existante au lieu d'en créer une jumelle
@@ -183,5 +200,38 @@ class GroceryItem < ApplicationRecord
     end
 
     self
+  end
+
+  # === « Je m'en occupe » ===
+
+  # Prend l'article pour ce membre du foyer — y compris s'il était pris par un
+  # autre : c'est le « Reprendre » de la répartition.
+  # @param user [User]
+  def claim!(user)
+    update!(claimed_by: user)
+  end
+
+  # Laisse l'article, seulement s'il était pris par ce membre : on ne rend pas
+  # ce qu'un autre a pris.
+  # @param user [User]
+  def release!(user)
+    update!(claimed_by: nil) if claimed_by_id == user.id
+  end
+
+  # Cocher, c'est avoir acheté : l'article revient à qui le coche, et c'est ce
+  # que lisent les autres membres du foyer. Décocher ne change pas qui s'en occupe.
+  # À appeler après l'affectation des attributs, avant l'enregistrement.
+  # @param user [User]
+  def assign_buyer(user)
+    self.claimed_by = user if checked? && will_save_change_to_checked?
+  end
+
+  # Ce qu'est l'article pour ce membre du foyer — ce que filtre « Ma part ».
+  # @param user [User]
+  # @return [String] "mine" (il s'en occupe), "other" (un autre membre), "free" (personne)
+  def claim_state_for(user)
+    return "free" if claimed_by_id.nil?
+
+    claimed_by_id == user.id ? "mine" : "other"
   end
 end

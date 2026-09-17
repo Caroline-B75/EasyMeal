@@ -88,6 +88,22 @@ module MenusHelper
   GROCERY_RECONCILE_NOTICE = "sera mise à jour : les articles déjà cochés le restent, " \
                               "sauf si leur quantité augmente.".freeze
 
+  # Bandeau de la liste de courses d'un menu repassé en brouillon : la liste
+  # reste consultable — quelqu'un peut être en train de faire ses courses avec —
+  # mais elle n'est plus arrêtée. On dit d'où vient le changement et ce que la
+  # revalidation lui fera, dans les mêmes termes que la confirmation.
+  # @param menu [Menu] menu en attente de revalidation
+  # @return [String]
+  def grocery_pending_revalidation_notice(menu)
+    origin = if shared_grocery_list?(menu)
+      "Un membre du foyer est en train de modifier ce menu."
+    else
+      "Ce menu est en cours de modification."
+    end
+
+    "#{origin} À la revalidation, cette liste #{GROCERY_RECONCILE_NOTICE}"
+  end
+
   # Confirmation du retour en brouillon d'un menu actif (R3.2bis).
   # Un seul brouillon peut exister : si l'utilisatrice en a déjà un, cette
   # modification le remplacera — on l'annonce avant d'agir.
@@ -117,7 +133,7 @@ module MenusHelper
       [ "Valider ce menu ? La liste de courses sera générée." ]
     end
 
-    if menu.user.menus.active_menus.where.not(id: menu.id).exists?
+    if menu.household.menus.active_menus.where.not(id: menu.id).exists?
       parts << "Ton menu actif actuel sera archivé."
     end
 

@@ -1,27 +1,47 @@
 -# Rayon de la liste de courses (accordéon)
 -# category : String (clé enum, ex: "fruits_legumes") ou nil
--# items    : collection GroceryItem triés
+-# items    : collection GroceryItem triés (scope for_list)
 -# menu     : Menu
--# Les rayons de GroceryItem sont ceux d'Ingredient (enum dupliqué, mêmes clés) :
--# leurs libellés français n'existent qu'une fois, du côté Ingredient.
-- section_id    = "grocery_section_#{(category.presence || 'divers').parameterize}"
-- category_name = category ? Ingredient.enum_label(:category, category) : "Divers"
+-#
+-# L'ouverture du rayon est un état de l'écran, pas du serveur : un
+-# rafraîchissement en direct ne rouvre pas un rayon replié (data-morph-keep).
+-#
+-# Liste partagée : le pseudo de qui s'occupe du rayon entier s'affiche sur
+-# l'en-tête, sinon sur chaque ligne prise ; en mode Répartir, « Tout prendre »
+-# ou « Tout laisser » se pose à côté du bouton d'accordéon (un bouton ne peut
+-# pas en contenir un autre).
+- section_id     = grocery_section_id(category)
+- shared         = shared_grocery_list?(menu)
+- claim_states   = shared ? items.map { |item| item.claim_state_for(current_user) } : []
+- section_claimer = shared ? grocery_section_claimer(items) : nil
 
 = turbo_frame_tag section_id do
   .grocery-section{ data: { controller: "grocery-accordion",
                              "grocery-accordion-open-value": "true",
-                             category: category.presence || "autre" } }
-    %button.grocery-section-header{ type: "button",
-                                     "aria-expanded": "true",
-                                     "aria-controls": "#{section_id}_body",
-                                     data: { action: "click->grocery-accordion#toggle",
-                                             "grocery-accordion-target": "header" } }
-      %span.grocery-section-title= category_name
-      %span.grocery-section-count= items.size
-      .grocery-section-chevron{ data: { "grocery-accordion-target": "chevron" } }
+                             category: category.presence || "autre",
+                             morph_keep: "data-grocery-accordion-open-value" } }
+    .grocery-section-header
+      %button.grocery-section-toggle{ type: "button",
+                                      "aria-expanded": "true",
+                                      "aria-controls": "#{section_id}_body",
+                                      data: { action: "click->grocery-accordion#toggle",
+                                              "grocery-accordion-target": "header",
+                                              morph_keep: "aria-expanded" } }
+        %span.grocery-section-title= grocery_section_name(category)
+        %span.grocery-section-count.grocery-section-count--all= items.size
+        - if shared
+          -# Affiché à la place du total sous le filtre « Ma part »
+          %span.grocery-section-count.grocery-section-count--mine= claim_states.count { |state| state != "other" }
+        - if section_claimer
+          = grocery_claim_chip(section_claimer)
+        .grocery-section-chevron{ data: { "grocery-accordion-target": "chevron", morph_keep: "class" } }
+      - if shared
+        = grocery_section_claim_button(menu, category, claim_states)
 
     .grocery-section-body{ id: "#{section_id}_body",
-                           data: { "grocery-accordion-target": "body" } }
+                           data: { "grocery-accordion-target": "body", morph_keep: "hidden" } }
       .grocery-items-list
-        - items.each do |item|
-          = render "menus/grocery_item", item: item, menu: menu
+        - items.each_with_index do |item, index|
+          = render "menus/grocery_item", item: item, menu: menu,
+                                         claim_state: claim_states[index],
+                                         show_claimer: shared && section_claimer.nil?

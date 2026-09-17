@@ -1,0 +1,112 @@
+/* ============================================
+   FOYER (household-*)
+   ============================================
+   Pages « Mon foyer » et « Rejoindre un foyer ». Elles reprennent le cadre des
+   préférences (.pref-page-wrap, .pref-header, .pref-section — menus.css) et
+   l'avatar de la gestion des comptes (.users-avatar — users.css) : seul ce qui
+   leur est propre vit ici. */
+
+.household-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* Un <button> n'hérite pas de la police du document : sans cette ligne, les
+   boutons de la page s'affichent dans la police système. */
+.household-sections .btn {
+  font-family: inherit;
+}
+
+/* === Membres === */
+
+.household-members {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.household-member {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 0.5px solid var(--color-border);
+}
+
+.household-member:last-child {
+  border-bottom: none;
+}
+
+.household-member-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  /* Un nom long passe à la ligne au lieu de pousser le bouton hors de l'écran */
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.household-member-name {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+.household-member-name .badge {
+  padding: 0.125rem 0.5rem;
+}
+
+.household-member-username {
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
+}
+
+/* === Invitation === */
+
+.household-hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-ink-3);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.household-hint--small {
+  font-size: var(--font-size-xs);
+}
+
+.household-invite-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+/* === Rejoindre un foyer === */
+
+.household-changes {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: var(--font-size-sm);
+  color: var(--color-ink-2);
+  line-height: 1.5;
+}
+
+/* button_to enveloppe son bouton dans un formulaire : sur mobile, où les actions
+   s'empilent en pleine largeur (.pref-actions), c'est le bouton qui doit
+   s'étirer, pas seulement le formulaire. */
+@media (max-width: 480px) {
+  .household-sections .pref-actions .button_to .btn {
+    width: 100%;
+  }
+}

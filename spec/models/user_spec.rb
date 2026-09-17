@@ -23,4 +23,58 @@ RSpec.describe User, type: :model do
       expect(counts.same_breakfast?).to be(true)
     end
   end
+
+  # Un compte n'est jamais sans foyer : c'est ce qui dispense tout le reste de
+  # l'application d'un cas particulier « pas encore de partage ».
+  describe "foyer" do
+    it "naît seul dans son propre foyer" do
+      user = create(:user)
+
+      expect(user.household).to be_persisted
+      expect(user.household.members).to eq([ user ])
+    end
+
+    it "voit les menus de son foyer, quel que soit le membre qui les a composés" do
+      user = create(:user)
+      partner = create(:user)
+      user.household.admit!(partner)
+      menu = create(:menu, user: user)
+
+      expect(partner.reload.menus).to eq([ menu ])
+    end
+
+    describe "suppression du compte" do
+      it "emporte le foyer et ses menus quand il en était le dernier membre" do
+        user = create(:user)
+        menu = create(:menu, user: user)
+
+        user.destroy!
+
+        expect(Household.exists?(user.household_id)).to be(false)
+        expect(Menu.exists?(menu.id)).to be(false)
+      end
+
+      it "laisse le foyer et ses menus aux membres qui restent" do
+        user = create(:user)
+        partner = create(:user)
+        user.household.admit!(partner)
+        menu = create(:menu, user: user)
+
+        user.destroy!
+
+        expect(partner.reload.menus).to eq([ menu ])
+      end
+
+      it "rend libres les articles de courses qu'il avait pris" do
+        user = create(:user)
+        partner = create(:user)
+        user.household.admit!(partner)
+        item = create(:grocery_item, menu: create(:menu, user: partner), claimed_by: user)
+
+        user.destroy!
+
+        expect(item.reload.claimed_by).to be_nil
+      end
+    end
+  end
 end

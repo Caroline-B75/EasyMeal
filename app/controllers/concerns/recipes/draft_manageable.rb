@@ -60,15 +60,15 @@ module Recipes
       params[:meal_type].presence_in(MealTypes::MEAL_TYPES)
     end
 
-    # Menu brouillon de l'utilisateur connecté (ou nil)
+    # Menu brouillon du foyer de l'utilisateur connecté (ou nil)
     def current_draft
       current_user&.menus&.status_draft&.recent&.first
     end
 
-    # Brouillon vierge aux préférences de l'utilisateur, créé quand aucun menu
-    # brouillon n'existe encore.
+    # Brouillon vierge aux préférences de l'utilisateur, créé dans son foyer
+    # quand aucun menu brouillon n'y existe encore.
     def build_draft_menu
-      current_user.menus.create!(
+      current_user.household.menus.create!(
         name:           Menu.default_name,
         diet:           current_user.default_diet,
         default_people: current_user.default_people,

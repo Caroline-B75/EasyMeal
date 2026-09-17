@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 import { paintSliderTrack } from "slider_track"
 
 /**
- * Slider interactif des réglages du foyer (profil/préférences) : nombre de
+ * Slider interactif des préférences de menus (profil/préférences) : nombre de
  * personnes, avec piste colorée et libellé accordé.
  *
  * La répartition des repas, elle, est pilotée par le contrôleur meal-counts,

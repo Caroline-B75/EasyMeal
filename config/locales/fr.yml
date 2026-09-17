@@ -44,6 +44,9 @@ fr:
       menu:
         one: Menu
         other: Menus
+      household:
+        one: Foyer
+        other: Foyers
       menu_recipe:
         one: Recette du menu
         other: Recettes du menu
@@ -138,6 +141,8 @@ fr:
       menu:
         name: Nom
         start_date: Date de début
+        # Porte l'erreur « un seul brouillon par foyer » : « Foyer a déjà un menu à valider »
+        household_id: Foyer
       menu_recipe:
         number_of_people: Nombre de personnes
         meal_type: Moment du repas

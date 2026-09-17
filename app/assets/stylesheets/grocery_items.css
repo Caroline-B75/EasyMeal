@@ -10,6 +10,8 @@
 .grocery-list-controls {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  gap: 0.75rem;
   margin-bottom: 0.75rem;
 }
 
@@ -28,6 +30,29 @@
   color: var(--color-ink);
 }
 
+/* ── Menu en cours de modification ──────────────────────── */
+/* Même ton ambre que les manques du brouillon (.mc-missing-alert) : un état du
+   menu, pas une erreur — la liste reste utilisable telle quelle. */
+.grocery-menu-alert {
+  display: flex;
+  /* Sur plusieurs lignes, l'icône reste en tête du message plutôt qu'au milieu */
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0 0 12px;
+  padding: 7px 10px;
+  background: var(--color-warning-light);
+  border-radius: var(--radius-button);
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+  color: var(--color-warning-text);
+}
+
+.grocery-menu-alert svg {
+  flex-shrink: 0;
+  /* Cale l'icône sur la ligne de base du texte */
+  margin-top: 3px;
+}
+
 /* ── Sections par rayon (accordéon) ─────────────────────── */
 /* La couleur du rayon vient de la palette partagée (--category-color,
    components.css), posée sur le data-category que porte déjà la section. */
@@ -39,19 +64,31 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  width: 100%;
-  background: none;
-  border: none;
   border-bottom: var(--border-thin);
   border-left: 2.5px solid var(--category-color);
-  cursor: pointer;
   padding: 0 0 0.375rem 0.625rem;
   margin: 0 0 0.5rem;
+}
+
+/* Le bouton d'accordéon occupe l'en-tête ; l'action « Tout prendre » d'une liste
+   partagée se pose à côté de lui, un bouton ne pouvant en contenir un autre. */
+.grocery-section-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
   text-align: left;
   transition: opacity var(--transition-fast);
 }
 
-.grocery-section-header:hover {
+.grocery-section-toggle:hover {
   opacity: 0.75;
 }
 
@@ -322,6 +359,168 @@
 .btn-remove:hover {
   background: var(--color-danger-light);
   color: var(--color-danger);
+}
+
+/* ── Liste partagée : « Je m'en occupe » ───────────────── */
+/* Le mode (Courses / Répartir) et le filtre « Ma part » sont posés sur la liste
+   par le contrôleur grocery-view (data-grocery-view-*-value) : c'est la CSS
+   seule qui montre ou cache, sans aller-retour serveur — hors ligne compris. */
+
+/* Mode : contrôle segmenté, à gauche de « Tout fermer » */
+.grocery-mode-switch {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  margin-right: auto;
+  background: var(--color-bg-secondary);
+  border: var(--border-thin);
+  border-radius: 999px;
+}
+
+.grocery-mode-btn {
+  min-height: 36px;
+  padding: 0 1rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-ink-3);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.grocery-mode-btn[aria-pressed="true"] {
+  background: var(--color-bg-white);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Filtre « Ma part » : un interrupteur en pastille */
+.grocery-filter-toggle {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 1rem;
+  margin-bottom: 0.75rem;
+  border: var(--border-thin);
+  border-radius: 999px;
+  background: var(--color-bg-white);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-ink-2);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.grocery-filter-toggle[aria-pressed="true"] {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-bg-white);
+}
+
+.grocery-split-hint,
+.grocery-filter-empty {
+  margin: 0 0 0.75rem;
+  font-size: var(--font-size-sm);
+  color: var(--color-ink-3);
+  line-height: 1.5;
+}
+
+/* Pseudo de qui s'occupe d'un article (sous son nom) ou d'un rayon (en-tête).
+   Le sien est foncé : sa part se repère d'un coup d'œil. */
+.grocery-claim-chip {
+  align-self: flex-start;
+  max-width: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0.1em 0.55em;
+  border: var(--border-thin);
+  border-radius: 999px;
+  background: var(--color-bg-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--color-ink-3);
+}
+
+.grocery-section-toggle .grocery-claim-chip {
+  align-self: center;
+}
+
+.grocery-claim-chip--mine {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-bg-white);
+}
+
+/* Boutons de répartition (ligne et rayon) : canoniques (.btn), un <button>
+   n'héritant pas de la police du document. */
+.grocery-claim-btn {
+  font-family: inherit;
+  white-space: nowrap;
+  gap: 0.35rem;
+}
+
+/* Article pris par un autre membre : plus discret que « Je prends ». Deux
+   classes, pour l'emporter sur .btn.btn-white. */
+.btn.grocery-claim-btn--other {
+  color: var(--color-ink-3);
+  font-weight: 500;
+}
+
+/* Mode Courses (par défaut) : rien de la répartition n'apparaît. */
+.grocery-claim-form,
+.grocery-section-claim-form,
+.grocery-split-hint,
+.grocery-section-count--mine,
+.grocery-filter-empty {
+  display: none;
+}
+
+/* Mode Répartir : on prend ou on laisse. Ni coche ni suppression — un geste de
+   répartition ne doit jamais cocher ni supprimer un article par erreur —, et
+   le bouton de chaque ligne porte déjà le pseudo. */
+[data-grocery-view-mode-value="repartir"] .grocery-claim-form,
+[data-grocery-view-mode-value="repartir"] .grocery-section-claim-form,
+[data-grocery-view-mode-value="repartir"] .grocery-split-hint {
+  display: block;
+}
+
+[data-grocery-view-mode-value="repartir"] .grocery-item-check,
+[data-grocery-view-mode-value="repartir"] .grocery-remove-form,
+[data-grocery-view-mode-value="repartir"] .grocery-filter-toggle,
+[data-grocery-view-mode-value="repartir"] .grocery-item-main .grocery-claim-chip {
+  display: none;
+}
+
+/* Filtre « Ma part » : les articles des autres membres disparaissent, et le
+   compteur du rayon ne compte plus que ma part. (Le contrôleur coupe le filtre
+   en mode Répartir.) */
+[data-grocery-view-mine-value="true"] .grocery-item[data-claim="other"],
+[data-grocery-view-mine-value="true"] .grocery-section-count--all {
+  display: none;
+}
+
+[data-grocery-view-mine-value="true"] .grocery-section-count--mine {
+  display: inline;
+}
+
+/* Les rayons vidés par le filtre, et le mot qui le dit quand il ne reste rien.
+   Règles à part : un navigateur qui ignore :has() écarte toute la règle où il
+   apparaît, et emporterait avec elle le masquage des articles ci-dessus. Sans
+   :has(), le filtre masque donc les articles mais garde les en-têtes de rayon —
+   dégradation acceptable. */
+[data-grocery-view-mine-value="true"] .grocery-section:not(:has(.grocery-item:not([data-claim="other"]))) {
+  display: none;
+}
+
+[data-grocery-view-mine-value="true"]:not(:has(.grocery-item:not([data-claim="other"]))) .grocery-filter-empty {
+  display: block;
 }
 
 /* ── État vide ──────────────────────────────────────────── */
@@ -595,6 +794,12 @@
   /* « Tout fermer / ouvrir » : un peu plus de surface tappable. */
   .btn-text-sm {
     padding: 0.5rem 0.25rem;
+  }
+
+  /* Mode et filtre d'une liste partagée : des gestes de magasin, au pouce. */
+  .grocery-mode-btn,
+  .grocery-filter-toggle {
+    min-height: var(--min-touch-target);
   }
 
   .grocery-add-manual {

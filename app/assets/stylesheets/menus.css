@@ -24,12 +24,37 @@
   margin-bottom: 32px;
 }
 
+/* Titre et, sous lui, la mention du foyer : une colonne, pour que le bouton
+   « Créer un menu » reste aligné sur le titre. */
+.mi-page-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
 .mi-page-title {
   font-family: var(--font-serif);
   font-size: 22px;
   font-weight: 400;
   color: var(--color-ink);
   margin: 0;
+}
+
+/* « Partagé avec @marc » : une information, pas une action — discrète sous le
+   titre, elle mène tout de même à « Mon foyer ». */
+.mi-household-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
+  text-decoration: none;
+}
+
+.mi-household-note:hover {
+  color: var(--color-ink);
+  text-decoration: underline;
 }
 
 .mi-btn-new {
@@ -1545,7 +1570,7 @@
    Le stepper lui-même réutilise le composant .mc-stepper des réglages du menu
    (variante compacte, sans unité) — même objet d'interface, mêmes dimensions.
    Trois consommateurs, un seul habillage : le formulaire de génération, les
-   réglages du foyer (shared/_meal_counts_fields) et le panneau de réglages du
+   préférences de menus (shared/_meal_counts_fields) et le panneau de réglages du
    brouillon (menus/_settings_panel), qui y règle sa répartition en direct. */
 .mn-meal-counts {
   display: flex;
@@ -3302,7 +3327,7 @@ a.mc-card-name-wrap:hover .mc-card-name {
 
 /* Variante sans unité, pour les listes de steppers où le libellé est déjà
    porté par la ligne (répartition des repas du formulaire de menu et des
-   réglages du foyer). */
+   préférences de menus). */
 .mc-stepper--compact {
   min-width: 96px;
 }

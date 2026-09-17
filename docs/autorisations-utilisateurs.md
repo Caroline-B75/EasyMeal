@@ -26,17 +26,21 @@ Ce document resume les droits applicatifs actuels a partir des policies Pundit e
 | Creer un ingredient                                     | Non      | Non                          | Oui                          | Reserve aux admins.                                                         |
 | Modifier un ingredient                                  | Non      | Non                          | Oui                          | Reserve aux admins.                                                         |
 | Supprimer un ingredient                                 | Non      | Non                          | Oui                          | Reserve aux admins.                                                         |
-| Voir ses menus                                          | Non      | Oui, uniquement les siens    | Oui, uniquement les siens    | `MenuPolicy::Scope` filtre par `user`.                                      |
+| Voir ses menus                                          | Non      | Oui, ceux de son foyer       | Oui, ceux de son foyer       | `MenuPolicy::Scope` filtre par foyer.                                       |
 | Creer un menu                                           | Non      | Oui                          | Oui                          | Tout utilisateur connecte.                                                  |
-| Voir un menu                                            | Non      | Oui, si proprietaire         | Oui, si proprietaire         | `MenuPolicy#owner?`.                                                        |
-| Modifier un menu                                        | Non      | Oui, si proprietaire         | Oui, si proprietaire         | `MenuPolicy#owner?`.                                                        |
-| Supprimer un menu                                       | Non      | Oui, si proprietaire         | Oui, si proprietaire         | `MenuPolicy#owner?`.                                                        |
-| Activer / reactiver / repasser un menu en brouillon     | Non      | Oui, si proprietaire         | Oui, si proprietaire         | Actions membres de `MenuPolicy`, basees sur `owner?`.                       |
-| Ajouter / remplacer / regenerer des repas d'un menu     | Non      | Oui, si proprietaire         | Oui, si proprietaire         | Actions menu ou `MenuRecipePolicy`, basees sur le menu parent.              |
-| Reordonner les repas d'un menu                          | Non      | Oui, si proprietaire         | Oui, si proprietaire         | Controleur autorise via `MenuPolicy#update?`.                               |
-| Voir la liste de courses d'un menu                      | Non      | Oui, si proprietaire         | Oui, si proprietaire         | `MenuPolicy#grocery?`.                                                      |
-| Ajouter / modifier / supprimer une ligne de courses     | Non      | Oui, si proprietaire du menu | Oui, si proprietaire du menu | `GroceryItemPolicy` verifie le menu parent.                                 |
-| Modifier ses preferences de foyer                       | Non      | Oui, ses propres preferences | Oui, ses propres preferences | `ProfilesController` utilise toujours `current_user`.                       |
+| Voir un menu                                            | Non      | Oui, si membre du foyer      | Oui, si membre du foyer      | `MenuPolicy#household_member?`.                                             |
+| Modifier un menu                                        | Non      | Oui, si membre du foyer      | Oui, si membre du foyer      | `MenuPolicy#household_member?`.                                             |
+| Supprimer un menu                                       | Non      | Oui, si membre du foyer      | Oui, si membre du foyer      | `MenuPolicy#household_member?`.                                             |
+| Activer / reactiver / repasser un menu en brouillon     | Non      | Oui, si membre du foyer      | Oui, si membre du foyer      | Actions membres de `MenuPolicy`, basees sur `household_member?`.            |
+| Ajouter / remplacer / regenerer des repas d'un menu     | Non      | Oui, si membre du foyer      | Oui, si membre du foyer      | Actions menu ou `MenuRecipePolicy`, basees sur le menu parent.              |
+| Reordonner les repas d'un menu                          | Non      | Oui, si membre du foyer      | Oui, si membre du foyer      | Controleur autorise via `MenuPolicy#update?`.                               |
+| Voir la liste de courses d'un menu                      | Non      | Oui, si membre du foyer      | Oui, si membre du foyer      | `MenuPolicy#grocery?`.                                                      |
+| Ajouter / modifier / supprimer une ligne de courses     | Non      | Oui, si membre du foyer      | Oui, si membre du foyer      | `GroceryItemPolicy` verifie le menu parent.                                 |
+| Voir et gerer son foyer                                 | Non      | Oui, le sien                 | Oui, le sien                 | `HouseholdsController` agit toujours sur `current_user.household`.          |
+| Inviter quelqu un dans son foyer                        | Non      | Oui, tous les membres        | Oui, tous les membres        | Lien porte par `invite_token`, renouvelable a tout moment.                  |
+| Retirer un membre / quitter le foyer                    | Non      | Oui, tous les membres        | Oui, tous les membres        | `Households::MembersController` cherche parmi les membres du foyer.         |
+| Prendre / laisser un article des courses                | Non      | Oui, si membre du foyer      | Oui, si membre du foyer      | `GroceryClaimsController` autorise via `MenuPolicy#grocery?`.               |
+| Modifier ses preferences de menus                       | Non      | Oui, ses propres preferences | Oui, ses propres preferences | `ProfilesController` utilise toujours `current_user`.                       |
 | Gerer les tags                                          | Non      | Non                          | Oui                          | `TagPolicy` reserve toutes les actions aux admins.                          |
 | Creer / modifier / supprimer une recette                | Non      | Non                          | Oui                          | `RecipePolicy#create?`, `update?`, `destroy?`.                              |
 | Publier une recette importee par IA                     | Non      | Non                          | Oui                          | `RecipePolicy#publish?`.                                                    |
@@ -48,11 +52,12 @@ Ce document resume les droits applicatifs actuels a partir des policies Pundit e
 
 | Sujet                                  | Regle                                                                                                                |
 | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| Admin et donnees personnelles          | Un admin ne voit pas tous les menus par defaut : les scopes de menus restent limites au proprietaire.                |
+| Admin et donnees personnelles          | Un admin ne voit pas tous les menus par defaut : les scopes de menus restent limites au foyer.                |
 | Suppression de son propre compte admin | L'interface de gestion bloque la suppression du compte courant.                                                      |
 | Auto-retrait des droits admin          | L'interface force `admin: true` sur le compte courant pour eviter qu'un admin se retire accidentellement ses droits. |
 | Brouillons de recettes                 | Les recettes non publiees sont gerees via les pages admin dediees, pas dans le catalogue public.                     |
 | Favoris et avis                        | Ces actions sont reservees aux utilisateurs connectes et rattachees au compte courant.                               |
+| Partage dans le foyer                  | Un menu et sa liste de courses appartiennent au foyer : tous ses membres y ont les memes droits.             |
 
 ## Fichiers de reference
 
@@ -62,6 +67,7 @@ Ce document resume les droits applicatifs actuels a partir des policies Pundit e
 | Gestion utilisateurs | `app/controllers/users_controller.rb`, `app/policies/user_policy.rb`                                           |
 | Menus                | `app/policies/menu_policy.rb`, `app/policies/menu_recipe_policy.rb`                                            |
 | Courses              | `app/policies/grocery_item_policy.rb`                                                                          |
+| Foyer                | `app/models/household.rb`, `app/controllers/households*`, `app/controllers/grocery_claims_controller.rb`       |
 | Recettes             | `app/policies/recipe_policy.rb`, `app/policies/recipe_draft_policy.rb`, `app/policies/recipe_import_policy.rb` |
 | Ingredients          | `app/policies/ingredient_policy.rb`                                                                            |
 | Tags                 | `app/policies/tag_policy.rb`                                                                                   |

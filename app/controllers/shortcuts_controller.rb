@@ -11,9 +11,10 @@ class ShortcutsController < ApplicationController
     redirect_to active ? menu_path(active) : menus_path
   end
 
-  # Raccourci « Liste de courses » → courses du menu actif, sinon liste des menus.
+  # Raccourci « Liste de courses » → courses du menu actif (ou de celui qu'on est
+  # en train de retoucher, dont la liste existe encore), sinon liste des menus.
   def current_grocery
-    active = helpers.current_active_menu
-    redirect_to active ? grocery_menu_path(active) : menus_path
+    menu = helpers.current_grocery_menu
+    redirect_to menu ? grocery_menu_path(menu) : menus_path
   end
 end

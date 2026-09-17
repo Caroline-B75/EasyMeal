@@ -6,10 +6,12 @@
 # - Créer un menu : tout utilisateur connecté.
 # - Toutes les autres actions (show, edit, update, destroy, activate,
 #   replace_meal) :
-#   utilisateur connecté ET propriétaire du menu.
-# - Scope : un utilisateur ne voit que ses propres menus.
+#   utilisateur connecté ET membre du foyer du menu (Menu#household_member?).
+#   Tous les membres sont égaux : aucune action n'est réservée à celui qui a
+#   composé le menu.
+# - Scope : un utilisateur ne voit que les menus de son foyer.
 class MenuPolicy < ApplicationPolicy
-  # Tout utilisateur connecté peut lister ses propres menus
+  # Tout utilisateur connecté peut lister les menus de son foyer
   def index?
     user.present?
   end
@@ -23,75 +25,75 @@ class MenuPolicy < ApplicationPolicy
     create?
   end
 
-  # L'utilisateur peut voir son propre menu
+  # Un membre du foyer peut voir le menu
   def show?
-    owner?
+    household_member?
   end
 
-  # L'utilisateur peut modifier son propre menu
+  # Un membre du foyer peut modifier le menu
   def update?
-    owner?
+    household_member?
   end
 
   def edit?
     update?
   end
 
-  # L'utilisateur peut supprimer son propre menu
+  # Un membre du foyer peut supprimer le menu
   def destroy?
-    owner?
+    household_member?
   end
 
   # Activation du menu (draft → active) — UC1
   def activate?
-    owner?
+    household_member?
   end
 
   # Remplacement d'un repas — UC2
   def replace_meal?
-    owner?
+    household_member?
   end
 
   # Accès à la page dédiée de la liste de courses — UC3
   def grocery?
-    owner?
+    household_member?
   end
 
   # Régénération de la liste de courses — UC3
   def regenerate_grocery?
-    owner?
+    household_member?
   end
 
   # Re-génération du menu brouillon avec de nouveaux paramètres — UC2
   def regenerate?
-    owner?
+    household_member?
   end
 
   # Ajustement du nombre de repas d'un moment du brouillon — UC7
   def adjust_meal_count?
-    owner?
+    household_member?
   end
 
   # Réactivation d'un menu archivé (devient le nouveau menu actif)
   def reactivate?
-    owner?
+    household_member?
   end
 
   # Retour d'un menu actif en brouillon pour le modifier (R3.2bis)
   def revert_to_draft?
-    owner?
+    household_member?
   end
 
-  # Scope : un utilisateur ne voit que ses propres menus
+  # Scope : un utilisateur ne voit que les menus de son foyer
   class Scope < ApplicationPolicy::Scope
     def resolve
-      scope.where(user: user)
+      scope.where(household_id: user.household_id)
     end
   end
 
   private
 
-  def owner?
-    user.present? && record.user_id == user.id
+  def household_member?
+    record.household_member?(user)
   end
 end

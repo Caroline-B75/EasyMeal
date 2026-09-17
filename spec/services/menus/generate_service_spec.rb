@@ -13,7 +13,7 @@ RSpec.describe Menus::GenerateService do
   # Lance une génération avec une commande donnée (clés string).
   def generate(counts, same_breakfast: false, diet: :omnivore)
     described_class.call(
-      user:           user,
+      household:      user.household,
       diet:           diet,
       default_people: 3,
       meal_counts:    MealCounts.new(counts, same_breakfast: same_breakfast)

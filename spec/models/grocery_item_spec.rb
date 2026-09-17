@@ -42,4 +42,65 @@ RSpec.describe GroceryItem, type: :model do
       expect(item.quantity_display).to eq("0,03")
     end
   end
+
+  # « Je m'en occupe » : répartir la liste entre les membres du foyer.
+  describe "prise en charge" do
+    let(:caroline) { create(:user) }
+    let(:marc) { create(:user) }
+    let(:item) { create(:grocery_item) }
+
+    it "prend l'article, y compris quand un autre membre l'avait pris" do
+      item.claim!(marc)
+      item.claim!(caroline)
+
+      expect(item.reload.claimed_by).to eq(caroline)
+    end
+
+    it "ne laisse que l'article qu'on avait pris soi-même" do
+      item.claim!(marc)
+
+      item.release!(caroline)
+      expect(item.reload.claimed_by).to eq(marc)
+
+      item.release!(marc)
+      expect(item.reload.claimed_by).to be_nil
+    end
+
+    it "donne l'article à qui le coche, sans rien changer au décochage" do
+      item.claim!(marc)
+
+      item.assign_attributes(checked: true)
+      item.assign_buyer(caroline)
+      item.save!
+      expect(item.reload.claimed_by).to eq(caroline)
+
+      item.assign_attributes(checked: false)
+      item.assign_buyer(marc)
+      item.save!
+      expect(item.reload.claimed_by).to eq(caroline)
+    end
+
+    it "dit ce qu'est l'article pour chaque membre" do
+      expect(item.claim_state_for(caroline)).to eq("free")
+
+      item.claim!(marc)
+
+      expect(item.claim_state_for(marc)).to eq("mine")
+      expect(item.claim_state_for(caroline)).to eq("other")
+    end
+  end
+
+  # La liste partagée se met à jour sur les autres écrans ouverts : chaque
+  # changement publie une demande de rafraîchissement sur le flux du menu.
+  describe "temps réel" do
+    it "demande aux écrans ouverts sur la liste de se rafraîchir" do
+      item = create(:grocery_item)
+      # Nom du flux tel que Turbo le dérive de Menu#grocery_stream
+      stream = "#{item.menu.to_gid_param}:grocery"
+
+      expect { item.update!(checked: true) }
+        .to have_enqueued_job(Turbo::Streams::BroadcastStreamJob)
+        .with(stream, content: include('action="refresh"'))
+    end
+  end
 end

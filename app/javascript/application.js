@@ -5,6 +5,7 @@ import "@hotwired/turbo-rails"
 import "pwa_install"
 import "controllers"
 import "turbo_confirm"
+import "morph_keep"
 
 // Enregistrement du service worker (PWA).
 // Garde de compatibilité : uniquement si le navigateur supporte l'API.

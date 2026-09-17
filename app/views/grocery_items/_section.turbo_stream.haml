@@ -1,0 +1,11 @@
+-# Turbo Stream : re-rend un rayon après un changement — coche, quantité,
+-# suppression, « Je m'en occupe » — ou le retire s'il est vide. Le tri
+-# (non cochés d'abord) et le pseudo affiché sur le rayon en dépendent.
+-# menu     : Menu
+-# category : String (clé enum) ou nil (« Divers »)
+- items = menu.grocery_items.where(category: category).for_list
+- if items.any?
+  = turbo_stream.replace grocery_section_id(category) do
+    = render "menus/grocery_section", category: category, items: items, menu: menu
+- else
+  = turbo_stream.remove grocery_section_id(category)
