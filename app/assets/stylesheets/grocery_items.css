@@ -81,11 +81,16 @@
 }
 
 /* Le bouton d'accordéon occupe l'en-tête ; l'action « Tout prendre » d'une liste
-   partagée se pose à côté de lui, un bouton ne pouvant en contenir un autre. */
+   partagée se pose à côté de lui, un bouton ne pouvant en contenir un autre.
+   En grille : le nom du rayon, son compteur et le chevron sur la première
+   ligne ; la pastille du membre qui s'occupe de tout le rayon dessous, comme
+   sous le nom d'un article. Coincée entre le compteur et le chevron, elle se
+   réduisait à « @… » dès que le nom passait sur deux lignes. */
 .grocery-section-toggle {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto auto 1fr;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.25rem 0.5rem;
   flex: 1;
   min-width: 0;
   background: none;
@@ -113,7 +118,9 @@
   color: var(--category-ink);
 }
 
+/* Total ou « ma part » : un seul des deux est affiché, dans la même cellule. */
 .grocery-section-count {
+  grid-area: 1 / 2;
   font-size: var(--font-size-base);
   color: var(--color-ink);
   background: color-mix(in oklab, var(--category-color) 28%, var(--color-bg-secondary));
@@ -123,7 +130,8 @@
 }
 
 .grocery-section-chevron {
-  margin-left: auto;
+  grid-area: 1 / 3;
+  justify-self: end;
   display: flex;
   align-items: center;
   color: var(--color-ink-4);
@@ -458,7 +466,8 @@
 }
 
 .grocery-section-toggle .grocery-claim-chip {
-  align-self: center;
+  grid-area: 2 / 1 / auto / -1;
+  justify-self: start;
 }
 
 .grocery-claim-chip--mine {
