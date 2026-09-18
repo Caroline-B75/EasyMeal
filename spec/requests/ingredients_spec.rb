@@ -15,8 +15,9 @@ RSpec.describe "Ingredients", type: :request do
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include("Fruits et légumes")
-      # data-category porte la couleur du rayon (palette partagée avec la liste de courses)
-      expect(response.body).to include('data-category="fruits_legumes"')
+      # data-category porte la couleur du rayon (palette partagée avec la liste de
+      # courses), et le badge sa pastille, comme le bandeau du rayon sur la liste
+      expect(response.body).to include('category-badge" data-category="fruits_legumes"', "category-dot")
     end
 
     it "affiche les mois de saison en français" do

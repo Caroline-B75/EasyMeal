@@ -106,6 +106,7 @@
 
                 %td.category-cell{ data: { label: "Rayon" } }
                   %span.category-badge{ data: { category: ingredient.category } }
+                    %span.category-dot
                     = Ingredient.enum_label(:category, ingredient.category)
 
                 %td{ data: { label: "Saison" } }

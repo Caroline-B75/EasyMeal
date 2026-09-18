@@ -62,6 +62,32 @@ RSpec.describe Household, type: :model do
       expect(host.reload.household).to eq(household)
       expect(menu.reload).to be_status_active
     end
+
+    # Courses habituelles (UC8, étape 3) : celles de l'arrivant s'ajoutent à la
+    # liste du foyer, sans doublon.
+    it "verse les courses habituelles d'un arrivant qui vivait seul, sauf celles déjà présentes" do
+      household.usual_grocery_items.create!(name: "Éponges")
+      guest = create(:user)
+      guest.household.usual_grocery_items.create!(name: "eponges")
+      guest.household.usual_grocery_items.create!(name: "Dentifrice")
+
+      household.admit!(guest)
+
+      expect(household.usual_grocery_items.pluck(:name)).to contain_exactly("Éponges", "Dentifrice")
+      expect(UsualGroceryItem.count).to eq(2)
+    end
+
+    it "laisse les courses habituelles au foyer quitté quand d'autres membres y restent" do
+      guest = create(:user)
+      housemate = create(:user)
+      guest.household.admit!(housemate)
+      item = guest.household.usual_grocery_items.create!(name: "Dentifrice")
+
+      household.admit!(guest)
+
+      expect(item.reload.household).to eq(housemate.household)
+      expect(household.usual_grocery_items).to be_empty
+    end
   end
 
   describe "#release!" do
@@ -75,6 +101,17 @@ RSpec.describe Household, type: :model do
       expect(member.reload.household).not_to eq(household)
       expect(member.menus).to be_empty
       expect(host.reload.menus).to eq([ menu ])
+    end
+
+    it "laisse les courses habituelles au foyer" do
+      member = create(:user)
+      household.admit!(member)
+      household.usual_grocery_items.create!(name: "Dentifrice")
+
+      household.release!(member)
+
+      expect(member.reload.household.usual_grocery_items).to be_empty
+      expect(household.usual_grocery_items.count).to eq(1)
     end
 
     it "refuse le départ du dernier membre" do

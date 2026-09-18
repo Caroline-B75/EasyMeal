@@ -24,16 +24,31 @@
         %svg.btn-checkbox-icon{ xmlns: "http://www.w3.org/2000/svg", viewbox: "0 0 14 14", width: "14", height: "14", fill: "none", stroke: "currentColor", "stroke-width": "2.5", "stroke-linecap": "round", "stroke-linejoin": "round" }
           %polyline{ points: "2,7.5 5.5,11 12,3" }
 
-    -# Nom (+ badge « quantité augmentée » éventuel)
+    -# Nom (+ marque des courses habituelles, + badge « quantité augmentée » éventuel)
     .grocery-item-main
-      %span.grocery-item-name{ class: ("grocery-item-name--checked" if item.checked),
-                                data: { "grocery-check-target": "label" } }= item.name
+      .grocery-item-title
+        %span.grocery-item-name{ class: ("grocery-item-name--checked" if item.checked),
+                                  data: { "grocery-check-target": "label" } }= item.name
+        -# Entièrement habituelle : la marque seule. Les lignes du menu et les
+        -# ajouts ponctuels n'en portent aucune — c'est le cas normal.
+        - if item.usual_only?
+          %span.grocery-item-usual{ title: "Course habituelle" }
+            = svg_icon("rotate-ccw", size: 12, css_class: "usual-sign")
+            %span.sr-only Course habituelle
+      -# Menu (ou ajout ponctuel) et habituels sur la même ligne : la part habituelle.
+      -# « de tes habituelles » (tes courses habituelles) plutôt qu'un adjectif
+      -# accordé à l'unité — « 2 L habituels », mais « 2 briques habituelles ».
+      - if item.partly_usual?
+        %span.grocery-item-usual-note
+          = svg_icon("rotate-ccw", size: 11, css_class: "usual-sign")
+          = "dont #{item.usual_quantity_display} de tes habituelles"
       - if show_claimer && item.claimed_by
         = grocery_claim_chip(item.claimed_by)
-      -# Badge d'attention : la réconciliation a augmenté la quantité d'un article
-      -# précédemment coché → il a été décoché. Disparaît au re-cochage (previous_quantity_base := nil).
+      -# Badge d'attention : la quantité d'un article déjà coché a augmenté — le
+      -# menu a changé, ou les habituels s'y sont ajoutés — et il a été décoché.
+      -# Disparaît au re-cochage (previous_quantity_base := nil).
       - if item.previous_quantity_base.present? && !item.checked
-        %span.grocery-item-badge.badge-amber= "Tu en as peut-être déjà acheté #{item.previous_quantity_display} avant la modification du menu."
+        %span.grocery-item-badge.badge-amber= "Tu en as peut-être déjà acheté #{item.previous_quantity_display} avant que la quantité augmente."
 
     -# Quantité (droite)
     -# Une correction en cours survit à un rafraîchissement en direct : le mode

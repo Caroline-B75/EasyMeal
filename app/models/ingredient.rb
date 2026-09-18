@@ -15,8 +15,12 @@ class Ingredient < ApplicationRecord
 
   # === Enums ===
 
-  # Rayons de supermarché (catégories d'ingrédients)
-  enum :category, {
+  # Rayons de supermarché, dans l'ordre où la liste de courses les présente.
+  # Une seule table pour les trois modèles qui rangent un article — l'ingrédient,
+  # la ligne de courses et la course habituelle : leurs valeurs en base doivent
+  # coïncider, et leurs libellés français n'existent qu'ici (fr.yml, sous
+  # `ingredient.categories`).
+  CATEGORIES = {
     fruits_legumes: 0,
     boucherie_viande: 1,
     charcuterie_traiteur: 2,
@@ -39,7 +43,9 @@ class Ingredient < ApplicationRecord
     entretien_maison: 19,
     papeterie_fournitures: 20,
     autre: 21
-  }, prefix: true
+  }.freeze
+
+  enum :category, CATEGORIES, prefix: true
 
   # Groupes d'unités de mesure (unité de base associée dans BASE_UNITS)
   enum :unit_group, {
@@ -103,6 +109,9 @@ class Ingredient < ApplicationRecord
   # courses. Sans ce nullify, la clé étrangère refuserait le retrait d'un
   # ingrédient sorti du catalogue (cf. la clé `retired` de la seed).
   has_many :grocery_items, dependent: :nullify
+  # Même raison pour une course habituelle : elle garde son nom, son unité et son
+  # rayon, et redevient un article libre.
+  has_many :usual_grocery_items, dependent: :nullify
 
   # === Validations ===
 
@@ -176,7 +185,37 @@ class Ingredient < ApplicationRecord
   # Compte cette écriture parmi ses alias, aux accents et à la casse près.
   scope :aliased_as, ->(value) { where(ALIAS_MATCH_SQL, alias_query: value) }
 
+  # === Méthodes de classe ===
+
+  # L'ingrédient que désigne un article saisi à la main, nil s'il n'est pas au
+  # catalogue.
+  #
+  # L'id posé par l'autocomplétion d'abord ; à défaut le nom, qui rattrape deux
+  # chemins où aucun clic n'a eu lieu — la saisie validée au clavier sans choisir
+  # de suggestion, et le formulaire sans JavaScript. « oeufs » retrouve ainsi
+  # « Œufs », et « tomate cerise » son ingrédient s'il en est un alias.
+  #
+  # Utilisé partout où l'on décrit un article : l'ajout à la liste de courses
+  # (Groceries::AddManualItemService) et les courses habituelles (UsualGroceryItem).
+  #
+  # @param name [String]
+  # @param id [Integer, String, nil]
+  # @return [Ingredient, nil]
+  def self.recognize(name:, id: nil)
+    (id.presence && find_by(id: id)) || named_like(name).first || aliased_as(name).first
+  end
+
   # === Méthodes publiques ===
+
+  # Ce qu'on répond à une quantité saisie dans une unité que l'ingrédient ne sait
+  # pas lire (« 2 càs de blanc de poulet »). Le sélecteur d'unité s'y restreint
+  # dès que l'article est reconnu : n'y arrive qu'une saisie qui a contourné ce
+  # garde-fou.
+  # @param unit [String] unité saisie
+  # @return [String]
+  def unit_mismatch_message(unit)
+    "« #{name} » ne se mesure pas en #{Units.label(unit)}."
+  end
 
   # Retourne le nom complet avec les alias entre parenthèses
   def display_name

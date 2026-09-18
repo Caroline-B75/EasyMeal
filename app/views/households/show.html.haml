@@ -1,63 +1,129 @@
--# « Mon foyer » : les membres, et le lien pour inviter quelqu'un.
--# @household : Household du compte connecté
--# @members   : ses membres, du plus ancien au plus récent
+-# « Mon foyer » : qui le compose, ce qu'il partage, ses courses habituelles et
+-# le lien pour inviter quelqu'un.
+-# @household                 : Household du compte connecté
+-# @members                   : ses membres, du plus ancien au plus récent
+-# @usual_grocery_items       : aperçu de ses courses habituelles (les premières, par rayon)
+-# @usual_grocery_items_count : nombre de ses courses habituelles
+-#
+-# Les actions lourdes — retirer un membre, quitter le foyer — restent à portée
+-# sans occuper le premier plan : la page sert d'abord à voir et à inviter.
+-# Les confirmations évitent le mot « retirer » : turbo_confirm afficherait
+-# alors un bouton « Supprimer », or aucun compte n'est supprimé.
 - content_for :title, "Mon foyer"
+- shared = @members.size > 1
+- more_usual = @usual_grocery_items_count - @usual_grocery_items.size
 
-.pref-page-wrap
-  .pref-header
-    %h1.pref-title Mon foyer
-    %p.pref-subtitle
-      Les membres du foyer partagent les mêmes menus et la même liste de courses :
-      chacun peut les composer, les valider et cocher les articles.
+-# ── Bandeau : les membres, et la place du prochain ─────────
+%section.household-hero
+  .household-hero-inner
+    .household-hero-avatars
+      - @members.each do |member|
+        = member_avatar(member, "household-hero-avatar")
+      %span.household-hero-avatar.household-hero-seat{ "aria-hidden": "true" }= svg_icon(:plus, size: 26)
+    .household-hero-text
+      %p.household-hero-overline Mon foyer
+      %h1.household-hero-title= household_title(@members)
+      %p.household-hero-summary= household_summary(@household, @usual_grocery_items_count)
 
-  .household-sections
+.household-board
+  .household-column
     -# ── Membres ─────────────────────────────────────────────
-    .pref-section
-      %h2.pref-section-title= "Membres (#{@members.size})"
+    %section.household-card
+      .household-card-head
+        %h2.household-card-title Les membres
+        %span.household-card-meta= pluralize(@members.size, "personne", "personnes")
       %ul.household-members
         - @members.each do |member|
-          - myself = member == current_user
           %li.household-member
-            .users-avatar{ "aria-hidden": "true" }= user_initials(member)
+            = member_avatar(member, "household-member-avatar")
             .household-member-identity
               %span.household-member-name
                 = "#{member.first_name} #{member.last_name}"
-                - if myself
-                  %span.badge.badge-beige Toi
+                - if member == current_user
+                  %span.household-me Toi
               %span.household-member-username= "@#{member.username}"
-            -# Seul dans son foyer, il n'y a personne à retirer ni rien à quitter.
-            -# Les confirmations évitent le mot « retirer » : turbo_confirm
-            -# afficherait alors un bouton « Supprimer », or aucun compte n'est supprimé.
-            - if @members.size > 1
-              - if myself
-                = button_to "Quitter", household_member_path(member), method: :delete,
-                            class: "btn btn-white",
-                            form: { data: { turbo_confirm: "Quitter le foyer ? Tu ne verras plus ses menus ni sa liste de courses, qui restent aux autres membres." } }
-              - else
-                = button_to "Retirer", household_member_path(member), method: :delete,
-                            class: "btn btn-white",
-                            "aria-label": "Retirer @#{member.username} du foyer",
-                            form: { data: { turbo_confirm: "Ce membre ne verra plus les menus ni la liste de courses du foyer. Continuer ?" } }
+            -# Retirer un autre membre : derrière « ⋯ », sans JavaScript (<details>)
+            - if shared && member != current_user
+              %details.household-member-menu
+                %summary.household-member-menu-toggle{ "aria-label": "Actions pour @#{member.username}",
+                                                       title: "Actions pour @#{member.username}" }
+                  = svg_icon("more-horizontal", size: 20)
+                .household-member-menu-panel
+                  = button_to "Retirer du foyer", household_member_path(member), method: :delete,
+                              class: "household-member-menu-item",
+                              form: { data: { turbo_confirm: "@#{member.username} ne verra plus les menus ni la liste de courses du foyer. Continuer ?" } }
 
+    -# ── Courses habituelles ─────────────────────────────────
+    %section.household-card
+      .household-card-head.household-card-head--icon
+        %span.household-card-icon= svg_icon("rotate-ccw", size: 20, css_class: "usual-sign")
+        .household-card-heading
+          %h2.household-card-title= usual_groceries_title(@household)
+          %p.household-card-meta
+            - if @usual_grocery_items_count.zero?
+              Ce que le foyer achète chaque semaine, ajouté d'un bouton à la liste de courses.
+            - elsif @usual_grocery_items_count == 1
+              1 article, ajouté d'un bouton à chaque liste de courses
+            - else
+              = "#{@usual_grocery_items_count} articles, ajoutés d'un bouton à chaque liste de courses"
+      - if @usual_grocery_items.any?
+        %ul.household-usual-chips
+          - @usual_grocery_items.each do |item|
+            %li.household-usual-chip{ data: { category: item.category } }
+              %span.category-dot
+              = item.name
+              %span.household-usual-chip-qty= usual_grocery_quantity_label(item)
+          - if more_usual.positive?
+            %li.household-usual-chip.household-usual-chip--more= "+ #{more_usual} #{more_usual > 1 ? 'autres' : 'autre'}"
+      .household-card-actions
+        = link_to (@usual_grocery_items_count.zero? ? "Créer la liste" : "Gérer la liste"),
+                  household_usual_grocery_items_path, class: "btn btn-primary"
+        - if (grocery_menu = current_grocery_menu)
+          = link_to grocery_menu_path(grocery_menu), class: "household-card-link" do
+            Voir la liste de courses
+            = svg_icon("arrow-right", size: 16)
+
+  .household-column
     -# ── Invitation ──────────────────────────────────────────
-    .pref-section
-      %h2.pref-section-title Inviter quelqu'un
-      %p.household-hint
-        Envoie ce lien à la personne à inviter. Elle se connecte, ou crée son compte,
-        puis confirme : vous partagez alors menus et liste de courses.
-      .household-invite-actions
-        -# Partage natif du téléphone (SMS, messagerie) ; sur ordinateur, le
-        -# lien est copié dans le presse-papier (cf. share_controller).
-        %button.btn.btn-primary{ type: "button",
-                                 data: { controller: "share", action: "share#share",
-                                         share_url_value: household_invitation_url(@household.invite_token),
-                                         share_title_value: "Rejoins mon foyer sur EasyMeal" } }
-          = svg_icon(:share, size: 16)
-          Partager le lien d'invitation
-        = button_to renew_invitation_household_path, method: :patch, class: "btn btn-link",
-                    form: { data: { turbo_confirm: "Créer un nouveau lien d'invitation ? L'ancien ne fonctionnera plus." } } do
-          = svg_icon("rotate-ccw", size: 14)
-          Renouveler le lien
-      %p.household-hint.household-hint--small
-        Ce lien ouvre l'accès à tout le foyer : ne l'envoie qu'aux personnes concernées.
-        S'il a circulé trop loin, renouvelle-le.
+    %section.household-card.household-invite
+      %span.household-seat{ "aria-hidden": "true" }= svg_icon(:plus, size: 22)
+      .household-card-heading
+        %h2.household-card-title Inviter quelqu'un
+        %p.household-card-text Une personne de plus pour composer les menus et se partager les courses.
+      -# Partage natif du téléphone (SMS, messagerie) ; sur ordinateur, le lien
+      -# est copié dans le presse-papier (cf. share_controller).
+      %button.btn.btn-primary.household-invite-share{ type: "button",
+                                                     data: { controller: "share", action: "share#share",
+                                                             share_url_value: household_invitation_url(@household.invite_token),
+                                                             share_title_value: "Rejoins mon foyer sur EasyMeal" } }
+        = svg_icon(:share, size: 16)
+        Partager le lien d'invitation
+      .household-invite-note
+        = svg_icon("lock", size: 16)
+        %span
+          Ce lien ouvre tout le foyer : ne l'envoie qu'aux personnes concernées. Il a trop circulé ?
+          = button_to "Le renouveler", renew_invitation_household_path, method: :patch,
+                      class: "household-inline-button", form_class: "household-inline-form",
+                      form: { data: { turbo_confirm: "Créer un nouveau lien d'invitation ? L'ancien ne fonctionnera plus." } }
+
+    -# ── Ce qui est partagé ──────────────────────────────────
+    %section.household-card.household-scope
+      .household-scope-column
+        %h3.household-scope-title Partagé
+        %ul.household-scope-list
+          - [ "Menus", "Liste de courses", "Courses habituelles" ].each do |shared_thing|
+            %li.household-scope-item
+              = svg_icon(:check, size: 15, css_class: "household-scope-check")
+              = shared_thing
+      .household-scope-column
+        %h3.household-scope-title Rien qu'à toi
+        %ul.household-scope-list
+          %li.household-scope-item Favoris et avis
+          %li.household-scope-item Préférences de menus
+
+    - if shared
+      = button_to household_member_path(current_user), method: :delete, class: "household-leave",
+                  form_class: "household-leave-form",
+                  form: { data: { turbo_confirm: "Quitter le foyer ? Tu ne verras plus ses menus ni sa liste de courses, qui restent aux autres membres." } } do
+        = svg_icon("log-out", size: 16)
+        Quitter le foyer

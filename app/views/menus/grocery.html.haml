@@ -15,7 +15,9 @@
   %div{ data: { controller: "live-refresh" } }
     = turbo_stream_from(*@menu.grocery_stream, data: { morph_keep: "connected" })
 
-  .mc-page-wrap
+  -# La pop-up « Mes habituelles » s'ouvre depuis deux endroits de la page — le
+  -# rappel en tête, le bouton du bas : son contrôleur couvre donc toute la page.
+  .mc-page-wrap{ data: { controller: "usual-groceries", usual_groceries_url_value: usual_menu_grocery_items_path(@menu) } }
 
     -# ── En-tête ──────────────────────────────────────────────
     -# Lien retour : on arrive ici directement après validation du menu (plus
@@ -34,77 +36,23 @@
         = svg_icon("info", size: 13)
         = grocery_pending_revalidation_notice(@menu)
 
+    -# ── Courses habituelles pas encore ajoutées ──────────────
+    - if @menu.usual_groceries_pending?
+      = render "usual_grocery_additions/reminder", menu: @menu
+
     -# ── Liste groupée par rayon ──────────────────────────────
     = render "grocery_list", menu: @menu, grocery_items: @grocery_items
 
-    -# ── Ajout manuel ─────────────────────────────────────────
-    -# Un seul champ pour deux chemins, sans rien à choisir avant de taper : si
-    -# l'article est au catalogue, l'autocomplétion pose son rayon et restreint
-    -# ses unités ; sinon la saisie reste ce qu'elle a toujours été — un nom, une
-    -# quantité, une unité, un rayon. Le formulaire fonctionne sans JavaScript :
-    -# le serveur rattache alors l'article par son nom (AddManualItemService).
-    -# Une saisie en cours n'est pas effacée par un rafraîchissement en direct
-    -# (data-morph-guard, cf. morph_keep.js).
+    -# ── Ajout hors menu ──────────────────────────────────────
+    -# Un article à la fois (formulaire commun avec les courses habituelles), ou
+    -# toute la liste des habituels du foyer d'un bouton (UC8, étape 3).
     .grocery-add-manual
-      .grocery-add-manual-label Ajouter un article
+      .grocery-add-manual-head
+        .grocery-add-manual-label Ajouter un article
+        -# Blanc : sur le beige de la page, le bouton secondaire (beige) s'effaçait
+        %button.btn.btn-white{ type: "button", data: { action: "usual-groceries#open" } }
+          = svg_icon("rotate-ccw", size: 14, css_class: "usual-sign")
+          Mes habituelles
+      = render "grocery_items/add_form", url: menu_grocery_items_path(@menu), scope: :grocery_item
 
-      = form_with url: menu_grocery_items_path(@menu), method: :post, scope: :grocery_item, class: "grocery-add-form",
-                  data: { controller: "form-reset ingredient-combobox",
-                          action: "turbo:submit-end->form-reset#reset turbo:submit-end->ingredient-combobox#reset click@window->ingredient-combobox#closeOnOutsideClick",
-                          "ingredient-combobox-search-url-value": search_ingredients_path,
-                          morph_guard: true } do |f|
-        .grocery-add-row
-          .form-group.grocery-add-article
-            = f.label :name, "Article", class: "form-label"
-            = f.text_field :name, placeholder: "Ex: Sel fin", class: "form-input", required: true,
-                           autocomplete: "off", role: "combobox",
-                           aria: { expanded: "false", autocomplete: "list", controls: "grocery-suggestions" },
-                           data: { "ingredient-combobox-target": "nameInput",
-                                   action: "input->ingredient-combobox#search keydown->ingredient-combobox#navigate" }
-            -# Posé par l'autocomplétion : c'est lui qui fait d'une ligne libre
-            -# un article du catalogue.
-            = f.hidden_field :ingredient_id, data: { "ingredient-combobox-target": "ingredientId" }
-            %ul#grocery-suggestions.grocery-suggestions{ role: "listbox", hidden: true,
-                                                         "aria-label": "Ingrédients du catalogue",
-                                                         data: { "ingredient-combobox-target": "results" } }
-
-          .form-group.grocery-add-qty
-            = f.label :quantity, "Quantité", class: "form-label"
-            -# Le seul champ qui reste à remplir quand l'article est reconnu :
-            -# l'autocomplétion y amène le curseur.
-            = f.number_field :quantity, placeholder: "250", min: 0.01, step: 0.01, class: "form-input",
-                             data: { "ingredient-combobox-target": "quantityInput" }
-
-          .form-group.grocery-add-unit
-            = f.label :unit, "Unité", class: "form-label"
-            -# Toutes les unités tant qu'aucun article n'est reconnu ; celles de
-            -# l'ingrédient dès qu'il l'est (cf. le contrôleur Stimulus).
-            = f.select :unit, Units.all_select_options, { prompt: "Unité…" },
-                       class: "form-select", data: { "ingredient-combobox-target": "unitSelect" }
-
-          .form-group.grocery-add-shelf{ data: { "ingredient-combobox-target": "categoryGroup" } }
-            = f.label :category, "Rayon", class: "form-label"
-            -# Libellés côté Ingredient : GroceryItem duplique l'enum, pas les traductions
-            = f.select :category,
-                       GroceryItem.categories.keys.map { |k| [Ingredient.enum_label(:category, k), k] },
-                       { prompt: "Rayon…" },
-                       class: "form-select"
-
-          -# Prend la place du sélecteur de rayon quand le catalogue a répondu :
-          -# le rayon n'est plus une question, il se lit — et se défait.
-          .form-group.grocery-add-known{ hidden: true, data: { "ingredient-combobox-target": "knownGroup" } }
-            %span.form-label Rayon
-            .grocery-add-chip
-              %span.grocery-add-chip-label{ data: { "ingredient-combobox-target": "chipLabel" } }
-              %button.btn-remove{ type: "button", "aria-label": "Détacher l'ingrédient du catalogue",
-                                  title: "Saisir le rayon et l'unité moi-même",
-                                  data: { action: "click->ingredient-combobox#unlink" } }
-                = svg_icon(:x, size: 12)
-
-          .grocery-add-submit
-            -# « + » seul sur une rangée, « + Ajouter » une fois le formulaire
-            -# empilé en mobile : le libellé n'est masqué que là où sa largeur
-            -# manquait au rayon.
-            %button.btn.btn-primary{ type: "submit", "aria-label": "Ajouter l'article", title: "Ajouter l'article" }
-              = svg_icon(:plus, size: 16)
-              %span.grocery-add-btn-label Ajouter
+    = render "usual_grocery_additions/dialog"

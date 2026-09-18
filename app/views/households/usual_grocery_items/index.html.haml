@@ -1,0 +1,44 @@
+-# Courses habituelles du foyer (UC8, étape 3)
+-# @usual_grocery_items : celles du foyer du compte connecté, dans l'ordre de la liste de courses
+- content_for :title, "Courses habituelles"
+-# Chaque correction revient ici (redirection) : en morph, la page ne saute pas
+-# et ne remonte pas en haut.
+- turbo_refreshes_with method: :morph, scroll: :preserve
+- grocery_menu = current_grocery_menu
+- count = @usual_grocery_items.size
+
+.mc-page-outer
+  .mc-page-wrap.usual-page
+    .usual-page-header
+      .usual-page-heading
+        %h1.usual-page-title= usual_groceries_title(current_user.household)
+        %p.usual-page-intro
+          - if count.zero?
+            Ce que le foyer achète chaque semaine ou presque : sur la liste de courses,
+            « Mes habituelles » l'ajoute d'un coup, chaque article dans son rayon.
+          - else
+            = "#{pluralize(count, 'article', 'articles')} que le foyer achète presque chaque semaine."
+            Sur la liste de courses, « Mes habituelles » les ajoute d'un coup.
+      = link_to grocery_menu ? grocery_menu_path(grocery_menu) : household_path, class: "mc-head-action usual-page-back" do
+        = svg_icon("chevron-left", size: 12)
+        = grocery_menu ? "Liste de courses" : "Mon foyer"
+
+    -# Un seul champ tant qu'on n'écrit rien : quantité, unité et rayon
+    -# n'apparaissent qu'à la saisie (cf. .grocery-add-form--compact).
+    = render "grocery_items/add_form", url: household_usual_grocery_items_path, scope: :usual_grocery_item,
+                                       compact: true, placeholder: "Ajouter un habituel : shampoing, piles, jus d'orange…"
+
+    - if count.positive?
+      -# Une carte par rayon, à ses couleurs (cf. palette des rayons, components.css)
+      .usual-board
+        - @usual_grocery_items.group_by(&:category).each do |category, items|
+          %section.usual-rayon{ data: { category: category.presence || "autre" } }
+            .usual-rayon-band
+              %span.category-dot
+              %h2.usual-rayon-title= grocery_section_name(category)
+              %span.usual-rayon-count= items.size
+            %ul.usual-items
+              = render partial: "households/usual_grocery_items/usual_grocery_item", collection: items
+    - else
+      .grocery-empty
+        %p Aucune course habituelle pour l'instant : ajoute ci-dessus ce que ton foyer achète chaque semaine.

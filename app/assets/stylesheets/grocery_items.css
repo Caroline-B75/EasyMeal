@@ -70,14 +70,23 @@
   margin-bottom: 1.75rem;
 }
 
+/* Un bandeau à la couleur du rayon, avec sa pastille — comme sur la page des
+   courses habituelles. Là-bas il coiffe une carte blanche (--category-wash) ;
+   ici il est posé sur le beige de la page, où l'aplat dilué d'un rayon chaud
+   (épicerie, boulangerie) se confondait avec le fond : il prend donc l'aplat
+   des contrôles de rayon (--category-tint), qui garde --category-ink lisible. */
 .grocery-section-header {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  border-bottom: var(--border-thin);
-  border-left: 2.5px solid var(--category-color);
-  padding: 0 0 0.375rem 0.625rem;
+  background: var(--category-tint);
+  border-radius: var(--radius-card);
+  padding: 0.55rem 0.75rem;
   margin: 0 0 0.5rem;
+}
+
+.grocery-section-title .category-dot {
+  margin-right: 0.5rem;
 }
 
 /* Le bouton d'accordéon occupe l'en-tête ; l'action « Tout prendre » d'une liste
@@ -118,12 +127,14 @@
   color: var(--category-ink);
 }
 
-/* Total ou « ma part » : un seul des deux est affiché, dans la même cellule. */
+/* Total ou « ma part » : un seul des deux est affiché, dans la même cellule.
+   En pastille blanche : sur le bandeau coloré, un aplat de la même teinte
+   s'effaçait. */
 .grocery-section-count {
   grid-area: 1 / 2;
   font-size: var(--font-size-base);
   color: var(--color-ink);
-  background: color-mix(in oklab, var(--category-color) 28%, var(--color-bg-secondary));
+  background: var(--color-bg-white);
   border-radius: 999px;
   padding: 0.1em 0.45em;
   font-weight: 500;
@@ -262,6 +273,38 @@
   color: var(--color-ink-3);
 }
 
+/* Nom + marque ↺ d'une course habituelle : le nom se coupe avant la marque. */
+.grocery-item-title {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+/* Le ↺ des courses habituelles, partout où il veut dire « habituels » : marque
+   d'une ligne, bouton « Mes habituelles », rappel en tête de liste, carte de « Mon
+   foyer ». Au corail du logo, rôle décoratif que lui donne la charte : l'icône
+   seulement, jamais le fond ni la bordure d'un bouton, ni un texte — trop
+   proche du rouge des suppressions. 4,6:1 sur blanc, assez pour une icône. */
+.usual-sign {
+  color: var(--color-brand);
+}
+
+/* Marques des courses habituelles : le ↺ corail, le texte dans le gris des
+   méta-infos — en corail, il tombait sous 4,5:1 sur une ligne cochée (beige). */
+.grocery-item-usual {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.grocery-item-usual-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: var(--font-size-sm);
+  color: var(--color-ink-3);
+}
+
 /* ── Quantité éditable ──────────────────────────────────── */
 .grocery-item-qty-wrapper {
   display: flex;
@@ -269,7 +312,7 @@
 }
 
 .grocery-item-qty {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   color: var(--color-ink-3);
   white-space: nowrap;
   cursor: pointer;
@@ -598,6 +641,20 @@
   margin-bottom: 1rem;
 }
 
+/* Titre + bouton « Mes habituelles » sur la même ligne : c'est la rangée qui
+   porte l'espace sous le titre. */
+.grocery-add-manual-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.grocery-add-manual-head .grocery-add-manual-label {
+  margin-bottom: 0;
+}
+
 .grocery-add-form {
   background: var(--color-bg-white);
   border-radius: var(--radius-card);
@@ -778,14 +835,573 @@
    la largeur du .mc-page-wrap, créant un grand vide entre le nom et la
    quantité/suppression. On resserre la liste et le formulaire d'ajout pour
    qu'ils se lisent comme une liste de courses plutôt qu'un tableau étiré — et
-   l'alerte « menu en cours de modification » avec eux, pour ne pas déborder. */
+   les messages en tête de liste avec eux, pour ne pas déborder. */
 @media (min-width: 768px) {
   .grocery-menu-alert,
+  .usual-reminder,
   #grocery_list,
   .grocery-add-manual {
     max-width: 60%;
     margin-left: auto;
     margin-right: auto;
+  }
+}
+
+/* ── Courses habituelles (UC8, étape 3) ─────────────────── */
+
+/* Rappel en tête de la liste, tant que les habituels n'y sont pas. L'ambre
+   pâle, highlight de la charte : une invitation, pas une alerte. Marge du bas
+   seulement — sur grand écran, il se centre avec la liste (ci-dessus). */
+/* Le texte garde une largeur de lecture : faute de place, le bouton passe
+   dessous, calé à droite. */
+.usual-reminder {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 18px;
+  margin-bottom: 1.25rem;
+  padding: 18px 20px;
+  background: var(--color-accent-light);
+  border: var(--border-width) solid var(--color-accent-border);
+  border-radius: var(--radius-card);
+}
+
+.usual-reminder-icon {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--color-bg-white);
+  color: var(--color-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.usual-reminder-text {
+  flex: 1 1 300px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.usual-reminder-title {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.usual-reminder-hint {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-ink-2);
+}
+
+.usual-reminder-button {
+  flex-shrink: 0;
+  margin-left: auto;
+  font-family: inherit;
+}
+
+/* La pop-up « Mes habituelles » : un <dialog> natif habillé en .modal-container.
+   Le dialog porte ses propres bordure, marge intérieure et largeur maximale :
+   on garde la carte de la modale, et une gouttière sur grand écran. Sur
+   mobile, il devient un panneau qui monte du bas (cf. plus bas). */
+.usual-dialog {
+  border: none;
+  padding: 0;
+  max-width: min(560px, calc(100% - 2rem));
+  color: var(--color-ink);
+}
+
+.usual-dialog::backdrop {
+  background: rgba(28, 25, 22, 0.5);
+}
+
+/* La page ne défile pas sous la pop-up ouverte. Règle isolée : un navigateur
+   sans :has() l'ignore sans perdre le reste de la feuille. */
+body:has(.usual-dialog[open]) {
+  overflow: hidden;
+}
+
+.usual-dialog-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.usual-dialog-title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: var(--font-size-2xl);
+  color: var(--color-ink);
+}
+
+.usual-dialog-subtitle {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--color-ink-3);
+}
+
+.usual-dialog-close {
+  width: var(--min-touch-target);
+  height: var(--min-touch-target);
+  flex-shrink: 0;
+  margin: -8px -10px 0 0;
+  border: none;
+  border-radius: var(--radius-icon-btn);
+  background: none;
+  color: var(--color-ink-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.usual-dialog-close:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-ink);
+}
+
+.usual-picker-loading {
+  color: var(--color-ink-3);
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+.usual-picker-bulk {
+  display: flex;
+  gap: 16px;
+  padding-bottom: 6px;
+  border-bottom: var(--border-width) solid var(--color-border-light);
+}
+
+.usual-picker-bulk-button {
+  min-height: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-ink);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.usual-picker {
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0;
+}
+
+.usual-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  border-bottom: var(--border-width) solid var(--color-border-light);
+  transition: opacity var(--transition-fast);
+}
+
+.usual-picker-row:last-child {
+  border-bottom: none;
+}
+
+/* Écartée cette fois : décochée, ou sans quantité */
+.usual-picker-row--off {
+  opacity: 0.5;
+}
+
+/* Toute la zone du nom coche et décoche : une cible au doigt, pas seulement la case. */
+.usual-picker-choice {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--min-touch-target);
+  cursor: pointer;
+}
+
+.usual-picker-choice input[type="checkbox"] {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.usual-picker-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.usual-picker-name {
+  color: var(--color-ink);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.usual-picker-added {
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
+}
+
+.usual-picker-qty {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Largeur réservée : les quantités s'alignent d'une ligne à l'autre. */
+.usual-picker-unit {
+  min-width: 1.75rem;
+  font-size: var(--font-size-sm);
+  color: var(--color-ink-3);
+}
+
+/* « Modifier ma liste » à gauche, l'ajout à droite, chacun sur une ligne */
+.usual-picker-actions .btn {
+  white-space: nowrap;
+}
+
+.usual-picker-edit {
+  margin-right: auto;
+}
+
+.usual-picker-empty p {
+  margin: 0 0 1.5rem;
+  color: var(--color-ink-2);
+  line-height: 1.5;
+}
+
+/* − quantité + : une gélule, dans la pop-up comme dans l'éditeur d'un habituel.
+   Le champ reste saisissable (number-stepper), sans ses flèches natives. */
+.usual-stepper {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  border: var(--border-thin);
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--color-bg-white);
+}
+
+.usual-stepper-button {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-ink-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.usual-stepper-button:hover:not(:disabled) {
+  background: var(--color-bg-main);
+  color: var(--color-ink);
+}
+
+.usual-stepper-button:disabled {
+  color: var(--color-ink-4);
+  cursor: default;
+}
+
+.usual-stepper-input {
+  width: 3.25rem;
+  height: 34px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-ink);
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.usual-stepper-input::-webkit-inner-spin-button,
+.usual-stepper-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* ── Page « Courses habituelles » ── */
+
+.usual-page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.usual-page-heading {
+  min-width: 0;
+}
+
+.usual-page-title {
+  margin: 0 0 6px;
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: var(--font-size-3xl);
+  color: var(--color-ink);
+}
+
+.usual-page-intro {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--color-ink-3);
+}
+
+.usual-page-back {
+  flex-shrink: 0;
+}
+
+.usual-page .grocery-add-form {
+  margin-bottom: 22px;
+}
+
+/* Compact : un seul champ tant qu'on n'écrit rien. Quantité, unité et rayon
+   paraissent dès qu'on saisit — champ actif ou déjà rempli. Règle isolée :
+   sans :has(), le formulaire reste simplement complet. */
+.grocery-add-form--compact:not(:focus-within):has(.grocery-add-article input:placeholder-shown) :is(.grocery-add-qty, .grocery-add-unit, .grocery-add-shelf, .grocery-add-known) {
+  display: none;
+}
+
+/* Une carte par rayon, en deux colonnes équilibrées */
+.usual-board {
+  column-count: 2;
+  column-gap: 20px;
+}
+
+.usual-rayon {
+  break-inside: avoid;
+  margin-bottom: 20px;
+  background: var(--color-bg-white);
+  border: var(--border-thin);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+/* Le bandeau du rayon, à ses couleurs — le même que sur la liste de courses */
+.usual-rayon-band {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  background: var(--category-wash);
+}
+
+.usual-rayon-title {
+  flex: 1;
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--category-ink);
+}
+
+.usual-rayon-count {
+  font-size: 13px;
+  color: var(--category-ink);
+}
+
+.usual-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.usual-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  box-sizing: border-box;
+  padding: 8px 10px 8px 18px;
+  border-bottom: var(--border-width) solid var(--color-border-light);
+}
+
+.usual-item:last-child {
+  border-bottom: none;
+}
+
+.usual-item-name {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+}
+
+/* La quantité se lit dans une pastille, qui ouvre l'éditeur */
+.usual-item-pill {
+  min-height: 36px;
+  padding: 0 14px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-bg-main);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-ink);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.usual-item-pill:hover {
+  background: var(--color-bg-secondary);
+}
+
+.usual-item-editor[hidden] {
+  display: none;
+}
+
+/* Sur grand écran, l'éditeur prend la place de la pastille dans la ligne */
+@media (min-width: 768px) {
+  .usual-item--editing {
+    background: color-mix(in oklab, var(--color-accent-light) 45%, var(--color-bg-white));
+  }
+
+  .usual-item--editing .usual-item-pill,
+  .usual-item--editing .usual-item-remove-form,
+  .usual-item-editor-backdrop,
+  .usual-item-editor-head,
+  .usual-item-editor-save-label,
+  .usual-item-editor-remove-form {
+    display: none;
+  }
+
+  .usual-item-editor,
+  .usual-item-editor-sheet,
+  .usual-item-editor-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .usual-item-editor-unit {
+    width: auto;
+    min-height: 36px;
+  }
+
+  .usual-item-editor-save {
+    width: 40px;
+    min-height: 40px;
+    padding: 0;
+    justify-content: center;
+  }
+}
+
+/* Sur mobile, un panneau qui monte du bas, au-dessus d'un voile */
+@media (max-width: 767px) {
+  .usual-item-editor-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(28, 25, 22, 0.45);
+  }
+
+  .usual-item-editor-sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10001;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 12px 16px calc(24px + env(safe-area-inset-bottom));
+    background: var(--color-bg-white);
+    border-radius: 12px 12px 0 0;
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* La poignée d'un panneau qu'on peut refermer */
+  .usual-item-editor-sheet::before {
+    content: "";
+    align-self: center;
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--color-border);
+  }
+
+  .usual-item-editor-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .usual-item-editor-name {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+
+  .usual-item-editor-rayon {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--category-ink);
+  }
+
+  .usual-item-editor-form {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .usual-item-editor .usual-stepper-button {
+    width: var(--min-touch-target);
+    height: var(--min-touch-target);
+  }
+
+  .usual-item-editor .usual-stepper-input {
+    height: var(--min-touch-target);
+    font-size: var(--font-size-lg);
+  }
+
+  .usual-item-editor-unit {
+    min-height: 46px;
+    font-size: 16px;
+  }
+
+  .usual-item-editor-save {
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .usual-item-editor-remove {
+    width: 100%;
+    min-height: var(--min-touch-target);
+    border: var(--border-width) solid var(--color-danger-border);
+    border-radius: var(--radius-button);
+    background: var(--color-bg-white);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-danger-text);
+    cursor: pointer;
   }
 }
 
@@ -905,6 +1521,64 @@
 
   .grocery-add-manual-label {
     margin-bottom: 0.375rem;
+  }
+
+  .grocery-add-manual-head {
+    margin-bottom: 0.375rem;
+  }
+
+  /* 16px : évite le zoom iOS au focus, comme les champs de l'ajout d'un article. */
+  .usual-stepper-input {
+    font-size: 16px;
+  }
+
+  /* Rappel des habituels : le bouton passe sous le texte, sur toute la largeur */
+  .usual-reminder {
+    flex-wrap: wrap;
+    gap: 12px 14px;
+    padding: 14px 16px;
+  }
+
+  .usual-reminder-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .usual-reminder-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* La pop-up monte du bas, sur toute la largeur */
+  .usual-dialog {
+    width: 100%;
+    max-width: 100%;
+    max-height: 92dvh;
+    margin: auto 0 0;
+    border-radius: 12px 12px 0 0;
+  }
+
+  /* Page des habituels : le lien retour au-dessus du titre, une seule colonne */
+  .usual-page-header {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .usual-page-title {
+    font-size: var(--font-size-2xl);
+  }
+
+  .usual-board {
+    column-count: 1;
+  }
+
+  .usual-rayon {
+    margin-bottom: 16px;
+  }
+
+  .usual-item {
+    padding: 6px 6px 6px 16px;
   }
 
   .grocery-add-form {

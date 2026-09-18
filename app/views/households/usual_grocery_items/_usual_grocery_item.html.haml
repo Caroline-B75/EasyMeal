@@ -1,0 +1,50 @@
+-# Une course habituelle, sur la page qui les gère
+-# usual_grocery_item : UsualGroceryItem
+-#
+-# La quantité se lit dans une pastille ; la toucher ouvre l'éditeur
+-# (usual-item-editor) : dans la ligne sur grand écran, en panneau montant du
+-# bas sur mobile — un seul balisage, deux présentations (grocery_items.css).
+-# Pour changer d'article, on le retire et on en ajoute un autre.
+- item = usual_grocery_item
+- confirm = "Supprimer « #{item.name} » de tes courses habituelles ?"
+%li.usual-item{ data: { controller: "usual-item-editor",
+                        action: "keydown.esc@window->usual-item-editor#close click@window->usual-item-editor#closeOnOutsideClick" } }
+  %span.usual-item-name= item.name
+  %button.usual-item-pill{ type: "button", "aria-expanded": "false",
+                           "aria-label": "Modifier la quantité de #{item.name} : #{usual_grocery_quantity_label(item)}",
+                           data: { action: "usual-item-editor#open", usual_item_editor_target: "pill" } }
+    = usual_grocery_quantity_label(item)
+  = button_to household_usual_grocery_item_path(item), method: :delete, class: "btn-remove usual-item-remove",
+              title: "Supprimer", "aria-label": "Supprimer #{item.name} des courses habituelles",
+              form_class: "button_to usual-item-remove-form", form: { data: { turbo_confirm: confirm } } do
+    = svg_icon(:x, size: 16)
+
+  .usual-item-editor{ hidden: true, data: { usual_item_editor_target: "panel" } }
+    .usual-item-editor-backdrop{ data: { action: "click->usual-item-editor#close" } }
+    .usual-item-editor-sheet{ role: "group", "aria-label": "Modifier #{item.name}" }
+      .usual-item-editor-head
+        %span.usual-item-editor-name= item.name
+        %span.usual-item-editor-rayon{ data: { category: item.category.presence || "autre" } }= grocery_section_name(item.category)
+      = form_with url: household_usual_grocery_item_path(item), method: :patch, scope: :usual_grocery_item,
+                  class: "usual-item-editor-form" do |f|
+        .usual-stepper{ data: { controller: "number-stepper", number_stepper_increment_value: usual_grocery_step(item.unit) } }
+          %button.usual-stepper-button{ type: "button", "aria-label": "Moins de #{item.name}",
+                                        data: { action: "number-stepper#decrement", number_stepper_target: "decrement" } }
+            = svg_icon(:minus, size: 14)
+          = f.number_field :quantity, value: item.quantity_for_input, min: 0.01, step: "any", inputmode: "decimal",
+                           id: "usual_grocery_item_#{item.id}_quantity", class: "usual-stepper-input",
+                           "aria-label": "Quantité de #{item.name}",
+                           data: { number_stepper_target: "input", usual_item_editor_target: "input",
+                                   action: "input->number-stepper#refresh" }
+          %button.usual-stepper-button{ type: "button", "aria-label": "Plus de #{item.name}",
+                                        data: { action: "number-stepper#increment", number_stepper_target: "increment" } }
+            = svg_icon(:plus, size: 14)
+        = f.select :unit, usual_grocery_unit_options(item), { selected: item.unit },
+                   id: "usual_grocery_item_#{item.id}_unit", class: "form-select usual-item-editor-unit",
+                   "aria-label": "Unité de #{item.name}"
+        %button.btn.btn-primary.usual-item-editor-save{ type: "submit", "aria-label": "Enregistrer" }
+          = svg_icon(:check, size: 16)
+          %span.usual-item-editor-save-label Enregistrer
+      = button_to "Retirer des habituelles", household_usual_grocery_item_path(item), method: :delete,
+                  class: "usual-item-editor-remove", form_class: "button_to usual-item-editor-remove-form",
+                  form: { data: { turbo_confirm: confirm } }

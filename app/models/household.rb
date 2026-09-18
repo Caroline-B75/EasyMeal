@@ -23,6 +23,10 @@ class Household < ApplicationRecord
 
   has_many :menus, dependent: :destroy
 
+  # Ce que le foyer achète chaque semaine, ajouté d'un bouton à la liste de
+  # courses (UC8, étape 3). Une seule liste par foyer.
+  has_many :usual_grocery_items, dependent: :destroy
+
   # Le jeton du lien d'invitation. Le renouveler (regenerate_invite_token) rend
   # l'ancien lien inutilisable.
   has_secure_token :invite_token
@@ -38,10 +42,11 @@ class Household < ApplicationRecord
   # Accueille un compte dans ce foyer, qu'il quitte alors son foyer actuel.
   #
   # S'il y vivait seul, ses menus le suivent et rejoignent l'historique : ce foyer
-  # n'a qu'un menu actif et qu'un brouillon, et ce sont les siens qui restent. Le
-  # foyer quitté, désormais vide, disparaît. S'il partageait son foyer, les menus
-  # restent à ceux qui y demeurent, et les articles qu'il y avait pris redeviennent
-  # libres.
+  # n'a qu'un menu actif et qu'un brouillon, et ce sont les siens qui restent. Ses
+  # courses habituelles s'ajoutent à celles du foyer, sauf les articles qui y
+  # figurent déjà. Le foyer quitté, désormais vide, disparaît. S'il partageait son
+  # foyer, menus et habituels restent à ceux qui y demeurent, et les articles qu'il
+  # y avait pris redeviennent libres.
   #
   # @param user [User]
   # @raise [ActiveRecord::RecordInvalid] si le compte ne peut pas être enregistré
@@ -57,6 +62,9 @@ class Household < ApplicationRecord
       else
         previous.menus.where.not(status: :archived).find_each(&:archive!)
         previous.menus.update_all(household_id: id)
+        # Un article déjà présent ici ne passe pas la validation d'unicité : il
+        # reste dans le foyer quitté, et disparaît avec lui.
+        previous.usual_grocery_items.find_each { |item| item.update(household: self) }
         previous.destroy!
       end
     end

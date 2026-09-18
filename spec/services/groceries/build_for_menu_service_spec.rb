@@ -202,4 +202,65 @@ RSpec.describe Groceries::BuildForMenuService do
       expect(menu.grocery_items.generated.pluck(:name)).to eq([ "Farine" ])
     end
   end
+
+  # Courses habituelles (UC8, étape 3) : une ligne = la part du menu, recalculée,
+  # plus la part habituelle, conservée.
+  describe ".call — part habituelle" do
+    def usual_line(menu, ing, quantity:, usual:, source:, checked: false)
+      create(:grocery_item, menu: menu, ingredient: ing, name: ing.name, source: source,
+                            quantity_base: quantity, usual_quantity_base: usual, checked: checked)
+    end
+
+    it "(règle 4) ajoute la part habituelle à la quantité recalculée du menu" do
+      menu = menu_with(ingredient => 300)
+      item = usual_line(menu, ingredient, quantity: 1100, usual: 1000, source: :generated)
+
+      described_class.call(menu: menu)
+
+      expect(item.reload).to have_attributes(quantity_base: 1300, usual_quantity_base: 1000, source: "generated")
+    end
+
+    it "(règle 5) garde la part habituelle d'une ligne que le menu ne demande plus" do
+      sucre = create(:ingredient, name: "Sucre")
+      menu = menu_with(ingredient => 100)
+      item = usual_line(menu, sucre, quantity: 1200, usual: 1000, source: :generated, checked: true)
+
+      described_class.call(menu: menu)
+
+      expect(item.reload).to have_attributes(source: "manual", quantity_base: 1000, usual_quantity_base: 1000,
+                                             checked: true, previous_quantity_base: nil)
+    end
+
+    it "(règle 6) fait rejoindre le menu à une ligne entièrement habituelle" do
+      menu = menu_with(ingredient => 300)
+      item = usual_line(menu, ingredient, quantity: 1000, usual: 1000, source: :manual, checked: true)
+
+      described_class.call(menu: menu)
+
+      expect(menu.grocery_items.sole).to eq(item)
+      expect(item.reload).to have_attributes(source: "generated", quantity_base: 1300, usual_quantity_base: 1000,
+                                             checked: false, previous_quantity_base: 1000)
+    end
+
+    # Comme tout ajout manuel, une ligne qui compte un ajout ponctuel cohabite
+    # avec la ligne du menu : elle n'est jamais adoptée.
+    it "n'adopte pas une ligne qui compte un ajout ponctuel" do
+      menu = menu_with(ingredient => 300)
+      item = usual_line(menu, ingredient, quantity: 1500, usual: 1000, source: :manual)
+
+      described_class.call(menu: menu)
+
+      expect(item.reload).to have_attributes(source: "manual", quantity_base: 1500)
+      expect(menu.grocery_items.generated.sole.quantity_base).to eq(300)
+    end
+
+    it "reste idempotent" do
+      menu = menu_with(ingredient => 300)
+      usual_line(menu, ingredient, quantity: 1000, usual: 1000, source: :manual)
+      described_class.call(menu: menu)
+
+      expect { described_class.call(menu: menu) }
+        .not_to(change { menu.grocery_items.pluck(:quantity_base, :updated_at) })
+    end
+  end
 end

@@ -1,0 +1,66 @@
+-# Contenu de la pop-up « Mes habituelles », chargé à chaque ouverture (UC8, étape 3)
+-# @menu          : Menu dont la liste de courses reçoit les habituels
+-# @usual_items   : courses habituelles du foyer, dans l'ordre de la liste
+-# @already_added : celles qui ont déjà rejoint cette liste
+-# @one_off_count : ajouts ponctuels de la liste, à reprendre si les habituels sont vides
+-#
+-# On décoche ce dont on n'a pas besoin cette fois, on ajuste une quantité pour
+-# cette fois : rien ici ne modifie la liste des habituels elle-même. Un article
+-# déjà ajouté arrive décoché, pour ne pas l'ajouter deux fois.
+= turbo_frame_tag "usual_groceries" do
+  - if @usual_items.any?
+    -# _top : la réponse est la liste de courses à jour, pas le contenu du frame
+    = form_with url: usual_menu_grocery_items_path(@menu), method: :post,
+                data: { turbo_frame: "_top", action: "change->usual-groceries#count input->usual-groceries#count" } do
+      .usual-picker-bulk
+        %button.usual-picker-bulk-button{ type: "button", data: { action: "usual-groceries#checkAll" } } Tout cocher
+        %button.usual-picker-bulk-button{ type: "button", data: { action: "usual-groceries#uncheckAll" } } Tout décocher
+
+      %ul.usual-picker
+        - @usual_items.each do |usual_item|
+          - added = @already_added.include?(usual_item)
+          - field = "items[#{usual_item.id}]"
+          %li.usual-picker-row{ data: { usual_groceries_target: "row", category: usual_item.category } }
+            %label.usual-picker-choice
+              = check_box_tag "#{field}[selected]", "1", !added, id: "usual_item_#{usual_item.id}_selected"
+              %span.category-dot
+              %span.usual-picker-text
+                %span.usual-picker-name= usual_item.name
+                - if added
+                  %span.usual-picker-added Déjà ajouté
+            -# − / + par un pas qui convient à l'unité ; le champ reste saisissable
+            .usual-picker-qty{ data: { controller: "number-stepper",
+                                       number_stepper_increment_value: usual_grocery_step(usual_item.unit) } }
+              .usual-stepper
+                %button.usual-stepper-button{ type: "button", "aria-label": "Moins de #{usual_item.name}",
+                                              data: { action: "number-stepper#decrement", number_stepper_target: "decrement" } }
+                  = svg_icon(:minus, size: 14)
+                = number_field_tag "#{field}[quantity]", usual_item.quantity_for_input,
+                                   id: "usual_item_#{usual_item.id}_quantity", min: 0, step: "any",
+                                   inputmode: "decimal", class: "usual-stepper-input",
+                                   "aria-label": "Quantité de #{usual_item.name}, pour cette fois",
+                                   data: { number_stepper_target: "input", action: "input->number-stepper#refresh" }
+                %button.usual-stepper-button{ type: "button", "aria-label": "Plus de #{usual_item.name}",
+                                              data: { action: "number-stepper#increment", number_stepper_target: "increment" } }
+                  = svg_icon(:plus, size: 14)
+              %span.usual-picker-unit= usual_grocery_unit_suffix(usual_item)
+
+      .modal-actions.usual-picker-actions
+        = link_to "Modifier ma liste", household_usual_grocery_items_path,
+                  class: "btn btn-link usual-picker-edit", data: { turbo_frame: "_top" }
+        -# Le libellé suit le nombre d'articles retenus (« Ajouter 11 articles »)
+        %button.btn.btn-primary{ type: "submit", data: { usual_groceries_target: "submit" } } Ajouter
+
+  - else
+    .usual-picker-empty
+      %p
+        Tu n'as pas encore de courses habituelles. Enregistre une fois ce que ton
+        foyer achète chaque semaine : il s'ajoutera ensuite à la liste d'un bouton.
+      .modal-actions
+        = link_to "Créer ma liste", household_usual_grocery_items_path,
+                  class: (@one_off_count.positive? ? "btn btn-secondary" : "btn btn-primary"), data: { turbo_frame: "_top" }
+        -# Ce qu'on a ajouté à la main cette semaine, c'est justement ce qu'on ressaisit chaque semaine
+        - if @one_off_count.positive?
+          = button_to import_household_usual_grocery_items_path, params: { menu_id: @menu.id },
+                      class: "btn btn-primary", form: { data: { turbo_frame: "_top" } } do
+            = "Reprendre #{@one_off_count > 1 ? "les #{@one_off_count} articles ajoutés" : "l'article ajouté"} à la main"

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_16_140000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_18_100100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -173,6 +173,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_140000) do
     t.integer "source", default: 0, null: false
     t.integer "unit_group", null: false
     t.datetime "updated_at", null: false
+    t.decimal "usual_quantity_base", precision: 10, scale: 3
     t.index ["claimed_by_id"], name: "index_grocery_items_on_claimed_by_id"
     t.index ["ingredient_id"], name: "index_grocery_items_on_ingredient_id"
     t.index ["menu_id", "category"], name: "index_grocery_items_on_menu_id_and_category"
@@ -348,6 +349,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_140000) do
     t.index ["username"], name: "index_users_on_username", unique: true
   end
 
+  create_table "usual_grocery_items", force: :cascade do |t|
+    t.integer "category"
+    t.datetime "created_at", null: false
+    t.bigint "household_id", null: false
+    t.bigint "ingredient_id"
+    t.string "name", null: false
+    t.decimal "quantity", precision: 10, scale: 3, null: false
+    t.string "unit", null: false
+    t.datetime "updated_at", null: false
+    t.index ["household_id"], name: "index_usual_grocery_items_on_household_id"
+    t.index ["ingredient_id"], name: "index_usual_grocery_items_on_ingredient_id"
+  end
+
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "favorite_recipes", "recipes"
@@ -367,4 +381,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_140000) do
   add_foreign_key "reviews", "recipes"
   add_foreign_key "reviews", "users"
   add_foreign_key "users", "households"
+  add_foreign_key "usual_grocery_items", "households"
+  add_foreign_key "usual_grocery_items", "ingredients"
 end

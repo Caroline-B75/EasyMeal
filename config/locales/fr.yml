@@ -50,6 +50,9 @@ fr:
       menu_recipe:
         one: Recette du menu
         other: Recettes du menu
+      usual_grocery_item:
+        one: Course habituelle
+        other: Courses habituelles
     attributes:
       ingredient:
         name: Nom
@@ -60,7 +63,8 @@ fr:
         aliases: Alias
         # Valeurs des enums d'Ingredient — libellés lus par Ingredient.enum_label,
         # donc partagés par la fiche, les filtres, les formulaires et la liste de
-        # courses (GroceryItem duplique ces mêmes rayons, cf. app/models/grocery_item.rb).
+        # courses (une seule table de rayons, Ingredient::CATEGORIES, partagée par
+        # GroceryItem et UsualGroceryItem).
         categories:
           fruits_legumes: Fruits et légumes
           boucherie_viande: Boucherie / Viande
@@ -147,6 +151,11 @@ fr:
         number_of_people: Nombre de personnes
         meal_type: Moment du repas
         day_of_week: Jour
+      usual_grocery_item:
+        name: Article
+        quantity: Quantité
+        unit: Unité
+        category: Rayon
     errors:
       models:
         ingredient:

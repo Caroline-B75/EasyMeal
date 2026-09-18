@@ -12,6 +12,7 @@
         %span.detail-label Rayon
         %span.detail-value
           %span.category-badge{ data: { category: @ingredient.category } }
+            %span.category-dot
             = Ingredient.enum_label(:category, @ingredient.category)
 
       .detail-item

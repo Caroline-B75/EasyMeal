@@ -1,0 +1,23 @@
+-# Pop-up « Mes habituelles » (UC8, étape 3) — ouverte par le rappel en tête de
+-# la liste de courses ou par le bouton du bas (contrôleur usual-groceries, posé
+-# sur la page).
+-#
+-# Un <dialog> natif : focus piégé, Échap, fond qui se touche pour fermer ; un
+-# panneau qui monte du bas sur mobile. Son contenu (turbo-frame) se recharge à
+-# chaque ouverture, et dit donc toujours ce qui a déjà été ajouté.
+-#
+-# Il est permanent pour Turbo : un rafraîchissement en direct de la liste — le
+-# téléphone qui sort de veille, par exemple — ne le ferme pas et ne lui fait
+-# rien perdre, décochages et quantités compris.
+%dialog#usual-groceries-dialog.modal-container.usual-dialog{ "aria-labelledby": "usual-groceries-title",
+    data: { turbo_permanent: true, usual_groceries_target: "dialog",
+            action: "click->usual-groceries#closeOnBackdrop turbo:submit-end->usual-groceries#submitEnd" } }
+  .modal-content.usual-dialog-content
+    .usual-dialog-head
+      .usual-dialog-heading
+        %h3#usual-groceries-title.usual-dialog-title Mes habituelles
+        %p.usual-dialog-subtitle Décoche ce qui ne sert pas cette semaine.
+      %button.usual-dialog-close{ type: "button", "aria-label": "Fermer", data: { action: "usual-groceries#close" } }
+        = svg_icon(:x, size: 20)
+    = turbo_frame_tag "usual_groceries", data: { usual_groceries_target: "frame" } do
+      %p.usual-picker-loading Chargement…

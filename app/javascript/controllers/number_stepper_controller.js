@@ -8,6 +8,10 @@ import { Controller } from "@hotwired/stimulus"
  * les boutons ne sont qu'un raccourci. Sans JavaScript, le formulaire fonctionne
  * donc à l'identique, boutons inertes en moins.
  *
+ * Le pas des boutons vaut 1, sauf à le dire (data-number-stepper-increment-value) :
+ * des grammes ou des millilitres avancent plutôt par 50. Il ne borne pas la
+ * saisie au clavier, qui reste libre.
+ *
  * Usage :
  *   <div data-controller="number-stepper">
  *     <button type="button" data-action="number-stepper#decrement"
@@ -20,17 +24,18 @@ import { Controller } from "@hotwired/stimulus"
  */
 export default class extends Controller {
   static targets = ["input", "decrement", "increment"]
+  static values = { increment: { type: Number, default: 1 } }
 
   connect() {
     this.refresh()
   }
 
   increment() {
-    this._step(+1)
+    this._step(this.incrementValue)
   }
 
   decrement() {
-    this._step(-1)
+    this._step(-this.incrementValue)
   }
 
   // Aux bornes, un bouton désactivé vaut mieux qu'un clic sans effet. Rejoué

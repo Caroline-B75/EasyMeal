@@ -115,6 +115,7 @@ class Menu < ApplicationRecord
     # previous_quantity_base ne concerne que le passage à coché) et on remet
     # explicitement previous_quantity_base à nil dans la même opération.
     grocery_items.update_all(checked: false, previous_quantity_base: nil)
+    drop_usual_quantities
     activate!
   end
 
@@ -209,6 +210,13 @@ class Menu < ApplicationRecord
     status_draft? && grocery_items.exists?
   end
 
+  # Les courses habituelles du foyer attendent-elles d'être ajoutées à cette
+  # liste ? Oui tant qu'aucune ligne n'en porte de part : c'est ce que rappelle
+  # l'en-tête de la liste de courses, jusqu'à l'ajout (UC8, étape 3).
+  def usual_groceries_pending?
+    household.usual_grocery_items.exists? && !grocery_items.with_usual_part.exists?
+  end
+
   # La commande passée à la génération (UC7), sous forme d'objet-valeur.
   # La colonne jsonb requested_meal_counts n'est qu'un support de stockage —
   # même principe que User#preferred_meal_counts.
@@ -291,5 +299,19 @@ class Menu < ApplicationRecord
 
   def destroy_other_drafts!
     household.menus.status_draft.where.not(id: id).find_each(&:destroy!)
+  end
+
+  # Retire des lignes de courses ce qu'elles devaient aux courses habituelles :
+  # un menu réactivé repart d'une liste fraîche, et ses habituels d'il y a des
+  # semaines ne diraient plus rien. Une ligne entièrement habituelle disparaît ;
+  # les autres retrouvent leur part du menu ou de l'ajout ponctuel. On rajoute
+  # les habituels d'un clic.
+  #
+  # update_all ne diffuse rien, mais la réactivation change le statut du menu,
+  # qui rafraîchit à lui seul les écrans ouverts sur la liste.
+  def drop_usual_quantities
+    lines = grocery_items.with_usual_part
+    lines.usual_only.delete_all
+    lines.update_all("quantity_base = quantity_base - usual_quantity_base, usual_quantity_base = NULL")
   end
 end

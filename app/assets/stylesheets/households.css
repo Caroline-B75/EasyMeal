@@ -1,10 +1,485 @@
 /* ============================================
    FOYER (household-*)
    ============================================
-   Pages « Mon foyer » et « Rejoindre un foyer ». Elles reprennent le cadre des
-   préférences (.pref-page-wrap, .pref-header, .pref-section — menus.css) et
-   l'avatar de la gestion des comptes (.users-avatar — users.css) : seul ce qui
-   leur est propre vit ici. */
+   « Mon foyer » : un bandeau anthracite — le registre du tableau de bord de
+   l'accueil — puis des cartes. « Rejoindre un foyer » reprend, lui, le cadre des
+   préférences (.pref-page-wrap, .pref-section — menus.css).
+   Les avatars des membres prennent leur couleur de .member-avatar
+   (components.css) : seules leur taille et leur place vivent ici. */
+
+/* === Bandeau === */
+
+.household-hero {
+  background: var(--color-primary);
+  padding: 44px 0 40px;
+}
+
+.household-hero-inner {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.household-hero-avatars {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Les avatars se chevauchent : un anneau de la couleur du bandeau les détache
+   l'un de l'autre, et le liseré du membre passe à l'extérieur. Deux classes,
+   pour l'emporter sur la bordure de .member-avatar. */
+.household-hero-avatar.member-avatar,
+.household-hero-seat {
+  width: 76px;
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-2xl);
+}
+
+.household-hero-avatar.member-avatar {
+  border: 3px solid var(--color-primary);
+  box-shadow: 0 0 0 2px var(--member-edge);
+}
+
+.household-hero-avatar + .household-hero-avatar {
+  margin-left: -18px;
+}
+
+/* La place du prochain membre : en pointillés, comme une chaise libre */
+.household-hero-seat {
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 2px dashed var(--color-surface-dark-border-hover);
+  background: var(--color-surface-dark);
+  color: var(--color-ink-on-dark);
+}
+
+.household-hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* L'ambre, seul accent de la charte, en surtitre sur l'anthracite */
+.household-hero-overline {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+/* Même blanc cassé que le titre du bandeau de l'accueil (home.css) */
+.household-hero-title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 40px;
+  line-height: 1.1;
+  color: #F7F2ED;
+  overflow-wrap: anywhere;
+}
+
+.household-hero-summary {
+  margin: 0;
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  color: var(--color-ink-on-dark);
+}
+
+/* === Cartes === */
+
+.household-board {
+  width: 100%;
+  max-width: 1040px;
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 36px 24px 56px;
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.household-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+.household-card {
+  background: var(--color-bg-white);
+  border: var(--border-thin);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+  padding: 28px;
+}
+
+/* Un <button> n'hérite pas de la police du document : sans cette ligne, les
+   boutons des cartes s'afficheraient dans la police système. */
+.household-card button {
+  font-family: inherit;
+}
+
+.household-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.household-card-head--icon {
+  align-items: center;
+  justify-content: flex-start;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.household-card-heading {
+  min-width: 0;
+}
+
+.household-card-title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 22px;
+  color: var(--color-ink);
+}
+
+.household-card-meta {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--color-ink-3);
+}
+
+.household-card-text {
+  margin: 6px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--color-ink-2);
+}
+
+.household-card-icon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--color-bg-secondary);
+  color: var(--color-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.household-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.household-card-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--min-touch-target);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-ink-2);
+  text-decoration: none;
+}
+
+.household-card-link:hover {
+  color: var(--color-ink);
+}
+
+/* === Membres === */
+
+.household-members {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.household-member {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: var(--border-width) solid var(--color-border-light);
+}
+
+.household-member:last-child {
+  border-bottom: none;
+}
+
+.household-member-avatar.member-avatar {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+}
+
+.household-member-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  /* Un nom long passe à la ligne au lieu de pousser le menu hors de l'écran */
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.household-member-name {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.household-member-username {
+  font-size: 13px;
+  color: var(--color-ink-3);
+}
+
+.household-me {
+  padding: 2px 8px;
+  border-radius: var(--radius-badge);
+  background: var(--color-accent-light);
+  color: var(--color-accent-text);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+/* « ⋯ » : un <details> natif, qui s'ouvre sans JavaScript */
+.household-member-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.household-member-menu-toggle {
+  width: var(--min-touch-target);
+  height: var(--min-touch-target);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-icon-btn);
+  color: var(--color-ink-3);
+  cursor: pointer;
+  list-style: none;
+}
+
+.household-member-menu-toggle::-webkit-details-marker {
+  display: none;
+}
+
+.household-member-menu-toggle:hover,
+.household-member-menu[open] .household-member-menu-toggle {
+  background: var(--color-bg-secondary);
+  color: var(--color-ink);
+}
+
+.household-member-menu-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 10;
+  min-width: 190px;
+  padding: 6px;
+  background: var(--color-bg-white);
+  border: var(--border-thin);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-lg);
+}
+
+.household-member-menu-item {
+  width: 100%;
+  min-height: var(--min-touch-target);
+  padding: 0 12px;
+  border: none;
+  border-radius: var(--radius-button);
+  background: none;
+  text-align: left;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-danger-text);
+  cursor: pointer;
+}
+
+.household-member-menu-item:hover {
+  background: var(--color-danger-light);
+}
+
+/* === Courses habituelles === */
+
+.household-usual-chips {
+  list-style: none;
+  margin: 0 0 22px;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.household-usual-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border: var(--border-thin);
+  border-radius: 999px;
+  font-size: var(--font-size-sm);
+  color: var(--color-ink);
+}
+
+.household-usual-chip-qty {
+  color: var(--color-ink-3);
+}
+
+.household-usual-chip--more {
+  border-color: transparent;
+  background: var(--color-bg-secondary);
+  color: var(--color-ink-2);
+}
+
+/* === Invitation === */
+
+.household-invite {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.household-seat {
+  width: 52px;
+  height: 52px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 2px dashed var(--color-border-strong);
+  color: var(--color-ink-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.household-invite-share {
+  justify-content: center;
+  width: 100%;
+}
+
+.household-invite-note {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--color-bg-main);
+  border-radius: var(--radius-button);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-ink-2);
+}
+
+.household-invite-note svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* « Le renouveler » : un lien dans la phrase, porté par un formulaire (PATCH) */
+.household-inline-form {
+  display: inline;
+}
+
+.household-inline-button {
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: inherit;
+  font-weight: 600;
+  color: var(--color-ink);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* === Partagé / rien qu'à toi === */
+
+.household-scope {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  padding: 24px 28px;
+}
+
+.household-scope-title {
+  margin: 0 0 10px;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+
+.household-scope-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.household-scope-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--font-size-sm);
+  color: var(--color-ink-2);
+}
+
+.household-scope-check {
+  color: var(--color-success-text);
+}
+
+/* === Quitter le foyer : en bas, en retrait === */
+
+.household-leave-form {
+  align-self: flex-start;
+}
+
+.household-leave {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--min-touch-target);
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  color: var(--color-ink-3);
+  cursor: pointer;
+}
+
+.household-leave:hover {
+  color: var(--color-ink);
+}
+
+/* === Rejoindre un foyer === */
 
 .household-sections {
   display: flex;
@@ -18,79 +493,6 @@
   font-family: inherit;
 }
 
-/* === Membres === */
-
-.household-members {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.household-member {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 0;
-  border-bottom: 0.5px solid var(--color-border);
-}
-
-.household-member:last-child {
-  border-bottom: none;
-}
-
-.household-member-identity {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1;
-  /* Un nom long passe à la ligne au lieu de pousser le bouton hors de l'écran */
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.household-member-name {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: var(--color-ink);
-}
-
-.household-member-name .badge {
-  padding: 0.125rem 0.5rem;
-}
-
-.household-member-username {
-  font-size: var(--font-size-xs);
-  color: var(--color-ink-3);
-}
-
-/* === Invitation === */
-
-.household-hint {
-  font-size: var(--font-size-sm);
-  color: var(--color-ink-3);
-  line-height: 1.5;
-  margin: 0;
-}
-
-.household-hint--small {
-  font-size: var(--font-size-xs);
-}
-
-.household-invite-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-}
-
-/* === Rejoindre un foyer === */
-
 .household-changes {
   margin: 0;
   padding-left: 1.25rem;
@@ -100,6 +502,74 @@
   font-size: var(--font-size-sm);
   color: var(--color-ink-2);
   line-height: 1.5;
+}
+
+/* === Mobile === */
+
+@media (max-width: 767px) {
+  .household-hero {
+    padding: 28px 0 26px;
+  }
+
+  .household-hero-inner {
+    padding: 0 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .household-hero-avatar.member-avatar,
+  .household-hero-seat {
+    width: 60px;
+    height: 60px;
+    font-size: 19px;
+  }
+
+  .household-hero-avatar + .household-hero-avatar {
+    margin-left: -14px;
+  }
+
+  .household-hero-title {
+    font-size: 30px;
+    line-height: 1.15;
+  }
+
+  .household-hero-summary {
+    font-size: 15px;
+  }
+
+  .household-board {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    padding: 20px 16px 32px;
+  }
+
+  .household-column {
+    gap: 16px;
+  }
+
+  .household-card {
+    padding: 20px 18px;
+  }
+
+  .household-scope {
+    padding: 18px;
+  }
+
+  .household-member-avatar.member-avatar {
+    width: 46px;
+    height: 46px;
+    font-size: 15px;
+  }
+
+  .household-card-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .household-leave-form {
+    align-self: center;
+  }
 }
 
 /* button_to enveloppe son bouton dans un formulaire : sur mobile, où les actions

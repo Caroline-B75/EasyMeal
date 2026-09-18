@@ -6,7 +6,9 @@ require "rails_helper"
 # départ d'un membre — et la raison d'être de tout cela, un menu et une liste de
 # courses que deux comptes consultent et cochent ensemble.
 RSpec.describe "Foyer", type: :request do
-  let(:caroline) { create(:user, first_name: "Caroline", username: "Caro") }
+  # Créée d'emblée : le rang d'un membre dans son foyer — l'ordre de la liste et
+  # des couleurs d'avatar — suit l'ancienneté des comptes.
+  let!(:caroline) { create(:user, first_name: "Caroline", username: "Caro") }
   let(:household) { caroline.household }
 
   # Un second membre, entré par le lien d'invitation
@@ -37,8 +39,21 @@ RSpec.describe "Foyer", type: :request do
       get household_path
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include("Membres (2)", "@Caro", "@marc", "Quitter", "Retirer")
+      expect(response.body).to include("Caroline &amp; Marc", "Vous partagez les menus et la liste de courses.",
+                                       "2 personnes", "@Caro", "@marc", "Quitter le foyer", "Retirer du foyer")
       expect(response.body).to include(household_invitation_url(household.invite_token))
+    end
+
+    # Chaque membre a sa couleur d'avatar, dans l'ordre du foyer — l'en-tête de
+    # page reprend celle du compte connecté.
+    it "donne à chaque membre sa couleur d'avatar" do
+      join(create(:user, first_name: "Marc", username: "marc"))
+      sign_in caroline
+
+      get household_path
+
+      expect(response.body).to include('member-avatar" data-member-color="0"', 'member-avatar" data-member-color="1"')
+      expect(response.body).to include('user-avatar member-avatar" data-member-color="0"')
     end
 
     it "ne propose ni de quitter ni de retirer quand on est seul dans son foyer" do
@@ -46,8 +61,19 @@ RSpec.describe "Foyer", type: :request do
 
       get household_path
 
-      expect(response.body).to include("Membres (1)")
-      expect(response.body).not_to include(">Quitter<", ">Retirer<")
+      expect(response.body).to include("1 personne", "Invite quelqu&#39;un")
+      expect(response.body).not_to include("Quitter le foyer", "Retirer du foyer")
+    end
+
+    it "montre un aperçu des courses habituelles, aux couleurs de leur rayon" do
+      household.usual_grocery_items.create!(name: "Dentifrice", category: "hygiene_beaute")
+      household.usual_grocery_items.create!(name: "Riz", quantity: 2, unit: "kg", category: "epicerie_salee")
+      sign_in caroline
+
+      get household_path
+
+      expect(response.body).to include("Mes courses habituelles", "2 articles, ajoutés d&#39;un bouton",
+                                       'data-category="hygiene_beaute"', "Dentifrice", "2 kg", "Gérer la liste")
     end
   end
 

@@ -15,6 +15,12 @@ Rails.application.routes.draw do
     patch :renew_invitation  # Nouveau lien d'invitation — l'ancien cesse de fonctionner
     # Quitter le foyer (son propre id) ou en retirer un autre membre
     resources :members, only: [ :destroy ], path: "membres", module: :households
+    # Les courses habituelles du foyer (UC8, étape 3)
+    resources :usual_grocery_items, only: [ :index, :create, :update, :destroy ],
+                                    path: "courses-habituelles", module: :households do
+      # Reprendre les ajouts ponctuels d'une liste de courses (params: menu_id)
+      post :import, on: :collection, path: "reprendre"
+    end
   end
 
   # Lien d'invitation partagé par un membre : confirmation, puis entrée dans le foyer
@@ -70,6 +76,9 @@ Rails.application.routes.draw do
       collection do
         patch  :claim_section, to: "grocery_claims#claim_section"
         delete :claim_section, to: "grocery_claims#release_section"
+        # Courses habituelles : la pop-up « Mes habituelles », puis l'ajout de ce qu'on y a retenu
+        get    :usual, to: "usual_grocery_additions#new"
+        post   :usual, to: "usual_grocery_additions#create"
       end
     end
   end

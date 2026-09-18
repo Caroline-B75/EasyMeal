@@ -103,7 +103,7 @@
                                       "aria-controls": "user-menu-dropdown",
                                       "aria-label": "Menu utilisateur",
                                       data: { action: "click->menu#toggle", menu_target: "button" } }
-              .user-avatar= user_initials(current_user)
+              = member_avatar(current_user, "user-avatar")
               %span.user-name= current_user.first_name
               %svg.chevron{ width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "3" }
                 %polyline{ points: "6 9 12 15 18 9" }
@@ -117,7 +117,7 @@
               -# En-tête d'identité (mobile uniquement) : ancre la notion de « profil »
               -# et la distingue clairement des liens de navigation qui suivent.
               .dropdown-identity
-                .dropdown-identity-avatar= user_initials(current_user)
+                = member_avatar(current_user, "dropdown-identity-avatar")
                 .dropdown-identity-body
                   %span.dropdown-identity-name= "#{current_user.first_name} #{current_user.last_name}"
                   %span.dropdown-identity-email= current_user.email

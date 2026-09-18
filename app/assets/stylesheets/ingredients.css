@@ -4,8 +4,11 @@
    Liste, table, filtres pour les ingrédients
    ============================================ */
 
-/* === Container principal === */
+/* === Container principal ===
+   border-box : la marge intérieure est comprise dans les 100 %. Sans lui, elle
+   s'y ajoutait et la page débordait de l'écran sur mobile. */
 .ingredients-container {
+  box-sizing: border-box;
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
@@ -276,9 +279,11 @@
 /* === RESPONSIVE === */
 
 @media (max-width: 767px) {
+  /* Pas de width: auto ici : le conteneur se calerait sur son contenu le plus
+     large — la pagination, faite pour défiler dans sa propre bande — et la page
+     déborderait de l'écran. border-box (plus haut) suffit à tenir les 100 %. */
   .ingredients-container {
     padding: 1rem 0.75rem;
-    width: auto;
   }
 
   .ingredients-header {

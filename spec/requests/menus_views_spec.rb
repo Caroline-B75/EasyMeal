@@ -135,7 +135,8 @@ RSpec.describe "Vues menus R3.2bis", type: :request do
       get grocery_menu_path(menu)
 
       expect(response).to have_http_status(:success)
-      expect(response.body).to include("Tu en as peut-être déjà acheté 1,5 kg avant la modification du menu")
+      # Texte neutre : la hausse vient du menu modifié ou des courses habituelles
+      expect(response.body).to include("Tu en as peut-être déjà acheté 1,5 kg avant que la quantité augmente")
     end
   end
 end

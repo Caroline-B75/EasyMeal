@@ -371,12 +371,18 @@
    Ratios WCAG vérifiés sur les 21 teintes : un rayon ajouté ou une teinte
    retouchée demande de recalculer sa nuance --category-ink.
 
+   Une troisième dérivée, plus diluée que l'aplat d'un contrôle :
+     --category-wash : bandeau d'en-tête d'un rayon (liste de courses, courses
+                       habituelles). Plus clair que --category-tint, il laisse
+                       --category-ink au-dessus de ses 4,60:1.
+
    Le repli gris couvre « Autre » et le rayon absent (ligne de courses libre). */
 [data-category] {
   --category-color: #9E9E9E;
   --category-ink: #636363;
   --category-line: color-mix(in oklab, var(--category-color) 78%, var(--color-ink));
   --category-tint: color-mix(in oklab, var(--category-color) 28%, var(--color-bg-white));
+  --category-wash: color-mix(in oklab, var(--category-color) 14%, var(--color-bg-white));
 }
 [data-category="fruits_legumes"]               { --category-color: #35923E; --category-ink: #0F6E20; }
 [data-category="boucherie_viande"]             { --category-color: #C04C50; --category-ink: #A43239; }
@@ -399,22 +405,66 @@
 [data-category="entretien_maison"]             { --category-color: #6E8BAF; --category-ink: #476284; }
 [data-category="papeterie_fournitures"]        { --category-color: #45A2A3; --category-ink: #106C6E; }
 
+/* Pastille d'un rayon : un point de sa couleur devant un article (pop-up et
+   page des courses habituelles, aperçu de « Mon foyer ») ou dans un bandeau de
+   rayon. Décor pur : le nom du rayon ou de l'article reste écrit à côté. */
+.category-dot {
+  display: inline-block;
+  vertical-align: middle;
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--category-color);
+}
+
+/* === AVATARS DE MEMBRE ===
+   Chaque membre d'un foyer a sa couleur : son rang d'arrivée dans le foyer
+   (data-member-color, cf. HouseholdsHelper#member_color) choisit l'une des sept
+   pastilles ci-dessous. Ce sont les teintes des jours du menu (menus.css),
+   réordonnées pour que les premiers membres se distinguent au premier coup
+   d'œil : aplat (--member-tint), liseré (--member-edge) et initiales
+   (--member-deep, au-dessus de 4,5:1 sur l'aplat).
+   La classe ne dit que la couleur et la forme : taille, alignement et
+   affichage restent à la classe du contexte (.user-avatar, que l'en-tête
+   masque sur mobile, ne doit pas réapparaître). */
+.member-avatar {
+  --member-tint: var(--color-bg-secondary);
+  --member-edge: var(--color-border-strong);
+  --member-deep: var(--color-ink);
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: var(--member-tint);
+  border: 2px solid var(--member-edge);
+  color: var(--member-deep);
+  font-weight: 700;
+}
+
+.member-avatar[data-member-color="0"] { --member-tint: #FFEDE7; --member-edge: #FFCFC5; --member-deep: #7B392D; }
+.member-avatar[data-member-color="1"] { --member-tint: #E7F5FF; --member-edge: #C5DEFF; --member-deep: #2D5083; }
+.member-avatar[data-member-color="2"] { --member-tint: #E2FAEE; --member-edge: #B9E9D3; --member-deep: #006042; }
+.member-avatar[data-member-color="3"] { --member-tint: #FFF1DE; --member-edge: #F5D7B3; --member-deep: #6F4500; }
+.member-avatar[data-member-color="4"] { --member-tint: #DEF9FF; --member-edge: #B0E7F3; --member-deep: #005C6E; }
+.member-avatar[data-member-color="5"] { --member-tint: #FFECF5; --member-edge: #FCCDE0; --member-deep: #763755; }
+.member-avatar[data-member-color="6"] { --member-tint: #F1F7E0; --member-edge: #D8E2B7; --member-deep: #4B560A; }
+
 /* Badge de catégorie (rayon) - Charte graphique EasyMeal
-   Même vocabulaire visuel que les sections de la liste de courses : liseré
-   coloré à gauche, aplat très dilué, texte en encre pleine. */
+   Les couleurs des bandeaux de rayon de la liste de courses : aplat du rayon
+   (--category-tint), nom à son encre (--category-ink, AA sur cet aplat) et sa
+   pastille (.category-dot). Posé sur un [data-category] — le badge le porte. */
 .category-badge {
-  /* Sans rayon, les deux termes du mélange sont identiques : le badge retombe
-     exactement sur le beige neutre d'avant la couleur. */
-  background: color-mix(in srgb, var(--category-color, var(--color-bg-secondary)) 12%, var(--color-bg-secondary));
-  color: var(--color-ink);
-  border: var(--border-thin);
-  border-left: 2.5px solid var(--category-color, var(--color-border-strong));
+  background: var(--category-tint);
+  color: var(--category-ink);
   padding: 0.375rem 0.875rem;
-  border-radius: var(--radius-badge);
+  border-radius: var(--radius-card);
   font-size: var(--font-size-sm);
-  font-weight: 500;
+  font-weight: 600;
   white-space: nowrap;
   display: inline-block;
+}
+
+.category-badge .category-dot {
+  margin-right: 0.5rem;
 }
 
 .badge-beige {
@@ -509,10 +559,13 @@
 
 /* Responsive badges */
 @media (max-width: 767px) {
-  .badge,
-  .category-badge {
+  .badge {
     padding: 0.6rem 0.9rem;
     border-radius: var(--radius-badge);
+  }
+
+  .category-badge {
+    padding: 0.6rem 0.9rem;
   }
 
   .month-tag {

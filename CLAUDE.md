@@ -103,3 +103,28 @@ et la page est rendue en `turbo_refreshes_with method: :morph`. Trois pièges :
 « Je m'en occupe » tient dans `grocery_items.claimed_by_id` : `claim!` prend
 l'article, `release!` ne rend que le sien, et `assign_buyer` donne l'article à
 qui le coche. Un membre qui quitte le foyer libère les siens.
+
+Les **courses habituelles** (`UsualGroceryItem`, une liste par foyer — cf.
+`docs/specs/UC8_courses_habituelles.md`) gardent ce qui a été saisi (« 6 » et
+« l »), jamais une quantité de base : elles rejoignent la liste par
+`Groceries::AddManualItemService` en mode `usual: true`, le chemin même de
+« Ajouter un article ». Une ligne de courses additionne alors sa part (menu ou
+ajout ponctuel) et sa **part habituelle**, `grocery_items.usual_quantity_base`,
+comprise dans `quantity_base` :
+
+- la réconciliation du menu (`Groceries::BuildForMenuService`) recalcule la part
+  du menu et **conserve toujours** la part habituelle ;
+- une quantité corrigée à la main porte sur la part habituelle
+  (`GroceryItem#shift_quantity_change_to_usual_part`, appelée explicitement par le
+  contrôleur, **jamais en callback** : la réconciliation change aussi la quantité) ;
+- une hausse sur une ligne cochée passe par `GroceryItem#reconcile_quantity`
+  (décoche + badge), pour le menu comme pour les habituels.
+
+Les rayons sont **une seule table**, `Ingredient::CATEGORIES`, partagée par
+`Ingredient`, `GroceryItem` et `UsualGroceryItem` ; « est-ce le même article ? »
+passe par le concern `ArticleMatching`, et « quel ingrédient désigne cette
+saisie ? » par `Ingredient.recognize`.
+
+Les **avatars des membres** passent toujours par `HouseholdsHelper#member_avatar` :
+leur couleur est le rang du membre dans son foyer (`member_color`, palette
+`.member-avatar` de `components.css`), jamais une couleur écrite à la main.

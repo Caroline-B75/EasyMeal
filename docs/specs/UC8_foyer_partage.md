@@ -79,4 +79,5 @@
 
 **Étape 3 — les courses habituelles** : une liste d'articles récurrents propre au
 foyer, ajoutée à la liste de courses d'un seul bouton, plutôt que ressaisie
-chaque semaine article par article.
+chaque semaine article par article. Cahier des charges :
+[UC8_courses_habituelles.md](UC8_courses_habituelles.md).

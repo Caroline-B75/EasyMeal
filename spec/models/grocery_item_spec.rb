@@ -103,4 +103,83 @@ RSpec.describe GroceryItem, type: :model do
         .with(stream, content: include('action="refresh"'))
     end
   end
+
+  # Courses habituelles (UC8, étape 3) : une ligne additionne sa part (menu ou
+  # ajout ponctuel) et sa part habituelle.
+  describe "part habituelle" do
+    # 500 ml pour une recette, 6 L d'habitude
+    def mixed_line(**attributes)
+      create(:grocery_item, base_unit: "ml", quantity_base: 6500, usual_quantity_base: 6000, **attributes)
+    end
+
+    it "distingue une ligne entièrement habituelle d'une ligne qui cumule" do
+      expect(mixed_line).to be_partly_usual.and(have_attributes(usual_only?: false))
+      expect(create(:grocery_item, quantity_base: 3, usual_quantity_base: 3)).to be_usual_only
+      expect(create(:grocery_item)).not_to be_partly_usual
+    end
+
+    it "dit la part habituelle comme une quantité de la liste" do
+      expect(mixed_line.usual_quantity_display).to eq("6 L")
+    end
+
+    describe "#reconcile_quantity" do
+      it "décoche une ligne cochée qui augmente, et retient l'ancienne quantité" do
+        item = create(:grocery_item, quantity_base: 100, checked: true)
+
+        item.reconcile_quantity(150)
+
+        expect(item).to have_attributes(quantity_base: 150, checked: false, previous_quantity_base: 100)
+      end
+
+      it "garde la coche d'une ligne qui baisse" do
+        item = create(:grocery_item, quantity_base: 100, checked: true, previous_quantity_base: 80)
+
+        item.reconcile_quantity(60)
+
+        expect(item).to have_attributes(quantity_base: 60, checked: true, previous_quantity_base: nil)
+      end
+    end
+
+    describe "#add_usual_quantity" do
+      it "fait grandir d'autant le total et la part habituelle" do
+        item = create(:grocery_item, base_unit: "ml", quantity_base: 500)
+
+        item.add_usual_quantity(6000)
+
+        expect(item).to have_attributes(quantity_base: 6500, usual_quantity_base: 6000)
+      end
+    end
+
+    # La part du menu est recalculée à chaque validation : une correction à la
+    # main porte sur la part habituelle.
+    describe "#shift_quantity_change_to_usual_part" do
+      def correct(item, quantity)
+        item.quantity_base = quantity
+        item.shift_quantity_change_to_usual_part
+        item
+      end
+
+      it "reporte une baisse sur la part habituelle" do
+        expect(correct(mixed_line, 4500).usual_quantity_base).to eq(4000)
+      end
+
+      it "reporte une hausse sur la part habituelle" do
+        expect(correct(mixed_line, 8500).usual_quantity_base).to eq(8000)
+      end
+
+      it "efface la part habituelle quand la correction descend sous l'autre part" do
+        expect(correct(mixed_line, 400).usual_quantity_base).to be_nil
+      end
+
+      it "laisse une ligne entièrement habituelle le rester" do
+        item = create(:grocery_item, quantity_base: 3, usual_quantity_base: 3)
+
+        expect(correct(item, 5)).to be_usual_only
+      end
+
+      it "ne touche pas une ligne sans part habituelle" do
+        expect(correct(create(:grocery_item, quantity_base: 100), 80).usual_quantity_base).to be_nil
+      end
+    end
+  end
 end

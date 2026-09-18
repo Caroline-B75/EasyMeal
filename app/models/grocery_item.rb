@@ -10,11 +10,19 @@
 #
 # Les quantités sont toujours stockées en unité de base (g, ml, piece, cac)
 # et humanisées à l'affichage via Quantities::HumanizeService.
+#
+# Courses habituelles (UC8, étape 3) : une ligne additionne sa part — menu ou
+# ajout ponctuel — et sa part habituelle (`usual_quantity_base`, comprise dans
+# `quantity_base`). La part du menu est recalculée à chaque validation, la part
+# habituelle est conservée. Une ligne entièrement habituelle est une ligne
+# :manual dont la part habituelle vaut le total.
 class GroceryItem < ApplicationRecord
   # === Concerns ===
   # Comment cette ligne se compte à l'achat. Les quatre attributs qu'il demande
   # sont recopiés depuis l'ingrédient à la génération, comme le nom et l'unité.
   include PieceCounting
+  # « Cet article est-il déjà dans la liste ? » (scope matching_article)
+  include ArticleMatching
 
   # === Associations ===
   belongs_to :menu
@@ -42,31 +50,8 @@ class GroceryItem < ApplicationRecord
   # Groupe d'unités — dupliqué depuis Ingredient pour éviter la jointure à l'affichage
   enum :unit_group, { mass: 0, volume: 1, count: 2, spoon: 3 }, prefix: true
 
-  # Rayon de supermarché — dupliqué depuis Ingredient (même mapping)
-  enum :category, {
-    fruits_legumes: 0,
-    boucherie_viande: 1,
-    charcuterie_traiteur: 2,
-    poissonnerie: 3,
-    fromagerie_coupe: 4,
-    boulangerie_patisserie: 5,
-    produits_laitiers: 6,
-    produits_frais_libre_service: 7,
-    glaces_desserts_glaces: 8,
-    legumes_surgeles: 9,
-    fruits_surgeles: 10,
-    viandes_poissons_surgeles: 11,
-    produits_aperitifs_surgeles: 12,
-    epicerie_salee: 13,
-    epicerie_sucree: 14,
-    boissons: 15,
-    petit_dejeuner: 16,
-    produits_monde: 17,
-    hygiene_beaute: 18,
-    entretien_maison: 19,
-    papeterie_fournitures: 20,
-    autre: 21
-  }, prefix: true
+  # Rayon de supermarché — recopié depuis l'ingrédient, même table (cf. Ingredient::CATEGORIES)
+  enum :category, Ingredient::CATEGORIES, prefix: true
 
   # === Callbacks ===
   before_validation :derive_unit_group_from_base_unit
@@ -109,17 +94,15 @@ class GroceryItem < ApplicationRecord
   # s'en occupe (son pseudo s'affiche sur la ligne ou sur le rayon).
   scope :for_list, -> { includes(:claimed_by).sorted }
 
-  # « Cet article est-il déjà dans la liste ? » — la question que pose l'ajout
-  # manuel, qui renvoie vers la ligne existante au lieu d'en créer une jumelle
-  # (cf. Groceries::AddManualItemService).
-  #
-  # Deux lignes désignent le même article quand elles partagent leur ingrédient,
-  # ou, à défaut d'ingrédient, leur nom — aux accents et à la casse près, la
-  # liste affichant « Œufs » là où on saisit « oeufs ».
-  scope :matching_article, ->(name:, ingredient: nil) {
-    by_name = where("unaccent(LOWER(name)) = unaccent(LOWER(:name))", name: name.to_s.strip)
-    ingredient ? by_name.or(where(ingredient: ingredient)) : by_name
-  }
+  # Lignes qui doivent une part de leur quantité aux courses habituelles
+  scope :with_usual_part, -> { where.not(usual_quantity_base: nil) }
+
+  # Lignes entièrement habituelles : la part habituelle est tout le total
+  scope :usual_only, -> { where("usual_quantity_base >= quantity_base") }
+
+  # Ajouts ponctuels : ajoutés à la main, sans rien devoir aux habituels. Ce sont
+  # eux qu'on propose de reprendre dans une liste d'habituels encore vide.
+  scope :one_off, -> { manual.where(usual_quantity_base: nil) }
 
   # === Méthodes privées ===
   private
@@ -169,6 +152,73 @@ class GroceryItem < ApplicationRecord
   # @return [String]
   def previous_quantity_display
     format_quantity(previous_quantity_base)
+  end
+
+  # Part habituelle humanisée, pour la note « dont 6 L de tes habituelles »
+  # @return [String]
+  def usual_quantity_display
+    format_quantity(usual_quantity_base)
+  end
+
+  # === Courses habituelles ===
+
+  # La ligne ne doit-elle sa quantité qu'aux courses habituelles ? Elle porte
+  # alors la marque ↺ seule.
+  def usual_only?
+    usual_quantity_base.present? && usual_quantity_base >= quantity_base
+  end
+
+  # La ligne cumule-t-elle une part habituelle et une autre (menu ou ajout
+  # ponctuel) ? Elle dit alors combien vient des habituels.
+  def partly_usual?
+    usual_quantity_base.present? && usual_quantity_base < quantity_base
+  end
+
+  # Donne à la ligne une nouvelle quantité en veillant sur ce qui est déjà
+  # acheté : une hausse sur une ligne cochée la décoche et retient l'ancienne
+  # quantité (badge « Tu en as peut-être déjà acheté… ») ; toute autre variation
+  # efface ce badge.
+  #
+  # C'est la règle de la réconciliation du menu (Groceries::BuildForMenuService)
+  # comme de l'ajout des habituels : dans les deux cas, la quantité grandit sous
+  # les yeux de quelqu'un qui a peut-être déjà fait ses courses.
+  # @param new_quantity [Numeric] quantité en unité de base
+  def reconcile_quantity(new_quantity)
+    new_quantity = new_quantity.to_d
+
+    if checked? && new_quantity > quantity_base
+      self.checked                = false
+      self.previous_quantity_base = quantity_base
+    else
+      self.previous_quantity_base = nil
+    end
+
+    self.quantity_base = new_quantity
+  end
+
+  # Ajoute une quantité venue des courses habituelles : le total et la part
+  # habituelle grandissent d'autant.
+  # @param quantity [Numeric] quantité dans l'unité de base de la ligne
+  def add_usual_quantity(quantity)
+    self.usual_quantity_base = (usual_quantity_base || 0) + quantity.to_d
+    reconcile_quantity(quantity_base + quantity.to_d)
+  end
+
+  # Une quantité corrigée à la main porte sur la part habituelle : la part du
+  # menu est de toute façon recalculée à chaque validation, et celle d'un ajout
+  # ponctuel ne bouge pas. Une correction qui descend sous cette autre part
+  # efface la part habituelle.
+  #
+  # À appeler après l'affectation des attributs, avant l'enregistrement
+  # (GroceryItemsController#update, comme assign_buyer). Pas de callback : la
+  # réconciliation du menu change aussi la quantité, sans toucher à la part
+  # habituelle.
+  def shift_quantity_change_to_usual_part
+    return if usual_quantity_base.nil? || quantity_base.blank? || !will_save_change_to_quantity_base?
+
+    other_part = quantity_base_in_database - usual_quantity_base
+    remaining  = quantity_base - other_part
+    self.usual_quantity_base = remaining.positive? ? [ remaining, quantity_base ].min : nil
   end
 
   # Recopie sur cette ligne ce que son ingrédient sait d'elle : son nom, son

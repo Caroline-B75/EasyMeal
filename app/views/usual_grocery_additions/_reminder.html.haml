@@ -1,0 +1,18 @@
+-# Rappel en tête de la liste de courses (UC8, étape 3) : les courses habituelles
+-# du foyer n'y sont pas encore. Il disparaît de lui-même dès qu'elles y sont
+-# ajoutées (Menu#usual_groceries_pending?) — un rappel au bon moment, pas une
+-# barre d'actions permanente.
+-# menu : Menu dont on affiche la liste de courses
+- usual_items = menu.household.usual_grocery_items
+- count = usual_items.count
+- first_names = usual_items.sorted.limit(3).pluck(:name)
+%section.usual-reminder
+  %span.usual-reminder-icon{ "aria-hidden": "true" }= svg_icon("rotate-ccw", size: 22, css_class: "usual-sign")
+  .usual-reminder-text
+    %p.usual-reminder-title
+      = count > 1 ? "Tes #{count} courses habituelles ne sont pas encore sur cette liste" : "Ta course habituelle n'est pas encore sur cette liste"
+    %p.usual-reminder-hint
+      = "#{first_names.join(', ')}#{count > first_names.size ? '…' : '.'}"
+      Décoche ce qui ne sert pas cette semaine.
+  %button.btn.btn-primary.usual-reminder-button{ type: "button", data: { action: "usual-groceries#open" } }
+    Choisir mes habituelles

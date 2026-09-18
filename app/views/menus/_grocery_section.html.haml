@@ -27,7 +27,9 @@
                                       data: { action: "click->grocery-accordion#toggle",
                                               "grocery-accordion-target": "header",
                                               morph_keep: "aria-expanded" } }
-        %span.grocery-section-title= grocery_section_name(category)
+        %span.grocery-section-title
+          %span.category-dot
+          = grocery_section_name(category)
         %span.grocery-section-count.grocery-section-count--all= items.size
         - if shared
           -# Affiché à la place du total sous le filtre « Ma part »

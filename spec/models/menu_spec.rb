@@ -153,6 +153,21 @@ RSpec.describe Menu, type: :model do
     end
   end
 
+  describe "#usual_groceries_pending?" do
+    let(:menu) { create(:menu, user: user, status: :active) }
+
+    it "attend les habituels du foyer tant qu'aucune ligne n'en porte" do
+      expect(menu.usual_groceries_pending?).to be false
+
+      user.household.usual_grocery_items.create!(name: "Dentifrice")
+      expect(menu.usual_groceries_pending?).to be true
+
+      create(:grocery_item, menu: menu, ingredient: nil, source: :manual, name: "Dentifrice",
+                            base_unit: "piece", quantity_base: 1, usual_quantity_base: 1)
+      expect(menu.usual_groceries_pending?).to be false
+    end
+  end
+
   describe "#reactivate!" do
     it "décoche tous les grocery_items et efface previous_quantity_base avant réactivation" do
       ingredient = create(:ingredient, name: "Riz")
@@ -173,6 +188,29 @@ RSpec.describe Menu, type: :model do
       expect(generated.reload.checked).to be false
       expect(generated.previous_quantity_base).to be_nil
       expect(manual.reload.checked).to be false
+    end
+
+    # Les habituels d'il y a des semaines ne disent plus rien : on les rajoute d'un clic.
+    it "retire les parts habituelles de la liste" do
+      ingredient = create(:ingredient, name: "Riz")
+      menu = create(:menu, user: user, status: :archived)
+      recipe = build(:recipe, default_servings: 1)
+      recipe.preparations.build(ingredient: ingredient, quantity_base: 100)
+      recipe.save!
+      create(:menu_recipe, menu: menu, recipe: recipe, number_of_people: 1)
+
+      mixed = create(:grocery_item, menu: menu, ingredient: ingredient, source: :generated,
+                                    quantity_base: 1100, usual_quantity_base: 1000)
+      one_off_and_usual = create(:grocery_item, menu: menu, ingredient: nil, source: :manual, name: "Éponges",
+                                                base_unit: "piece", quantity_base: 3, usual_quantity_base: 2)
+      usual_only = create(:grocery_item, menu: menu, ingredient: nil, source: :manual, name: "Dentifrice",
+                                         base_unit: "piece", quantity_base: 1, usual_quantity_base: 1)
+
+      menu.reactivate!
+
+      expect(mixed.reload).to have_attributes(quantity_base: 100, usual_quantity_base: nil)
+      expect(one_off_and_usual.reload).to have_attributes(quantity_base: 1, usual_quantity_base: nil)
+      expect(GroceryItem.exists?(usual_only.id)).to be false
     end
 
     it "lève une erreur métier depuis un menu qui n'est pas archivé" do
