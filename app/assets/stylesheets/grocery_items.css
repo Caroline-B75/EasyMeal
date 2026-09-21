@@ -91,13 +91,14 @@
 
 /* Le bouton d'accordéon occupe l'en-tête ; l'action « Tout prendre » d'une liste
    partagée se pose à côté de lui, un bouton ne pouvant en contenir un autre.
-   En grille : le nom du rayon, son compteur et le chevron sur la première
-   ligne ; la pastille du membre qui s'occupe de tout le rayon dessous, comme
-   sous le nom d'un article. Coincée entre le compteur et le chevron, elle se
-   réduisait à « @… » dès que le nom passait sur deux lignes. */
+   En grille : le nom du rayon, qui prend la place libre, puis son compteur et
+   le chevron calés à droite sur la première ligne — les compteurs s'alignent
+   d'un rayon à l'autre ; la pastille du membre qui s'occupe de tout le rayon
+   dessous, comme sous le nom d'un article. Coincée entre le compteur et le
+   chevron, elle se réduisait à « @… » dès que le nom passait sur deux lignes. */
 .grocery-section-toggle {
   display: grid;
-  grid-template-columns: auto auto 1fr;
+  grid-template-columns: 1fr auto auto;
   align-items: center;
   gap: 0.25rem 0.5rem;
   flex: 1;
@@ -117,7 +118,7 @@
 }
 
 .grocery-section-title {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -160,7 +161,6 @@
 
 .grocery-section-chevron {
   grid-area: 1 / 3;
-  justify-self: end;
   display: flex;
   align-items: center;
   color: var(--color-ink-4);
