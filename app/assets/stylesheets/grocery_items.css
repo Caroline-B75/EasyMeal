@@ -127,17 +127,35 @@
   color: var(--category-ink);
 }
 
-/* Total ou « ma part » : un seul des deux est affiché, dans la même cellule.
-   En pastille blanche : sur le bandeau coloré, un aplat de la même teinte
-   s'effaçait. */
+/* Achetés / total du rayon, ou de « ma part » : un seul des deux est affiché,
+   dans la même cellule. En pastille blanche : sur le bandeau coloré, un aplat
+   de la même teinte s'effaçait. Chiffres à chasse fixe : la pastille ne change
+   pas de largeur à chaque coche. */
 .grocery-section-count {
   grid-area: 1 / 2;
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
   color: var(--color-ink);
   background: var(--color-bg-white);
   border-radius: 999px;
   padding: 0.1em 0.45em;
   font-weight: 500;
+}
+
+/* Rayon entièrement acheté : la pastille blanche s'efface devant une coche —
+   seuls les rayons où il reste à acheter ressortent du bandeau. */
+.grocery-section-count--done {
+  background: transparent;
+  color: var(--category-ink);
+}
+
+.grocery-section-count .grocery-section-count-check {
+  display: none;
+  margin-right: 0.2em;
+}
+
+.grocery-section-count--done .grocery-section-count-check {
+  display: inline-block;
 }
 
 .grocery-section-chevron {
@@ -250,7 +268,7 @@
 
 .grocery-item-name {
   min-width: 0;
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   color: var(--color-ink);
   font-weight: 500;
   white-space: nowrap;
@@ -312,7 +330,7 @@
 }
 
 .grocery-item-qty {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   color: var(--color-ink-3);
   white-space: nowrap;
   cursor: pointer;

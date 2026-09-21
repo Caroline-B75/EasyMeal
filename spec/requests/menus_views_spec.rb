@@ -139,4 +139,32 @@ RSpec.describe "Vues menus R3.2bis", type: :request do
       expect(response.body).to include("Tu en as peut-être déjà acheté 1,5 kg avant que la quantité augmente")
     end
   end
+
+  # Replié, un rayon dit encore s'il y reste quelque chose à acheter.
+  describe "compteur d'articles achetés par rayon" do
+    let(:menu) { create(:menu, user: user, status: :active) }
+    let!(:carottes) { create(:grocery_item, menu: menu, category: :fruits_legumes, checked: true) }
+    let!(:tomates) { create(:grocery_item, menu: menu, category: :fruits_legumes) }
+    let!(:jus) { create(:grocery_item, menu: menu, category: :boissons, checked: true) }
+
+    # [achetés, total, terminé ?] du compteur d'un rayon
+    def section_count(html, category)
+      count = Nokogiri::HTML(html).at_css("#grocery_section_#{category} .grocery-section-count--all")
+      [ count.at_css("[data-part='checked']").text, count.at_css("[data-part='total']").text,
+        count.classes.include?("grocery-section-count--done") ]
+    end
+
+    it "compte les articles achetés sur le total, et marque le rayon terminé" do
+      get grocery_menu_path(menu)
+
+      expect(section_count(response.body, "fruits_legumes")).to eq([ "1", "2", false ])
+      expect(section_count(response.body, "boissons")).to eq([ "1", "1", true ])
+    end
+
+    it "suit la coche d'un article dans le rayon re-rendu" do
+      patch menu_grocery_item_path(menu, tomates), params: { grocery_item: { checked: true } }, as: :turbo_stream
+
+      expect(section_count(response.body, "fruits_legumes")).to eq([ "2", "2", true ])
+    end
+  end
 end

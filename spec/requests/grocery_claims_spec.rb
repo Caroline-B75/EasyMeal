@@ -166,6 +166,22 @@ RSpec.describe "Répartition de la liste de courses", type: :request do
         end
         expect(claims).to eq("Carottes" => "other", "Tomates" => "mine", "Jus d'orange" => "free")
       end
+
+      it "compte aussi les achats de sa part, sans les articles des autres membres" do
+        carottes.update!(claimed_by: marc, checked: true)
+        tomates.update!(claimed_by: caroline, checked: true)
+        create(:grocery_item, menu: menu, name: "Poireaux", category: :fruits_legumes)
+        sign_in caroline
+
+        get grocery_menu_path(menu)
+
+        section = Nokogiri::HTML(response.body).at_css("#grocery_section_fruits_legumes")
+        counts = %w[all mine].to_h do |scope|
+          count = section.at_css(".grocery-section-count--#{scope}")
+          [ scope, "#{count.at_css("[data-part='checked']").text}/#{count.at_css("[data-part='total']").text}" ]
+        end
+        expect(counts).to eq("all" => "2/3", "mine" => "1/2")
+      end
     end
   end
 end

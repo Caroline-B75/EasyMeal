@@ -28,6 +28,29 @@ module GroceryItemsHelper
     @shared_grocery_lists[menu.household_id] = menu.household.shared?
   end
 
+  # Compteur « achetés / total » d'un rayon : même replié, le rayon dit s'il y
+  # reste quelque chose à acheter. Tout acheté, il perd sa pastille blanche et
+  # prend une coche (CSS). Le contrôleur grocery-progress le recompte sur la
+  # page quand une coche change sans réponse du serveur — hors ligne, au magasin.
+  # @param items [Array<GroceryItem>] les articles comptés
+  # @param scope [String] "all" (le rayon entier) ou "mine" (le filtre « Ma part »)
+  def grocery_section_count(items, scope)
+    checked = items.count(&:checked)
+
+    tag.span(class: [ "grocery-section-count", "grocery-section-count--#{scope}",
+                      ("grocery-section-count--done" if checked == items.size) ],
+             data: { grocery_progress_target: "count", scope: scope }) do
+      safe_join([
+        svg_icon(:check, size: 12, css_class: "grocery-section-count-check"),
+        tag.span(checked, data: { part: "checked" }),
+        # « 2/5 » à l'écran, « 2 achetés sur 5 » pour un lecteur d'écran
+        tag.span("/", "aria-hidden": "true"),
+        tag.span(" achetés sur ", class: "sr-only"),
+        tag.span(items.size, data: { part: "total" })
+      ])
+    end
+  end
+
   # Le membre qui s'occupe de TOUT le rayon, s'il est seul à le faire : son
   # pseudo s'affiche alors une fois sur l'en-tête plutôt que sur chaque ligne.
   # @param items [Array<GroceryItem>]

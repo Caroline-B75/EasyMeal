@@ -17,6 +17,9 @@ import { enqueueToggle, queuedState } from "offline_queue"
  *     %span{ data: { "grocery-check-target": "label" } }
  * Le formulaire du bouton doit relayer :
  *     data: { action: "turbo:submit-end->grocery-check#submitEnd" }
+ *
+ * Chaque changement d'état émet « grocery-check:change », qui remonte jusqu'au
+ * rayon : son compteur d'articles achetés suit (grocery-progress).
  */
 export default class extends Controller {
   static targets = ["checkbox", "label"]
@@ -75,5 +78,6 @@ export default class extends Controller {
     if (this.hasLabelTarget) {
       this.labelTarget.classList.toggle("grocery-item-name--checked", checked)
     }
+    this.dispatch("change")
   }
 }

@@ -6,6 +6,9 @@
 -# L'ouverture du rayon est un état de l'écran, pas du serveur : un
 -# rafraîchissement en direct ne rouvre pas un rayon replié (data-morph-keep).
 -#
+-# L'en-tête compte les articles achetés sur le total (grocery_section_count) :
+-# replié, le rayon dit encore s'il y reste quelque chose à acheter.
+-#
 -# Liste partagée : le pseudo de qui s'occupe du rayon entier s'affiche sur
 -# l'en-tête, sinon sur chaque ligne prise ; en mode Répartir, « Tout prendre »
 -# ou « Tout laisser » se pose à côté du bouton d'accordéon (un bouton ne peut
@@ -14,9 +17,12 @@
 - shared         = shared_grocery_list?(menu)
 - claim_states   = shared ? items.map { |item| item.claim_state_for(current_user) } : []
 - section_claimer = shared ? grocery_section_claimer(items) : nil
+-# « Ma part » : mes articles et ceux que personne n'a pris
+- my_part        = shared ? items.reject.with_index { |_item, index| claim_states[index] == "other" } : []
 
 = turbo_frame_tag section_id do
-  .grocery-section{ data: { controller: "grocery-accordion",
+  .grocery-section{ data: { controller: "grocery-accordion grocery-progress",
+                             action: "grocery-check:change->grocery-progress#refresh",
                              "grocery-accordion-open-value": "true",
                              category: category.presence || "autre",
                              morph_keep: "data-grocery-accordion-open-value" } }
@@ -30,10 +36,10 @@
         %span.grocery-section-title
           %span.category-dot
           = grocery_section_name(category)
-        %span.grocery-section-count.grocery-section-count--all= items.size
+        = grocery_section_count(items, "all")
         - if shared
           -# Affiché à la place du total sous le filtre « Ma part »
-          %span.grocery-section-count.grocery-section-count--mine= claim_states.count { |state| state != "other" }
+          = grocery_section_count(my_part, "mine")
         - if section_claimer
           = grocery_claim_chip(section_claimer)
         .grocery-section-chevron{ data: { "grocery-accordion-target": "chevron", morph_keep: "class" } }
