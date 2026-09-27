@@ -5,6 +5,8 @@
 -# compact     : (facultatif) un seul champ tant qu'on n'écrit rien — quantité,
 -#               unité et rayon n'apparaissent qu'à la saisie (page des habituels)
 -# placeholder : (facultatif) l'exemple écrit dans le champ « Article »
+-# list        : (facultatif) sélecteur de la liste de courses : une suggestion
+-#               dit alors si l'article y figure déjà (cf. ingredient_combobox)
 -#
 -# Un seul champ pour deux chemins, sans rien à choisir avant de taper : si
 -# l'article est au catalogue, l'autocomplétion pose son rayon et restreint
@@ -18,6 +20,7 @@
             data: { controller: "form-reset ingredient-combobox",
                     action: "turbo:submit-end->form-reset#reset turbo:submit-end->ingredient-combobox#reset click@window->ingredient-combobox#closeOnOutsideClick",
                     "ingredient-combobox-search-url-value": search_ingredients_path,
+                    "ingredient-combobox-list-value": local_assigns[:list],
                     morph_guard: true } do |f|
   .grocery-add-row
     .form-group.grocery-add-article

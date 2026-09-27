@@ -798,6 +798,13 @@
   background: var(--color-bg-secondary);
 }
 
+/* Sous le nom : l'article est déjà sur la liste, et s'y additionnera */
+.grocery-suggestion-note {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-3);
+}
+
 /* ── Rayon d'un article reconnu ─────────────────────────── */
 /* La boîte d'un champ, en transparent : mêmes marges internes verticales et
    même bordure que .form-input, pour que la puce s'aligne sur ses voisins dans
@@ -1065,7 +1072,8 @@ body:has(.usual-dialog[open]) {
   overflow-wrap: anywhere;
 }
 
-.usual-picker-added {
+/* Sous le nom : « Déjà ajouté », ou ce que la liste porte déjà de l'article */
+.usual-picker-note {
   font-size: var(--font-size-xs);
   color: var(--color-ink-3);
 }

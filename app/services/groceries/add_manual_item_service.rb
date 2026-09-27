@@ -20,21 +20,24 @@ module Groceries
   # avant d'être stockée : `quantity_base` ne retient qu'un nombre, toujours relu
   # dans l'unité de base de son groupe (cf. Quantities::HumanizeService).
   #
+  # Un article déjà dans la liste n'y prend pas une seconde ligne : sa quantité
+  # s'additionne à la ligne existante — le beurre du menu et celui qu'on rajoute
+  # ne font qu'une ligne.
+  #
   # Le même chemin sert aux **courses habituelles** (`usual: true`, cf.
   # Groceries::AddUsualItemsService) : une course habituelle se décrit comme ce
-  # qu'on aurait saisi. Seule change l'issue d'un doublon — la quantité
-  # s'additionne à la ligne existante, et la ligne retient sa part habituelle.
+  # qu'on aurait saisi. Seul change ce que retient la ligne : sa part habituelle
+  # grandit avec elle.
   #
   # @example
   #   Groceries::AddManualItemService.call(menu: menu, params: permitted_params)
-  #   # => #<struct Result status: :created, item: #<GroceryItem>, message: nil>
+  #   # => #<struct Result status: :created, item: #<GroceryItem>>
   class AddManualItemService
     # Ce que l'ajout a produit, tel que le contrôleur doit y répondre :
-    # - :created   → la ligne existe, la liste est rendue à jour ;
-    # - :merged    → (habituels seulement) la quantité a rejoint une ligne existante ;
-    # - :duplicate → l'article y était déjà, on le dit sans rien écrire ;
-    # - :invalid   → la saisie ne fait pas une ligne valable (cf. item.errors).
-    Result = Struct.new(:status, :item, :message, keyword_init: true)
+    # - :created → une ligne est née, la liste est rendue à jour ;
+    # - :merged  → la quantité a rejoint une ligne existante ;
+    # - :invalid → la saisie ne fait pas une ligne valable (cf. item.errors).
+    Result = Struct.new(:status, :item, keyword_init: true)
 
     # Quantité d'un article ajouté sans en indiquer : « du pain », et non
     # « 250 g de pain ».
@@ -54,14 +57,18 @@ module Groceries
       @usual  = usual
     end
 
+    # La saisie est validée comme une ligne neuve avant d'être additionnée : une
+    # quantité nulle ou négative, qui ne ferait pas une ligne, n'en entame pas
+    # une non plus.
     def call
-      return duplicate_result if existing_item && !usual
-
       item = new_item
       return unconvertible_result(item) unless describe(item)
-      return save(item) unless usual
+      return invalid_result(item) if item.invalid?
+      return merge(item) if mergeable?(item)
 
-      add_usual(item)
+      item.usual_quantity_base = item.quantity_base if usual
+      item.save!
+      Result.new(status: :created, item: item)
     end
 
     private
@@ -101,23 +108,11 @@ module Groceries
       @ingredient = Ingredient.recognize(name: name, id: params[:ingredient_id])
     end
 
-    # La ligne qui désigne déjà cet article, s'il y en a une. Un ajout ponctuel
-    # ne fusionne pas les quantités : on renvoie l'utilisatrice vers la ligne
-    # existante, qu'elle peut ajuster d'un clic. Une course habituelle, elle,
-    # s'y additionne (cf. add_usual).
+    # La ligne qui désigne déjà cet article, s'il y en a une (cf. merge).
     def existing_item
       return @existing_item if defined?(@existing_item)
 
       @existing_item = menu.grocery_items.matching_article(name: name, ingredient: ingredient).first
-    end
-
-    def duplicate_result
-      Result.new(
-        status: :duplicate,
-        item:   existing_item,
-        message: "« #{existing_item.name} » est déjà dans votre liste de courses — " \
-                 "vous pouvez ajuster sa quantité directement sur la ligne."
-      )
     end
 
     # Décrit la ligne — nom, rayon, unité de base, quantité convertie — selon
@@ -146,37 +141,40 @@ module Groceries
       item.quantity_base = (quantity * definition[:factor].to_d).round(3)
     end
 
-    # Une course habituelle s'additionne à la ligne qui désigne déjà l'article —
-    # le lait du menu et celui de la semaine ne font qu'une ligne. Des unités qui
-    # ne s'additionnent pas (des paquets face à des grammes) laissent l'article
-    # prendre une ligne à part. Sinon la ligne créée est entièrement habituelle.
-    def add_usual(item)
-      if existing_item&.base_unit == item.base_unit
-        existing_item.add_usual_quantity(item.quantity_base)
-        existing_item.save!
-        return Result.new(status: :merged, item: existing_item)
-      end
+    # L'article s'additionne-t-il à une ligne existante ? Des unités qui ne
+    # s'additionnent pas (des paquets face à des grammes) lui laissent prendre
+    # une ligne à part.
+    def mergeable?(item)
+      existing_item&.base_unit == item.base_unit
+    end
 
-      item.usual_quantity_base = item.quantity_base
-      save(item)
+    # Additionne la quantité décrite à la ligne existante. Une ligne déjà cochée
+    # se décoche et retient ce qui a été acheté (cf. GroceryItem#reconcile_quantity).
+    def merge(item)
+      if usual
+        existing_item.add_usual_quantity(item.quantity_base)
+      else
+        existing_item.add_quantity(item.quantity_base)
+      end
+      existing_item.save!
+
+      Result.new(status: :merged, item: existing_item)
     end
 
     # Rattachée par son id et non par `menu.grocery_items.new` : une ligne décrite
-    # puis abandonnée — la course habituelle s'est additionnée à une ligne
-    # existante, ou la saisie est refusée — ne doit pas rester accrochée à la
-    # liste du menu en mémoire.
+    # puis abandonnée — l'article s'est additionné à une ligne existante, ou la
+    # saisie est refusée — ne doit pas rester accrochée à la liste du menu en
+    # mémoire.
     def new_item
       GroceryItem.new(menu_id: menu.id, source: :manual, checked: false)
     end
 
-    def save(item)
-      return Result.new(status: :created, item: item) if item.save
-
-      Result.new(status: :invalid, item: item)
-    end
-
     def unconvertible_result(item)
       item.errors.add(:base, ingredient.unit_mismatch_message(unit))
+      invalid_result(item)
+    end
+
+    def invalid_result(item)
       Result.new(status: :invalid, item: item)
     end
   end

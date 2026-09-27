@@ -3,3 +3,6 @@
   = render "menus/grocery_list",
            menu: @menu,
            grocery_items: @menu.grocery_items.for_list
+-# L'article y était déjà : le message dit ce que sa ligne est devenue
+- if @merged
+  = turbo_stream.update "flash", partial: "grocery_items/merge_toast", locals: { item: @grocery_item, menu: @menu }

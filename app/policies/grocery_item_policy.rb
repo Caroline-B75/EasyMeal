@@ -28,6 +28,11 @@ class GroceryItemPolicy < ApplicationPolicy
     menu_household_member?
   end
 
+  # Annuler l'ajout qui vient de s'additionner à une ligne
+  def cancel_addition?
+    menu_household_member?
+  end
+
   class Scope < ApplicationPolicy::Scope
     def resolve
       scope.joins(:menu).where(menus: { household_id: user.household_id })

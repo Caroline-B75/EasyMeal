@@ -12,12 +12,20 @@ import { Controller } from "@hotwired/stimulus"
 // l'ingrédient par son nom (Groceries::AddManualItemService), et refait de
 // toute façon le travail de ce contrôleur. Une recherche qui échoue se referme
 // donc en silence plutôt que d'alerter — il n'y a rien à réparer.
+//
+// Sur la liste de courses, une suggestion dit si l'article y figure déjà :
+// sa quantité s'additionnera à la ligne existante. Les lignes sont dans la
+// page, qui porte leur ingrédient et leur quantité (menus/_grocery_item) —
+// aucune requête de plus.
 export default class extends Controller {
   static targets = ["nameInput", "results", "ingredientId", "unitSelect",
                     "quantityInput", "categoryGroup", "knownGroup", "chipLabel"]
 
   static values = {
     searchUrl: String,
+    // Sélecteur de la liste dont les lignes répondent « déjà là ? » — absent,
+    // les suggestions n'en disent rien (page des courses habituelles).
+    list: String,
     // En deçà, toute la base répondrait : « e » ne cherche rien.
     minLength: { type: Number, default: 2 },
     debounce: { type: Number, default: 200 }
@@ -98,7 +106,26 @@ export default class extends Controller {
     // s'affichera de toute façon une fois l'article retenu.
     item.append(ingredient.label)
 
+    const line = this.lineFor(ingredient)
+    if (line) item.append(this.inListNote(line))
+
     return item
+  }
+
+  // La ligne de la liste qui porte déjà cet ingrédient, s'il y en a une
+  lineFor(ingredient) {
+    if (!this.hasListValue) return null
+
+    return document.querySelector(this.listValue)?.querySelector(`[data-ingredient-id="${ingredient.id}"]`)
+  }
+
+  // « Déjà dans ta liste · 100 g » : on le sait avant de choisir, et non
+  // seulement au message qui suit l'ajout.
+  inListNote(line) {
+    const note = document.createElement("span")
+    note.className = "grocery-suggestion-note"
+    note.textContent = `Déjà dans ta liste · ${line.dataset.quantity}`
+    return note
   }
 
   // === Choix ===

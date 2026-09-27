@@ -114,6 +114,19 @@ RSpec.describe "Courses habituelles sur la liste de courses", type: :request do
       expect(response.body).not_to match(/type="checkbox"[^>]*checked/)
     end
 
+    # Le lait de la semaine s'ajoute à celui de la recette : l'article reste
+    # coché, mais on sait ce que la liste en porte déjà.
+    it "dit ce que la liste porte déjà d'un article, sans le décocher" do
+      usual(name: "Lait", quantity: 6, unit: "l")
+      create(:grocery_item, menu: menu, ingredient: nil, source: :generated, name: "Lait",
+                            base_unit: "ml", quantity_base: 500)
+
+      get usual_menu_grocery_items_path(menu)
+
+      expect(response.body).to include("Déjà 500 ml dans ta liste")
+      expect(response.body).to match(/type="checkbox"[^>]*checked="checked"/)
+    end
+
     it "propose de reprendre les ajouts ponctuels quand les habituels sont vides" do
       create(:grocery_item, menu: menu, ingredient: nil, source: :manual, name: "Éponges")
       create(:grocery_item, menu: menu, ingredient: nil, source: :manual, name: "Piles")

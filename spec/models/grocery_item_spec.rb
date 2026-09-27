@@ -104,14 +104,14 @@ RSpec.describe GroceryItem, type: :model do
     end
   end
 
+  # 500 ml pour une recette, 6 L d'habitude
+  def mixed_line(**overrides)
+    create(:grocery_item, **{ base_unit: "ml", quantity_base: 6500, usual_quantity_base: 6000 }.merge(overrides))
+  end
+
   # Courses habituelles (UC8, étape 3) : une ligne additionne sa part (menu ou
   # ajout ponctuel) et sa part habituelle.
   describe "part habituelle" do
-    # 500 ml pour une recette, 6 L d'habitude
-    def mixed_line(**attributes)
-      create(:grocery_item, base_unit: "ml", quantity_base: 6500, usual_quantity_base: 6000, **attributes)
-    end
-
     it "distingue une ligne entièrement habituelle d'une ligne qui cumule" do
       expect(mixed_line).to be_partly_usual.and(have_attributes(usual_only?: false))
       expect(create(:grocery_item, quantity_base: 3, usual_quantity_base: 3)).to be_usual_only
@@ -146,40 +146,158 @@ RSpec.describe GroceryItem, type: :model do
 
         item.add_usual_quantity(6000)
 
-        expect(item).to have_attributes(quantity_base: 6500, usual_quantity_base: 6000)
+        expect(item).to have_attributes(quantity_base: 6500, usual_quantity_base: 6000, extra_quantity_base: nil)
+      end
+    end
+  end
+
+  # « Ajouter un article » sur une ligne du menu : une part ajoutée en plus,
+  # conservée comme la part habituelle, jamais affichée.
+  describe "part ajoutée en plus" do
+    describe "#add_quantity" do
+      it "fait de ce qui s'ajoute à une ligne du menu sa part ajoutée en plus" do
+        item = create(:grocery_item, source: :generated, quantity_base: 100)
+
+        2.times { item.add_quantity(250) }
+
+        expect(item).to have_attributes(quantity_base: 600, extra_quantity_base: 500)
+      end
+
+      # Toute la quantité d'un ajout ponctuel est déjà « à la main »
+      it "fait grandir la part d'un ajout ponctuel, sans part ajoutée en plus" do
+        item = create(:grocery_item, source: :manual, quantity_base: 100)
+
+        item.add_quantity(250)
+
+        expect(item).to have_attributes(quantity_base: 350, extra_quantity_base: nil)
+      end
+
+      it "ne touche pas la part habituelle" do
+        item = mixed_line(source: :generated)
+
+        item.add_quantity(250)
+
+        expect(item).to have_attributes(quantity_base: 6750, usual_quantity_base: 6000, extra_quantity_base: 250)
       end
     end
 
-    # La part du menu est recalculée à chaque validation : une correction à la
-    # main porte sur la part habituelle.
-    describe "#shift_quantity_change_to_usual_part" do
-      def correct(item, quantity)
-        item.quantity_base = quantity
-        item.shift_quantity_change_to_usual_part
-        item
+    it "compte ensemble ce que la ligne doit aux ajouts à la main" do
+      expect(create(:grocery_item).kept_quantity_base).to eq(0)
+      expect(mixed_line(quantity_base: 7000, extra_quantity_base: 500).kept_quantity_base).to eq(6500)
+    end
+  end
+
+  # La part du menu est recalculée à chaque validation, celle d'un ajout ponctuel
+  # ne bouge pas : une correction à la main porte sur ce qui a été ajouté à la
+  # main — la part habituelle, sinon la part ajoutée en plus.
+  describe "#shift_quantity_change_to_added_parts" do
+    def correct(item, quantity)
+      item.quantity_base = quantity
+      item.shift_quantity_change_to_added_parts
+      item
+    end
+
+    it "reporte une baisse sur la part habituelle" do
+      expect(correct(mixed_line, 4500).usual_quantity_base).to eq(4000)
+    end
+
+    it "reporte une hausse sur la part habituelle" do
+      expect(correct(mixed_line, 8500).usual_quantity_base).to eq(8000)
+    end
+
+    it "efface la part habituelle quand la correction descend sous l'autre part" do
+      expect(correct(mixed_line, 400).usual_quantity_base).to be_nil
+    end
+
+    it "laisse une ligne entièrement habituelle le rester" do
+      item = create(:grocery_item, quantity_base: 3, usual_quantity_base: 3)
+
+      expect(correct(item, 5)).to be_usual_only
+    end
+
+    it "ne touche pas une ligne sans part ajoutée à la main" do
+      item = correct(create(:grocery_item, quantity_base: 100), 80)
+
+      expect(item).to have_attributes(usual_quantity_base: nil, extra_quantity_base: nil)
+    end
+
+    describe "sur une ligne du menu complétée à la main" do
+      # 100 g pour le menu + 250 g en plus
+      let(:item) { create(:grocery_item, source: :generated, quantity_base: 350, extra_quantity_base: 250) }
+
+      it "reporte la correction sur la part ajoutée en plus" do
+        expect(correct(item, 300).extra_quantity_base).to eq(200)
       end
 
-      it "reporte une baisse sur la part habituelle" do
-        expect(correct(mixed_line, 4500).usual_quantity_base).to eq(4000)
+      it "efface la part ajoutée en plus quand la correction descend sous le menu" do
+        expect(correct(item, 80).extra_quantity_base).to be_nil
+      end
+    end
+
+    # 500 ml pour le menu + 500 ml en plus + 6 L d'habitude
+    describe "sur une ligne qui porte les deux parts" do
+      let(:item) { mixed_line(source: :generated, quantity_base: 7000, extra_quantity_base: 500) }
+
+      it "reporte la correction sur la part habituelle" do
+        expect(correct(item, 6500)).to have_attributes(usual_quantity_base: 5500, extra_quantity_base: 500)
       end
 
-      it "reporte une hausse sur la part habituelle" do
-        expect(correct(mixed_line, 8500).usual_quantity_base).to eq(8000)
+      it "entame la part ajoutée en plus une fois la part habituelle épuisée" do
+        expect(correct(item, 800)).to have_attributes(usual_quantity_base: nil, extra_quantity_base: 300)
       end
+    end
+  end
 
-      it "efface la part habituelle quand la correction descend sous l'autre part" do
-        expect(correct(mixed_line, 400).usual_quantity_base).to be_nil
-      end
+  # L'« Annuler » du message qui suit un ajout additionné à une ligne
+  describe "annulation d'un ajout" do
+    let(:item) { create(:grocery_item, source: :generated, quantity_base: 100, checked: true) }
 
-      it "laisse une ligne entièrement habituelle le rester" do
-        item = create(:grocery_item, quantity_base: 3, usual_quantity_base: 3)
+    def add(quantity)
+      item.add_quantity(quantity)
+      item.save!
+      item.undo_token
+    end
 
-        expect(correct(item, 5)).to be_usual_only
-      end
+    it "dit la quantité d'avant l'ajout" do
+      add(250)
 
-      it "ne touche pas une ligne sans part habituelle" do
-        expect(correct(create(:grocery_item, quantity_base: 100), 80).usual_quantity_base).to be_nil
-      end
+      expect([ item.quantity_before_last_save_display, item.quantity_display ]).to eq([ "100 g", "350 g" ])
+    end
+
+    it "remet la ligne dans son état d'avant, coche comprise" do
+      token = add(250)
+
+      expect(item.undo!(token)).to be true
+      expect(item.reload).to have_attributes(quantity_base: 100, extra_quantity_base: nil,
+                                             checked: true, previous_quantity_base: nil)
+    end
+
+    # Seul compte ce que l'ajout avait changé
+    it "garde ce qu'un autre membre a changé d'autre entre-temps" do
+      item.update!(checked: false)
+      token = add(250)
+      item.update!(checked: true)
+
+      expect(item.undo!(token)).to be true
+      expect(item.reload).to have_attributes(quantity_base: 100, checked: true)
+    end
+
+    it "refuse quand la quantité a bougé depuis, et dit pourquoi" do
+      token = add(250)
+      item.update!(quantity_base: 300)
+
+      expect(item.undo!(token)).to be false
+      expect(item.reload.quantity_base).to eq(300)
+      expect(item.errors.full_messages.to_sentence).to include("a changé depuis")
+    end
+
+    it "refuse le jeton d'une autre ligne, ou un jeton forgé" do
+      other = create(:grocery_item, menu: item.menu)
+      token = add(250)
+
+      expect(other.undo!(token)).to be false
+      expect(item.undo!("forgé")).to be false
+      expect(item.undo!(nil)).to be false
     end
   end
 end

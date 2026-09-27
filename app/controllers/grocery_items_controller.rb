@@ -7,36 +7,48 @@ class GroceryItemsController < ApplicationController
 
   before_action :authenticate_user!
   before_action :set_menu
-  before_action :set_grocery_item, only: [ :update, :destroy ]
-  before_action :authorize_grocery_item, only: [ :update, :destroy ]
+  before_action :set_grocery_item, only: [ :update, :destroy, :cancel_addition ]
+  before_action :authorize_grocery_item, only: [ :update, :destroy, :cancel_addition ]
 
   # POST /menus/:menu_id/grocery_items
   # UC3 : Ajout manuel d'un item à la liste de courses.
   #
-  # Trois issues, décidées par le service : la ligne est créée, l'article y
-  # était déjà (on le signale sans rien écrire), ou la saisie est refusée.
+  # Le service crée la ligne, ou additionne la quantité à celle qui porte déjà
+  # l'article ; dans les deux cas la liste est rendue à jour. Une addition se dit
+  # par un message — la ligne a changé ailleurs dans la page —, qui offre de
+  # l'annuler (cf. create.turbo_stream).
   def create
     authorize @menu.grocery_items.new, :create?
 
     result = Groceries::AddManualItemService.call(menu: @menu, params: grocery_item_create_params)
     @grocery_item = result.item
+    return respond_error(@grocery_item, redirect_path: @menu) if result.status == :invalid
 
-    case result.status
-    when :created   then respond_success(redirect_path: @menu)
-    when :duplicate then respond_notice(result.message, redirect_path: @menu)
-    else                 respond_error(@grocery_item, redirect_path: @menu)
+    @merged = result.status == :merged
+    respond_success(redirect_path: @menu, notice: (helpers.grocery_merge_notice(@grocery_item) if @merged))
+  end
+
+  # DELETE /menus/:menu_id/grocery_items/:id/addition
+  # « Annuler » du message qui suit une addition : la ligne revient à ce qu'elle
+  # était, si personne n'y a touché depuis (cf. GroceryItem#undo!).
+  def cancel_addition
+    if @grocery_item.undo!(params[:token])
+      respond_success(redirect_path: @menu, notice: "Ajout annulé.")
+    else
+      respond_error(@grocery_item, redirect_path: @menu)
     end
   end
 
   # PATCH /menus/:menu_id/grocery_items/:id
   # UC3 : Cocher/décocher un item ou modifier sa quantité/unité
   # Cocher donne l'article à qui le coche (« Je m'en occupe », cf. GroceryItem#assign_buyer).
-  # Une quantité corrigée porte sur la part habituelle de la ligne, s'il y en a une
-  # (cf. GroceryItem#shift_quantity_change_to_usual_part).
+  # Une quantité corrigée porte sur ce que la ligne doit aux ajouts à la main —
+  # part habituelle ou part ajoutée en plus —, s'il y en a
+  # (cf. GroceryItem#shift_quantity_change_to_added_parts).
   def update
     @grocery_item.assign_attributes(grocery_item_update_params)
     @grocery_item.assign_buyer(current_user)
-    @grocery_item.shift_quantity_change_to_usual_part
+    @grocery_item.shift_quantity_change_to_added_parts
 
     if @grocery_item.save
       respond_success(redirect_path: @menu)

@@ -92,6 +92,13 @@ body.home-page {
   border-left: 4px solid;
 }
 
+/* Message qui offre une action (« Annuler » après une addition à la liste de
+   courses) : le texte d'abord, l'action au bout, sans jamais se tasser. */
+.flash-message-action {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
 @keyframes slideInRight {
   from {
     opacity: 0;
@@ -166,11 +173,14 @@ p.alert:empty,
 
 /* Responsive */
 @media (max-width: 640px) {
+  /* Calé entre les deux marges : le width: 100% de la règle générale
+     l'emporterait sur `right` et pousserait le message hors de l'écran. */
   .flash-messages,
   #flash {
     bottom: calc(1rem + env(safe-area-inset-bottom));
     right: 1rem;
     left: 1rem;
+    width: auto;
     max-width: none;
   }
 

@@ -263,4 +263,44 @@ RSpec.describe Groceries::BuildForMenuService do
         .not_to(change { menu.grocery_items.pluck(:quantity_base, :updated_at) })
     end
   end
+
+  # Ajouté en plus par « Ajouter un article » sur une ligne du menu : conservé
+  # comme la part habituelle.
+  describe ".call — part ajoutée en plus" do
+    def extra_line(menu, ing, quantity:, extra:, usual: nil)
+      create(:grocery_item, menu: menu, ingredient: ing, name: ing.name, source: :generated,
+                            quantity_base: quantity, extra_quantity_base: extra, usual_quantity_base: usual)
+    end
+
+    it "ajoute la part ajoutée en plus à la quantité recalculée du menu" do
+      menu = menu_with(ingredient => 300)
+      item = extra_line(menu, ingredient, quantity: 350, extra: 250)
+
+      described_class.call(menu: menu)
+
+      expect(item.reload).to have_attributes(quantity_base: 550, extra_quantity_base: 250, source: "generated")
+    end
+
+    it "conserve ensemble la part ajoutée en plus et la part habituelle" do
+      menu = menu_with(ingredient => 300)
+      item = extra_line(menu, ingredient, quantity: 1350, extra: 250, usual: 1000)
+
+      described_class.call(menu: menu)
+
+      expect(item.reload).to have_attributes(quantity_base: 1550, extra_quantity_base: 250, usual_quantity_base: 1000)
+    end
+
+    # La ligne ne doit plus rien au menu : ce qui avait été ajouté en plus est
+    # désormais tout l'ajout ponctuel.
+    it "fait d'une ligne que le menu ne demande plus un ajout ponctuel" do
+      sucre = create(:ingredient, name: "Sucre")
+      menu = menu_with(ingredient => 100)
+      item = extra_line(menu, sucre, quantity: 350, extra: 250)
+
+      described_class.call(menu: menu)
+
+      expect(item.reload).to have_attributes(source: "manual", quantity_base: 250, extra_quantity_base: nil,
+                                             usual_quantity_base: nil)
+    end
+  end
 end

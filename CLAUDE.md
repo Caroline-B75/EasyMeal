@@ -110,13 +110,19 @@ Les **courses habituelles** (`UsualGroceryItem`, une liste par foyer — cf.
 `Groceries::AddManualItemService` en mode `usual: true`, le chemin même de
 « Ajouter un article ». Une ligne de courses additionne alors sa part (menu ou
 ajout ponctuel) et sa **part habituelle**, `grocery_items.usual_quantity_base`,
-comprise dans `quantity_base` :
+comprise dans `quantity_base`. Un article déjà dans la liste n'y prend jamais une
+seconde ligne : sa quantité s'additionne. Sur une ligne **du menu**, un ajout par
+« Ajouter un article » forme la **part ajoutée en plus**,
+`grocery_items.extra_quantity_base`, comprise elle aussi dans `quantity_base` et
+jamais affichée (une ligne `:manual` n'en porte pas) :
 
 - la réconciliation du menu (`Groceries::BuildForMenuService`) recalcule la part
-  du menu et **conserve toujours** la part habituelle ;
-- une quantité corrigée à la main porte sur la part habituelle
-  (`GroceryItem#shift_quantity_change_to_usual_part`, appelée explicitement par le
-  contrôleur, **jamais en callback** : la réconciliation change aussi la quantité) ;
+  du menu et **conserve toujours** la part habituelle et la part ajoutée en plus
+  (`GroceryItem#kept_quantity_base`) ;
+- une quantité corrigée à la main porte sur la part habituelle, sinon sur la part
+  ajoutée en plus (`GroceryItem#shift_quantity_change_to_added_parts`, appelée
+  explicitement par le contrôleur, **jamais en callback** : la réconciliation
+  change aussi la quantité) ;
 - une hausse sur une ligne cochée passe par `GroceryItem#reconcile_quantity`
   (décoche + badge), pour le menu comme pour les habituels.
 

@@ -16,6 +16,12 @@
 # `quantity_base`). La part du menu est recalculée à chaque validation, la part
 # habituelle est conservée. Une ligne entièrement habituelle est une ligne
 # :manual dont la part habituelle vaut le total.
+#
+# Une ligne du menu peut aussi porter une part ajoutée en plus, à la main
+# (`extra_quantity_base`, comprise dans `quantity_base`) : l'article saisi dans
+# « Ajouter un article » alors que le menu le demandait déjà. Conservée elle
+# aussi, et jamais affichée. Une ligne :manual n'en porte pas : toute sa part
+# est déjà un ajout ponctuel.
 class GroceryItem < ApplicationRecord
   # === Concerns ===
   # Comment cette ligne se compte à l'achat. Les quatre attributs qu'il demande
@@ -137,6 +143,25 @@ class GroceryItem < ApplicationRecord
       Quantities::HumanizeService.call(quantity: value, unit_group: unit_group)[:display]
   end
 
+  # Une part ajoutée à la main n'existe que positive, et jamais au-delà du total
+  # (cf. shift_quantity_change_to_added_parts).
+  # @param value [Numeric]
+  # @return [Numeric, nil]
+  def added_part(value)
+    value.positive? ? [ value, quantity_base ].min : nil
+  end
+
+  def undo_verifier
+    Rails.application.message_verifier(:grocery_item_undo)
+  end
+
+  # Le jeton désigne-t-il cette ligne, et ce qu'il a changé est-il resté tel
+  # quel ? Les valeurs se comparent sous leur forme JSON, celle du jeton.
+  # @param change [Hash, nil] contenu vérifié du jeton, nil s'il est invalide ou expiré
+  def undoable?(change)
+    change.present? && change["id"] == id && attributes.slice(*change["after"].keys).as_json == change["after"]
+  end
+
   public
 
   # === Méthodes d'instance ===
@@ -158,6 +183,13 @@ class GroceryItem < ApplicationRecord
   # @return [String]
   def usual_quantity_display
     format_quantity(usual_quantity_base)
+  end
+
+  # Quantité d'avant le dernier enregistrement, humanisée : le message qui suit
+  # l'ajout d'un article déjà dans la liste dit « 100 g → 350 g ».
+  # @return [String]
+  def quantity_before_last_save_display
+    format_quantity(quantity_base_before_last_save)
   end
 
   # === Courses habituelles ===
@@ -196,6 +228,26 @@ class GroceryItem < ApplicationRecord
     self.quantity_base = new_quantity
   end
 
+  # === Parts ajoutées à la main ===
+
+  # Ce que la ligne doit aux ajouts à la main — part habituelle et part ajoutée
+  # en plus —, que la réconciliation du menu conserve toujours.
+  # @return [Numeric] quantité en unité de base, 0 si la ligne ne doit rien à la main
+  def kept_quantity_base
+    (usual_quantity_base || 0) + (extra_quantity_base || 0)
+  end
+
+  # Ajoute une quantité saisie dans « Ajouter un article » : l'article figurait
+  # déjà dans la liste, il n'y prend pas une seconde ligne (cf.
+  # Groceries::AddManualItemService). Sur une ligne du menu, elle forme la part
+  # ajoutée en plus ; sur un ajout ponctuel, elle rejoint sa part. La part
+  # habituelle ne bouge pas.
+  # @param quantity [Numeric] quantité dans l'unité de base de la ligne
+  def add_quantity(quantity)
+    self.extra_quantity_base = (extra_quantity_base || 0) + quantity.to_d if source_generated?
+    reconcile_quantity(quantity_base + quantity.to_d)
+  end
+
   # Ajoute une quantité venue des courses habituelles : le total et la part
   # habituelle grandissent d'autant.
   # @param quantity [Numeric] quantité dans l'unité de base de la ligne
@@ -204,21 +256,53 @@ class GroceryItem < ApplicationRecord
     reconcile_quantity(quantity_base + quantity.to_d)
   end
 
-  # Une quantité corrigée à la main porte sur la part habituelle : la part du
-  # menu est de toute façon recalculée à chaque validation, et celle d'un ajout
-  # ponctuel ne bouge pas. Une correction qui descend sous cette autre part
-  # efface la part habituelle.
+  # Une quantité corrigée à la main porte sur ce qui a été ajouté à la main :
+  # la part habituelle, sinon la part ajoutée en plus. La part du menu est de
+  # toute façon recalculée à chaque validation, et celle d'un ajout ponctuel ne
+  # bouge pas. Une correction qui descend sous ces parts les efface — la part
+  # habituelle d'abord, puis la part ajoutée en plus.
   #
   # À appeler après l'affectation des attributs, avant l'enregistrement
   # (GroceryItemsController#update, comme assign_buyer). Pas de callback : la
-  # réconciliation du menu change aussi la quantité, sans toucher à la part
-  # habituelle.
-  def shift_quantity_change_to_usual_part
-    return if usual_quantity_base.nil? || quantity_base.blank? || !will_save_change_to_quantity_base?
+  # réconciliation du menu change aussi la quantité, sans toucher à ces parts.
+  def shift_quantity_change_to_added_parts
+    return if kept_quantity_base.zero? || quantity_base.blank? || !will_save_change_to_quantity_base?
 
-    other_part = quantity_base_in_database - usual_quantity_base
-    remaining  = quantity_base - other_part
-    self.usual_quantity_base = remaining.positive? ? [ remaining, quantity_base ].min : nil
+    # Ce qui revient aux parts ajoutées : le nouveau total, moins la part qui ne
+    # bouge pas. La part habituelle absorbe la correction la première (une part
+    # absente compte pour zéro : nil.to_d vaut 0).
+    added = quantity_base - (quantity_base_in_database - kept_quantity_base)
+    self.usual_quantity_base = added_part(added - extra_quantity_base.to_d) if usual_quantity_base
+    self.extra_quantity_base = added_part(added - usual_quantity_base.to_d) if extra_quantity_base
+  end
+
+  # === Annuler un ajout ===
+
+  # Le temps laissé pour annuler : bien plus que la vie du message qui l'offre,
+  # pour une connexion lente en magasin.
+  UNDO_WINDOW = 10.minutes
+
+  # Jeton de l'« Annuler » du message qui suit un ajout : ce que le dernier
+  # enregistrement a changé, avant et après. Signé : l'annulation ne restaure
+  # que ce que le serveur a lui-même relevé.
+  # @return [String]
+  def undo_token
+    change = saved_changes.except("updated_at")
+    payload = { "id" => id, "before" => change.transform_values(&:first), "after" => change.transform_values(&:last) }
+    undo_verifier.generate(payload.as_json, expires_in: UNDO_WINDOW)
+  end
+
+  # Défait le dernier enregistrement, tant que personne n'a touché depuis à ce
+  # qu'il avait changé : une ligne cochée entre-temps par un autre membre garde
+  # sa coche. Sinon la ligne reste telle quelle, et dit pourquoi.
+  # @param token [String] jeton d'undo_token
+  # @return [Boolean]
+  def undo!(token)
+    change = undo_verifier.verified(token.to_s)
+    return update!(change["before"]) if undoable?(change)
+
+    errors.add(:base, "« #{name} » a changé depuis : corrige sa quantité directement sur la ligne.")
+    false
   end
 
   # Recopie sur cette ligne ce que son ingrédient sait d'elle : son nom, son

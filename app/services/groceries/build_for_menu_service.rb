@@ -20,10 +20,13 @@ module Groceries
   # - quantité en hausse + item décoché → quantité mise à jour seulement (pas de badge)
   #
   # Courses habituelles (UC8, étape 3) : une ligne additionne la part du menu et
-  # sa part habituelle (usual_quantity_base), que le service conserve toujours :
-  # - la quantité d'une ligne générée vaut l'agrégat du menu + sa part habituelle ;
-  # - une ligne générée que le menu ne demande plus, mais qui a une part
-  #   habituelle, redevient une ligne :manual réduite à cette part ;
+  # ce qu'elle doit aux ajouts à la main — sa part habituelle
+  # (usual_quantity_base) et sa part ajoutée en plus (extra_quantity_base) —,
+  # que le service conserve toujours (GroceryItem#kept_quantity_base) :
+  # - la quantité d'une ligne générée vaut l'agrégat du menu + ces parts ;
+  # - une ligne générée que le menu ne demande plus, mais qui porte l'une de ces
+  #   parts, redevient une ligne :manual réduite à elles — la part ajoutée en
+  #   plus y devient la part de l'ajout ponctuel ;
   # - une ligne :manual entièrement habituelle dont le menu demande désormais
   #   l'ingrédient rejoint le menu, plutôt que de voir naître une seconde ligne.
   #
@@ -86,13 +89,17 @@ module Groceries
       @menu.grocery_items.manual.usual_only.where.not(ingredient_id: nil).index_by(&:ingredient_id)
     end
 
-    # Une ligne que le menu ne demande plus disparaît… sauf sa part habituelle,
-    # qui reste sur la liste en ligne :manual.
+    # Une ligne que le menu ne demande plus disparaît… sauf ce qu'elle doit aux
+    # ajouts à la main, qui reste sur la liste en ligne :manual. Ce qui avait été
+    # ajouté en plus du menu y devient la part de l'ajout ponctuel : une ligne
+    # :manual ne porte pas de part ajoutée en plus.
     def retire(item)
-      return item.destroy! if item.usual_quantity_base.nil?
+      kept = item.kept_quantity_base
+      return item.destroy! if kept.zero?
 
-      item.source = :manual
-      item.reconcile_quantity(item.usual_quantity_base)
+      item.source              = :manual
+      item.extra_quantity_base = nil
+      item.reconcile_quantity(kept)
       item.save!
     end
 
@@ -124,12 +131,12 @@ module Groceries
 
     # Met à jour un item existant — généré, ou adopté parmi les lignes
     # habituelles — selon les règles de réconciliation (cas a-d). Sa quantité
-    # est celle du menu plus sa part habituelle.
+    # est celle du menu plus ce qu'elle doit aux ajouts à la main.
     # Rafraîchit toujours les attributs dérivés de l'ingrédient (cohérence si l'ingrédient a changé).
     def update_grocery_item(item, data)
       item.source = :generated
       item.copy_from_ingredient(data[:ingredient])
-      item.reconcile_quantity(round3(data[:quantity_base]) + (item.usual_quantity_base || 0))
+      item.reconcile_quantity(round3(data[:quantity_base]) + item.kept_quantity_base)
 
       # Idempotence : n'écrit que si quelque chose a réellement changé
       item.save! if item.changed?

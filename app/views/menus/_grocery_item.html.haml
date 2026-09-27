@@ -7,8 +7,11 @@
 -#                un seul membre a pris tout le rayon : il est déjà sur l'en-tête)
 
 = turbo_frame_tag "grocery_item_#{item.id}" do
+  -# ingredient-id et quantity : ce que lit une suggestion du formulaire d'ajout
+  -# pour dire « Déjà dans ta liste · 100 g » (cf. ingredient_combobox)
   .grocery-item{ class: ("grocery-item--checked" if item.checked),
-                 data: { controller: "grocery-check", claim: claim_state } }
+                 data: { controller: "grocery-check", claim: claim_state,
+                         ingredient_id: item.ingredient_id, quantity: item.quantity_display } }
 
     -# Bouton toggle coché/non coché (feedback optimiste via grocery-check)
     .grocery-item-check

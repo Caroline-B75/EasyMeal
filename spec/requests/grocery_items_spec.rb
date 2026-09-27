@@ -32,6 +32,16 @@ RSpec.describe "Ajout manuel à la liste de courses", type: :request do
                                        "ingredient-combobox",
                                        "data-ingredient-combobox-search-url-value=\"#{search_ingredients_path}\"")
     end
+
+    # Ce que lit une suggestion pour dire « Déjà dans ta liste · 100 g »
+    it "donne aux suggestions la liste, et à chaque ligne son ingrédient et sa quantité" do
+      item = create(:grocery_item, menu: menu, name: "Farine T55", quantity_base: 100)
+
+      get grocery_menu_path(menu)
+
+      expect(response.body).to include('data-ingredient-combobox-list-value="#grocery_list"',
+                                       "data-ingredient-id=\"#{item.ingredient_id}\"", 'data-quantity="100 g"')
+    end
   end
 
   describe "article hors catalogue" do
@@ -121,38 +131,151 @@ RSpec.describe "Ajout manuel à la liste de courses", type: :request do
     end
   end
 
+  # Le beurre du menu et celui qu'on rajoute ne font qu'une ligne : la quantité
+  # saisie s'additionne à la ligne qui porte déjà l'article.
   describe "article déjà présent" do
-    # Pas de fusion des quantités : la ligne existante est peut-être déjà cochée,
-    # et c'est elle qu'on veut ajuster. On le dit, on n'écrit rien.
-    it "renvoie vers la ligne existante au lieu d'en créer une seconde" do
-      ingredient = create(:ingredient, name: "Beurre doux")
-      create(:grocery_item, menu: menu, ingredient: ingredient, name: "Beurre doux")
+    let(:beurre) { create(:ingredient, name: "Beurre doux", unit_group: :mass, base_unit: "g") }
+    let!(:line) do
+      create(:grocery_item, menu: menu, ingredient: beurre, name: "Beurre doux", base_unit: "g",
+                            quantity_base: 100)
+    end
 
-      expect { add_article(name: "Beurre doux", quantity: 250, unit: "g", ingredient_id: ingredient.id) }
+    it "additionne la quantité à la ligne du menu au lieu d'en créer une seconde" do
+      expect { add_article(name: "Beurre doux", quantity: 250, unit: "g", ingredient_id: beurre.id) }
         .not_to change(menu.grocery_items, :count)
 
-      expect(flash[:notice]).to include("Beurre doux", "déjà dans votre liste")
+      expect(line.reload).to have_attributes(quantity_base: 350, extra_quantity_base: 250, source: "generated",
+                                             usual_quantity_base: nil)
+      expect(flash[:notice]).to eq("Beurre doux : 100 g → 350 g")
+    end
+
+    # La ligne a changé ailleurs dans la page : le message le dit, et offre de revenir en arrière
+    it "le dit par un message qui offre d'annuler" do
+      post menu_grocery_items_path(menu), params: { grocery_item: { name: "Beurre doux", quantity: 250, unit: "g" } },
+                                          as: :turbo_stream
+
+      expect(response.body).to include('action="update" target="flash"', "Beurre doux : 100 g → 350 g",
+                                       "Annuler", addition_menu_grocery_item_path(menu, line))
+    end
+
+    # Une quantité qui ne ferait pas une ligne n'en entame pas une non plus
+    it "refuse une quantité nulle ou négative sans toucher la ligne" do
+      [ 0, -50 ].each { |quantity| add_article(name: "Beurre doux", quantity: quantity, unit: "g") }
+
+      expect(line.reload.quantity_base).to eq(100)
+      expect(flash[:alert]).to include("doit être supérieure à 0")
+    end
+
+    # Une correction à la main porte sur ce qui a été ajouté en plus
+    it "reporte une correction de la quantité sur la part ajoutée en plus" do
+      add_article(name: "Beurre doux", quantity: 250, unit: "g")
+
+      patch menu_grocery_item_path(menu, line), params: { grocery_item: { quantity_base: 300 } }
+
+      expect(line.reload).to have_attributes(quantity_base: 300, extra_quantity_base: 200)
+    end
+
+    describe "« Annuler »" do
+      def add_and_capture_token
+        post menu_grocery_items_path(menu), params: { grocery_item: { name: "Beurre doux", quantity: 250, unit: "g" } },
+                                            as: :turbo_stream
+        response.body[/name="token" value="([^"]+)"/, 1]
+      end
+
+      def cancel(token)
+        delete addition_menu_grocery_item_path(menu, line), params: { token: token }, as: :turbo_stream
+      end
+
+      it "remet la ligne dans son état d'avant l'ajout, et le confirme" do
+        line.update!(checked: true)
+
+        cancel(add_and_capture_token)
+
+        expect(line.reload).to have_attributes(quantity_base: 100, extra_quantity_base: nil, checked: true,
+                                               previous_quantity_base: nil)
+        expect(response.body).to include('action="update" target="flash"', "Ajout annulé.")
+      end
+
+      it "refuse quand la ligne a changé depuis" do
+        token = add_and_capture_token
+        line.update!(quantity_base: 500)
+
+        cancel(token)
+
+        expect(line.reload.quantity_base).to eq(500)
+        expect(response.body).to include("a changé depuis")
+      end
+
+      it "est refusé hors du foyer du menu" do
+        token = add_and_capture_token
+        sign_in create(:user)
+
+        cancel(token)
+
+        expect(line.reload.quantity_base).to eq(350)
+      end
+    end
+
+    it "convertit la saisie dans l'unité de la ligne avant de l'additionner" do
+      add_article(name: "beurre doux", quantity: 1, unit: "kg")
+
+      expect(line.reload.quantity_base).to eq(1100)
+    end
+
+    # Ce qui a été acheté ne suffit plus : la ligne se décoche et le badge dit
+    # combien l'était déjà — même règle qu'une hausse venue du menu.
+    it "décoche une ligne déjà achetée, en retenant ce qui l'a été" do
+      line.update!(checked: true)
+
+      add_article(name: "Beurre doux", quantity: 250, unit: "g", ingredient_id: beurre.id)
+
+      expect(line.reload).to have_attributes(quantity_base: 350, checked: false, previous_quantity_base: 100)
+    end
+
+    # Ce qu'on rajoute à la main n'est pas une course habituelle : la note
+    # « dont … de tes habituelles » continue de dire la seule part habituelle.
+    it "laisse la part habituelle de la ligne telle quelle" do
+      line.update!(source: :manual, quantity_base: 500, usual_quantity_base: 500)
+
+      add_article(name: "Beurre doux", quantity: 250, unit: "g", ingredient_id: beurre.id)
+
+      expect(line.reload).to have_attributes(quantity_base: 750, usual_quantity_base: 500)
     end
 
     # Une ligne libre n'a pas d'ingrédient pour la reconnaître : c'est son nom
     # qui la désigne, aux accents et à la casse près.
     it "reconnaît un article libre écrit différemment" do
-      create(:grocery_item, menu: menu, ingredient: nil, name: "Éponges", source: :manual)
+      eponges = create(:grocery_item, menu: menu, ingredient: nil, name: "Éponges", source: :manual,
+                                      base_unit: "piece", quantity_base: 3)
 
       expect { add_article(name: "eponges", quantity: 2, unit: "piece") }
         .not_to change(menu.grocery_items, :count)
 
-      expect(flash[:notice]).to include("déjà dans votre liste")
+      expect(eponges.reload.quantity_base).to eq(5)
     end
 
-    # Le doublon se cherche dans SA liste : deux utilisatrices peuvent acheter
-    # du beurre la même semaine.
+    # Des paquets face à des grammes ne s'additionnent pas : l'article prend une
+    # ligne à part plutôt que de fausser la quantité.
+    it "donne une ligne à part à un article dont l'unité ne s'additionne pas" do
+      create(:grocery_item, menu: menu, ingredient: nil, name: "Café", source: :manual,
+                            base_unit: "g", quantity_base: 250)
+
+      add_article(name: "Café", quantity: 2, unit: "piece", category: "epicerie_sucree")
+
+      expect(menu.grocery_items.where(name: "Café").pluck(:base_unit, :quantity_base))
+        .to contain_exactly([ "g", 250 ], [ "piece", 2 ])
+    end
+
+    # La ligne existante se cherche dans SA liste : deux utilisatrices peuvent
+    # acheter des éponges la même semaine.
     it "ignore les listes des autres menus" do
-      create(:grocery_item, menu: create(:menu, user: user), name: "Éponges")
+      elsewhere = create(:grocery_item, menu: create(:menu, user: user), ingredient: nil, name: "Éponges",
+                                        base_unit: "piece", quantity_base: 3)
 
       add_article(name: "Éponges", quantity: 2, unit: "piece")
 
-      expect(menu.grocery_items.sole.name).to eq("Éponges")
+      expect(menu.grocery_items.find_by!(name: "Éponges").quantity_base).to eq(2)
+      expect(elsewhere.reload.quantity_base).to eq(3)
     end
   end
 

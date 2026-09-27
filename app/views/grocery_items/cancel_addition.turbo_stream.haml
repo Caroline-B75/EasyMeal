@@ -1,0 +1,4 @@
+-# Turbo Stream : l'ajout est annulé — le rayon de la ligne est re-rendu, et le
+-# message le confirme (flash.now, cf. TurboFlashable#respond_success)
+= render "grocery_items/section", menu: @menu, category: @grocery_item.category
+= turbo_stream.update "flash", partial: "shared/flash"

@@ -192,8 +192,10 @@ validation ; la part habituelle est conservée.
    parts habituelles sont retirées (une ligne entièrement habituelle disparaît).
    On rajoute les habituels d'un clic.
 
-L'ajout manuel ponctuel ne change pas : un article déjà présent est toujours
-refusé, avec le message qui renvoie vers la ligne existante.
+~~L'ajout manuel ponctuel ne change pas : un article déjà présent est toujours
+refusé, avec le message qui renvoie vers la ligne existante.~~ Changé le
+21/09/2026 : l'ajout ponctuel s'additionne lui aussi (cf. « Ce qui a changé en
+cours de route »).
 
 **Côté technique** :
 - Migration : `grocery_items.usual_quantity_base` (decimal 10,3, nullable). Nul =
@@ -302,6 +304,32 @@ Elle est bien couverte par les tests ; chaque règle ci-dessus y gagne son exemp
 - **La pop-up se recharge à chaque ouverture** au lieu d'être rendue avec la page
   (cf. chapitre 2) : plus simple à protéger des rafraîchissements en direct, et
   sans requête supplémentaire sur la liste tant qu'on ne l'ouvre pas.
+- **L'ajout ponctuel s'additionne aussi** (21/09/2026, signalé comme un bug) :
+  un article saisi dans « Ajouter un article » alors qu'il est déjà dans la liste
+  voit sa quantité additionnée à la ligne existante, au lieu d'un refus. Elle
+  rejoint la part propre de la ligne (menu ou ajout ponctuel), jamais la part
+  habituelle (`GroceryItem#add_quantity`). Mêmes règles que les habituels :
+  ligne cochée qui augmente → décochée avec le badge, unités qui ne
+  s'additionnent pas → ligne à part. Le statut `:duplicate` disparaît.
+  Revu le même jour avec l'utilisatrice (principe : une ligne par article,
+  prévenir au moment du choix, confirmer juste après, sans annotation
+  permanente) :
+  - **Message après une addition** : « Beurre doux : 100 g → 350 g », avec
+    « Annuler » (`GroceryItem#undo_token` / `#undo!`) — la ligne revient à son
+    état d'avant, sauf si quelqu'un a touché depuis à ce que l'ajout avait changé.
+  - **Suggestions du formulaire** : « Déjà dans ta liste · 100 g » sous un
+    article que la liste porte déjà (lu dans la page, sans requête).
+  - **Pop-up « Mes habituelles »** : « Déjà 500 ml dans ta liste » sous un article
+    que la liste porte déjà (menu ou ajout ponctuel) ; il reste coché. Pas de
+    « prévus pour le menu » : le participe s'accorderait à l'unité (« 1 L prévu »).
+  - **Part ajoutée en plus** (`grocery_items.extra_quantity_base`) : sur une
+    ligne du menu, l'ajout y est retenu, **sans être affiché**. Elle suit les
+    règles de la part habituelle : conservée à la revalidation (règle 4),
+    devenue la part d'un ajout ponctuel quand le menu ne demande plus l'article
+    (règle 5), et une correction à la main porte sur elle quand la ligne n'a pas
+    de part habituelle (règle 7).
+  - Une quantité nulle ou négative est refusée comme pour une ligne neuve, au
+    lieu d'entamer la ligne existante.
 - **Les noms dans le code** : `UsualGroceryItem`,
   `usual_quantity_base`, `Groceries::AddUsualItemsService`,
   `UsualGroceryAdditionsController` (la pop-up) et

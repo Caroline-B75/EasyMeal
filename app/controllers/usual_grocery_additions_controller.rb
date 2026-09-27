@@ -15,6 +15,8 @@ class UsualGroceryAdditionsController < ApplicationController
   def new
     @usual_items   = @menu.household.usual_grocery_items.includes(:ingredient).sorted.to_a
     @already_added = @usual_items.select { |usual_item| usual_item.added_to?(@menu) }.to_set
+    @lines_in_list = @usual_items.reject { |usual_item| @already_added.include?(usual_item) }
+                                 .index_with { |usual_item| usual_item.line_in(@menu) }.compact
     @one_off_count = @menu.grocery_items.one_off.count if @usual_items.empty?
   end
 

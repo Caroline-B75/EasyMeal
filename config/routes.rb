@@ -67,10 +67,12 @@ Rails.application.routes.draw do
       end
     end
     resources :grocery_items, only: [ :create, :update, :destroy ] do
-      # « Je m'en occupe » : prendre un article pour soi, ou le laisser
       member do
+        # « Je m'en occupe » : prendre un article pour soi, ou le laisser
         patch  :claim, to: "grocery_claims#claim_item"
         delete :claim, to: "grocery_claims#release_item"
+        # « Annuler » du message qui suit un ajout additionné à la ligne
+        delete :addition, to: "grocery_items#cancel_addition"
       end
       # … ou tout un rayon (params: category)
       collection do

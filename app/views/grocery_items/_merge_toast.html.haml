@@ -1,0 +1,10 @@
+-# Message qui suit l'ajout d'un article déjà dans la liste : sa quantité a
+-# rejoint la ligne existante, peut-être loin du formulaire. Il reste plus
+-# longtemps qu'un message simple, le temps d'« Annuler ».
+-# item : GroceryItem tout juste enregistré (cf. GroceryItem#undo_token)
+-# menu : Menu
+.flash-message.notice{ data: { controller: "flash", flash_delay_value: 8000 } }
+  %span= grocery_merge_notice(item)
+  = button_to "Annuler", addition_menu_grocery_item_path(menu, item),
+              method: :delete, params: { token: item.undo_token },
+              class: "btn btn-white btn-md", form_class: "button_to flash-message-action"

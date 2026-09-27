@@ -53,6 +53,6 @@
         %button.btn.btn-white{ type: "button", data: { action: "usual-groceries#open" } }
           = svg_icon("rotate-ccw", size: 14, css_class: "usual-sign")
           Mes habituelles
-      = render "grocery_items/add_form", url: menu_grocery_items_path(@menu), scope: :grocery_item
+      = render "grocery_items/add_form", url: menu_grocery_items_path(@menu), scope: :grocery_item, list: "#grocery_list"
 
     = render "usual_grocery_additions/dialog"

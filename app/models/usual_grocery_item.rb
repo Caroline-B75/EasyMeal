@@ -87,7 +87,17 @@ class UsualGroceryItem < ApplicationRecord
   # est courte, et la question ne se pose qu'à l'ouverture de la pop-up.
   # @param menu [Menu]
   def added_to?(menu)
-    menu.grocery_items.with_usual_part.matching_article(name: name, ingredient: ingredient).exists?
+    lines_in(menu).with_usual_part.exists?
+  end
+
+  # La ligne de cette liste de courses qui porte déjà l'article — pour le menu,
+  # ou ajoutée à la main —, celle à laquelle il s'additionnera (cf.
+  # Groceries::AddManualItemService). La pop-up en dit la quantité, pour qu'on
+  # règle la sienne en connaissance de cause.
+  # @param menu [Menu]
+  # @return [GroceryItem, nil]
+  def line_in(menu)
+    lines_in(menu).first
   end
 
   # Libellé de l'unité saisie (« L », « pièce »)
@@ -137,5 +147,11 @@ class UsualGroceryItem < ApplicationRecord
     return if ingredient.nil? || UnitConversionService.compatible?(from_unit: unit, ingredient: ingredient)
 
     errors.add(:base, ingredient.unit_mismatch_message(unit))
+  end
+
+  # Les lignes de cette liste de courses qui désignent le même article (cf. ArticleMatching)
+  # @param menu [Menu]
+  def lines_in(menu)
+    menu.grocery_items.matching_article(name: name, ingredient: ingredient)
   end
 end

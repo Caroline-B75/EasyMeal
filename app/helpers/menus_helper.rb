@@ -270,6 +270,14 @@ module MenusHelper
     safe_join([ pieces, tag.strong(PieceUnit::SURPLUS_CONNECTOR), parts[:measure] ], " ")
   end
 
+  # Le message qui suit l'ajout d'un article déjà dans la liste : sa ligne, et
+  # comment sa quantité a changé — « Beurre doux : 100 g → 350 g ».
+  # @param item [GroceryItem] la ligne tout juste enregistrée
+  # @return [String]
+  def grocery_merge_notice(item)
+    "#{item.name} : #{item.quantity_before_last_save_display} → #{item.quantity_display}"
+  end
+
   # L'unité qui suit le champ de correction d'une quantité.
   #
   # Ce champ édite toujours la quantité de base — c'est elle qui est exacte, les

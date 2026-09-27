@@ -136,6 +136,19 @@ RSpec.describe UsualGroceryItem, type: :model do
     end
   end
 
+  describe "#line_in" do
+    let(:menu) { create(:menu, user: user, status: :active) }
+
+    it "trouve la ligne qui porte déjà l'article, écrit autrement ou non" do
+      item = add(name: "Éponges")
+      expect(item.line_in(menu)).to be_nil
+
+      line = create(:grocery_item, menu: menu, ingredient: nil, name: "eponges", source: :manual)
+
+      expect(item.line_in(menu)).to eq(line)
+    end
+  end
+
   describe "#quantity_for_input" do
     it "écrit une quantité entière sans décimale, et une fraction avec un point" do
       expect(add(name: "Lait", quantity: 6, unit: "l").quantity_for_input).to eq(6)

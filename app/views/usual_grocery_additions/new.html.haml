@@ -2,11 +2,15 @@
 -# @menu          : Menu dont la liste de courses reçoit les habituels
 -# @usual_items   : courses habituelles du foyer, dans l'ordre de la liste
 -# @already_added : celles qui ont déjà rejoint cette liste
+-# @lines_in_list : pour les autres, la ligne qui porte déjà l'article (menu ou
+-#                  ajout ponctuel), par course habituelle
 -# @one_off_count : ajouts ponctuels de la liste, à reprendre si les habituels sont vides
 -#
 -# On décoche ce dont on n'a pas besoin cette fois, on ajuste une quantité pour
 -# cette fois : rien ici ne modifie la liste des habituels elle-même. Un article
--# déjà ajouté arrive décoché, pour ne pas l'ajouter deux fois.
+-# déjà ajouté arrive décoché, pour ne pas l'ajouter deux fois. Un article que la
+-# liste porte déjà reste coché — le lait de la semaine s'ajoute à celui de la
+-# recette —, mais la pop-up en dit la quantité, pour régler la sienne.
 = turbo_frame_tag "usual_groceries" do
   - if @usual_items.any?
     -# _top : la réponse est la liste de courses à jour, pas le contenu du frame
@@ -27,7 +31,9 @@
               %span.usual-picker-text
                 %span.usual-picker-name= usual_item.name
                 - if added
-                  %span.usual-picker-added Déjà ajouté
+                  %span.usual-picker-note Déjà ajouté
+                - elsif (line = @lines_in_list[usual_item])
+                  %span.usual-picker-note= "Déjà #{line.quantity_display} dans ta liste"
             -# − / + par un pas qui convient à l'unité ; le champ reste saisissable
             .usual-picker-qty{ data: { controller: "number-stepper",
                                        number_stepper_increment_value: usual_grocery_step(usual_item.unit) } }
