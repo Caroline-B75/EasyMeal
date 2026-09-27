@@ -170,7 +170,7 @@ RSpec.describe "Ajout manuel à la liste de courses", type: :request do
     it "reporte une correction de la quantité sur la part ajoutée en plus" do
       add_article(name: "Beurre doux", quantity: 250, unit: "g")
 
-      patch menu_grocery_item_path(menu, line), params: { grocery_item: { quantity_base: 300 } }
+      patch menu_grocery_item_path(menu, line), params: { grocery_item: { quantity: 300, unit: "g" } }
 
       expect(line.reload).to have_attributes(quantity_base: 300, extra_quantity_base: 200)
     end
@@ -276,6 +276,34 @@ RSpec.describe "Ajout manuel à la liste de courses", type: :request do
 
       expect(menu.grocery_items.find_by!(name: "Éponges").quantity_base).to eq(2)
       expect(elsewhere.reload.quantity_base).to eq(3)
+    end
+  end
+
+  # On corrige une quantité dans l'unité où l'on achète : « 2 plaquettes », pas « 500 g »
+  describe "PATCH la quantité dans l'unité choisie" do
+    let!(:line) do
+      create(:grocery_item, menu: menu, name: "Beurre doux", unit_group: :mass, base_unit: "g", quantity_base: 40,
+                            piece_label: "plaquette", piece_weight_g: 250)
+    end
+
+    it "propose la plaquette, sélectionnée, sur le compte qu'affiche la ligne" do
+      get grocery_menu_path(menu)
+
+      expect(response.body).to include('value="1"', 'data-quantity="40" value="g"')
+      expect(response.body).to include('data-quantity="1" selected="selected" value="piece">plaquette<')
+    end
+
+    it "ramène les plaquettes saisies en grammes" do
+      patch menu_grocery_item_path(menu, line), params: { grocery_item: { quantity: 2, unit: "piece" } }
+
+      expect(line.reload.quantity_base).to eq(500)
+    end
+
+    it "refuse une unité qui ne convient pas à la ligne" do
+      patch menu_grocery_item_path(menu, line), params: { grocery_item: { quantity: 1, unit: "l" } }
+
+      expect(line.reload.quantity_base).to eq(40)
+      expect(flash[:alert]).to eq("L'unité « L » ne convient pas à Beurre doux")
     end
   end
 

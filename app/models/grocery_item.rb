@@ -27,6 +27,8 @@ class GroceryItem < ApplicationRecord
   # Comment cette ligne se compte à l'achat. Les quatre attributs qu'il demande
   # sont recopiés depuis l'ingrédient à la génération, comme le nom et l'unité.
   include PieceCounting
+  # Corriger sa quantité dans l'unité où on l'achète (« 2 plaquettes »)
+  include QuantityCorrection
   # « Cet article est-il déjà dans la liste ? » (scope matching_article)
   include ArticleMatching
 

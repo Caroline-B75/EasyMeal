@@ -248,6 +248,44 @@ RSpec.describe GroceryItem, type: :model do
     end
   end
 
+  # On corrige dans l'unité où l'on achète : « 2 plaquettes » de beurre, pas « 500 g »
+  describe "correction de la quantité" do
+    let(:beurre) do
+      build(:grocery_item, name: "Beurre", unit_group: :mass, base_unit: "g", quantity_base: 40,
+                           piece_label: "plaquette", piece_weight_g: 250)
+    end
+
+    it "s'ouvre en pièces sur ce qui s'achète à la pièce, sur le compte qu'affiche la ligne" do
+      expect(beurre.quantity_edit_unit).to eq("piece")
+      expect(beurre.quantity_edit_options).to include([ "plaquette", "piece", 1 ], [ "g", "g", 40 ])
+    end
+
+    it "s'ouvre dans l'unité de base sur ce qui ne se compte pas" do
+      farine = build(:grocery_item, unit_group: :mass, base_unit: "g", quantity_base: 500)
+
+      expect(farine.quantity_edit_unit).to eq("g")
+      expect(farine.quantity_edit_options).to include([ "kg", "kg", 0.5 ])
+    end
+
+    it "dit exactement en grammes ce qui se compte en pièces" do
+      oignons = build(:grocery_item, unit_group: :count, base_unit: "piece", quantity_base: 2,
+                                     piece_label: "oignon", piece_weight_g: 150)
+
+      expect(oignons.quantity_edit_options).to include([ "g", "g", 300 ])
+    end
+
+    it "ramène la saisie à l'unité de base" do
+      expect(beurre.enter_quantity("2", "piece")).to be(true)
+      expect(beurre.quantity_base).to eq(500)
+    end
+
+    it "refuse une unité qui ne convient pas à la ligne" do
+      expect(beurre.enter_quantity("1", "l")).to be(false)
+      expect(beurre.quantity_base).to eq(40)
+      expect(beurre.errors[:base]).to include("L'unité « L » ne convient pas à Beurre")
+    end
+  end
+
   # L'« Annuler » du message qui suit un ajout additionné à une ligne
   describe "annulation d'un ajout" do
     let(:item) { create(:grocery_item, source: :generated, quantity_base: 100, checked: true) }

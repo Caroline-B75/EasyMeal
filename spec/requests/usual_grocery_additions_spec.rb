@@ -204,7 +204,7 @@ RSpec.describe "Courses habituelles sur la liste de courses", type: :request do
       line = create(:grocery_item, menu: menu, source: :generated, base_unit: "ml",
                                    quantity_base: 6500, usual_quantity_base: 6000)
 
-      patch menu_grocery_item_path(menu, line), params: { grocery_item: { quantity_base: 4500 } }
+      patch menu_grocery_item_path(menu, line), params: { grocery_item: { quantity: 4500, unit: "ml" } }
 
       expect(line.reload).to have_attributes(quantity_base: 4500, usual_quantity_base: 4000)
     end

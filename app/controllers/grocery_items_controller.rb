@@ -45,8 +45,11 @@ class GroceryItemsController < ApplicationController
   # Une quantité corrigée porte sur ce que la ligne doit aux ajouts à la main —
   # part habituelle ou part ajoutée en plus —, s'il y en a
   # (cf. GroceryItem#shift_quantity_change_to_added_parts).
+  # Elle arrive telle que saisie, dans l'unité choisie (cf. GroceryItem#enter_quantity).
   def update
     @grocery_item.assign_attributes(grocery_item_update_params)
+    return respond_error(@grocery_item, redirect_path: @menu) unless enter_quantity
+
     @grocery_item.assign_buyer(current_user)
     @grocery_item.shift_quantity_change_to_added_parts
 
@@ -88,8 +91,18 @@ class GroceryItemsController < ApplicationController
     params.require(:grocery_item).permit(:name, :quantity, :unit, :category, :ingredient_id)
   end
 
-  # Seuls quantité, unité, état coché et libellé sont modifiables
+  # État coché, unité et libellé ; la quantité passe par enter_quantity.
   def grocery_item_update_params
-    params.require(:grocery_item).permit(:quantity_base, :base_unit, :unit_group, :checked, :name)
+    params.require(:grocery_item).permit(:base_unit, :unit_group, :checked, :name)
+  end
+
+  # La quantité corrigée, s'il y en a une : ce qui a été saisi — « 2 » et
+  # « piece » —, que la ligne ramène à son unité de base.
+  # @return [Boolean] false si l'unité ne convient pas à la ligne
+  def enter_quantity
+    entered = params.require(:grocery_item).permit(:quantity, :unit)
+    return true unless entered.key?(:quantity)
+
+    @grocery_item.enter_quantity(entered[:quantity], entered[:unit])
   end
 end

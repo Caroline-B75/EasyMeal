@@ -278,19 +278,38 @@ module MenusHelper
     "#{item.name} : #{item.quantity_before_last_save_display} → #{item.quantity_display}"
   end
 
-  # L'unité qui suit le champ de correction d'une quantité.
+  # Le sélecteur d'unité du champ de correction d'une quantité : la pièce d'un
+  # article qui s'achète à la pièce, ses mesures, et chaque option porte ce que
+  # la ligne vaut dans son unité (data-quantity) — le champ la reprend quand on
+  # change d'unité (cf. grocery_edit_qty_controller).
   #
-  # Ce champ édite toujours la quantité de base — c'est elle qui est exacte, les
-  # pièces n'en sont qu'un affichage arrondi : éditer « 3 pièces » réécrirait
-  # 900 g là où la recette en demande 750. Le suffixe dit donc l'unité de base,
-  # mais avec le mot qu'on lit ailleurs sur la ligne : « pots » et non « piece »
-  # sur des yaourts, « càc » et non « cac ».
+  # La pièce s'ouvre sur le compte arrondi qu'on lit sur la ligne : valider sans
+  # rien changer n'enregistre rien (le contrôleur Stimulus s'en tient là), et
+  # la quantité exacte reste ainsi celle de la recette.
   #
   # @param item [GroceryItem]
-  # @return [String]
-  def grocery_edit_unit(item)
-    return Units.label(item.base_unit) unless item.unit_group_count?
+  # @return [ActiveSupport::SafeBuffer] les <option> du sélecteur
+  def grocery_quantity_edit_options(item)
+    options = item.quantity_edit_options.map do |label, unit, quantity|
+      [ label, unit, { data: { quantity: grocery_edit_value(quantity) } } ]
+    end
+    options_for_select(options, item.quantity_edit_unit)
+  end
 
-    item.piece_unit&.label_for(item.quantity_base) || Units.label(item.base_unit)
+  # La quantité dans l'unité d'ouverture de la correction : la valeur initiale
+  # du champ.
+  # @param item [GroceryItem]
+  # @return [String]
+  def grocery_quantity_edit_value(item)
+    _label, _unit, quantity = item.quantity_edit_options.find { |option| option[1] == item.quantity_edit_unit }
+    grocery_edit_value(quantity || item.quantity_base)
+  end
+
+  private
+
+  # Un nombre tel qu'un champ numérique l'attend : point décimal, au millième,
+  # sans zéro inutile — « 40 », « 0.04 ».
+  def grocery_edit_value(quantity)
+    number_with_precision(quantity, precision: 3, strip_insignificant_zeros: true, delimiter: "", separator: ".")
   end
 end

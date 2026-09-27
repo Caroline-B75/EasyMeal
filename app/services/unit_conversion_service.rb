@@ -31,14 +31,27 @@ class UnitConversionService
     #   convert(quantity: 1,  from_unit: "càs", ingredient: farine_0_55) → 8.25
     #   convert(quantity: 1,  from_unit: "càs", ingredient: farine)      → nil (densité inconnue)
     def convert(quantity:, from_unit:, ingredient:)
+      factor = factor(from_unit: from_unit, ingredient: ingredient)
+      factor && round3(quantity.to_f * factor)
+    end
+
+    # Ce que vaut UNE unité écrite dans l'unité de base de l'ingrédient, sans
+    # arrondi : 250.0 pour une plaquette de beurre, 1/150 pour un gramme
+    # d'oignon compté à la pièce. nil si la conversion est impossible.
+    #
+    # Toutes les conversions sont proportionnelles : convertir, c'est multiplier
+    # par ce facteur. Il sert tel quel à qui doit aussi faire le trajet retour —
+    # dire en grammes une ligne de courses comptée en pièces (cf.
+    # GroceryItem#quantity_edit_options) —, là où l'arrondi au millième de
+    # `convert` le fausserait (1 g d'oignon ≈ 0,007 pièce, soit 143 g la pièce).
+    def factor(from_unit:, ingredient:)
       # Le chemin ordinaire : un facteur connu d'avance, au sein d'un groupe
       # d'unités ou d'un groupe à l'autre quand l'équivalence est universelle.
-      factor = Units.factor_to(from_unit, ingredient.unit_group)
-      return round3(quantity.to_f * factor) if factor
+      universal = Units.factor_to(from_unit, ingredient.unit_group)
+      return universal if universal
       return nil unless Units.definition(from_unit)
 
-      bridge_by_piece_size(quantity.to_f, from_unit, ingredient) ||
-        bridge_by_density(quantity.to_f, from_unit, ingredient)
+      bridge_by_piece_size(from_unit, ingredient) || bridge_by_density(from_unit, ingredient)
     end
 
     # Retourne true si la quantité détectée peut atteindre l'unité de base de
@@ -80,46 +93,46 @@ class UnitConversionService
     # (g, ml). Le trajet est le même quelle que soit la mesure — d'où la question
     # posée une fois à l'ingrédient (cf. PieceCounting#piece_measure) plutôt que
     # deux ponts jumeaux côte à côte.
-    def bridge_by_piece_size(quantity, from_unit, ingredient)
+    def bridge_by_piece_size(from_unit, ingredient)
       size, measure_group = ingredient.piece_measure
       return nil if size.nil?
 
       if ingredient.unit_group == measure_group
         # « 2 tranches » de jambon → 80 g : des pièces vers la mesure.
-        convert_through(quantity, from_unit, "count") { |pieces| pieces * size }
+        convert_through(from_unit, "count") { |pieces| pieces * size }
       elsif ingredient.unit_group_count?
         # « 200 g » d'oignon → 1,8 oignon : de la mesure vers les pièces.
-        convert_through(quantity, from_unit, measure_group) { |measure| measure / size }
+        convert_through(from_unit, measure_group) { |measure| measure / size }
       end
     end
 
     # La densité relie ce qu'une recette mesure — un volume, une cuillère — à ce
     # que le catalogue pèse. Les 15 ml d'une cuillère à soupe sont universels
     # (Units), leur poids ne l'est pas : 8 g de farine, 21 g de miel.
-    def bridge_by_density(quantity, from_unit, ingredient)
+    def bridge_by_density(from_unit, ingredient)
       density = ingredient.density_g_per_ml.to_f
       return nil unless density.positive?
 
       if ingredient.unit_group_mass?
         # « 1 càs de farine » : d'abord des millilitres, puis des grammes.
-        convert_through(quantity, from_unit, "volume") { |millilitres| millilitres * density }
+        convert_through(from_unit, "volume") { |millilitres| millilitres * density }
       else
         # « 200 g de miel » : des grammes, puis des millilitres, puis l'unité de
         # base de l'ingrédient — le millilitre, ou la cuillère à café.
         to_base = Units.factor_to("ml", ingredient.unit_group)
-        to_base && convert_through(quantity, from_unit, "mass") { |grams| grams / density * to_base }
+        to_base && convert_through(from_unit, "mass") { |grams| grams / density * to_base }
       end
     end
 
-    # Amène la quantité dans l'unité de base d'un groupe intermédiaire (des
+    # Amène une unité dans l'unité de base d'un groupe intermédiaire (des
     # millilitres, des grammes, des pièces), puis laisse le coefficient de
     # l'ingrédient finir le trajet. Rend nil quand l'unité de départ ne rejoint
     # pas ce groupe : c'est ce qui écarte « 2 tranches » du pont des densités.
-    def convert_through(quantity, from_unit, pivot_group)
+    def convert_through(from_unit, pivot_group)
       factor = Units.factor_to(from_unit, pivot_group)
       return nil unless factor
 
-      round3(yield(quantity * factor))
+      yield(factor)
     end
 
     # Un ingrédient identique, à sa densité près. Sert aux deux questions posées

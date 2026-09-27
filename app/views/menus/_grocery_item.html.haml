@@ -65,16 +65,25 @@
                     method: :patch,
                     scope: :grocery_item,
                     class: "grocery-qty-form",
-                    data: { action: "keydown->grocery-edit-qty#handleKeydown" } do |f|
+                    data: { action: "keydown->grocery-edit-qty#handleKeydown submit->grocery-edit-qty#submit" } do |f|
           -# id unique par item : le partial est rendu N fois sur la même page,
           -# les id HTML doivent rester uniques (audit Lighthouse R0.5).
-          = f.number_field :quantity_base,
-                           value: item.quantity_base,
-                           step: 0.1, min: 0.1,
-                           id: "grocery_item_quantity_base_#{item.id}",
+          -# step "any" : une unité plus grande que celle de la ligne donne des
+          -# décimales (40 g → 0,04 kg), que le navigateur ne doit pas refuser.
+          = f.number_field :quantity,
+                           value: grocery_quantity_edit_value(item),
+                           step: "any", min: 0.001,
+                           id: "grocery_item_quantity_#{item.id}",
                            class: "grocery-qty-input",
+                           "aria-label": "Quantité de #{item.name}",
                            data: { "grocery-edit-qty-target": "input" }
-          %span.grocery-qty-unit= grocery_edit_unit(item)
+          -# On corrige dans l'unité où on achète : « 2 plaquettes », pas « 500 g ».
+          = f.select :unit, grocery_quantity_edit_options(item), {},
+                     id: "grocery_item_unit_#{item.id}",
+                     class: "grocery-qty-unit",
+                     "aria-label": "Unité",
+                     data: { "grocery-edit-qty-target": "unit",
+                             action: "change->grocery-edit-qty#changeUnit" }
           %button.grocery-qty-save-btn{ type: "submit", "aria-label": "Enregistrer la quantité" }
             %svg{ xmlns: "http://www.w3.org/2000/svg", viewbox: "0 0 12 12", width: "12", height: "12", fill: "none", stroke: "currentColor", "stroke-width": "2.5", "stroke-linecap": "round", "stroke-linejoin": "round" }
               %polyline{ points: "1.5,6 4.5,9 10.5,3" }

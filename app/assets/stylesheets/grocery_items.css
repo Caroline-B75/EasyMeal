@@ -367,10 +367,11 @@
   display: none;
 }
 
-.grocery-qty-input {
-  width: 5rem;
+.grocery-qty-input,
+.grocery-qty-unit {
   padding: 0.25rem 0.4rem;
   font-size: var(--font-size-sm);
+  font-family: inherit;
   border: 1px solid var(--color-primary);
   border-radius: 4px;
   background: var(--color-bg-white);
@@ -378,10 +379,15 @@
   line-height: 1.4;
 }
 
+.grocery-qty-input {
+  width: 4.5rem;
+}
+
+/* Sélecteur d'unité : aussi large que son plus long libellé (« plaquette »),
+   sans jamais pousser les boutons hors de la ligne. */
 .grocery-qty-unit {
-  font-size: var(--font-size-xs);
-  color: var(--color-ink-3);
-  white-space: nowrap;
+  max-width: 7.5rem;
+  cursor: pointer;
 }
 
 .grocery-qty-save-btn,
@@ -1643,7 +1649,8 @@ body:has(.usual-dialog[open]) {
   }
 
   /* Édition inline de la quantité : même protection anti-zoom iOS sur mobile. */
-  .grocery-qty-input {
+  .grocery-qty-input,
+  .grocery-qty-unit {
     font-size: 16px;
   }
 

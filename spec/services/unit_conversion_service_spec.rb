@@ -166,6 +166,24 @@ RSpec.describe UnitConversionService do
     end
   end
 
+  # Le facteur n'est pas arrondi : c'est ce qui permet le trajet retour
+  describe ".factor" do
+    it "dit ce que vaut une pièce dans l'unité de base" do
+      expect(described_class.factor(from_unit: "piece", ingredient: ingredient(:mass, "g", piece_weight_g: 250)))
+        .to eq(250.0)
+    end
+
+    it "ne l'arrondit pas au millième" do
+      oignon = build(:ingredient, unit_group: :count, base_unit: "piece", piece_label: "oignon", piece_weight_g: 150)
+
+      expect(described_class.factor(from_unit: "g", ingredient: oignon)).to eq(1.0 / 150)
+    end
+
+    it "renonce quand rien ne relie les unités" do
+      expect(described_class.factor(from_unit: "ml", ingredient: ingredient(:mass, "g"))).to be_nil
+    end
+  end
+
   describe ".compatible?" do
     it "reconnaît un pont ouvert par le poids unitaire" do
       expect(described_class.compatible?(from_unit: nil, ingredient: ingredient(:mass, "g", piece_weight_g: 40)))
