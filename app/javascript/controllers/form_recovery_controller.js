@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import { readSnapshot, writeSnapshot, forgetSnapshot } from "form_snapshot"
+import { readSnapshot, writeSnapshot, markInFlight } from "form_snapshot"
 import { readImageUrl, assignFile } from "photo_input"
 import { FIELDS_SELECTOR, DESTROY_SELECTOR, removeFields } from "nested_fields"
 import { appendPreparationRow, preparationRows, ingredientSelect } from "preparation_rows"
@@ -9,14 +9,16 @@ import { appendPreparationRow, preparationRows, ingredientSelect } from "prepara
 // d'ingrédients, étapes, tags — et un rechargement le vidait entièrement.
 //
 // L'instantané est repris à chaque interaction, puis marqué « soumis » au départ
-// du formulaire. C'est ce marquage, et ce que le serveur vient de rendre, qui
-// distinguent les quatre façons de revenir sur la page :
+// du formulaire. Une sauvegarde acceptée l'oublie aussitôt, sur la page qui la
+// confirme — la fiche de la recette, le plus souvent (cf. form-saved) : le
+// formulaire suivant à la même adresse, une nouvelle recette après la
+// précédente, ne doit rien en recevoir. Restent trois façons de revenir sur la
+// page avec un instantané :
 //   - instantané vif              → la page a été rechargée en cours de saisie :
 //                                   on repose tout
 //   - marqué + formulaire refusé  → la sauvegarde a échoué : le serveur a
 //                                   ré-affiché la saisie, seule la photo manque
-//   - marqué + saisie enregistrée → la recette est en base : on oublie
-//   - marqué + saisie absente     → la soumission n'est jamais arrivée à bon
+//   - marqué, sans plus           → la soumission n'est jamais arrivée à bon
 //                                   port : on repose tout
 //
 // Ce dernier cas est celui d'un brouillon d'import, et il coûte cher à manquer.
@@ -133,9 +135,12 @@ export default class extends Controller {
   // Départ du formulaire. L'instantané est repris une dernière fois — la saisie
   // telle qu'elle part — puis marqué : tant qu'on n'a pas vu la page suivante,
   // on ignore si elle arrivera, et c'est encore la seule copie qui en existe.
+  // Le formulaire est déclaré en vol : si la sauvegarde aboutit, la page qui la
+  // confirme saura quel instantané oublier.
   markSubmitted() {
     clearTimeout(this.timer)
     this.write({ ...this.snapshot(), submitted: true })
+    markInFlight(this.key)
   }
 
   // === Écriture ===
@@ -164,24 +169,10 @@ export default class extends Controller {
     const snapshot = readSnapshot(this.key)
     if (!snapshot) return
 
-    if (!snapshot.submitted) this.restore(snapshot)
-    else if (this.rejectedValue) this.restorePhoto(snapshot.photo)
-    else if (this.alreadySaved(snapshot)) forgetSnapshot(this.key)
+    // Une sauvegarde acceptée a déjà oublié son instantané (cf. form-saved) :
+    // marqué et encore là, il n'a été que refusé ou perdu en route.
+    if (snapshot.submitted && this.rejectedValue) this.restorePhoto(snapshot.photo)
     else this.restore(snapshot)
-  }
-
-  // Le serveur a-t-il enregistré la saisie que porte l'instantané ? Les lignes
-  // d'ingrédient répondent pour tout le formulaire : elles sont ce qu'une
-  // soumission perdue laisse manquer, et le serveur en rend exactement autant
-  // que la sauvegarde en a retenu. Moins que l'instantané n'en portait, c'est
-  // que la soumission n'est pas arrivée — la saisie est encore à reposer.
-  // La valeur par défaut couvre l'instantané d'un onglet resté ouvert pendant
-  // une mise en production : écrit par la version précédente, il ne portait au
-  // départ du formulaire que la photo — donc rien à reposer.
-  alreadySaved({ preparations = [] }) {
-    const expected = preparations.filter((entry) => rowHasContent(entry) && !entry.destroyed)
-
-    return preparationRows().length >= expected.length
   }
 
   restore({ fields, preparations, photo }) {

@@ -59,6 +59,15 @@
       %span.network-status__dot
       %span.network-status__text{ data: { "network-status-target": "text" } }
 
+    -# Une sauvegarde de recette vient d'aboutir : form-saved fait oublier au
+    -# navigateur la saisie qu'il retenait, pour que le formulaire suivant
+    -# s'ouvre vide. Retiré du flash avant l'affichage des messages, dont il
+    -# ne fait pas partie.
+    -# (FlashHash#delete rend le flash lui-même, pas la valeur retirée.)
+    - if flash[:form_saved]
+      - flash.delete(:form_saved)
+      %div{ hidden: true, data: { controller: "form-saved" } }
+
     -# Flash messages — turbo_stream cible l'id "flash" pour les mises à jour dynamiques.
     -# aria-live="polite" : les messages injectés dynamiquement (Turbo Streams) sont
     -# annoncés par les lecteurs d'écran. role="status" renforce le support.

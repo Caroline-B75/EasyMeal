@@ -128,7 +128,11 @@ class RecipesController < ApplicationController
   #
   # @return [Boolean] la sauvegarde a-t-elle abouti ?
   def save_recipe(record)
-    yield
+    saved = yield
+    # La page vers laquelle on redirige dira au navigateur d'oublier la saisie
+    # qu'il retenait (cf. form_saved_controller.js) : elle est en base.
+    flash[:form_saved] = true if saved
+    saved
   rescue ActiveRecord::RecordNotUnique
     record.errors.add(:base, "L'enregistrement a échoué : un ingrédient apparaît deux fois dans la " \
                              "recette — #{Recipe::DUPLICATE_INGREDIENT_HINT}, puis réessaie.")

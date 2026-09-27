@@ -35,3 +35,32 @@ export function forgetSnapshot(key) {
     // Stockage indisponible : il n'y avait rien à oublier.
   }
 }
+
+// === Soumission en vol ===
+//
+// Un formulaire soumis quitte la page sans savoir si sa sauvegarde aboutira : son
+// instantané reste la seule copie de la saisie. On retient donc quel formulaire
+// est parti, pour que la page qui confirme la sauvegarde — souvent une autre,
+// la fiche de la recette — puisse oublier son instantané. Un seul formulaire
+// peut être en vol par onglet : la soumission remplace la page.
+
+const IN_FLIGHT_KEY = "easymeal.formInFlight"
+
+export function markInFlight(key) {
+  try {
+    sessionStorage.setItem(IN_FLIGHT_KEY, key)
+  } catch {
+    // Stockage indisponible : aucun instantané n'a pu être écrit non plus.
+  }
+}
+
+// La sauvegarde du formulaire en vol a abouti : sa saisie est en base.
+export function forgetInFlight() {
+  try {
+    const key = sessionStorage.getItem(IN_FLIGHT_KEY)
+    if (key) forgetSnapshot(key)
+    sessionStorage.removeItem(IN_FLIGHT_KEY)
+  } catch {
+    // Stockage indisponible : il n'y avait rien à oublier.
+  }
+}
