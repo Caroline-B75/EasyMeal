@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_21_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_28_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -291,6 +291,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_21_100000) do
     t.string "name", null: false
     t.integer "prep_time_minutes"
     t.integer "price"
+    t.datetime "published_at"
     t.string "source_type"
     t.string "source_url"
     t.integer "status", default: 1, null: false
@@ -301,7 +302,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_21_100000) do
     t.index ["meal_types"], name: "index_recipes_on_meal_types", using: :gin
     t.index ["name"], name: "index_recipes_on_name"
     t.index ["name"], name: "index_recipes_on_name_trgm", opclass: :gin_trgm_ops, using: :gin
+    t.index ["published_at", "id"], name: "index_recipes_on_published_at_and_id"
     t.index ["status"], name: "index_recipes_on_status"
+    t.check_constraint "status <> 1 OR published_at IS NOT NULL", name: "recipes_published_at_when_published"
   end
 
   create_table "reviews", force: :cascade do |t|

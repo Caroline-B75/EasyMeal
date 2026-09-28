@@ -2,7 +2,7 @@
 
 module Recipes
   # Assemble le catalogue affiché par RecipesController#index (UC5) : la page de
-  # recettes filtrée et triée, plus tout ce que la vue doit connaître autour
+  # recettes filtrée et triée (les dernières publiées en tête), plus tout ce que la vue doit connaître autour
   # d'elle (tags de la sidebar, favoris de l'utilisateur, recettes de saison).
   #
   # Le filtrage lui-même reste chez FilterService ; ce que cet objet apporte,
@@ -23,9 +23,6 @@ module Recipes
     # Associations nécessaires au rendu d'une carte (tags, note moyenne, photo).
     CARD_INCLUDES = [ :tags, :reviews, :photo_attachment ].freeze
 
-    # Tri par défaut du catalogue quand aucun ?sort= n'est demandé.
-    DEFAULT_SORT = :name
-
     # La liste des tags de la sidebar est identique pour tout le monde et bouge
     # rarement : elle est mutualisée en cache plutôt que rejouée à chaque page.
     TAGS_CACHE_KEY = "tags/with_recipes"
@@ -39,7 +36,7 @@ module Recipes
     end
 
     # @param scope [ActiveRecord::Relation] scope de base (autorisé, éventuellement restreint aux favoris)
-    # @param params [ActionController::Parameters] params de la requête (filtres + tri)
+    # @param params [ActionController::Parameters] params de la requête (filtres)
     # @param user [User, nil] utilisateur connecté, pour l'état des coeurs favoris
     # @yieldparam relation [ActiveRecord::Relation] relation filtrée à paginer
     # @yieldreturn [Array(Pagy, ActiveRecord::Relation)] couple renvoyé par Pagy
@@ -82,11 +79,13 @@ module Recipes
 
     private
 
-    # Relation filtrée, préchargée et triée — celle que le bloc paginera
+    # Relation filtrée, préchargée et triée — celle que le bloc paginera.
+    # Le tri est fixe, les dernières publiées en tête : rien de ce qui vient de
+    # l'URL n'entre dans le ORDER BY.
     def filtered_scope
       FilterService.call(@scope, @params)
                    .includes(*CARD_INCLUDES)
-                   .order(@params[:sort] || DEFAULT_SORT)
+                   .newest_first
     end
 
     # Seules les recettes publiées comptent : ce sont les seules que le catalogue

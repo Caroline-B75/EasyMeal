@@ -26,12 +26,26 @@ RSpec.describe Recipes::CatalogQuery do
       expect(catalog({ diet: "vegetarien" }).recipes).to contain_exactly(tarte)
     end
 
-    it "trie par nom en l'absence de paramètre de tri" do
-      expect(catalog.recipes.map(&:name)).to eq([ "Burger", "Tarte" ])
+    it "range les dernières publiées en tête" do
+      tarte.update!(published_at: 1.day.ago)
+      burger.update!(published_at: 2.days.ago)
+
+      expect(catalog.recipes).to eq([ tarte, burger ])
     end
 
-    it "honore le paramètre de tri" do
-      expect(catalog({ sort: "name desc" }).recipes).to eq([ tarte, burger ])
+    # Seeds et imports groupés publient au même instant : l'id départage, sans
+    # quoi l'ordre changerait d'une requête à l'autre sous la pagination.
+    it "départage les recettes publiées au même instant, la dernière créée d'abord" do
+      same_time = 1.day.ago
+      [ tarte, burger ].each { |recipe| recipe.update!(published_at: same_time) }
+
+      expect(catalog.recipes).to eq([ burger, tarte ])
+    end
+
+    # Rien de ce qui vient de l'URL n'entre dans le ORDER BY : l'ancien ?sort=
+    # passait tel quel à .order et une valeur farfelue levait une erreur 500.
+    it "ignore un paramètre de tri venu de l'URL" do
+      expect(catalog({ sort: "name; DROP TABLE recipes" }).recipes).to eq([ burger, tarte ])
     end
 
     it "reconduit l'objet pagy renvoyé par le paginateur" do

@@ -127,6 +127,39 @@ RSpec.describe Recipe, type: :model do
     end
   end
 
+  # La date de publication range le catalogue : elle se pose au passage à
+  # « publiée », quel que soit le chemin, et ne bouge plus ensuite.
+  describe "date de publication" do
+    it "est posée à la création d'une recette publiée d'emblée" do
+      expect(create(:recipe, :with_ingredient).published_at).to be_within(1.second).of(Time.current)
+    end
+
+    it "reste vide sur un brouillon" do
+      expect(create(:recipe, status: :draft).published_at).to be_nil
+    end
+
+    it "est posée à la validation du brouillon, pas à son import" do
+      draft = create(:recipe, :with_ingredient, status: :draft, created_at: 1.month.ago)
+
+      draft.update!(status: :published)
+
+      expect(draft.published_at).to be_within(1.second).of(Time.current)
+    end
+
+    it "ne bouge plus quand la recette est modifiée ensuite" do
+      recipe = create(:recipe, :with_ingredient, published_at: 1.month.ago)
+
+      expect { recipe.update!(name: "Renommée") }.not_to change(recipe, :published_at)
+    end
+
+    # Un chemin qui contournerait le modèle ne pourrait pas publier sans date.
+    it "est exigée par la base pour une recette publiée" do
+      recipe = create(:recipe, :with_ingredient)
+
+      expect { recipe.update_column(:published_at, nil) }.to raise_error(ActiveRecord::StatementInvalid)
+    end
+  end
+
   describe "#draft_missing_fields" do
     it "réclame le moment du repas tant qu'aucun n'est coché" do
       draft = build(:recipe, status: :draft, meal_types: [])

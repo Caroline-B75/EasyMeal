@@ -99,6 +99,13 @@ class Recipe < ApplicationRecord
   # Les règles sur la liste d'ingrédients (au moins un ingrédient, une seule
   # ligne par ingrédient) sont portées par le concern HasIngredientList.
 
+  # === Callbacks ===
+
+  # Date la publication, quel que soit le chemin qui y mène : création directe
+  # (publiée par défaut), validation d'un brouillon, seeds. La base refuse
+  # d'ailleurs une recette publiée sans date (cf. la migration).
+  before_save :stamp_published_at, if: -> { published? && published_at.nil? }
+
   # === Scopes ===
 
   # Filtres par statut de publication
@@ -173,6 +180,12 @@ class Recipe < ApplicationRecord
 
   # Tri alphabétique
   scope :alphabetical, -> { order(name: :asc) }
+
+  # Les dernières publiées d'abord : l'ordre du catalogue. L'id départage les
+  # recettes publiées au même instant (seeds, imports groupés) — sans lui,
+  # PostgreSQL ne garantit pas l'ordre et une recette pourrait sauter ou
+  # apparaître deux fois d'une page à l'autre.
+  scope :newest_first, -> { order(published_at: :desc, id: :desc) }
 
   # Requête SQL partagée : recettes dont un ingrédient correspond par nom ou alias
   def self.ingredients_matching(ingredient_names)
@@ -254,5 +267,11 @@ class Recipe < ApplicationRecord
   # Nom lisible du prix en français
   def price_human
     human_enum_value(:price, "Non renseigné")
+  end
+
+  private
+
+  def stamp_published_at
+    self.published_at = Time.current
   end
 end
