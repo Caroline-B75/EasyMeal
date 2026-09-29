@@ -25,6 +25,18 @@ RSpec.describe "Pagination des recettes", type: :request do
 
       expect(response.body).to include('aria-label="Précédent"', 'aria-label="Suivant"')
     end
+
+    # Vieux lien, ou filtre ajouté depuis la page 2 : une page qui n'existe plus
+    # levait Pagy::OverflowError (erreur 500). On retombe sur la dernière.
+    it "affiche la dernière page quand la page demandée n'existe pas" do
+      oldest = Recipe.order(:id).first
+      oldest.update!(name: "La plus ancienne")
+
+      get recipes_path(page: 99)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("La plus ancienne")
+    end
   end
 
   describe "GET /recipes/:id" do
