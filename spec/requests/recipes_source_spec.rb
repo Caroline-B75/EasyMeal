@@ -19,19 +19,32 @@ RSpec.describe "Source d'import sur la fiche recette", type: :request do
   end
 
   describe "import par lien" do
-    # Citer sa source est normal : le lien reste visible même déconnecté.
-    it "propose la page d'origine à un visiteur non connecté" do
+    # Le lien d'origine est, comme la photo, une pièce de référence interne.
+    it "ne montre rien à un visiteur non connecté" do
       get recipe_path(link_recipe)
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include("https://exemple.fr/tarte")
-      expect(response.body).to include('rel="noopener noreferrer"')
+      expect(response.body).not_to include("https://exemple.fr/tarte")
     end
 
-    it "ouvre la page d'origine dans un nouvel onglet, jamais par-dessus la fiche" do
+    it "ne montre rien à un utilisateur connecté sans droits d'admin" do
+      sign_in create(:user)
+
       get recipe_path(link_recipe)
 
-      expect(response.body).to include('target="_blank"')
+      expect(response.body).not_to include("https://exemple.fr/tarte")
+    end
+
+    context "connectée en admin" do
+      before { sign_in admin }
+
+      it "ouvre la page d'origine dans un nouvel onglet, jamais par-dessus la fiche" do
+        get recipe_path(link_recipe)
+
+        expect(response.body).to include("https://exemple.fr/tarte")
+        expect(response.body).to include('target="_blank"')
+        expect(response.body).to include('rel="noopener noreferrer"')
+      end
     end
   end
 

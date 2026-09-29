@@ -57,8 +57,10 @@
                                      share_title_value: @recipe.name } }
           = svg_icon(:share, size: 14)
 
-        -# D'où vient cette recette : rien pour une recette saisie à la main.
-        = render "recipes/source_button", recipe: @recipe
+        -# D'où vient cette recette, pour les admins seulement : rien pour une
+        -# recette saisie à la main.
+        - if current_user&.admin?
+          = render "recipes/source_button", recipe: @recipe
 
     -# Colonne droite — Photo
     .rs-hero-photo

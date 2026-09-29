@@ -5,15 +5,15 @@
 -#   - un import par lien rouvre la page d'origine dans un nouvel onglet ;
 -#   - un import par photo rouvre la page photographiée dans une pop-up.
 -#
--# La photo reste réservée aux admins : citer un lien est normal, rediffuser
--# publiquement la page photographiée d'un livre ou d'un magazine ne l'est pas.
+-# Réservé aux admins (la fiche ne rend ce partial que pour eux) : la source
+-# est une pièce de référence interne, lien comme photo.
 -# Une recette saisie à la main n'a pas de source et ne rend donc rien.
 
 - if recipe.imported_from_link?
   = link_to recipe.source_url, **source_link_options("rs-btn-icon") do
     = svg_icon(:link, size: 14)
 
-- elsif current_user&.admin? && recipe.imported_from_photo?
+- elsif recipe.imported_from_photo?
   - photo_url = draft_source_photo_url(recipe)
   - photo_title = "Voir la page photographiée à l'import"
 
