@@ -116,10 +116,13 @@
 /* === Bouton flottant (visible sur tous les écrans) === */
 
 .filters-mobile-btn {
+  /* Marge entre le bouton et ce qu'il surplombe — seule valeur que les petits
+     écrans redéfinissent, pour ne jamais perdre le décalage du rail. */
+  --filters-btn-gap: 1.5rem;
   display: flex;
   position: fixed;
   /* Au-dessus du rail du menu (s'il est rendu) et de l'indicateur d'accueil iOS */
-  bottom: calc(var(--draft-rail-space, 0px) + 1.5rem + env(safe-area-inset-bottom));
+  bottom: calc(var(--draft-rail-space, 0px) + var(--filters-btn-gap) + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   z-index: 150;
@@ -1086,7 +1089,7 @@
 /* ── Très petit écran : bouton flottant un peu plus compact ── */
 @media (max-width: 360px) {
   .filters-mobile-btn {
-    bottom: 1rem;
+    --filters-btn-gap: 1rem;
     padding: 0.65rem 1.25rem;
     font-size: var(--font-size-sm);
   }
